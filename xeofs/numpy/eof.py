@@ -42,7 +42,7 @@ class EOF(_EOF_base):
         return self._explained_variance_ratio
 
     def eofs(self):
-        out_shape = np.insert(self._feature_space, 0, -1)
+        out_shape = np.append(self._feature_space, -1)
         return self._eofs.reshape(out_shape)
 
     def pcs(self):
