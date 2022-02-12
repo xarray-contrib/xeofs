@@ -42,7 +42,7 @@ jobs:
           coverage run -m pytest
           coverage xml
       - name: Upload coverage report
-      - uses: actions/checkout@main
-      - uses: codecov/codecov-action@v2
+        uses: actions/checkout@main
+        uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml
