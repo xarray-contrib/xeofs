@@ -35,9 +35,9 @@ and xarray_.
    :maxdepth: 2
    :caption: Contents:
 
-*********
+******************
 Documentation
-*********
+******************
 
  .. toctree::
     installation
