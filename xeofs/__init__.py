@@ -1,1 +1,1 @@
-import xeofs.numpy
+import xeofs.inumpy

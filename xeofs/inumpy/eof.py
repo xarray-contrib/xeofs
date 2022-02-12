@@ -3,7 +3,7 @@ from typing import Iterable
 import numpy as np
 from sklearn.decomposition import PCA
 
-from xeofs.numpy._eof_base import _EOF_base
+from xeofs.inumpy._eof_base import _EOF_base
 
 
 class EOF(_EOF_base):
