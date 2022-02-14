@@ -1,1 +1,1 @@
-import xeofs.inumpy
+from xeofs import models, pandas, xarray

@@ -1,3 +1,6 @@
 numpy
 scikit-learn
+pandas
+xarray
 pytest
+pooch

@@ -23,13 +23,18 @@ EOF-related techniques through the popular interfaces of NumPy_, pandas_
 and xarray_.
 
 
-.. _NumPy: https://www.numpy.org
-.. _pandas: https://pandas.pydata.org
-.. _xarray: https://xarray.pydata.org
-
 
 ************************
 Credits
 ************************
 
-- General project structure: https://github.com/yngvem/python-project-structure
+- General project structure: yngvem_
+- Testing data: xarray_ \& pooch_
+
+
+
+.. _NumPy: https://www.numpy.org
+.. _pandas: https://pandas.pydata.org
+.. _xarray: https://xarray.pydata.org
+.. _yngvem: https://github.com/yngvem/python-project-structure
+.. _pooch: https://github.com/fatiando/pooch
