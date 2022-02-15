@@ -1,13 +1,10 @@
 .. image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
    :alt: GitHub tag (latest SemVer)
-
 .. image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
-  :alt: GitHub Workflow Status (event)
-
+   :alt: GitHub Workflow Status (event)
 .. image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-
 .. image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
   :target: https://codecov.io/gh/nicrie/xeofs
 
@@ -29,6 +26,16 @@ Goal (work in progress)
 Create a Python package that provides simple access to a variety of different
 EOF-related techniques through the popular interfaces of NumPy_, pandas_
 and xarray_.
+
+
+************************
+Installation
+************************
+The package can be installed via
+
+.. code-block:: ini
+
+  pip install xeofs
 
 ************************
 Documentation
