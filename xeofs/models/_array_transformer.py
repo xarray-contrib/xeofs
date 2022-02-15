@@ -24,13 +24,15 @@ class _ArrayTransformer():
 
         nan_idx = np.isnan(data.reshape(shape_out)).any(axis=0)
         self.notnull_idx = np.logical_not(nan_idx)
-        if self.notnull_idx.sum() == 0:
-            raise ValueError('No data to process after NaN removal.')
         self.n_samples = n_samples
         self.n_features = n_features
+        self.n_features_no_nan = np.sum(self.notnull_idx)
         self.shape_features = shape_features
-        self.shape_out = shape_out
         self.shape_in = shape_in
+        self.shape_out = shape_out
+        self.shape_out_no_nan = tuple([self.n_samples, self.n_features_no_nan])
+        if self.n_features_no_nan == 0:
+            raise ValueError('No data to process after NaN removal.')
         return self
 
     def transform(self, data : np.ndarray):
@@ -40,6 +42,7 @@ class _ArrayTransformer():
         except ValueError:
             err_msg = 'Input feature dimension is {:}, but {:} is expected.'
             err_msg = err_msg.format(data.shape[1:], self.shape_in[1:])
+            raise ValueError(err_msg)
         # Remove NaNs
         data = data[:, self.notnull_idx]
         if np.isnan(data).any():
@@ -52,10 +55,8 @@ class _ArrayTransformer():
         return self.fit(data).transform(data)
 
     def back_transform(self, data : np.ndarray):
-        n_vars_in = len(self.notnull_idx)
-        data_with_nan = np.zeros([data.shape[0], n_vars_in]) * np.nan
-        try:
-            data_with_nan[:, self.notnull_idx] = data
-        except ValueError as err:
-            raise err
+        if len(data.shape) != 2:
+            raise ValueError('Input must be 2D.')
+        data_with_nan = np.zeros([data.shape[0], self.n_features]) * np.nan
+        data_with_nan[:, self.notnull_idx] = data
         return data_with_nan.reshape((-1,) + self.shape_in[1:])
