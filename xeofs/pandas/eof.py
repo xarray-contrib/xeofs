@@ -59,9 +59,9 @@ class EOF(models.eof.EOF):
         return expvar
 
     def eofs(self):
-        eofs = super().eofs()
-        eofs = self._df_tf.back_transform(eofs)
-        eofs.index = self._mode_idx
+        eofs = self._eofs
+        eofs = self._df_tf.back_transform(eofs.T).T
+        eofs.columns = self._mode_idx
         return eofs
 
     def pcs(self):

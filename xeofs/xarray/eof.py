@@ -35,17 +35,16 @@ class EOF(models.eof.EOF):
 
     def singular_values(self):
         svalues = super().singular_values()
-        svalues = xr.DataArray(
+        return xr.DataArray(
             svalues,
             dims=['mode'],
             coords={'mode' : self._mode_idx},
             name='singular_values'
         )
-        return svalues
 
     def explained_variance(self):
         expvar = super().explained_variance()
-        expvar = xr.DataArray(
+        return xr.DataArray(
             expvar,
             dims=['mode'],
             coords={'mode' : self._mode_idx},
@@ -54,7 +53,7 @@ class EOF(models.eof.EOF):
 
     def explained_variance_ratio(self):
         expvar = super().explained_variance_ratio()
-        expvar = xr.DataArray(
+        return xr.DataArray(
             expvar,
             dims=['mode'],
             coords={'mode' : self._mode_idx},
@@ -62,8 +61,8 @@ class EOF(models.eof.EOF):
         )
 
     def eofs(self):
-        eofs = super().eofs()
-        eofs = self._da_tf.back_transform(eofs.T)
+        eofs = self._eofs
+        eofs = self._da_tf.back_transform(eofs.T).T
         eofs = eofs.rename({self._dim : 'mode'})
         eofs = eofs.assign_coords({'mode' : self._mode_idx})
         eofs.name = 'EOFs'
