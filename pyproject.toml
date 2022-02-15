@@ -17,6 +17,7 @@ xarray = "^0.21.1"
 scikit-learn = "^1.0.2"
 pytest = "^7.0.1"
 pooch = "^1.6.0"
+flake8 = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
 
