@@ -20,6 +20,9 @@ class EOF(_EOF_base):
         self._arr_tf = _ArrayTransformer()
         self.X = self._arr_tf.fit_transform(X)
 
+        if norm:
+            self.X /= self.X.std(axis=0)
+
         super().__init__(
             X=X,
             Y=None,
