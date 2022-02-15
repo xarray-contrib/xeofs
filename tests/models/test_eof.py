@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from xeofs.inumpy import EOF
+from xeofs.models import EOF
 
 rng = np.random.default_rng(7)
 

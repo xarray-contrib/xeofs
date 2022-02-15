@@ -1,0 +1,74 @@
+# Basic workflow for building and testing the pip installation
+
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+
+jobs:
+
+  Quality:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python poetry
+        uses: abatilo/actions-poetry@v2.1.0
+        with:
+          poetry-version: 1.1.13
+      - name: Configure poetry
+        shell: bash
+        run: python -m poetry config virtualenvs.in-project true
+      - name: View poetry version
+        run: poetry --version
+      - name: Install dependencies
+        run: |
+          python -m poetry install
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          python -m poetry run flake8 . --exclude .venv --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          python -m poetry run flake8 . --exclude .venv --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with pytest
+        run: |
+          python -m poetry run coverage run -m pytest
+          python -m poetry run coverage report -m
+          python -m poetry run coverage xml
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.xml
+
+  Release:
+
+    needs: Quality
+    # https://github.community/t/how-do-i-specify-job-dependency-running-in-another-workflow/16482
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Semantic Release
+        run: |
+          pip install python-semantic-release
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          semantic-release publish

@@ -11,23 +11,15 @@ class _EOF_base():
         X: Iterable[np.ndarray],
         Y: Iterable[np.ndarray] = None,
         n_modes=None,
-        norm=False,
-        axis=0
+        norm=False
     ):
-        self._X_shape = np.array(X.shape)
-        self._feature_space = np.delete(self._X_shape, axis)
 
-        n_samples = np.product(self._X_shape[axis])
-        if len(self._X_shape) > 2:
-            X = X.reshape(n_samples, -1)
-
-        self.X = X
         self.n_samples = X.shape[0]
         self.n_features = X.shape[1]
 
-        self._n_modes = n_modes
+        self.n_modes = n_modes
         if n_modes is None:
-            self._n_modes = min(self.n_samples, self.n_features)
+            self.n_modes = min(self.n_samples, self.n_features)
 
         # TODO: remove NaN
         # self._nan_idx = np.nan(X).any(axis=0)

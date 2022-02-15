@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "xeofs"
+version = "0.1.0"
+description = "Collection of EOF analysis and related techniques for climate science"
+authors = ["Niclas Rieger <niclasrieger@gmail.com>"]
+license = "MIT"
+readme = "README.rst"
+homepage = "https://github.com/nicrie/xeofs"
+repository = "https://github.com/nicrie/xeofs"
+documentation = "https://xeofs.readthedocs.io/en/latest/"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.22.2"
+pandas = "^1.4.1"
+xarray = "^0.21.1"
+scikit-learn = "^1.0.2"
+pooch = "^1.6.0"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+pytest = "^7.0.1"
+coverage = "^6.3.1"
+
+[build-system]
+requires = ["setuptools", "poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variable = [
+    "xeofs/__init__.py:__version__",
+    "pyproject.toml:version"
+]
+branch = "main"
+upload_to_pypi = false
+uploade_to_release = true
+build_command = "pip install poetry && poetry build"
