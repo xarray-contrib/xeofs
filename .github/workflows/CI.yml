@@ -47,7 +47,7 @@ jobs:
         run: |
           python -m poetry run coverage run -m pytest
           python -m poetry run coverage report -m
-          coverage xml
+          python -m poetry run coverage xml
       - name: Upload coverage report
         uses: codecov/codecov-action@v2
         with:
