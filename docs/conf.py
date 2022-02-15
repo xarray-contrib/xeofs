@@ -14,6 +14,9 @@
 #
 import os
 import sys
+
+import importlib.metadata
+
 sys.path.insert(0, os.path.abspath('../xeofs'))
 # sys.path.insert(0, os.path.abspath('../xeofs/inumpy'))
 #
@@ -31,9 +34,9 @@ copyright = '2022, Niclas Rieger'
 author = 'Niclas Rieger'
 
 # The short X.Y version
-version = '0.0.0'
+version = importlib.metadata.version('xeofs')
 # The full version, including alpha/beta/rc tags
-release = '0.0.0'
+release = importlib.metadata.version('xeofs')
 
 
 # -- General configuration ---------------------------------------------------
