@@ -1,4 +1,8 @@
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
 class _ArrayTransformer():

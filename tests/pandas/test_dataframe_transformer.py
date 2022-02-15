@@ -1,9 +1,13 @@
 import numpy as np
 import pandas as pd
 import pytest
+import warnings
 
 from xeofs.models._array_transformer import _ArrayTransformer
 from xeofs.pandas._dataframe_transformer import _DataFrameTransformer
+
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
 @pytest.mark.parametrize('input_shape', [
