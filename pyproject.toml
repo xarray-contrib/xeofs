@@ -21,6 +21,7 @@ pooch = "^1.6.0"
 flake8 = "^4.0.1"
 pytest = "^7.0.1"
 coverage = "^6.3.1"
+netCDF4 = "^1.5.7"
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]
@@ -32,6 +33,6 @@ version_variable = [
     "pyproject.toml:version"
 ]
 branch = "main"
-upload_to_pypi = false
+upload_to_pypi = true
 uploade_to_release = true
 build_command = "pip install poetry && poetry build"

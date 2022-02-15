@@ -5,6 +5,8 @@ channels:
 dependencies:
   - python>3.8
   - numpy
+  - pandas
+  - xarray
   - scikit-learn
   - yaml
   - pip:

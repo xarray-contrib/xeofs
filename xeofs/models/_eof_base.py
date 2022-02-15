@@ -21,11 +21,6 @@ class _EOF_base():
         if n_modes is None:
             self.n_modes = min(self.n_samples, self.n_features)
 
-        # TODO: remove NaN
-        # self._nan_idx = np.nan(X).any(axis=0)
-
-        # TODO: normalization
-
         # TODO: weights
 
     @abstractmethod
