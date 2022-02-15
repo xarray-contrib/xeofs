@@ -17,9 +17,11 @@ xarray = "^0.21.1"
 scikit-learn = "^1.0.2"
 pytest = "^7.0.1"
 pooch = "^1.6.0"
-flake8 = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+pytest = "^3.0"
+coverage = "^6.3.1"
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]
