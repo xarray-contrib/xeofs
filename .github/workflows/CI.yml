@@ -60,15 +60,15 @@ jobs:
     # if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    concurrency: release
+
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v2
         with:
-          python-version: 3.8
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Semantic Release
-        run: |
-          pip install python-semantic-release
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          semantic-release publish
+          fetch-depth: 0
+      - name: Python semantic release
+        uses: relekang/python-semantic-release@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository_username: __token__
+          repository_password: ${{ secrets.PYPI_TOKEN }}
