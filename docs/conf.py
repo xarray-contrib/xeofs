@@ -15,8 +15,8 @@
 import os
 import sys
 
-import importlib.metadata
-# from xeofs.__init__ import __version__
+from xeofs import __version__
+
 sys.path.insert(0, os.path.abspath('..'))
 
 #
@@ -36,7 +36,7 @@ author = 'Niclas Rieger'
 # The short X.Y version
 # version = importlib.metadata.version('xeofs')
 # The full version, including alpha/beta/rc tags
-release = importlib.metadata.version('xeofs')
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
