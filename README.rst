@@ -1,11 +1,13 @@
-.. image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
-   :alt: GitHub tag (latest SemVer)
-.. image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
+|badge1| |badge2| |badge3| |badge4|
+
+.. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
+    :alt: GitHub tag (latest SemVer)
+.. |badge2| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
    :alt: GitHub Workflow Status (event)
-.. image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
+.. |badge3| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
+.. |badge4| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
   :target: https://codecov.io/gh/nicrie/xeofs
 
 
