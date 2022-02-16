@@ -17,7 +17,7 @@ class EOF(_EOF_base):
     def __init__(
         self,
         X: np.ndarray,
-        n_modes : Optional[n_modes] = None,
+        n_modes : Optional[int] = None,
         norm : bool = False
     ):
 
