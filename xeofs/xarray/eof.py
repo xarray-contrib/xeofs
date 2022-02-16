@@ -1,4 +1,4 @@
-from typing import Iterable, Union
+from typing import Iterable, Optional
 
 import numpy as np
 import xarray as xr
@@ -11,9 +11,8 @@ class EOF(models.eof.EOF):
 
     def __init__(
         self,
-        X: Iterable[xr.DataArray],
-        Y: Iterable[xr.DataArray] = None,
-        n_modes : Union[int, None] = None,
+        X: xr.DataArray,
+        n_modes : Optional[int] = None,
         norm : bool = False,
         dim: str = 'time'
     ):

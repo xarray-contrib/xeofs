@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -11,10 +11,9 @@ class EOF(models.eof.EOF):
 
     def __init__(
         self,
-        X: Iterable[pd.DataFrame],
-        Y: Iterable[pd.DataFrame] = None,
-        n_modes=None,
-        norm=False
+        X: pd.DataFrame,
+        n_modes : Optional[int] = None,
+        norm : bool = False
     ):
 
         if(np.logical_not(isinstance(X, pd.DataFrame))):

@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Optional
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -16,10 +16,9 @@ class EOF(_EOF_base):
 
     def __init__(
         self,
-        X: Iterable[np.ndarray],
-        Y: Iterable[np.ndarray] = None,
-        n_modes=None,
-        norm=False
+        X: np.ndarray,
+        n_modes : Optional[n_modes] = None,
+        norm : bool = False
     ):
 
         self._arr_tf = _ArrayTransformer()
