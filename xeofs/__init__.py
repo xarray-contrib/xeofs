@@ -1,5 +1,4 @@
-import importlib.metadata
-
+from importlib.metadata import version
 from xeofs import models, pandas, xarray
 
-__version__ = importlib.metadata.version('xeofs')
+__version__ = version(__name__)

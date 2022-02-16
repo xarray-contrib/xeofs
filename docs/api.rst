@@ -2,10 +2,10 @@
 API reference
 ##################
 
-.. note:: :code:`xeofs` is separated into three different interfaces providing entry points to work with popular data types of `NumPy` :code:`ndarray`, `pandas` :code:`DataFrame` and `xarray` :code:`DataArray`.
+.. note:: :code:`xeofs` is separated into three different interfaces providing entry points to work with popular data types of `NumPy` :code:`np.ndarray`, `pandas` :code:`pd.DataFrame` and `xarray` :code:`xr.DataArray`.
 
 *********
-NumPy
+Models
 *********
 .. autosummary::
    :toctree: _autosummary
@@ -13,7 +13,7 @@ NumPy
    :recursive:
 
 
-   xeofs.inumpy.eof.EOF
+   xeofs.models.eof.EOF
 
 
 *********
@@ -25,7 +25,7 @@ pandas
    :recursive:
 
 
-   xeofs.ipandas.eof.EOF
+   xeofs.pandas.eof.EOF
 
 *********
 xarray
@@ -36,4 +36,4 @@ xarray
    :recursive:
 
 
-   xeofs.ixarray.eof.EOF
+   xeofs.xarray.eof.EOF
