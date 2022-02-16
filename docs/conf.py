@@ -15,8 +15,7 @@
 import os
 import sys
 
-from xeofs import __version__
-
+from xeofs.__init__ import __version__
 sys.path.insert(0, os.path.abspath('..'))
 
 #
