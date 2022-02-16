@@ -1,19 +1,21 @@
 ##################
-API reference
+Models
 ##################
 
-.. note:: :code:`xeofs` is separated into three different interfaces providing entry points to work with popular data types of `NumPy` :code:`ndarray`, `pandas` :code:`DataFrame` and `xarray` :code:`DataArray`.
+.. note:: :code:`xeofs` is separated into three different interfaces providing entry points to work with popular data types of `NumPy` :code:`np.ndarray`, `pandas` :code:`pd.DataFrame` and `xarray` :code:`xr.DataArray`.
 
-*********
-NumPy
-*********
+
+:code:`xeofs.models` contains all EOF related techniques with a `NumPy` interface. If you rather prefer to work with :code:`pd.DataFrame` or :code:`xr.DataArray` objects, just use the corresponding models in the :code:`xeofs.pandas` or :code:`xeofs.xarray` module.
+
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
    :recursive:
 
 
-   xeofs.inumpy.eof.EOF
+   xeofs.models.eof.EOF
+
 
 
 *********
@@ -25,7 +27,8 @@ pandas
    :recursive:
 
 
-   xeofs.ipandas.eof.EOF
+   xeofs.pandas.eof.EOF
+
 
 *********
 xarray
@@ -36,4 +39,4 @@ xarray
    :recursive:
 
 
-   xeofs.ixarray.eof.EOF
+   xeofs.xarray.eof.EOF

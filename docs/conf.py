@@ -15,10 +15,10 @@
 import os
 import sys
 
-import importlib.metadata
+from xeofs import __version__
 
-sys.path.insert(0, os.path.abspath('../xeofs'))
-# sys.path.insert(0, os.path.abspath('../xeofs/inumpy'))
+sys.path.insert(0, os.path.abspath('..'))
+
 #
 # # prevent circular imports...
 # import sphinx.builders.html
@@ -34,9 +34,9 @@ copyright = '2022, Niclas Rieger'
 author = 'Niclas Rieger'
 
 # The short X.Y version
-version = importlib.metadata.version('xeofs')
+# version = importlib.metadata.version('xeofs')
 # The full version, including alpha/beta/rc tags
-release = importlib.metadata.version('xeofs')
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------

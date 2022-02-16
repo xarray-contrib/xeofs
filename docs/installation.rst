@@ -2,4 +2,8 @@
 Installation
 ##################
 
-.. note:: Instructions will follow soon.
+The package can be installed via
+
+.. code-block:: ini
+
+  pip install xeofs
