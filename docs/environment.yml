@@ -9,5 +9,6 @@ dependencies:
   - xarray
   - scikit-learn
   - yaml
+  - importlib-metadata 
   - pip:
     - sphinxawesome-theme
