@@ -32,7 +32,7 @@ and xarray_.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
 ******************
@@ -40,14 +40,16 @@ Documentation
 ******************
 
  .. toctree::
+    :maxdepth: 2
+
     installation
     tutorial
     api
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+..
+.. Indices and tables
+.. ==================
+..
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
