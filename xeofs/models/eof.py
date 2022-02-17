@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Optional, Union, Iterable
 
 import numpy as np
-from sklearn.decomposition import PCA
 
 from xeofs.models._eof_base import _EOF_base
 from xeofs.models._array_transformer import _ArrayTransformer
@@ -21,11 +20,7 @@ class EOF(_EOF_base):
         Data to be decpomposed. ``X`` can be any N-dimensional array with the
         first dimension containing the variable whose variance is to be
         maximised. All remaining dimensions will be automatically reshaped to
-        obtain a 2D matrix. For example, given data of `n` time series of ``p1`` different
-        variables each measured at ``p2`` different locations, the data matrix
-        ``X`` of dimensions ``(n x p1 x p2)`` will maximise `temporal` variance.
-        In contrast, if provided as ``(p2 x n x p1)``, the `spatial` variance
-        will be maximised.
+        obtain a 2D matrix.
     n_modes : Optional[int]
         Number of modes to compute. Computing less modes can results in
         performance gains. If None, then the maximum number of modes is
@@ -33,6 +28,13 @@ class EOF(_EOF_base):
     norm : bool
         Normalize each feature (e.g. grid cell) by its temporal standard
         deviation (the default is False).
+    axis : Union[int, Iterable[int]]
+        Axis along which variance should be maximised. Can also be
+        multi-dimensional. For example, given a data array of dimensions
+        ``(n x p1 x p2)`` with `n` time series at ``p1`` and ``p2`` different
+        locations, ``axis=0`` will maximise `temporal` variance along ``n``.
+        In contrast, ``axis=[1, 2]`` will maximise `spatial` variance along
+        ``(p1 x p2)`` (the default is 0).
 
 
     Examples
@@ -81,107 +83,23 @@ class EOF(_EOF_base):
         self,
         X: np.ndarray,
         n_modes : Optional[int] = None,
-        norm : bool = False
+        norm : bool = False,
+        axis : Union[int, Iterable[int]] = 0
     ):
 
-        self._arr_tf = _ArrayTransformer()
-        self.X = self._arr_tf.fit_transform(X)
-
-        if norm:
-            self.X /= self.X.std(axis=0)
+        self._tf = _ArrayTransformer()
+        X = self._tf.fit_transform(X, axis=axis)
 
         super().__init__(
-            X=self.X,
+            X=X,
             n_modes=n_modes,
             norm=norm
         )
 
-    def solve(self) -> None:
-        '''
-        Perform the EOF analysis.
-
-        To boost performance, the standard solver is based on
-        the PCA implementation of scikit-learn [1]_ which uses different algorithms
-        to perform the decomposition based on the data matrix size.
-
-        Naive approaches using singular value decomposition of the
-        data matrix ``X (n x p)`` or the covariance matrix ``C (p x p)``
-        quickly become infeasable computationally when the number of
-        samples :math:`n` or features :math:`p` increase (computational power increases
-        by :math:`O(n^2p)` and :math:`O(p^3)`, respectively.)
-
-
-        References
-        ----------
-        .. [1] https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-
-        '''
-
-        pca = PCA(n_components=self.n_modes)
-        self._pcs = pca.fit_transform(self.X)
-        self._singular_values = pca.singular_values_
-        self._explained_variance = pca.explained_variance_
-        self._explained_variance_ratio  = pca.explained_variance_ratio_
-        self._eofs = pca.components_.T
-
-        # Consistent signs for deterministic output
-        maxidx = [abs(self._eofs).argmax(axis=0)]
-        flip_signs = np.sign(self._eofs[maxidx, range(self._eofs.shape[1])])
-        self._eofs *= flip_signs
-        self._pcs *= flip_signs
-
-    def singular_values(self) -> np.ndarray:
-        '''Get the singular values.
-
-        The `i` th singular value :math:`\sigma_i` is defined by
-
-        .. math::
-           \sigma_i = \sqrt{n \lambda_i}
-
-        where :math:`\lambda_i` and :math:`n` are the associated eigenvalues
-        and the number of samples, respectively.
-
-        '''
-
-        return self._singular_values
-
-    def explained_variance(self):
-        '''Get the explained variance.
-
-        The explained variance is simply given by the individual eigenvalues
-        of the covariance matrix.
-
-        '''
-
-        return self._explained_variance
-
-    def explained_variance_ratio(self):
-        '''Get the explained variance ratio.
-
-        The explained variance ratio is the fraction of total variance
-        explained by a given mode and is calculated by :math:`\lambda_i / \sum_i^m \lambda_i`
-        where `m` is the total number of modes.
-
-        '''
-
-        return self._explained_variance_ratio
-
     def eofs(self):
-        '''Get the EOFs.
-
-        The empirical orthogonal functions (EOFs) are equivalent to the eigenvectors
-        of the covariance matrix of `X`.
-
-        '''
-
-        return self._arr_tf.back_transform(self._eofs.T).T
+        eofs = super().eofs()
+        return self._tf.back_transform_eofs(eofs)
 
     def pcs(self):
-        '''Get the PCs.
-
-        The principal components (PCs), also known as PC scores, are computed
-        by projecting the data matrix `X` onto the eigenvectors.
-
-        '''
-
-        return self._pcs
+        pcs = super().pcs()
+        return self._tf.back_transform_pcs(pcs)
