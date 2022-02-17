@@ -13,3 +13,5 @@ dependencies:
   - pip:
     - sphinxawesome-theme
     - sphinx-gallery
+    - xeofs
+
