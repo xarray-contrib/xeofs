@@ -7,8 +7,11 @@ dependencies:
   - numpy
   - pandas
   - xarray
+  - conda
   - scikit-learn
   - yaml
   - pip:
     - sphinxawesome-theme
+    - sphinx-gallery
     - xeofs
+

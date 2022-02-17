@@ -43,7 +43,7 @@ Documentation
     :maxdepth: 2
 
     installation
-    tutorial
+    auto_examples/index
     api
 
 ..
