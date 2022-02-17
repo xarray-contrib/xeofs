@@ -1,4 +1,4 @@
-|badge1| |badge2| |badge3| |badge4|
+|badge1| |badge2| |badge3| |badge4| |badge5|
 
 .. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
     :alt: GitHub tag (latest SemVer)
@@ -7,9 +7,10 @@
 .. |badge3| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge4| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
-  :target: https://codecov.io/gh/nicrie/xeofs
-
+.. |badge4| image:: https://img.shields.io/pypi/dm/xeofs   
+    :alt: PyPI - Downloads
+.. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
+    :target: https://codecov.io/gh/nicrie/xeofs
 
 =================================
 xeofs: EOF analysis and variants

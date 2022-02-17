@@ -35,25 +35,3 @@ def test_pandas_wrapper(input_shape):
 
     np.testing.assert_allclose(arr_out, df_out)
     np.testing.assert_allclose(arr_back, df_back.values)
-
-
-@pytest.mark.parametrize('columns', [
-    ['A', 'B', 'D'],
-])
-def test_invalid_transform(columns):
-    # Columns of new dataframe to not match fitted data.
-    rng = np.random.default_rng(7)
-    arr_in = rng.standard_normal((100, 3))
-    df_in = pd.DataFrame(
-        arr_in,
-        columns=['A', 'B', 'C'],
-        index=range(arr_in.shape[0])
-    )
-
-    df_new = df_in.copy()
-    df_new.columns = columns
-
-    tf = _DataFrameTransformer()
-    tf.fit(df_in)
-    with pytest.raises(Exception):
-        _ = tf.transform(df_new)
