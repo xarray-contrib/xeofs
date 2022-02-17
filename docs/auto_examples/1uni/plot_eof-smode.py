@@ -1,6 +1,6 @@
 """
 EOF analysis (S-mode)
------------------------
+========================
 
 EOF analysis in S-mode maximises the temporal variance.
 """
@@ -13,6 +13,8 @@ from matplotlib.gridspec import GridSpec
 from cartopy.crs import Orthographic, PlateCarree
 
 from xeofs.xarray import EOF
+
+#%%
 
 t2m = xr.tutorial.load_dataset('air_temperature')['air']
 

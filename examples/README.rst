@@ -2,4 +2,4 @@
 Examples
 ==================
 
-Below is a gallery of examples
+.. note:: More examples will follow soon.

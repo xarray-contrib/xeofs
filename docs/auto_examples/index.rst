@@ -8,7 +8,7 @@
 Examples
 ==================
 
-Below is a gallery of examples
+.. note:: More examples will follow soon.
 
 
 .. raw:: html
@@ -65,20 +65,6 @@ Below is a gallery of examples
    :hidden:
 
    /auto_examples/1uni/plot_eof-smode
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_2multi:
-
-2 | Multivariate
-==================
-
-Work in progress...
-
-
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>

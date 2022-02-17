@@ -1,6 +1,6 @@
 """
 EOF analysis (T-mode)
------------------------
+========================
 
 EOF analysis in T-mode maximises the spatial variance.
 
