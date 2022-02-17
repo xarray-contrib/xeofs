@@ -83,7 +83,7 @@ class _ArrayTransformer():
         try:
             X = X.transpose(self.new_axes_order)
         except ValueError:
-            err_msg = 'Expected dimension {:}, but got {:} instead.'
+            err_msg = 'Expected {:} dimensions, but got {:} instead.'
             err_msg = err_msg.format(len(self.all_axes), len(X.shape))
             raise ValueError(err_msg)
 
