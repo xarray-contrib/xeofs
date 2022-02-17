@@ -1,13 +1,13 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 import numpy as np
 import xarray as xr
 
-from .. import models
+from ..models._eof_base import _EOF_base
 from xeofs.xarray._dataarray_transformer import _DataArrayTransformer
 
 
-class EOF(models.eof.EOF):
+class EOF(_EOF_base):
     '''EOF analysis of a single ``xr.DataArray``.
 
     Parameters
@@ -25,7 +25,9 @@ class EOF(models.eof.EOF):
         Define the dimension which should considered for maximising variance.
         For most applications in climate science, temporal variance is
         maximised (also known as S-mode EOF analysis) i.e. the time dimension
-        should be chosen (the default is ``time``).
+        should be chosen. If spatial variance should be maximised
+        (i.e. T-mode EOF analysis), set e.g. ``dim=['lon', 'lat']``
+        (the default is ``time``).
 
     Examples
     --------
@@ -75,7 +77,7 @@ class EOF(models.eof.EOF):
     Get PCs:
 
     >>> model.pcs()
-    ... xarray.DataArray'PCs'time: 2920mode: 2
+    ... xarray.DataArray 'PCs' time: 2920 mode: 2
     ... array([[-3.782707  , -0.07754549],
     ...        [-3.7966802 , -0.13775176],
     ...        [-3.7969239 , -0.05770111],
@@ -96,14 +98,14 @@ class EOF(models.eof.EOF):
         X: xr.DataArray,
         n_modes : Optional[int] = None,
         norm : bool = False,
-        dim: str = 'time'
+        dim: Union[str, Iterable[str]] = 'time'
     ):
 
         if(np.logical_not(isinstance(X, xr.DataArray))):
             raise ValueError('This interface is for `xarray.DataArray` only.')
 
-        self._da_tf = _DataArrayTransformer()
-        X = self._da_tf.fit_transform(X, dim=dim)
+        self._tf = _DataArrayTransformer()
+        X = self._tf.fit_transform(X, dim=dim)
 
         super().__init__(
             X=X,
@@ -141,22 +143,13 @@ class EOF(models.eof.EOF):
         )
 
     def eofs(self) -> xr.DataArray:
-        eofs = self._eofs
-        eofs = self._da_tf.back_transform(eofs.T).T
-        eofs = eofs.rename({self._dim : 'mode'})
-        eofs = eofs.assign_coords({'mode' : self._mode_idx})
+        eofs = super().eofs()
+        eofs = self._tf.back_transform_eofs(eofs)
         eofs.name = 'EOFs'
         return eofs
 
     def pcs(self) -> xr.DataArray:
         pcs = super().pcs()
-        coords = {
-            self._dim : self._da_tf.coords_in[self._dim],
-            'mode' : self._mode_idx
-        }
-        return xr.DataArray(
-            pcs,
-            dims=(list(self._da_tf.dims_sample) + ['mode']),
-            coords=coords,
-            name='PCs'
-        )
+        pcs = self._tf.back_transform_pcs(pcs)
+        pcs.name = 'PCs'
+        return pcs

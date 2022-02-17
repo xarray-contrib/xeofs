@@ -3,18 +3,17 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from .. import models
+from ..models._eof_base import _EOF_base
 from xeofs.pandas._dataframe_transformer import _DataFrameTransformer
 
 
-class EOF(models.eof.EOF):
+class EOF(_EOF_base):
     '''EOF analysis of a single ``pd.DataFrame``.
 
     Parameters
     ----------
     X : pd.DataFrame
-        Data to be decpomposed. First dimension contains the variable whose variance is to be
-        maximised.
+        Data to be decpomposed.
     n_modes : Optional[int]
         Number of modes to compute. Computing less modes can results in
         performance gains. If None, then the maximum number of modes is
@@ -22,6 +21,8 @@ class EOF(models.eof.EOF):
     norm : bool
         Normalize each feature (e.g. grid cell) by its temporal standard
         deviation (the default is False).
+    axis : int
+        Axis along which variance should be maximsed (the default is 0).
 
 
     Examples
@@ -71,14 +72,15 @@ class EOF(models.eof.EOF):
         self,
         X: pd.DataFrame,
         n_modes : Optional[int] = None,
-        norm : bool = False
+        norm : bool = False,
+        axis : int = 0
     ):
 
         if(np.logical_not(isinstance(X, pd.DataFrame))):
             raise ValueError('This interface is for `pandas.DataFrame` only.')
 
-        self._df_tf = _DataFrameTransformer()
-        X = self._df_tf.fit_transform(X)
+        self._tf = _DataFrameTransformer()
+        X = self._tf.fit_transform(X)
 
         super().__init__(
             X=X,
@@ -115,11 +117,13 @@ class EOF(models.eof.EOF):
         return expvar
 
     def eofs(self):
-        eofs = self._eofs
-        eofs = self._df_tf.back_transform(eofs.T).T
+        eofs = super().eofs()
+        eofs = self._tf.back_transform_eofs(eofs)
         eofs.columns = self._mode_idx
         return eofs
 
     def pcs(self):
         pcs = super().pcs()
-        return pd.DataFrame(pcs, columns=self._mode_idx, index=self._df_tf.index)
+        pcs = self._tf.back_transform_pcs(pcs)
+        pcs.columns = self._mode_idx
+        return pcs
