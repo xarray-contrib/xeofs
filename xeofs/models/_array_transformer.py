@@ -117,7 +117,7 @@ class _ArrayTransformer():
         return self.fit(X=X, axis=axis).transform(X)
 
     def back_transform(self, X : np.ndarray):
-        if len(X.shape) != 2:
+        if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         # Original shape
         Xrec = np.zeros((self.n_samples, self.n_features)) * np.nan
@@ -130,14 +130,14 @@ class _ArrayTransformer():
         return Xrec.transpose(np.argsort(self.new_axes_order))
 
     def back_transform_eofs(self, X : np.ndarray):
-        if len(X.shape) != 2:
+        if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         eofs = np.zeros((self.n_features, X.shape[1])) * np.nan
         eofs[self.idx_valid_features, :] = X
         return eofs.reshape(tuple(self.shape_features) + (X.shape[1],))
 
     def back_transform_pcs(self, X : np.ndarray):
-        if len(X.shape) != 2:
+        if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         pcs = np.zeros((self.n_samples, X.shape[1])) * np.nan
         pcs[self.idx_valid_samples, :] = X

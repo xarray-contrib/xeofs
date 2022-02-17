@@ -40,21 +40,3 @@ def test_n_modes(n_modes, sample_array):
     ref_n_modes = min(data_no_nan.shape) if n_modes is None else n_modes
 
     assert base.n_modes == ref_n_modes
-
-
-def test_abstract_class(sample_array):
-    # Abstract class methods are not implemented
-    data_no_nan = sample_array[:, ~np.isnan(sample_array).all(axis=0)]
-    base = _EOF_base(data_no_nan)
-    with pytest.raises(Exception):
-        base.solve()
-    with pytest.raises(Exception):
-        base.singular_values()
-    with pytest.raises(Exception):
-        base.explained_variance()
-    with pytest.raises(Exception):
-        base.explained_variance_ratio()
-    with pytest.raises(Exception):
-        base.eofs()
-    with pytest.raises(Exception):
-        base.pcs()

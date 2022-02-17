@@ -1,146 +1,109 @@
 import numpy as np
 import pytest
 import warnings
-
+from numpy.testing import assert_array_equal
 from xeofs.models._array_transformer import _ArrayTransformer
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
-@pytest.mark.parametrize('input_shape', [
-    (100, 10),
-    (100, 10, 5),
-    (2, 2, 1, 4)
+@pytest.mark.parametrize('input_shape, axis', [
+    ((100, 10), 0),
+    ((100, 10), 1),
+    ((100, 10, 10), 0),
+    ((100, 10, 10), [1, 2]),
 ])
-def test_output_shape(input_shape):
-    # Output array is always 2D with fixed first axis
+def test_output_shape(input_shape, axis):
+    # Output array is always 2D
     rng = np.random.default_rng(7)
     arr_in = rng.standard_normal(input_shape)
     tf = _ArrayTransformer()
     arr_out = tf.fit_transform(arr_in)
-    assert (len(arr_out.shape) == 2) & (arr_out.shape[0] == input_shape[0])
+    assert len(arr_out.shape) == 2
 
 
-@pytest.mark.parametrize('input_shape', [
-    (1),
-    (10),
-    (1, 10),
-    (10, 1),
+@pytest.mark.parametrize('input_shape, axis', [
+    ((10, 4) , 2),
+    ((10, 4) , [0, 2]),
 ])
-def test_invalid_input_shape(input_shape):
-    # Invalid data shape (forms of 1D arrays)
+def test_invalid_axis(input_shape, axis):
+    # Invalid axis argument
     rng = np.random.default_rng(7)
     arr_in = rng.standard_normal(input_shape)
     tf = _ArrayTransformer()
     with pytest.raises(Exception):
-        _ = tf.fit_transform(arr_in)
+        _ = tf.fit(arr_in, axis=axis)
 
 
-def test_valid_data_with_nan():
-    # Valid input data containing NaNs
-    m, n = [10, 5]
+@pytest.mark.parametrize('shape', [
+    (10, 5, 5),
+    (10, 5, 4, 2),
+])
+def test_invalid_transform(shape):
+    # Invalid data shape
     rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal((m, n))
-    data_with_nan[2, 3] = np.nan
+    Xfit = rng.standard_normal((10, 5, 4))
+    X = rng.standard_normal(shape)
     tf = _ArrayTransformer()
-    data_out = tf.fit_transform(data_with_nan)
-    assert (len(data_out.shape) == 2) & (data_out.shape[0] == m)
-
-
-def test_invalid_data_with_nan():
-    # Invalid input data containing NaNs
-    rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal((10, 5))
-    data_with_nan[0, :] = np.nan
-    tf = _ArrayTransformer()
+    _ = tf.fit(Xfit)
     with pytest.raises(Exception):
-        _ = tf.fit_transform(data_with_nan)
+        _ = tf.transform(X)
 
 
-@pytest.mark.parametrize(
-    'data_shape, new_data_shape, nan_location',
-    [
-        ((10, 5), (10, 5), 0),
-        ((10, 5), (1, 5), 0),
-        ((10, 5, 4), (2, 5, 4), 0),
-    ]
-)
-def test_valid_transform(data_shape, new_data_shape, nan_location):
-    # Transformed shape matches fitted output shape.
+def test_valid_transform_with_nan():
+    # Valid data with NaNs has no NaNs after transform
     rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal(data_shape)
-    data_with_nan[:, 0] = np.nan
-
-    rng = np.random.default_rng(8)
-    new_data = rng.standard_normal(new_data_shape)
-    new_data[:, nan_location] = np.nan
+    X = rng.standard_normal((10, 5, 4))
+    X[:, 0, 0] = np.nan
     tf = _ArrayTransformer()
-    tf.fit(data_with_nan)
-    data_transformed = tf.transform(new_data)
-
-    assert tf.shape_out_no_nan[1:] == data_transformed.shape[1:]
+    transformed = tf.fit_transform(X)
+    assert ~np.isnan(transformed).any()
 
 
-@pytest.mark.parametrize(
-    'data_shape, new_data_shape, nan_location',
-    [
-        ((10, 5), (10, 5, 2), 0),
-        ((10, 5), (10, 6), 0),
-        ((10, 5), (10, 5), 1),
-    ]
-)
-def test_invalid_transform(data_shape, new_data_shape, nan_location):
+def test_invalid_transform_with_nan():
+    # Invalid data with individual nan
     rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal(data_shape)
-    data_with_nan[:, 0] = np.nan
-
-    rng = np.random.default_rng(8)
-    new_data = rng.standard_normal(new_data_shape)
-    new_data[:, nan_location] = np.nan
+    Xfit = rng.standard_normal((10, 5, 4))
+    X = rng.standard_normal(Xfit.shape)
+    X[0, 0, 0] = np.nan
     tf = _ArrayTransformer()
-    tf.fit(data_with_nan)
+    _ = tf.fit(Xfit)
     with pytest.raises(Exception):
-        _ = tf.transform(new_data)
+        _ = tf.transform(X)
 
 
-@pytest.mark.parametrize(
-    'data_shape, new_data_shape',
-    [
-        ((10, 5), (1, 4)),
-        ((10, 5, 3), (2, 12)),
-    ]
-)
-def test_valid_back_transformation(data_shape, new_data_shape):
+@pytest.mark.parametrize('shape, axis', [
+    ((10, 2), 0),
+    ((10, 2, 5), 1),
+    ((10, 2, 5), [1, 2]),
+])
+def test_back_transformation(shape, axis):
+    # Transform and back transform yields initial data
     rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal(data_shape)
-    data_with_nan[0, 0] = np.nan
-
-    rng = np.random.default_rng(8)
-    new_data = rng.standard_normal(new_data_shape)
-
+    X = rng.standard_normal(shape)
     tf = _ArrayTransformer()
-    tf.fit(data_with_nan)
-    back_transformed = tf.back_transform(new_data)
-    assert data_shape[1:] == back_transformed.shape[1:]
+    transformed = tf.fit_transform(X)
+    Xrec = tf.back_transform(transformed)
+    _ = tf.back_transform_eofs(transformed.T)
+    _ = tf.back_transform_pcs(transformed)
+    assert_array_equal(X, Xrec)
 
 
-@pytest.mark.parametrize(
-    'data_shape, new_data_shape',
-    [
-        ((10, 5), (4)),
-        ((10, 5, 3), (2, 13)),
-    ]
-)
-def test_invalid_back_transformation(data_shape, new_data_shape):
+@pytest.mark.parametrize('shape, axis', [
+    ((10, 2), 0),
+    ((10, 2, 5), 1),
+    ((10, 2, 5), [1, 2]),
+])
+def test_invalid_back_transformation(shape, axis):
+    # Back transforming of 3D array is invalid
     rng = np.random.default_rng(7)
-    data_with_nan = rng.standard_normal(data_shape)
-    data_with_nan[0, 0] = np.nan
-
-    rng = np.random.default_rng(8)
-    new_data = rng.standard_normal(new_data_shape)
-
+    X = rng.standard_normal(shape)
     tf = _ArrayTransformer()
-    tf.fit(data_with_nan)
+    transformed = tf.fit_transform(X)
     with pytest.raises(Exception):
-        _ = tf.back_transform(new_data)
+        _ = tf.back_transform(transformed[:, np.newaxis])
+    with pytest.raises(Exception):
+        _ = tf.back_transform_eofs(transformed[:, np.newaxis])
+    with pytest.raises(Exception):
+        _ = tf.back_transform_pcs(transformed[:, np.newaxis])
