@@ -127,7 +127,19 @@ class EOF(_EOF_base):
             'latitude', 'Latitude', 'lat', 'Lat', 'LATITUDE', 'LAT'
         ]
         idx_lat_dim = np.isin(X.dims, possible_lat_names)
-        lat_dim = np.array(X.dims)[idx_lat_dim][0]
+        try:
+            lat_dim = np.array(X.dims)[idx_lat_dim][0]
+        except IndexError:
+            err_msg = (
+                'Latitude dimension cannot be found. Please make sure '
+                'latitude dimensions is called like one of {:}'
+            )
+            err_msg = err_msg.format(possible_lat_names)
+            raise ValueError(err_msg)
+        # Check if latitude is a MultiIndex => not allowed
+        if X.coords[lat_dim].dtype not in [float, int]:
+            err_msg = 'MultiIndex as latitude dimensions is not allowed.'
+            raise ValueError(err_msg)
         # Compute coslat weights
         weights = np.cos(np.deg2rad(X.coords[lat_dim]))
         weights = np.sqrt(weights.where(weights > 0, 0))
