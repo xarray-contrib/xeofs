@@ -73,6 +73,52 @@ def test_invalid_transform_with_nan():
         _ = tf.transform(X)
 
 
+@pytest.mark.parametrize('weights', [
+    np.array([1, 2, 3]),
+    None,
+])
+def test_transform_weight_data_types(weights):
+    # Input data type equals output data type
+    rng = np.random.default_rng(7)
+    X = rng.standard_normal((5, 3))
+    tf = _ArrayTransformer()
+    _ = tf.fit(X)
+    transformed = tf.transform_weights(weights)
+    assert type(weights) is type(transformed)
+
+
+@pytest.mark.parametrize('weights', [
+    [1, 2, 3],
+    4,
+    (1, 2, 3),
+])
+def test_invalid_transform_weight_data_types(weights):
+    # Data types other than np.ndarray or None raise an exception
+    rng = np.random.default_rng(7)
+    X = rng.standard_normal((5, 3))
+    tf = _ArrayTransformer()
+    _ = tf.fit(X)
+    with pytest.raises(Exception):
+        _ = tf.transform_weights(weights)
+
+
+@pytest.mark.parametrize('data_shape, weight_shape, axis', [
+    ((10, 4), (3), 0),
+    ((10, 4, 2), (3, 2), 0),
+    ((10, 4, 2), (9), [1, 2]),
+])
+def test_invalid_transform_weight_shapes(data_shape, weight_shape, axis):
+    # Weight shapes and shape of features are different
+    rng = np.random.default_rng(7)
+    X = rng.standard_normal(data_shape)
+    rng = np.random.default_rng(8)
+    weights = rng.standard_normal(weight_shape)
+    tf = _ArrayTransformer()
+    _ = tf.fit(X, axis=axis)
+    with pytest.raises(Exception):
+        _ = tf.transform_weights(weights)
+
+
 @pytest.mark.parametrize('shape, axis', [
     ((10, 2), 0),
     ((10, 2, 5), 1),
