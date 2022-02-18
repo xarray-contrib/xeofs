@@ -137,7 +137,7 @@ class EOF(_EOF_base):
             err_msg = err_msg.format(possible_lat_names)
             raise ValueError(err_msg)
         # Check if latitude is a MultiIndex => not allowed
-        if X.coords[lat_dim].dtype not in [float, int]:
+        if X.coords[lat_dim].dtype not in [np.float_, np.float64, np.float32, np.int_]:
             err_msg = 'MultiIndex as latitude dimensions is not allowed.'
             raise ValueError(err_msg)
         # Compute coslat weights
