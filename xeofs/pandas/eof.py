@@ -14,6 +14,8 @@ class EOF(_EOF_base):
     ----------
     X : pd.DataFrame
         Data to be decpomposed.
+    axis : int
+        Axis along which variance should be maximsed (the default is 0).
     n_modes : Optional[int]
         Number of modes to compute. Computing less modes can results in
         performance gains. If None, then the maximum number of modes is
@@ -21,8 +23,6 @@ class EOF(_EOF_base):
     norm : bool
         Normalize each feature (e.g. grid cell) by its temporal standard
         deviation (the default is False).
-    axis : int
-        Axis along which variance should be maximsed (the default is 0).
 
 
     Examples
@@ -71,9 +71,10 @@ class EOF(_EOF_base):
     def __init__(
         self,
         X: pd.DataFrame,
+        axis : int = 0,
         n_modes : Optional[int] = None,
         norm : bool = False,
-        axis : int = 0
+        weights : Optional[np.ndarray] = None
     ):
 
         if(np.logical_not(isinstance(X, pd.DataFrame))):
@@ -81,11 +82,13 @@ class EOF(_EOF_base):
 
         self._tf = _DataFrameTransformer()
         X = self._tf.fit_transform(X)
+        weights = self._tf.transform_weights(weights)
 
         super().__init__(
             X=X,
             n_modes=n_modes,
-            norm=norm
+            norm=norm,
+            weights=weights
         )
         self._mode_idx = pd.Index(range(1, self.n_modes + 1), name='mode')
 
