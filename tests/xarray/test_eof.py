@@ -40,3 +40,25 @@ def test_invalid_input_type(sample_array):
     # xarray.DataArray are accepted only.
     with pytest.raises(Exception):
         _ = EOF(sample_array)
+
+
+def test_coslat_weighting(sample_DataArray):
+    # Coslat weighting does not raise an error
+    da = sample_DataArray.unstack().rename({'y': 'lat'})
+    model = EOF(da, weights='coslat')
+    model.solve()
+    _ = model.eofs()
+
+
+def test_invalid_coslat_weighting(sample_DataArray):
+    # Coslat weighting does not raise an error
+    invalid_da1 = sample_DataArray
+    invalid_da2 = sample_DataArray.unstack()
+    invalid_da3 = sample_DataArray.rename({'loc': 'lat'})
+
+    with pytest.raises(Exception):
+        _ = EOF(invalid_da1, weights='coslat')
+    with pytest.raises(Exception):
+        _ = EOF(invalid_da2, weights='coslat')
+    with pytest.raises(Exception):
+        _ = EOF(invalid_da3, weights='coslat')
