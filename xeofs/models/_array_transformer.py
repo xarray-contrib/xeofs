@@ -113,7 +113,34 @@ class _ArrayTransformer():
             raise ValueError('Invalid data: contains individual NaNs')
         return X
 
-    def fit_transform(self, X : np.ndarray, axis : Union[int, Iterable[int]] = 0):
+    def transform_weights(
+        self,
+        weights : np.ndarray
+    ):
+        if weights is None:
+            return None
+        try:
+            shape_received = weights.shape
+        except AttributeError:
+            err_msg = 'weights must be of type {:}.'.format(repr(np.ndarray))
+            raise TypeError(err_msg)
+        shape_expected = tuple(self.shape_features)
+        if shape_expected == shape_received:
+            # The dimensions order is already correct, flatten is enough
+            weights = weights.flatten()
+            # Remove NaN features
+            weights = weights[self.idx_valid_features]
+            # Consider any NaN left as zero
+            return np.nan_to_num(weights)
+        else:
+            err_msg = 'Expected shape {:}, but got {:} instead.'
+            err_msg = err_msg.format(shape_expected, shape_received)
+            raise ValueError(err_msg)
+
+    def fit_transform(
+        self, X : np.ndarray,
+        axis : Union[int, Iterable[int]] = 0
+    ):
         return self.fit(X=X, axis=axis).transform(X)
 
     def back_transform(self, X : np.ndarray):
