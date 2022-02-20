@@ -10,8 +10,8 @@ dependencies:
   - conda
   - scikit-learn
   - yaml
+  - matplotlib
   - pip:
     - sphinxawesome-theme
     - sphinx-gallery
     - xeofs
-
