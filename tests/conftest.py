@@ -20,7 +20,7 @@ def _pca(X, weights=None):
     V *= flip_signs
     svals = np.sqrt(lbda * (X.shape[0] - 1))
     expvar_ratio = lbda / np.trace(C)
-    U = X @ V
+    U = X @ V / svals
     return {
         'singular_values' : svals,
         'explained_variance' : lbda,
