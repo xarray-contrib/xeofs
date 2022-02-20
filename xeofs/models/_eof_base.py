@@ -42,6 +42,8 @@ class _EOF_base():
         norm: bool = False,
         weights: Optional[np.ndarray] = None
     ):
+        # Remove mean for each feature
+        X -= X.mean(axis=0)
 
         # Weights are applied to features, not samples.
         if weights is None:
@@ -98,7 +100,11 @@ class _EOF_base():
         self._explained_variance_ratio  = pca.explained_variance_ratio_
         self._eofs = pca.components_.T
 
-        # Consistent signs for deterministic output
+        # Normalize PCs so they are orthonormal
+        # Note: singular values = sqrt(explained_variance * (n_samples - 1))
+        self._pcs = self._pcs / self._singular_values
+
+        # Ensure consistent signs for deterministic output
         maxidx = [abs(self._eofs).argmax(axis=0)]
         flip_signs = np.sign(self._eofs[maxidx, range(self._eofs.shape[1])])
         self._eofs *= flip_signs
