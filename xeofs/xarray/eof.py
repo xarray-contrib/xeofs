@@ -118,7 +118,7 @@ class EOF(_EOF_base):
             norm=norm,
             weights=weights
         )
-        self._mode_idx = xr.IndexVariable('mode', range(1, self.n_modes + 1))
+        self._idx_mode = xr.IndexVariable('mode', range(1, self.n_modes + 1))
         self._dim = dim
 
     def _get_coslat_weights(self, X : xr.DataArray) -> xr.DataArray:
@@ -154,7 +154,7 @@ class EOF(_EOF_base):
         return xr.DataArray(
             svalues,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='singular_values'
         )
 
@@ -163,7 +163,7 @@ class EOF(_EOF_base):
         return xr.DataArray(
             expvar,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='explained_variance'
         )
 
@@ -172,7 +172,7 @@ class EOF(_EOF_base):
         return xr.DataArray(
             expvar,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='explained_variance_ratio'
         )
 
