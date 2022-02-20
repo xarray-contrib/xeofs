@@ -43,7 +43,7 @@ class Rotator(_BaseRotator):
         return xr.DataArray(
             expvar,
             dims=['mode'],
-            coords={'mode' : self._idx_mode},
+            coords={'mode' : self._model._idx_mode[:self._n_rot]},
             name='explained_variance'
         )
 
@@ -52,7 +52,7 @@ class Rotator(_BaseRotator):
         return xr.DataArray(
             expvar_ratio,
             dims=['mode'],
-            coords={'mode' : self._idx_mode},
+            coords={'mode' : self._model._idx_mode[:self._n_rot]},
             name='explained_variance_ratio'
         )
 
