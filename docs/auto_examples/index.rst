@@ -65,6 +65,48 @@ Examples
    :hidden:
 
    /auto_examples/1uni/plot_eof-smode
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Weighted EOF analysis (in S-mode) maximises the temporal variance considering each gridpoint wi...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
+     :alt: Weighted EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1uni_plot_weighted-eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1uni/plot_weighted-eof
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis is often used in climate science to interpret the obtained eigenvectors (EOFs) as ...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
+     :alt: Rotated EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1uni_plot_rotated_eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1uni/plot_rotated_eof
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>
