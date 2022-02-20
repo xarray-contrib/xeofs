@@ -2,6 +2,28 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-02-20)
+### Feature
+* Add Varimax and Promax rotation ([`b42ba16`](https://github.com/nicrie/xeofs/commit/b42ba160f183d7a22a8555b19bf7de340663742b))
+* Add Rotator interface for numpy, pandas, xarray ([`050b883`](https://github.com/nicrie/xeofs/commit/050b883113166811bd5f8e6dc35cfcb162fa7503))
+* Add varimax and promax algorithms ([`f1e928f`](https://github.com/nicrie/xeofs/commit/f1e928fcb20f2ccfa2f450d2ba45230d01ba1e4c))
+* Add Rotator base class ([`d024d81`](https://github.com/nicrie/xeofs/commit/d024d8151429d4bfd6a374207168421ac02242c2))
+* Add support for weighted EOF analysis including coslat weighting ([`654b437`](https://github.com/nicrie/xeofs/commit/654b437f64bf5c6dc9be811e891de2c5d1a3d2d9))
+* Add weight support to EOF classes ([`8821108`](https://github.com/nicrie/xeofs/commit/882110879a31af5b632efb5a39bf6d6afebe2fb7))
+* Add weight transformer ([`52b98e6`](https://github.com/nicrie/xeofs/commit/52b98e6189d144bba4320ceb0dd2c43c1548e8c9))
+
+### Fix
+* Incorrect number of mode index for DataArray caller ([`4e610ac`](https://github.com/nicrie/xeofs/commit/4e610aca9b2db726c6351f2615adbb482d011722))
+* Always center data X ([`4a58dfc`](https://github.com/nicrie/xeofs/commit/4a58dfc0cc400aa3b20ae0d2c904969d0e19109b))
+* Coslat error was too restrictive ([`faece55`](https://github.com/nicrie/xeofs/commit/faece55ccdfaa91f73b6dcce74959dead9736388))
+* Add error messages when calling invalid coslat weighting ([`6104e69`](https://github.com/nicrie/xeofs/commit/6104e69b297f42c7aef68e20ca753394fc9a50c8))
+
+### Documentation
+* Add example for rotated EOF analysis ([`efc364a`](https://github.com/nicrie/xeofs/commit/efc364a925b33a167bfdfdbb71fd73ebd7b6c6f7))
+* Add example for weigted EOF analysis ([`9dedab2`](https://github.com/nicrie/xeofs/commit/9dedab2a25a0f18595e618ca986abe0b57b5a23f))
+* Some minor changes in examples ([`9611eea`](https://github.com/nicrie/xeofs/commit/9611eeac466078ac4e008373005e7cd0c98607bd))
+* Add EOF s-mode and t-mode gallery example ([`5f371b7`](https://github.com/nicrie/xeofs/commit/5f371b7ee52b64315a8c7940bb993605823e4455))
+
 ## v0.2.0 (2022-02-17)
 ### Feature
 * Add support for multidimensional axes ([`7c31c58`](https://github.com/nicrie/xeofs/commit/7c31c58f60376bac57fe42bef58ad9e46942fcb7))
