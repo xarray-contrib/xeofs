@@ -90,14 +90,14 @@ class EOF(_EOF_base):
             norm=norm,
             weights=weights
         )
-        self._mode_idx = pd.Index(range(1, self.n_modes + 1), name='mode')
+        self._idx_mode = pd.Index(range(1, self.n_modes + 1), name='mode')
 
     def singular_values(self):
         svalues = super().singular_values()
         svalues = pd.DataFrame(
             svalues,
             columns=['singular_values'],
-            index=self._mode_idx
+            index=self._idx_mode
         )
         return svalues
 
@@ -106,7 +106,7 @@ class EOF(_EOF_base):
         expvar = pd.DataFrame(
             expvar,
             columns=['explained_variance'],
-            index=self._mode_idx
+            index=self._idx_mode
         )
         return expvar
 
@@ -115,18 +115,18 @@ class EOF(_EOF_base):
         expvar = pd.DataFrame(
             expvar,
             columns=['explained_variance_ratio'],
-            index=self._mode_idx
+            index=self._idx_mode
         )
         return expvar
 
     def eofs(self):
         eofs = super().eofs()
         eofs = self._tf.back_transform_eofs(eofs)
-        eofs.columns = self._mode_idx
+        eofs.columns = self._idx_mode
         return eofs
 
     def pcs(self):
         pcs = super().pcs()
         pcs = self._tf.back_transform_pcs(pcs)
-        pcs.columns = self._mode_idx
+        pcs.columns = self._idx_mode
         return pcs
