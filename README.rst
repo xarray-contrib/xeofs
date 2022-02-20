@@ -7,7 +7,7 @@
 .. |badge3| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge4| image:: https://img.shields.io/pypi/dm/xeofs   
+.. |badge4| image:: https://img.shields.io/pypi/dm/xeofs
     :alt: PyPI - Downloads
 .. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
@@ -30,6 +30,16 @@ Create a Python package that provides simple access to a variety of different
 EOF-related techniques through the popular interfaces of NumPy_, pandas_
 and xarray_.
 
+This package currently supports:
+
++ EOF analysis over arbitrary dimensions (e.g. S-mode_, T-mode_)
++ General weights, including some shorthands_ for
+  + Standardized EOF analysis ``norm=True``
+  + Area weighting based on cosine of latitude (``weights='coslat'``)
+
+.. _T-mode:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
+.. _S-mode:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
+.. _shorthands:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
 
 ************************
 Installation

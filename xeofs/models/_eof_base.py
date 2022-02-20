@@ -1,21 +1,67 @@
 from abc import abstractmethod
-from typing import Iterable
+from typing import Iterable, Optional
 
 import numpy as np
 from sklearn.decomposition import PCA
 
 
 class _EOF_base():
+    '''Base class for univariate EOF analysis.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        2D data matrix ``X`` with samples as rows and features as columns.
+        NaN entries will raise an error.
+    n_modes : Optional[int]
+        Number of modes to be retrieved. If None, then all possible modes will
+        be computed. Reducing ``n_modes`` can greatly speed up computational
+        (the default is None).
+    norm : bool
+        Normalize each feature by its standard deviation (the default is False).
+    weights : Optional[np.ndarray]
+        Apply `weights` to features. Weights must be a 1D array with the same
+        length as number of features. No NaN entries are allowed
+        (the default is None).
+
+    Attributes
+    ----------
+    n_samples : int
+        Number of samples (rows of data matrix).
+    n_features : int
+        Number of features (columns of data matrix).
+    n_modes : int
+        Number of modes.
+
+    '''
 
     def __init__(
         self,
-        X: Iterable[np.ndarray],
-        n_modes=None,
-        norm=False
+        X: np.ndarray,
+        n_modes: Optional[int] = None,
+        norm: bool = False,
+        weights: Optional[np.ndarray] = None
     ):
+        # Remove mean for each feature
+        X -= X.mean(axis=0)
 
+        # Weights are applied to features, not samples.
+        if weights is None:
+            # Use int type to ensure that there won't be rounding errors
+            # when applying trivial weighting (= all weights equal 1)
+            weights = np.ones(X.shape[1], dtype=int)
+
+        # Standardization is included as weights
         if norm:
-            X /= X.std(axis=0)
+            stdev = X.std(axis=0)
+            if (stdev == 0).any():
+                err_msg = (
+                    'Standard deviation of one ore more features is zero, '
+                    'normalization not possible.'
+                )
+                raise ValueError(err_msg)
+            weights = weights / stdev
+        X = X * weights
 
         self.n_samples = X.shape[0]
         self.n_features = X.shape[1]
@@ -23,8 +69,6 @@ class _EOF_base():
         self.n_modes = n_modes
         if n_modes is None:
             self.n_modes = min(self.n_samples, self.n_features)
-
-        # TODO: weights
 
         self.X = X
 
@@ -56,7 +100,11 @@ class _EOF_base():
         self._explained_variance_ratio  = pca.explained_variance_ratio_
         self._eofs = pca.components_.T
 
-        # Consistent signs for deterministic output
+        # Normalize PCs so they are orthonormal
+        # Note: singular values = sqrt(explained_variance * (n_samples - 1))
+        self._pcs = self._pcs / self._singular_values
+
+        # Ensure consistent signs for deterministic output
         maxidx = [abs(self._eofs).argmax(axis=0)]
         flip_signs = np.sign(self._eofs[maxidx, range(self._eofs.shape[1])])
         self._eofs *= flip_signs
@@ -77,7 +125,7 @@ class _EOF_base():
 
         return self._singular_values
 
-    def explained_variance(self):
+    def explained_variance(self) -> np.ndarray:
         '''Get the explained variance.
 
         The explained variance is simply given by the individual eigenvalues
@@ -87,7 +135,7 @@ class _EOF_base():
 
         return self._explained_variance
 
-    def explained_variance_ratio(self):
+    def explained_variance_ratio(self) -> np.ndarray:
         '''Get the explained variance ratio.
 
         The explained variance ratio is the fraction of total variance
@@ -98,7 +146,7 @@ class _EOF_base():
 
         return self._explained_variance_ratio
 
-    def eofs(self):
+    def eofs(self) -> np.ndarray:
         '''Get the EOFs.
 
         The empirical orthogonal functions (EOFs) are equivalent to the eigenvectors
@@ -108,7 +156,7 @@ class _EOF_base():
 
         return self._eofs
 
-    def pcs(self):
+    def pcs(self) -> np.ndarray:
         '''Get the PCs.
 
         The principal components (PCs), also known as PC scores, are computed

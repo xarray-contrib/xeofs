@@ -14,13 +14,6 @@ class EOF(_EOF_base):
     ----------
     X : xr.DataArray
         Data to be decomposed.
-    n_modes : Optional[int]
-        Number of modes to compute. Computing less modes can results in
-        performance gains. If None, then the maximum number of modes is
-        equivalent to ``min(n_samples, n_features)`` (the default is None).
-    norm : bool
-        Normalize each feature (e.g. grid cell) by its temporal standard
-        deviation (the default is False).
     dim : str
         Define the dimension which should considered for maximising variance.
         For most applications in climate science, temporal variance is
@@ -28,6 +21,16 @@ class EOF(_EOF_base):
         should be chosen. If spatial variance should be maximised
         (i.e. T-mode EOF analysis), set e.g. ``dim=['lon', 'lat']``
         (the default is ``time``).
+    n_modes : Union[int | None]
+        Number of modes to compute. Computing less modes can results in
+        performance gains. If None, then the maximum number of modes is
+        equivalent to ``min(n_samples, n_features)`` (the default is None).
+    norm : bool
+        Normalize each feature (e.g. grid cell) by its temporal standard
+        deviation (the default is False).
+    weights : Union[xr.DatArray | str | None]
+        Weights to be applied to data (features).
+
 
     Examples
     --------
@@ -96,31 +99,62 @@ class EOF(_EOF_base):
     def __init__(
         self,
         X: xr.DataArray,
+        dim: Union[str, Iterable[str]] = 'time',
         n_modes : Optional[int] = None,
         norm : bool = False,
-        dim: Union[str, Iterable[str]] = 'time'
+        weights : Optional[Union[xr.DataArray, str]] = None
     ):
 
-        if(np.logical_not(isinstance(X, xr.DataArray))):
-            raise ValueError('This interface is for `xarray.DataArray` only.')
-
         self._tf = _DataArrayTransformer()
-        X = self._tf.fit_transform(X, dim=dim)
+        self._tf.fit(X, dim=dim)
+        if weights == 'coslat':
+            weights = self._get_coslat_weights(X)
+        X = self._tf.transform(X)
+        weights = self._tf.transform_weights(weights)
 
         super().__init__(
             X=X,
             n_modes=n_modes,
-            norm=norm
+            norm=norm,
+            weights=weights
         )
-        self._mode_idx = xr.IndexVariable('mode', range(1, self.n_modes + 1))
+        self._idx_mode = xr.IndexVariable('mode', range(1, self.n_modes + 1))
         self._dim = dim
+
+    def _get_coslat_weights(self, X : xr.DataArray) -> xr.DataArray:
+        # Find dimension name of latitude
+        possible_lat_names = [
+            'latitude', 'Latitude', 'lat', 'Lat', 'LATITUDE', 'LAT'
+        ]
+        idx_lat_dim = np.isin(X.dims, possible_lat_names)
+        try:
+            lat_dim = np.array(X.dims)[idx_lat_dim][0]
+        except IndexError:
+            err_msg = (
+                'Latitude dimension cannot be found. Please make sure '
+                'latitude dimensions is called like one of {:}'
+            )
+            err_msg = err_msg.format(possible_lat_names)
+            raise ValueError(err_msg)
+        # Check if latitude is a MultiIndex => not allowed
+        if X.coords[lat_dim].dtype not in [np.float_, np.float64, np.float32, np.int_]:
+            err_msg = 'MultiIndex as latitude dimensions is not allowed.'
+            raise ValueError(err_msg)
+        # Compute coslat weights
+        weights = np.cos(np.deg2rad(X.coords[lat_dim]))
+        weights = np.sqrt(weights.where(weights > 0, 0))
+        # Broadcast latitude weights on other feature dimensions
+        sample_dims = self._tf.dims_samples
+        feature_grid = X.isel({k: 0 for k in sample_dims})
+        feature_grid = feature_grid.drop_vars(sample_dims)
+        return weights.broadcast_like(feature_grid)
 
     def singular_values(self) -> xr.DataArray:
         svalues = super().singular_values()
         return xr.DataArray(
             svalues,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='singular_values'
         )
 
@@ -129,7 +163,7 @@ class EOF(_EOF_base):
         return xr.DataArray(
             expvar,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='explained_variance'
         )
 
@@ -138,7 +172,7 @@ class EOF(_EOF_base):
         return xr.DataArray(
             expvar,
             dims=['mode'],
-            coords={'mode' : self._mode_idx},
+            coords={'mode' : self._idx_mode},
             name='explained_variance_ratio'
         )
 

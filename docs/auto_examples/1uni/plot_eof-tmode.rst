@@ -19,7 +19,7 @@
 
 
 EOF analysis (T-mode)
------------------------
+========================
 
 EOF analysis in T-mode maximises the spatial variance.
 
@@ -114,7 +114,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.022 seconds)
+   **Total running time of the script:** ( 0 minutes  0.916 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1uni_plot_eof-tmode.py:

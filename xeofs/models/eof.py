@@ -17,10 +17,10 @@ class EOF(_EOF_base):
     Parameters
     ----------
     X : np.ndarray
-        Data to be decpomposed. ``X`` can be any N-dimensional array with the
-        first dimension containing the variable whose variance is to be
-        maximised. All remaining dimensions will be automatically reshaped to
-        obtain a 2D matrix.
+        Data matrix to be decomposed. ``X`` can be any N-dimensional array.
+        Dimensions whose variance shall be maximised (denoted as *samples*)
+        have to be defined by the ``axis`` parameter. All remaining axes will
+        be reshaped into a new axis called *features*.
     n_modes : Optional[int]
         Number of modes to compute. Computing less modes can results in
         performance gains. If None, then the maximum number of modes is
@@ -28,6 +28,10 @@ class EOF(_EOF_base):
     norm : bool
         Normalize each feature (e.g. grid cell) by its temporal standard
         deviation (the default is False).
+    weights : Optional[np.ndarray] = None
+        Weights applied to features. Must have the same dimensions as the
+        original features which are the remaining axes not specified by
+        ``axis`` parameter).
     axis : Union[int, Iterable[int]]
         Axis along which variance should be maximised. Can also be
         multi-dimensional. For example, given a data array of dimensions
@@ -82,18 +86,21 @@ class EOF(_EOF_base):
     def __init__(
         self,
         X: np.ndarray,
+        axis : Union[int, Iterable[int]] = 0,
         n_modes : Optional[int] = None,
         norm : bool = False,
-        axis : Union[int, Iterable[int]] = 0
+        weights : Optional[np.ndarray] = None,
     ):
 
         self._tf = _ArrayTransformer()
         X = self._tf.fit_transform(X, axis=axis)
-
+        weights = self._tf.transform_weights(weights)
+        
         super().__init__(
             X=X,
             n_modes=n_modes,
-            norm=norm
+            norm=norm,
+            weights=weights
         )
 
     def eofs(self):

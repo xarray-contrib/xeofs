@@ -19,11 +19,11 @@
 
 
 EOF analysis (S-mode)
------------------------
+========================
 
 EOF analysis in S-mode maximises the temporal variance.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-19
+.. GENERATED FROM PYTHON SOURCE LINES 7-17
 
 .. code-block:: default
 
@@ -37,6 +37,18 @@ EOF analysis in S-mode maximises the temporal variance.
 
     from xeofs.xarray import EOF
 
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 18-21
+
+.. code-block:: default
+
+
     t2m = xr.tutorial.load_dataset('air_temperature')['air']
 
 
@@ -46,11 +58,11 @@ EOF analysis in S-mode maximises the temporal variance.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-21
+.. GENERATED FROM PYTHON SOURCE LINES 22-23
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 21-28
+.. GENERATED FROM PYTHON SOURCE LINES 23-30
 
 .. code-block:: default
 
@@ -68,11 +80,11 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-30
+.. GENERATED FROM PYTHON SOURCE LINES 31-32
 
 Create figure showing the first two modes
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-54
+.. GENERATED FROM PYTHON SOURCE LINES 32-56
 
 .. code-block:: default
 
@@ -115,7 +127,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.767 seconds)
+   **Total running time of the script:** ( 0 minutes  0.693 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1uni_plot_eof-smode.py:

@@ -3,13 +3,16 @@ from typing import Dict, Optional
 import numpy as np
 import pytest
 import warnings
+import pandas as pd
 import xarray as xr
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
-def _pca(X):
+def _pca(X, weights=None):
+    if weights is not None:
+        X = X * weights
     C = X.T @ X / (X.shape[0] - 1)
     V, lbda, _ = np.linalg.svd(C, full_matrices=False)
     maxidx = [abs(V).argmax(axis=0)]
@@ -17,7 +20,7 @@ def _pca(X):
     V *= flip_signs
     svals = np.sqrt(lbda * (X.shape[0] - 1))
     expvar_ratio = lbda / np.trace(C)
-    U = X @ V
+    U = X @ V / svals
     return {
         'singular_values' : svals,
         'explained_variance' : lbda,
@@ -113,3 +116,21 @@ def reference_solution(sample_array):
         results=_pca(X)
     ))
     return results
+
+
+@pytest.fixture
+def random_array(shape):
+    rng = np.random.default_rng(7)
+    return rng.standard_normal(shape)
+
+
+@pytest.fixture
+def random_dataframe(random_array):
+    df = pd.DataFrame(random_array)
+    df.columns = [str(c) for c in range(df.shape[1])]
+    return df
+
+
+@pytest.fixture
+def random_dataarray(random_array):
+    return xr.DataArray(random_array)
