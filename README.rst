@@ -23,24 +23,30 @@ in the form of easy-to-use software seems to unnecessarily hinder the
 acceptance and uptake of these EOF variants by the broad climate science
 community.
 
-************************
-Goal (work in progress)
-************************
+__Goal__
 Create a Python package that provides simple access to a variety of different
 EOF-related techniques through the popular interfaces of NumPy_, pandas_
 and xarray_.
 
+************************
+Current features (work in progress)
+************************
 This package currently supports:
 
-+ EOF analysis over arbitrary dimensions (e.g. S-mode_, T-mode_)
++ EOF analysis
++ Rotated_ EOF analysis (Varimax, Promax)
+
+Further features:
+
++ Perform EOF analyis over arbitrary multi-dimensions using the ``axis`` or ``dim`` parameter. Check out the examples e.g. for S-mode_ or T-mode_ analysis.
 + General weights, including some shorthands_ for
   + Standardized EOF analysis ``norm=True``
   + Area weighting based on cosine of latitude (``weights='coslat'``)
 
-.. _T-mode:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
-.. _S-mode:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
-.. _shorthands:: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
-
+.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
+.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
+.. _shorthands: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
+.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_rotated_eof.html#sphx-glr-auto-examples-1uni-plot-rotated-eof-py
 ************************
 Installation
 ************************
