@@ -15,5 +15,4 @@ dependencies:
   - pip:
     - sphinxawesome-theme
     - git+https://github.com/sphinx-gallery/sphinx-gallery.git@master
-    - sphinx-gallery
     - xeofs
