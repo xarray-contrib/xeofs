@@ -14,6 +14,6 @@ dependencies:
   - seaborn
   - pip:
     - sphinxawesome-theme
-    - install git+https://github.com/sphinx-gallery/sphinx-gallery.git@master
+    - git+https://github.com/sphinx-gallery/sphinx-gallery.git@master
     - sphinx-gallery
     - xeofs
