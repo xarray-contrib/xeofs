@@ -11,7 +11,9 @@ dependencies:
   - scikit-learn
   - yaml
   - matplotlib
+  - seaborn
   - pip:
     - sphinxawesome-theme
+    - install git+https://github.com/sphinx-gallery/sphinx-gallery.git
     - sphinx-gallery
     - xeofs
