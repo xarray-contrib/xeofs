@@ -1,4 +1,4 @@
-from typing import Optional, Union, Iterable
+from typing import Optional, Union, Iterable, Tuple
 
 import numpy as np
 
@@ -95,7 +95,7 @@ class EOF(_EOF_base):
         self._tf = _ArrayTransformer()
         X = self._tf.fit_transform(X, axis=axis)
         weights = self._tf.transform_weights(weights)
-        
+
         super().__init__(
             X=X,
             n_modes=n_modes,
@@ -103,10 +103,16 @@ class EOF(_EOF_base):
             weights=weights
         )
 
-    def eofs(self):
+    def eofs(self) -> np.ndarray:
         eofs = super().eofs()
         return self._tf.back_transform_eofs(eofs)
 
-    def pcs(self):
+    def pcs(self) -> np.ndarray:
         pcs = super().pcs()
         return self._tf.back_transform_pcs(pcs)
+
+    def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._tf.back_transform_eofs(corr)
+        pvals = self._tf.back_transform_eofs(pvals)
+        return corr, pvals
