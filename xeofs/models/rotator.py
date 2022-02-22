@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Tuple
 
 from .eof import EOF
 from ._base_rotator import _BaseRotator
@@ -52,3 +53,9 @@ class Rotator(_BaseRotator):
     def pcs(self) -> np.ndarray:
         pcs = super().pcs()
         return self._model._tf.back_transform_pcs(pcs)
+
+    def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._model._tf.back_transform_eofs(corr)
+        pvals = self._model._tf.back_transform_eofs(pvals)
+        return corr, pvals

@@ -1,4 +1,6 @@
 import numpy as np
+import scipy as sc
+from typing import Tuple
 
 from .eof import EOF
 from ..utils.rotation import promax
@@ -66,7 +68,7 @@ class _BaseRotator:
         # Reorder according to variance
         self._pcs = self._pcs[:, self._idx_var]
 
-    def _rotation_matrix(self, inverse_transpose : bool = False):
+    def _rotation_matrix(self, inverse_transpose : bool = False) -> np.ndarray:
         '''Return the rotation matrix.
 
         Parameters
@@ -111,3 +113,24 @@ class _BaseRotator:
         '''PCs after rotation.'''
 
         return self._pcs
+
+    def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
+        '''Correlation coefficients between rotated PCs and data matrix.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarry]
+            Matrices of correlation coefficients and associated
+            two-sided p-values with features as rows and modes as columns.
+
+        '''
+
+        # Compute correlation matrix
+        corr = np.corrcoef(self._model.X, self._pcs, rowvar=False)
+        corr = corr[:self._model.n_features, self._model.n_features:]
+        # Compute two-sided p-values
+        # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
+        a = self._model.n_samples / 2 - 1
+        dist = sc.stats.beta(a, a, loc=-1, scale=2)
+        pvals = 2 * dist.cdf(-abs(corr))
+        return corr, pvals
