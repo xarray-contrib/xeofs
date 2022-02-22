@@ -1,4 +1,5 @@
 import xarray as xr
+from typing import Tuple
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
@@ -67,3 +68,11 @@ class Rotator(_BaseRotator):
         pcs = self._model._tf.back_transform_pcs(pcs)
         pcs.name = 'PCs'
         return pcs
+
+    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._model._tf.back_transform_eofs(corr)
+        pvals = self._model._tf.back_transform_eofs(pvals)
+        corr.name = 'correlation_coeffient'
+        pvals.name = 'p_value'
+        return corr, pvals

@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
     ('EOF', True, None)
 ])
 def test_solution(method, norm, weights, reference_solution, sample_DataFrame):
-    # Compare numpy implementation against reference solution
+    # Compare pandas implementation against reference solution
     experiment = reference_solution.get_experiment(
         method=method, norm=norm, weights=weights
     )

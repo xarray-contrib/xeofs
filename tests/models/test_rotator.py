@@ -1,16 +1,10 @@
 import numpy as np
-import pandas as pd
-import xarray as xr
 import pytest
 from pytest import approx
 from numpy.testing import assert_allclose, assert_raises
 
 from xeofs.models.eof import EOF
-from xeofs.pandas.eof import EOF as pdEOF
-from xeofs.xarray.eof import EOF as xrEOF
 from xeofs.models.rotator import Rotator
-from xeofs.pandas.rotator import Rotator as pdRotator
-from xeofs.xarray.rotator import Rotator as xrRotator
 
 
 @pytest.mark.parametrize('n_modes', [0, 1])
@@ -20,9 +14,9 @@ def test_invalid_rotation(n_modes, sample_array):
     model = EOF(X)
     model.solve()
     with pytest.raises(Exception):
-        rot = Rotator(model=model, n_rot=n_modes)
+        _ = Rotator(model=model, n_rot=n_modes)
 
-    
+
 @pytest.mark.parametrize('n_modes', [2, 5, 7])
 def test_explained_variance(n_modes, sample_array):
     # Amount of explained variance is same before and after Varimax rotation
@@ -63,6 +57,19 @@ def test_pcs_uncorrelated(n_modes, sample_array):
     assert_allclose(rpcs.T @ rpcs, np.identity(n_modes), atol=1e-3)
 
 
+def test_eofs_as_correlation(sample_array):
+    # Correlation coefficients are between -1 and 1
+    # p values are between 0 and 1
+    data_no_nan = sample_array[:, ~np.isnan(sample_array).all(axis=0)]
+    model = EOF(data_no_nan)
+    model.solve()
+    rot = Rotator(model=model, n_rot=5)
+    corr, pvals = rot.eofs_as_correlation()
+    assert (abs(corr) <= 1).all()
+    assert (pvals >= 0).all()
+    assert (pvals <= 1).all()
+
+
 @pytest.mark.parametrize('n_modes, power', [
     (2, 1),
     (5, 1),
@@ -87,56 +94,3 @@ def test_relaxed_orthogonal_contraint(n_modes, power, sample_array):
 
     assert_raises(AssertionError, assert_allclose, actual_var, desired, atol=1e-3)
     assert_raises(AssertionError, assert_allclose, actual_pro, desired, atol=1e-3)
-
-
-@pytest.mark.parametrize('n_rot, power', [
-    (2, 1),
-    (5, 1),
-    (7, 1),
-    (2, 2),
-    (5, 2),
-    (7, 2),
-])
-def test_wrapper_solutions(n_rot, power, sample_array):
-    # Solutions of numpy, pandas and xarray wrapper are the same
-    X = sample_array
-    df = pd.DataFrame(X)
-    da = xr.DataArray(X)
-
-    numpy_model = EOF(X)
-    numpy_model.solve()
-    numpy_rot = Rotator(numpy_model, n_rot=n_rot, power=power)
-
-    pandas_model = pdEOF(df)
-    pandas_model.solve()
-    pandas_rot = pdRotator(pandas_model, n_rot=n_rot, power=power)
-
-    xarray_model = xrEOF(da, dim='dim_0')
-    xarray_model.solve()
-    xarray_rot = xrRotator(xarray_model, n_rot=n_rot, power=power)
-
-    desired_expvar = numpy_rot.explained_variance()
-    actual_pandas_expvar = pandas_rot.explained_variance().squeeze()
-    actual_xarray_expvar = xarray_rot.explained_variance()
-
-    desired_expvar_ratio = numpy_rot.explained_variance_ratio()
-    actual_pandas_expvar_ratio = pandas_rot.explained_variance_ratio().squeeze()
-    actual_xarray_expvar_ratio = xarray_rot.explained_variance_ratio()
-
-    desired_pcs = numpy_rot.pcs()
-    actual_pandas_pcs = pandas_rot.pcs().values
-    actual_xarray_pcs = xarray_rot.pcs().values
-
-    desired_eofs = numpy_rot.eofs()
-    actual_pandas_eofs = pandas_rot.eofs().values
-    actual_xarray_eofs = xarray_rot.eofs().values
-
-    np.testing.assert_allclose(actual_pandas_expvar, desired_expvar)
-    np.testing.assert_allclose(actual_pandas_expvar_ratio, desired_expvar_ratio)
-    np.testing.assert_allclose(actual_pandas_pcs, desired_pcs)
-    np.testing.assert_allclose(actual_pandas_eofs, desired_eofs)
-
-    np.testing.assert_allclose(actual_xarray_expvar, desired_expvar)
-    np.testing.assert_allclose(actual_xarray_expvar_ratio, desired_expvar_ratio)
-    np.testing.assert_allclose(actual_xarray_pcs, desired_pcs)
-    np.testing.assert_allclose(actual_xarray_eofs, desired_eofs)

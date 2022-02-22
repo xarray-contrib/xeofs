@@ -40,3 +40,15 @@ def test_n_modes(n_modes, sample_array):
     ref_n_modes = min(data_no_nan.shape) if n_modes is None else n_modes
 
     assert base.n_modes == ref_n_modes
+
+
+def test_eofs_as_correlation(sample_array):
+    # Correlation coefficients are between -1 and 1
+    # p values are between 0 and 1
+    data_no_nan = sample_array[:, ~np.isnan(sample_array).all(axis=0)]
+    model = EOF(data_no_nan)
+    model.solve()
+    corr, pvals = model.eofs_as_correlation()
+    assert (abs(corr) <= 1).all()
+    assert (pvals >= 0).all()
+    assert (pvals <= 1).all()

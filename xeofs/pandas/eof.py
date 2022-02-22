@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -92,7 +92,7 @@ class EOF(_EOF_base):
         )
         self._idx_mode = pd.Index(range(1, self.n_modes + 1), name='mode')
 
-    def singular_values(self):
+    def singular_values(self) -> pd.DataFrame:
         svalues = super().singular_values()
         svalues = pd.DataFrame(
             svalues,
@@ -101,7 +101,7 @@ class EOF(_EOF_base):
         )
         return svalues
 
-    def explained_variance(self):
+    def explained_variance(self) -> pd.DataFrame:
         expvar = super().explained_variance()
         expvar = pd.DataFrame(
             expvar,
@@ -110,7 +110,7 @@ class EOF(_EOF_base):
         )
         return expvar
 
-    def explained_variance_ratio(self):
+    def explained_variance_ratio(self) -> pd.DataFrame:
         expvar = super().explained_variance_ratio()
         expvar = pd.DataFrame(
             expvar,
@@ -119,14 +119,22 @@ class EOF(_EOF_base):
         )
         return expvar
 
-    def eofs(self):
+    def eofs(self) -> pd.DataFrame:
         eofs = super().eofs()
         eofs = self._tf.back_transform_eofs(eofs)
         eofs.columns = self._idx_mode
         return eofs
 
-    def pcs(self):
+    def pcs(self) -> pd.DataFrame:
         pcs = super().pcs()
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.columns = self._idx_mode
         return pcs
+
+    def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._tf.back_transform_eofs(corr)
+        pvals = self._tf.back_transform_eofs(pvals)
+        corr.columns = self._idx_mode
+        pvals.columns = self._idx_mode
+        return corr, pvals

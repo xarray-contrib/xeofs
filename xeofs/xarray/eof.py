@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Union, Tuple
 
 import numpy as np
 import xarray as xr
@@ -187,3 +187,11 @@ class EOF(_EOF_base):
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.name = 'PCs'
         return pcs
+
+    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._tf.back_transform_eofs(corr)
+        pvals = self._tf.back_transform_eofs(pvals)
+        corr.name = 'correlation_coeffient'
+        pvals.name = 'p_value'
+        return corr, pvals
