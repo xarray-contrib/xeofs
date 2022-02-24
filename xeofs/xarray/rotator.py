@@ -1,5 +1,5 @@
 import xarray as xr
-from typing import Tuple
+from typing import Tuple, Optional, Union, List
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
@@ -76,3 +76,14 @@ class Rotator(_BaseRotator):
         corr.name = 'correlation_coeffient'
         pvals.name = 'p_value'
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> xr.DataArray:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._model._tf.back_transform(Xrec)
+        coords_samples = {d: self._model._tf.coords[d] for d in self._model._tf.dims}
+        Xrec = Xrec.assign_coords(coords_samples)
+        Xrec.name = 'X_reconstructed'
+        return Xrec

@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Tuple
+from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
@@ -68,3 +68,12 @@ class Rotator(_BaseRotator):
         corr.columns = self._model._idx_mode[:self._n_rot]
         pvals.columns = self._model._idx_mode[:self._n_rot]
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> pd.DataFrame:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._model._tf.back_transform(Xrec)
+        Xrec.index = self._model._tf.index_samples
+        return Xrec

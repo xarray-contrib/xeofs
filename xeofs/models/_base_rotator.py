@@ -1,9 +1,10 @@
 import numpy as np
 import scipy as sc
-from typing import Tuple
+from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
 from ..utils.rotation import promax
+from ..utils.tools import get_mode_selector
 
 
 class _BaseRotator:
@@ -147,8 +148,6 @@ class _BaseRotator:
             pcs = self._pcs * np.sqrt(self._explained_variance * self._model.n_samples)
         return pcs
 
-        return self._pcs
-
     def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
         '''Correlation coefficients between rotated PCs and data matrix.
 
@@ -169,3 +168,62 @@ class _BaseRotator:
         dist = sc.stats.beta(a, a, loc=-1, scale=2)
         pvals = 2 * dist.cdf(-abs(corr))
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> np.ndarray:
+        '''Reconstruct original data field ``X`` using the rotated PCs and EOFs.
+
+        If weights were applied, ``X`` will be automatically rescaled.
+
+        Parameters
+        ----------
+        mode : Optional[Union[int, List[int], slice]]
+            Mode(s) based on which ``X`` will be reconstructed. If ``mode`` is
+            an int, a single mode is used. If a list of integers is provided,
+            use all specified modes for reconstruction. Alternatively, you may
+            want to select a slice to reconstruct. The first mode is denoted
+            by 1 (and not by 0). If None then ``X`` is recontructed using all
+            available modes (the default is None).
+
+        Examples
+        --------
+
+        Perform an analysis using some data ``X``:
+
+        >>> model = EOF(X, norm=True)
+        >>> model.solve()
+
+        Reconstruct ``X`` using all modes:
+
+        >>> model.reconstruct_X()
+
+        Reconstruct ``X`` using the first mode only:
+
+        >>> model.reconstruct_X(1)
+
+        Reconstruct ``X`` using mode 1, 3 and 4:
+
+        >>> model.reconstruct_X([1, 3, 4])
+
+        Reconstruct ``X`` using all modes up to mode 10 (including):
+
+        >>> model.reconstruct_X(slice(10))
+
+        Reconstruct ``X`` using every second mode between 4 and 8 (both
+        including):
+
+        >>> model.reconstruct_X(slice(4, 8, 2))
+
+
+        '''
+        eofs = self._eofs
+        pcs = self._pcs * np.sqrt(self._explained_variance * self._model.n_samples)
+        # Select modes to reconstruct X
+        mode = get_mode_selector(mode)
+        eofs = eofs[:, mode]
+        pcs = pcs[:, mode]
+        Xrec = pcs @ eofs.T
+        # Unweight and add mean
+        return (Xrec / self._model._weights) + self._model._X_mean

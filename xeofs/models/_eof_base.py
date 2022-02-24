@@ -4,6 +4,8 @@ import numpy as np
 import scipy as sc
 from sklearn.decomposition import PCA
 
+from ..utils.tools import get_mode_selector
+
 
 class _EOF_base():
     '''Base class for univariate EOF analysis.
@@ -43,13 +45,15 @@ class _EOF_base():
         weights: Optional[np.ndarray] = None
     ):
         # Remove mean for each feature
-        X -= X.mean(axis=0)
+        self._X_mean = X.mean(axis=0)
+        X -= self._X_mean
 
         # Weights are applied to features, not samples.
-        if weights is None:
+        self._weights = weights
+        if self._weights is None:
             # Use int type to ensure that there won't be rounding errors
             # when applying trivial weighting (= all weights equal 1)
-            weights = np.ones(X.shape[1], dtype=int)
+            self._weights = np.ones(X.shape[1], dtype=int)
 
         # Standardization is included as weights
         if norm:
@@ -60,8 +64,8 @@ class _EOF_base():
                     'normalization not possible.'
                 )
                 raise ValueError(err_msg)
-            weights = weights / stdev
-        X = X * weights
+            self._weights = self._weights / stdev
+        X = X * self._weights
 
         self.n_samples = X.shape[0]
         self.n_features = X.shape[1]
@@ -212,3 +216,62 @@ class _EOF_base():
         dist = sc.stats.beta(a, a, loc=-1, scale=2)
         pvals = 2 * dist.cdf(-abs(corr))
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> np.ndarray:
+        '''Reconstruct original data field ``X`` using the PCs and EOFs.
+
+        If weights were applied, ``X`` will be automatically rescaled.
+
+        Parameters
+        ----------
+        mode : Optional[Union[int, List[int], slice]]
+            Mode(s) based on which ``X`` will be reconstructed. If ``mode`` is
+            an int, a single mode is used. If a list of integers is provided,
+            use all specified modes for reconstruction. Alternatively, you may
+            want to select a slice to reconstruct. The first mode is denoted
+            by 1 (and not by 0). If None then ``X`` is recontructed using all
+            available modes (the default is None).
+
+        Examples
+        --------
+
+        Perform an analysis using some data ``X``:
+
+        >>> model = EOF(X, norm=True)
+        >>> model.solve()
+
+        Reconstruct ``X`` using all modes:
+
+        >>> model.reconstruct_X()
+
+        Reconstruct ``X`` using the first mode only:
+
+        >>> model.reconstruct_X(1)
+
+        Reconstruct ``X`` using mode 1, 3 and 4:
+
+        >>> model.reconstruct_X([1, 3, 4])
+
+        Reconstruct ``X`` using all modes up to mode 10 (including):
+
+        >>> model.reconstruct_X(slice(10))
+
+        Reconstruct ``X`` using every second mode between 4 and 8 (both
+        including):
+
+        >>> model.reconstruct_X(slice(4, 8, 2))
+
+
+        '''
+        eofs = self._eofs
+        pcs = self._pcs * self._singular_values
+        # Select modes to reconstruct X
+        mode = get_mode_selector(mode)
+        eofs = eofs[:, mode]
+        pcs = pcs[:, mode]
+        Xrec = pcs @ eofs.T
+        # Unweight and add mean
+        return (Xrec / self._weights) + self._X_mean

@@ -94,3 +94,16 @@ def test_relaxed_orthogonal_contraint(n_modes, power, sample_array):
 
     assert_raises(AssertionError, assert_allclose, actual_var, desired, atol=1e-3)
     assert_raises(AssertionError, assert_allclose, actual_pro, desired, atol=1e-3)
+
+
+@pytest.mark.parametrize('n_rot', [2, 5])
+def test_reconstruct_X(n_rot, sample_array):
+    # Reconstructed data is the same before and after rotation.
+    model = EOF(sample_array, n_modes=n_rot)
+    model.solve()
+    rot = Rotator(model, n_rot=n_rot)
+
+    Xrec = model.reconstruct_X()
+    Xrec_rot = rot.reconstruct_X()
+    # X values range between -40 and 40, absolute tolerance of 0.5 seems OK.
+    np.testing.assert_allclose(Xrec_rot, Xrec, atol=.5)

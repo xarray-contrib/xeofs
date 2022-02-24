@@ -18,7 +18,7 @@ def get_mode_selector(obj : Optional[Union[int, List[int], slice]]) -> Union[sli
     if obj is None:
         return slice(MAX_MODE)
     elif isinstance(obj, int):
-        return slice(obj)
+        return [obj - 1]
     elif isinstance(obj, slice):
         # Reduce slice start by one so that "1" is the first element
         try:

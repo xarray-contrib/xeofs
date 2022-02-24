@@ -1,4 +1,4 @@
-from typing import Optional, Union, Iterable, Tuple
+from typing import Optional, Union, Iterable, Tuple, List
 
 import numpy as np
 
@@ -116,3 +116,10 @@ class EOF(_EOF_base):
         corr = self._tf.back_transform_eofs(corr)
         pvals = self._tf.back_transform_eofs(pvals)
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> np.ndarray:
+        Xrec = super().reconstruct_X(mode)
+        return self._tf.back_transform(Xrec)
