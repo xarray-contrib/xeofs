@@ -8,7 +8,8 @@ from xeofs.pandas.eof import EOF as pdEOF
 from xeofs.xarray.eof import EOF as xrEOF
 
 
-def test_wrapper_solutions(sample_array):
+@pytest.mark.parametrize('scaling', [0, 1, 2])
+def test_wrapper_solutions(scaling, sample_array):
     # Solutions of numpy, pandas and xarray wrapper are the same
     X = sample_array
     df = pd.DataFrame(X)
@@ -32,13 +33,13 @@ def test_wrapper_solutions(sample_array):
     actual_pandas_expvar_ratio = pandas_model.explained_variance_ratio().squeeze()
     actual_xarray_expvar_ratio = xarray_model.explained_variance_ratio()
     # PCs
-    desired_pcs = numpy_model.pcs()
-    actual_pandas_pcs = pandas_model.pcs().values
-    actual_xarray_pcs = xarray_model.pcs().values
+    desired_pcs = numpy_model.pcs(scaling=scaling)
+    actual_pandas_pcs = pandas_model.pcs(scaling=scaling).values
+    actual_xarray_pcs = xarray_model.pcs(scaling=scaling).values
     # EOFs
-    desired_eofs = numpy_model.eofs()
-    actual_pandas_eofs = pandas_model.eofs().values
-    actual_xarray_eofs = xarray_model.eofs().values
+    desired_eofs = numpy_model.eofs(scaling=scaling)
+    actual_pandas_eofs = pandas_model.eofs(scaling=scaling).values
+    actual_xarray_eofs = xarray_model.eofs(scaling=scaling).values
     # EOFs as correlation
     desired_eofs_corr = numpy_model.eofs_as_correlation()
     actual_pandas_eofs_corr = pandas_model.eofs_as_correlation()
