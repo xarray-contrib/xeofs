@@ -11,15 +11,15 @@ from xeofs.pandas.rotator import Rotator as pdRotator
 from xeofs.xarray.rotator import Rotator as xrRotator
 
 
-@pytest.mark.parametrize('n_rot, power', [
-    (2, 1),
-    (5, 1),
-    (7, 1),
-    (2, 2),
-    (5, 2),
-    (7, 2),
+@pytest.mark.parametrize('n_rot, power, scaling', [
+    (2, 1, 0),
+    (5, 1, 1),
+    (7, 1, 2),
+    (2, 2, 0),
+    (5, 2, 1),
+    (7, 2, 2),
 ])
-def test_wrapper_solutions(n_rot, power, sample_array):
+def test_wrapper_solutions(n_rot, power, scaling, sample_array):
     # Solutions of numpy, pandas and xarray wrapper are the same
     X = sample_array
     df = pd.DataFrame(X)
@@ -46,13 +46,13 @@ def test_wrapper_solutions(n_rot, power, sample_array):
     actual_pandas_expvar_ratio = pandas_rot.explained_variance_ratio().squeeze()
     actual_xarray_expvar_ratio = xarray_rot.explained_variance_ratio()
     # PCs
-    desired_pcs = numpy_rot.pcs()
-    actual_pandas_pcs = pandas_rot.pcs().values
-    actual_xarray_pcs = xarray_rot.pcs().values
+    desired_pcs = numpy_rot.pcs(scaling=scaling)
+    actual_pandas_pcs = pandas_rot.pcs(scaling=scaling).values
+    actual_xarray_pcs = xarray_rot.pcs(scaling=scaling).values
     # EOFs
-    desired_eofs = numpy_rot.eofs()
-    actual_pandas_eofs = pandas_rot.eofs().values
-    actual_xarray_eofs = xarray_rot.eofs().values
+    desired_eofs = numpy_rot.eofs(scaling=scaling)
+    actual_pandas_eofs = pandas_rot.eofs(scaling=scaling).values
+    actual_xarray_eofs = xarray_rot.eofs(scaling=scaling).values
     # EOFs as correlation
     desired_eofs_corr = numpy_rot.eofs_as_correlation()
     actual_pandas_eofs_corr = pandas_rot.eofs_as_correlation()

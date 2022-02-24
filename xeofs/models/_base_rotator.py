@@ -104,13 +104,48 @@ class _BaseRotator:
 
         return self._explained_variance_ratio
 
-    def eofs(self) -> np.ndarray:
-        '''EOFs after rotation.'''
+    def eofs(self, scaling : int = 0) -> np.ndarray:
+        '''EOFs after rotation.
 
-        return self._eofs
+        Parameters
+        ----------
+        scaling : [0, 1, 2]
+            EOFs are scaled (i) to have unit length (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the EOFs having the
+            unit of the input data (the default is 0).
 
-    def pcs(self) -> np.ndarray:
-        '''PCs after rotation.'''
+        '''
+        if scaling == 0:
+            eofs = self._eofs
+        elif scaling == 1:
+            eofs = self._eofs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            eofs = self._eofs * np.sqrt(self._explained_variance * self._model.n_samples)
+        return eofs
+
+    def pcs(self, scaling : int = 0) -> np.ndarray:
+        '''PCs after rotation.
+
+        Parameters
+        ----------
+        scaling : [0, 1, 2]
+            PCs are scaled (i) to have unit length (orthonormal for Varimax
+            rotation) (``scaling=0``), (ii) by the square root of the
+            eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the PCs having the
+            unit of the input data (the default is 0).
+
+        '''
+        if scaling == 0:
+            pcs = self._pcs
+        elif scaling == 1:
+            pcs = self._pcs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            pcs = self._pcs * np.sqrt(self._explained_variance * self._model.n_samples)
+        return pcs
 
         return self._pcs
 

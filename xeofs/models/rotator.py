@@ -46,12 +46,12 @@ class Rotator(_BaseRotator):
     def explained_variance_ratio(self) -> np.ndarray:
         return super().explained_variance_ratio()
 
-    def eofs(self) -> np.ndarray:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> np.ndarray:
+        eofs = super().eofs(scaling=scaling)
         return self._model._tf.back_transform_eofs(eofs)
 
-    def pcs(self) -> np.ndarray:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> np.ndarray:
+        pcs = super().pcs(scaling=scaling)
         return self._model._tf.back_transform_pcs(pcs)
 
     def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:

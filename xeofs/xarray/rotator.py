@@ -57,14 +57,14 @@ class Rotator(_BaseRotator):
             name='explained_variance_ratio'
         )
 
-    def eofs(self) -> xr.DataArray:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> xr.DataArray:
+        eofs = super().eofs(scaling=scaling)
         eofs = self._model._tf.back_transform_eofs(eofs)
         eofs.name = 'EOFs'
         return eofs
 
-    def pcs(self) -> xr.DataArray:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> xr.DataArray:
+        pcs = super().pcs(scaling=scaling)
         pcs = self._model._tf.back_transform_pcs(pcs)
         pcs.name = 'PCs'
         return pcs

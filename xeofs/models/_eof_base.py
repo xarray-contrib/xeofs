@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List, Union
 
 import numpy as np
 import scipy as sc
@@ -122,7 +122,6 @@ class _EOF_base():
         and the number of samples, respectively.
 
         '''
-
         return self._singular_values
 
     def explained_variance(self) -> np.ndarray:
@@ -132,7 +131,6 @@ class _EOF_base():
         of the covariance matrix.
 
         '''
-
         return self._explained_variance
 
     def explained_variance_ratio(self) -> np.ndarray:
@@ -146,25 +144,53 @@ class _EOF_base():
 
         return self._explained_variance_ratio
 
-    def eofs(self) -> np.ndarray:
+    def eofs(self, scaling : int = 0) -> np.ndarray:
         '''Get the EOFs.
 
-        The empirical orthogonal functions (EOFs) are equivalent to the eigenvectors
-        of the covariance matrix of `X`.
+        The empirical orthogonal functions (EOFs) are equivalent to the
+        eigenvectors of the covariance matrix of `X`.
+
+        Parameters
+        ----------
+        scaling : [0, 1, 2]
+            EOFs are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the EOFs having the
+            unit of the input data (the default is 0).
 
         '''
+        if scaling == 0:
+            eofs = self._eofs
+        elif scaling == 1:
+            eofs = self._eofs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            eofs = self._eofs * self._singular_values
+        return eofs
 
-        return self._eofs
-
-    def pcs(self) -> np.ndarray:
+    def pcs(self, scaling : int = 0) -> np.ndarray:
         '''Get the PCs.
 
         The principal components (PCs), also known as PC scores, are computed
         by projecting the data matrix `X` onto the eigenvectors.
 
-        '''
+        Parameters
+        ----------
+        scaling : [0, 1, 2]
+            PCs are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the PCs having the
+            unit of the input data (the default is 0).
 
-        return self._pcs
+        '''
+        if scaling == 0:
+            pcs = self._pcs
+        elif scaling == 1:
+            pcs = self._pcs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            pcs = self._pcs * self._singular_values
+        return pcs
 
     def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
         '''Correlation coefficients between PCs and data matrix.
