@@ -18,6 +18,7 @@
    
       ~EOF.__init__
       ~EOF.eofs
+      ~EOF.eofs_as_correlation
       ~EOF.explained_variance
       ~EOF.explained_variance_ratio
       ~EOF.pcs
