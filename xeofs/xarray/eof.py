@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Union, Tuple
+from typing import Iterable, Optional, Union, Tuple, List
 
 import numpy as np
 import xarray as xr
@@ -195,3 +195,14 @@ class EOF(_EOF_base):
         corr.name = 'correlation_coeffient'
         pvals.name = 'p_value'
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> xr.DataArray:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._tf.back_transform(Xrec)
+        coords = {dim: self._tf.coords[dim] for dim in self._tf.dims_samples}
+        Xrec = Xrec.assign_coords(coords)
+        Xrec.name = 'X_reconstructed'
+        return Xrec

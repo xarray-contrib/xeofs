@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
@@ -138,3 +138,12 @@ class EOF(_EOF_base):
         corr.columns = self._idx_mode
         pvals.columns = self._idx_mode
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> pd.DataFrame:
+        Xrec = super().reconstruct_X(mode)
+        Xrec = self._tf.back_transform(Xrec)
+        Xrec.index = self._tf.index_samples
+        return Xrec
