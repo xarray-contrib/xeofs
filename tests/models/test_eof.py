@@ -52,3 +52,11 @@ def test_eofs_as_correlation(sample_array):
     assert (abs(corr) <= 1).all()
     assert (pvals >= 0).all()
     assert (pvals <= 1).all()
+
+
+def test_reconstruct_X(sample_array):
+    # Data and reconstructed data are close.
+    model = EOF(sample_array)
+    model.solve()
+    Xrec = model.reconstruct_X()
+    np.testing.assert_allclose(Xrec, sample_array)

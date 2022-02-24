@@ -57,6 +57,10 @@ def test_wrapper_solutions(n_rot, power, scaling, sample_array):
     desired_eofs_corr = numpy_rot.eofs_as_correlation()
     actual_pandas_eofs_corr = pandas_rot.eofs_as_correlation()
     actual_xarray_eofs_corr = xarray_rot.eofs_as_correlation()
+    # Reconstructed X
+    desired_Xrec = numpy_rot.reconstruct_X()
+    actual_pandas_Xrec = pandas_rot.reconstruct_X()
+    actual_xarray_Xrec = xarray_rot.reconstruct_X()
 
     np.testing.assert_allclose(actual_pandas_expvar, desired_expvar)
     np.testing.assert_allclose(actual_pandas_expvar_ratio, desired_expvar_ratio)
@@ -64,6 +68,7 @@ def test_wrapper_solutions(n_rot, power, scaling, sample_array):
     np.testing.assert_allclose(actual_pandas_eofs, desired_eofs)
     np.testing.assert_allclose(actual_pandas_eofs_corr[0], desired_eofs_corr[0])
     np.testing.assert_allclose(actual_pandas_eofs_corr[1], desired_eofs_corr[1])
+    np.testing.assert_allclose(actual_pandas_Xrec, desired_Xrec)
 
     np.testing.assert_allclose(actual_xarray_expvar, desired_expvar)
     np.testing.assert_allclose(actual_xarray_expvar_ratio, desired_expvar_ratio)
@@ -71,3 +76,4 @@ def test_wrapper_solutions(n_rot, power, scaling, sample_array):
     np.testing.assert_allclose(actual_xarray_eofs, desired_eofs)
     np.testing.assert_allclose(actual_xarray_eofs_corr[0], desired_eofs_corr[0])
     np.testing.assert_allclose(actual_xarray_eofs_corr[1], desired_eofs_corr[1])
+    np.testing.assert_allclose(actual_xarray_Xrec, desired_Xrec)
