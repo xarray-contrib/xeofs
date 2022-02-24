@@ -70,7 +70,8 @@ class _DataArrayTransformer(models.eof._ArrayTransformer):
 
     def back_transform(self, X : np.ndarray):
         da = super().back_transform(X)
-        return xr.DataArray(da, dims=self.dims)
+        coords_features = {d: self.coords[d] for d in self.dims}
+        return xr.DataArray(da, dims=self.dims, coords=coords_features)
 
     def back_transform_eofs(self, X : np.ndarray):
         da = super().back_transform_eofs(X)
