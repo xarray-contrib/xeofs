@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple
+from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
 from ._base_rotator import _BaseRotator
@@ -59,3 +59,11 @@ class Rotator(_BaseRotator):
         corr = self._model._tf.back_transform_eofs(corr)
         pvals = self._model._tf.back_transform_eofs(pvals)
         return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> np.ndarray:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._model._tf.back_transform(Xrec)
+        return Xrec
