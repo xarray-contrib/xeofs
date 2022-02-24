@@ -119,14 +119,14 @@ class EOF(_EOF_base):
         )
         return expvar
 
-    def eofs(self) -> pd.DataFrame:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+        eofs = super().eofs(scaling=scaling)
         eofs = self._tf.back_transform_eofs(eofs)
         eofs.columns = self._idx_mode
         return eofs
 
-    def pcs(self) -> pd.DataFrame:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+        pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.columns = self._idx_mode
         return pcs

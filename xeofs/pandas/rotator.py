@@ -53,12 +53,12 @@ class Rotator(_BaseRotator):
             index=self._model._idx_mode[:self._n_rot]
         )
 
-    def eofs(self) -> pd.DataFrame:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+        eofs = super().eofs(scaling=scaling)
         return self._model._tf.back_transform_eofs(eofs)
 
-    def pcs(self) -> pd.DataFrame:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+        pcs = super().pcs(scaling=scaling)
         return self._model._tf.back_transform_pcs(pcs)
 
     def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
