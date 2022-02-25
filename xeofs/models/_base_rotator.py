@@ -118,12 +118,13 @@ class _BaseRotator:
             unit of the input data (the default is 0).
 
         '''
+        dof = self._model.n_samples - 1
         if scaling == 0:
             eofs = self._eofs
         elif scaling == 1:
             eofs = self._eofs * np.sqrt(self._explained_variance)
         elif scaling == 2:
-            eofs = self._eofs * np.sqrt(self._explained_variance * self._model.n_samples)
+            eofs = self._eofs * np.sqrt(self._explained_variance * dof)
         return eofs
 
     def pcs(self, scaling : int = 0) -> np.ndarray:
