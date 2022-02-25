@@ -275,3 +275,20 @@ class _EOF_base():
         Xrec = pcs @ eofs.T
         # Unweight and add mean
         return (Xrec / self._weights) + self._X_mean
+
+    def project_onto_eofs(self, X : np.ndarray, scaling : int = 0) -> np.ndarray:
+        dof = self.n_samples - 1
+        pcs = X @ self._eofs / np.sqrt(self._explained_variance * dof)
+        if scaling == 0:
+            return pcs
+        elif scaling == 1:
+            return pcs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            return pcs * np.sqrt(self._explained_variance * dof)
+        else:
+            err_msg = (
+                'Scaling option {:} is not valid but must be one '
+                'of [0, 1, 2]'
+            )
+            err_msg = err_msg.foramt(scaling)
+            raise ValueError(err_msg)
