@@ -3,7 +3,7 @@ from typing import Tuple, Optional, Union, List
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
-
+from ._dataarray_transformer import _DataArrayTransformer
 
 class Rotator(_BaseRotator):
     '''Rotates a solution obtained from ``xe.xarray.EOF``.
@@ -87,3 +87,28 @@ class Rotator(_BaseRotator):
         Xrec = Xrec.assign_coords(coords_samples)
         Xrec.name = 'X_reconstructed'
         return Xrec
+
+    def project_onto_eofs(
+        self,
+        X : xr.DataArray,
+        scaling : int = 0
+    ) -> xr.DataArray:
+        '''Project new data onto the rotated EOFs.
+
+        Parameters
+        ----------
+        X : xr.DataArray
+             New data to project. Data must have same feature shape as original
+             data.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
+        proj = _DataArrayTransformer()
+        X = proj.fit_transform(X, dim=self._model._tf.dims_samples)
+        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        return proj.back_transform_pcs(pcs)
