@@ -22,6 +22,7 @@
       ~EOF.explained_variance
       ~EOF.explained_variance_ratio
       ~EOF.pcs
+      ~EOF.project_onto_eofs
       ~EOF.reconstruct_X
       ~EOF.singular_values
       ~EOF.solve
