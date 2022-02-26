@@ -276,8 +276,34 @@ class _EOF_base():
         # Unweight and add mean
         return (Xrec / self._weights) + self._X_mean
 
-    def project_onto_eofs(self, X : np.ndarray, scaling : int = 0) -> np.ndarray:
+    def project_onto_eofs(
+        self,
+        X : np.ndarray, scaling : int = 0
+    ) -> np.ndarray:
+        '''Project new data onto the EOFs.
+
+        Parameters
+        ----------
+        X : np.ndarray
+             New data to project. Data must be a 2D matrix.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
         dof = self.n_samples - 1
+        try:
+            X -= self._X_mean
+        except ValueError:
+            err_msg = (
+                'New data has invalid feature dimensions and cannot be '
+                'projected onto EOFs.'
+            )
+            raise ValueError(err_msg)
+        X *= self._weights
         pcs = X @ self._eofs / np.sqrt(self._explained_variance * dof)
         if scaling == 0:
             return pcs

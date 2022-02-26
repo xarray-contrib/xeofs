@@ -147,3 +147,28 @@ class EOF(_EOF_base):
         Xrec = self._tf.back_transform(Xrec)
         Xrec.index = self._tf.index_samples
         return Xrec
+
+    def project_onto_eofs(
+        self,
+        X : pd.DataFrame,
+        scaling : int = 0
+    ) -> pd.DataFrame:
+        '''Project new data onto the EOFs.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+             New data to project. Data must have same feature shape as original
+             data.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
+        proj = _DataFrameTransformer()
+        X = proj.fit_transform(X, axis=self._tf.axis_samples)
+        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        return proj.back_transform_pcs(pcs)
