@@ -266,7 +266,6 @@ class _BaseRotator:
 
         # Compute non-rotated PCs
         pcs = X @ self._model._eofs[:, :self._n_rot] / svals[:self._n_rot]
-        # pcs = self._model.project_onto_eofs(X)[:, :self._n_rot]
 
         # Rotate and reorder PCs
         R = self._rotation_matrix(inverse_transpose=True)
