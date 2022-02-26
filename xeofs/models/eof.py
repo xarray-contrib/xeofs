@@ -2,7 +2,7 @@ from typing import Optional, Union, Iterable, Tuple, List
 
 import numpy as np
 
-from xeofs.models._eof_base import _EOF_base
+from xeofs.models._base_eof import _BaseEOF
 from xeofs.models._array_transformer import _ArrayTransformer
 
 import warnings
@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
-class EOF(_EOF_base):
+class EOF(_BaseEOF):
     '''EOF analysis of a single ``np.ndarray``.
 
     Parameters

@@ -3,11 +3,11 @@ from typing import Optional, Tuple, Union, List
 import numpy as np
 import pandas as pd
 
-from ..models._eof_base import _EOF_base
+from ..models._base_eof import _BaseEOF
 from xeofs.pandas._dataframe_transformer import _DataFrameTransformer
 
 
-class EOF(_EOF_base):
+class EOF(_BaseEOF):
     '''EOF analysis of a single ``pd.DataFrame``.
 
     Parameters

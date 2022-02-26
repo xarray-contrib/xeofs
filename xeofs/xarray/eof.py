@@ -3,11 +3,11 @@ from typing import Iterable, Optional, Union, Tuple, List
 import numpy as np
 import xarray as xr
 
-from ..models._eof_base import _EOF_base
+from ..models._base_eof import _BaseEOF
 from ._dataarray_transformer import _DataArrayTransformer
 
 
-class EOF(_EOF_base):
+class EOF(_BaseEOF):
     '''EOF analysis of a single ``xr.DataArray``.
 
     Parameters

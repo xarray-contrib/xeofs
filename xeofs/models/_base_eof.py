@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 from ..utils.tools import get_mode_selector
 
 
-class _EOF_base():
+class _BaseEOF():
     '''Base class for univariate EOF analysis.
 
     Parameters
