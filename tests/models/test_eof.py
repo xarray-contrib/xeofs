@@ -3,7 +3,7 @@ import pytest
 import warnings
 from numpy.testing import assert_allclose
 
-from xeofs.models._eof_base import _EOF_base
+from xeofs.models._base_eof import _BaseEOF
 from xeofs.models import EOF
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -35,7 +35,7 @@ def test_solution(method, norm, weights, reference_solution, sample_array):
 def test_n_modes(n_modes, sample_array):
     # Number of modes is defined by minimum of sample and feature number
     data_no_nan = sample_array[:, ~np.isnan(sample_array).all(axis=0)]
-    base = _EOF_base(data_no_nan, n_modes=n_modes)
+    base = _BaseEOF(data_no_nan, n_modes=n_modes)
 
     ref_n_modes = min(data_no_nan.shape) if n_modes is None else n_modes
 
