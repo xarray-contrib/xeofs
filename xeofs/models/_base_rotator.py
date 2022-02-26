@@ -141,12 +141,13 @@ class _BaseRotator:
             unit of the input data (the default is 0).
 
         '''
+        dof = self._model.n_samples - 1
         if scaling == 0:
             pcs = self._pcs
         elif scaling == 1:
             pcs = self._pcs * np.sqrt(self._explained_variance)
         elif scaling == 2:
-            pcs = self._pcs * np.sqrt(self._explained_variance * self._model.n_samples)
+            pcs = self._pcs * np.sqrt(self._explained_variance * dof)
         return pcs
 
     def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -219,8 +220,9 @@ class _BaseRotator:
 
 
         '''
+        dof = self._model.n_samples - 1
         eofs = self._eofs
-        pcs = self._pcs * np.sqrt(self._explained_variance * self._model.n_samples)
+        pcs = self._pcs * np.sqrt(self._explained_variance * dof)
         # Select modes to reconstruct X
         mode = get_mode_selector(mode)
         eofs = eofs[:, mode]
@@ -228,3 +230,60 @@ class _BaseRotator:
         Xrec = pcs @ eofs.T
         # Unweight and add mean
         return (Xrec / self._model._weights) + self._model._X_mean
+
+    def project_onto_eofs(
+        self,
+        X : np.ndarray, scaling : int = 0
+    ) -> np.ndarray:
+        '''Project new data onto the rotated EOFs.
+
+        Parameters
+        ----------
+        X : np.ndarray
+             New data to project. Data must be a 2D matrix.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii)
+            by the square root of the eigenvalues (``scaling=1``) or (iii) by
+            the singular values (``scaling=2``). In the latter case, and when
+            no weights were applied, scaling by the singular values results in
+            the projections having the unit of the input data
+            (the default is 0).
+
+        '''
+        dof = self._model.n_samples - 1
+        svals = np.sqrt(self._model._explained_variance * dof)
+
+        # Preprocess new data
+        try:
+            X -= self._model._X_mean
+        except ValueError:
+            err_msg = (
+                'New data has invalid feature dimensions and cannot be '
+                'projected onto EOFs.'
+            )
+            raise ValueError(err_msg)
+        X *= self._model._weights
+
+        # Compute non-rotated PCs
+        pcs = X @ self._model._eofs[:, :self._n_rot] / svals[:self._n_rot]
+        # pcs = self._model.project_onto_eofs(X)[:, :self._n_rot]
+
+        # Rotate and reorder PCs
+        R = self._rotation_matrix(inverse_transpose=True)
+        pcs = pcs @ R
+        pcs = pcs[:, self._idx_var]
+
+        # Apply scaling
+        if scaling == 0:
+            return pcs
+        elif scaling == 1:
+            return pcs * np.sqrt(self._explained_variance)
+        elif scaling == 2:
+            return pcs * np.sqrt(self._explained_variance * dof)
+        else:
+            err_msg = (
+                'Scaling option {:} is not valid but must be one '
+                'of [0, 1, 2]'
+            )
+            err_msg = err_msg.foramt(scaling)
+            raise ValueError(err_msg)
