@@ -107,3 +107,21 @@ def test_reconstruct_X(n_rot, sample_array):
     Xrec_rot = rot.reconstruct_X()
     # X values range between -40 and 40, absolute tolerance of 0.5 seems OK.
     np.testing.assert_allclose(Xrec_rot, Xrec, atol=.5)
+
+
+@pytest.mark.parametrize('norm, scaling', [
+    (False, 0),
+    (False, 1),
+    (False, 2),
+    (True, 0),
+    (True, 1),
+    (True, 2),
+])
+def test_project_onto_eofs(norm, scaling, sample_array):
+    # Projection of original data and PCs are the same.
+    model = EOF(sample_array, norm=norm)
+    model.solve()
+    rot = Rotator(model, n_rot=2)
+    pcs = rot.pcs(scaling=scaling)
+    projections = rot.project_onto_eofs(sample_array, scaling=scaling)
+    np.testing.assert_allclose(projections, pcs)

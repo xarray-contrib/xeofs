@@ -54,9 +54,27 @@ def test_eofs_as_correlation(sample_array):
     assert (pvals <= 1).all()
 
 
-def test_reconstruct_X(sample_array):
+@pytest.mark.parametrize('norm', [False, True])
+def test_reconstruct_X(norm, sample_array):
     # Data and reconstructed data are close.
-    model = EOF(sample_array)
+    model = EOF(sample_array, norm=norm)
     model.solve()
     Xrec = model.reconstruct_X()
     np.testing.assert_allclose(Xrec, sample_array)
+
+
+@pytest.mark.parametrize('norm, scaling', [
+    (False, 0),
+    (False, 1),
+    (False, 2),
+    (True, 0),
+    (True, 1),
+    (True, 2),
+])
+def test_project_onto_eofs(norm, scaling, sample_array):
+    # Projection of original data and PCs are the same.
+    model = EOF(sample_array, norm=norm)
+    model.solve()
+    pcs = model.pcs(scaling=scaling)
+    projections = model.project_onto_eofs(sample_array, scaling=scaling)
+    np.testing.assert_allclose(projections, pcs)
