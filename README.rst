@@ -35,7 +35,7 @@ EOF models
 -----------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       xeofs_
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       **xeofs**
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
 Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
@@ -52,7 +52,7 @@ Additional features
 ----------------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       xeofs_
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       **xeofs**
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 ``numpy`` interface    ✅           ❌           ❌           ❌           ✅           ✅
 ``pandas`` interface   ❌           ❌           ❌           ❌           ❌           ✅
