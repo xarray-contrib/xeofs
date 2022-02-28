@@ -83,11 +83,11 @@ class _DataArrayTransformer(models.eof._ArrayTransformer):
         dims = self.dims_features + ('mode',)
         coords = self.coords_features
         coords['mode'] = range(1, X.shape[1] + 1)
-        return xr.DataArray(da, dims=dims, coords=coords)
+        return xr.DataArray(da, dims=dims, coords=coords, name='EOFs')
 
     def back_transform_pcs(self, X : np.ndarray):
         da = super().back_transform_pcs(X)
         dims = self.dims_samples + ('mode',)
         coords = self.coords_samples
         coords['mode'] = range(1, X.shape[1] + 1)
-        return xr.DataArray(da, dims=dims, coords=coords)
+        return xr.DataArray(da, dims=dims, coords=coords, name='PCs')

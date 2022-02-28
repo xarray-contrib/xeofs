@@ -7,14 +7,14 @@ from ..models._base_eof import _BaseEOF
 from ._dataarray_transformer import _DataArrayTransformer
 
 
-class EOF(_BaseEOF):
-    '''EOF analysis of a single ``xr.DataArray``.
+class MultivariateEOF(_BaseEOF):
+    '''EOF analysis of multiple ``xr.DataArray``.
 
     Parameters
     ----------
-    X : xr.DataArray
+    X : List[xr.DataArray]
         Data to be decomposed.
-    dim : Union[str, Iterable[str]]
+    dim : Optional[Union[str, Iterable[str]]]
         Define the dimension which should considered for maximising variance.
         For most applications in climate science, temporal variance is
         maximised (also known as S-mode EOF analysis) i.e. the time dimension
@@ -28,89 +28,40 @@ class EOF(_BaseEOF):
     norm : bool
         Normalize each feature (e.g. grid cell) by its temporal standard
         deviation (the default is False).
-    weights : Union[xr.DatArray | str | None]
+    weights : Optional[Union[List[xr.DatArray], str]]
         Weights to be applied to data (features).
 
-
-    Examples
-    --------
-
-    Import package and create data:
-
-    >>> import xarray as xr
-    >>> from xeofs.xarray import EOF
-    >>> da = xr.tutorial.load_dataset('rasm')['Tair']
-    >>> da = xr.tutorial.load_dataset('air_temperature')['air']
-    >>> da = da.isel(lon=slice(0, 3), lat=slice(0, 2))
-
-    Initialize standardized EOF analysis and compute the first 2 modes:
-
-    >>> model = EOF(da, norm=True, n_modes=2)
-    >>> model.solve()
-
-    Get explained variance:
-
-    >>> model.explained_variance()
-    ... xarray.DataArray'explained_variance'mode: 2
-    ...     array([5.8630486 , 0.12335653], dtype=float32)
-    ... Coordinates:
-    ...     mode (mode) int64 1 2
-    ... Attributes:
-    ...     (0)
-
-    Get EOFs:
-
-    >>> model.eofs()
-    ... xarray.DataArray 'EOFs' lon: 3 lat: 2 mode: 2
-    ... array([[[ 0.4083837 , -0.39021498],
-    ...         [ 0.40758175,  0.42474997]],
-    ...
-    ...        [[ 0.40875185, -0.40969774],
-    ...         [ 0.40863484,  0.41475943]],
-    ...
-    ...        [[ 0.40776297, -0.4237887 ],
-    ...         [ 0.40837321,  0.38450614]]])
-    ... Coordinates:
-    ...     lat (lat) float32 75.0 72.5
-    ...     lon (lon) float32 200.0 202.5 205.0
-    ...     mode (mode) int64 1 2
-    ... Attributes:
-    ...     (0)
-
-    Get PCs:
-
-    >>> model.pcs()
-    ... xarray.DataArray 'PCs' time: 2920 mode: 2
-    ... array([[-3.782707  , -0.07754549],
-    ...        [-3.7966802 , -0.13775176],
-    ...        [-3.7969239 , -0.05770111],
-    ...        ...,
-    ...        [-3.2584608 ,  0.3592216 ],
-    ...        [-3.031799  ,  0.2055658 ],
-    ...        [-3.0840495 ,  0.25031802]], dtype=float32)
-    ... Coordinates:
-    ...     time (time) datetime64[ns] 2013-01-01 ... 2014-12-31T18:00:00
-    ...     mode (mode) int64 1 2
-    ... Attributes:
-    ...     (0)
 
     '''
 
     def __init__(
         self,
-        X: xr.DataArray,
-        dim: Union[str, Iterable[str]] = 'time',
+        X: List[xr.DataArray],
+        dim: Optional[Union[str, Iterable[str]]] = 'time',
         n_modes : Optional[int] = None,
         norm : bool = False,
-        weights : Optional[Union[xr.DataArray, str]] = None
+        weights : Optional[Union[List[xr.DataArray], str]] = None
     ):
 
-        self._tf = _DataArrayTransformer()
-        self._tf.fit(X, dim=dim)
-        if weights == 'coslat':
-            weights = self._get_coslat_weights(X)
-        X = self._tf.transform(X)
-        weights = self._tf.transform_weights(weights)
+        self._tf = []
+        X_transformed = []
+        weights_transformed = []
+
+        for x in X:
+            wghts = weights
+            tf = _DataArrayTransformer()
+            # Fit data first, so that _get_coslat_weights can acces transformer
+            tf.fit(x, dim=dim)
+            if wghts == 'coslat':
+                wghts = self._get_coslat_weights(x, tf.dims_samples)
+            X_transformed.append(tf.transform(x))
+            weights_transformed.append(tf.transform_weights(wghts))
+            self._tf.append(tf)
+
+        shapes = [x.shape[1] for x in X_transformed]
+        self._multi_idx_features = np.insert(np.cumsum(shapes), 0, 0)
+        X = np.concatenate(X_transformed, axis=1)
+        weights = np.concatenate(weights_transformed, axis=0) if weights is not None else weights
 
         super().__init__(
             X=X,
@@ -121,7 +72,11 @@ class EOF(_BaseEOF):
         self._idx_mode = xr.IndexVariable('mode', range(1, self.n_modes + 1))
         self._dim = dim
 
-    def _get_coslat_weights(self, X : xr.DataArray) -> xr.DataArray:
+    def _get_coslat_weights(
+        self,
+        X : xr.DataArray,
+        dims_samples : Iterable[str]
+    ) -> xr.DataArray:
         # Find dimension name of latitude
         possible_lat_names = [
             'latitude', 'Latitude', 'lat', 'Lat', 'LATITUDE', 'LAT'
@@ -144,9 +99,8 @@ class EOF(_BaseEOF):
         weights = np.cos(np.deg2rad(X.coords[lat_dim]))
         weights = np.sqrt(weights.where(weights > 0, 0))
         # Broadcast latitude weights on other feature dimensions
-        sample_dims = self._tf.dims_samples
-        feature_grid = X.isel({k: 0 for k in sample_dims})
-        feature_grid = feature_grid.drop_vars(sample_dims)
+        feature_grid = X.isel({k: 0 for k in dims_samples})
+        feature_grid = feature_grid.drop_vars(dims_samples)
         return weights.broadcast_like(feature_grid)
 
     def singular_values(self) -> xr.DataArray:
@@ -176,19 +130,30 @@ class EOF(_BaseEOF):
             name='explained_variance_ratio'
         )
 
-    def eofs(self, scaling : int = 0) -> xr.DataArray:
+    def eofs(self, scaling : int = 0) -> List[xr.DataArray]:
+        transformers = self._tf
+        idx = self._multi_idx_features
+
         eofs = super().eofs(scaling=scaling)
-        eofs = self._tf.back_transform_eofs(eofs)
-        eofs.name = 'EOFs'
+        eofs = [eofs[idx[i]:idx[i + 1]] for i in range(len(idx) - 1)]
+        eofs = [tf.back_transform_eofs(eof) for eof, tf in zip(eofs, transformers)]
         return eofs
 
-    def pcs(self, scaling : int = 0) -> xr.DataArray:
+    def pcs(self, scaling : int = 0) -> List[xr.DataArray]:
+        transformers = self._tf
+        idx = self._multi_idx_features
+
+        eofs = super().eofs(scaling=scaling)
+        eofs = [eofs[idx[i]:idx[i + 1]] for i in range(len(idx) - 1)]
+        eofs = [tf.back_transform_eofs(eof) for eof, tf in zip(eofs, transformers)]
+
         pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.name = 'PCs'
         return pcs
 
-    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+    def eofs_as_correlation(self) -> List[Tuple[xr.DataArray, xr.DataArray]]:
+        # TODO: Implement multivariate
         corr, pvals = super().eofs_as_correlation()
         corr = self._tf.back_transform_eofs(corr)
         pvals = self._tf.back_transform_eofs(pvals)
@@ -200,6 +165,7 @@ class EOF(_BaseEOF):
         self,
         mode : Optional[Union[int, List[int], slice]] = None
     ) -> xr.DataArray:
+        # TODO: multivariate
         Xrec = super().reconstruct_X(mode=mode)
         Xrec = self._tf.back_transform(Xrec)
         coords = {dim: self._tf.coords[dim] for dim in self._tf.dims_samples}
@@ -211,7 +177,7 @@ class EOF(_BaseEOF):
         self,
         X : xr.DataArray,
         scaling : int = 0
-    ) -> xr.DataArray:
+    ) -> List[xr.DataArray]:
         '''Project new data onto the EOFs.
 
         Parameters
@@ -227,6 +193,7 @@ class EOF(_BaseEOF):
             unit of the input data (the default is 0).
 
         '''
+        # TODO: multivariate
         proj = _DataArrayTransformer()
         X = proj.fit_transform(X, dim=self._tf.dims_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
