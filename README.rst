@@ -12,6 +12,8 @@
 .. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
 
+.. role:: red
+
 =================================
 xeofs: EOF analysis and variants
 =================================
@@ -28,15 +30,43 @@ facilitate the acceptance and application of this method by the broader
 scientific community. Each of these implementations has its own strengths,
 which need to be highlighted (please `let me know`_, if I forgot any):
 
-- eofs_: EOF + Multivariate EOF analyis; used to work with ``xarray``; great documentation, clear code structure and solid tests (partly integrated into ``xeofs``)
-- pyEOF_: EOF + Rotated EOF analysis with ``xarray``; makes use of fast PCA implementation of  `scikit-learn` (e.g. Randomized PCA) (fully integrated into ``xeofs``)
-- xeof_: EOF analysis with support for large data sets using ``dask``
-- xMCA_: Maximum Covariance Analysis (MCA), which is a more general form of EOF analysis
+EOF models
++++++++++++++
+
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       xeofs_
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
+Rotated EOF analysis   :red:`❌`    ✅           ⤧           ⤧           ✅           ✅
+Complex EOF analysis   ⤧           :red:`⤧`    ⤧           ⤧           ✅           ⤧
+Multivariate EOF       ✅           ⤧           ⤧           ⤧           ⤧           ⤧
+MCA                    ⤧           ⤧           ⤧           ✅           ✅           ⤧
+Rotated MCA            ⤧           ⤧           ⤧           ⤧           ✅           ⤧
+Complex MCA            ⤧           ⤧           ⤧           ⤧           ✅           ⤧
+Multivariate MCA       ⤧           ⤧           ⤧           ⤧           ⤧           ⤧
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+
+
+Additional features
+++++++++++++++++++++
+
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       xeofs_
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+``numpy`` interface    ✅           ⤧           ⤧           ⤧           ✅           ✅
+``pandas`` interface   ⤧           ⤧           ⤧           ⤧           ⤧           ✅
+``xarray`` interface   ?           ✅           ✅           ✅           ✅           ✅
+Fast algorithm         ⤧           ✅           ⤧           ⤧           ⤧           ✅
+Dask support           ✅           ⤧           ✅           ⤧           ⤧           ⤧
+Arbitrary dimensions   ⤧           ⤧           ⤧           ⤧           ❌           ✅
+=====================  ==========  ==========  ==========  ==========  ==========  ==========
+
 
 .. _eofs: https://github.com/ajdawson/eofs
 .. _xeof: https://github.com/dougiesquire/xeof
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _pyEOF: https://github.com/zzheng93/pyEOF
+.. _xmca: https://github.com/nicrie/xmca
 
 .. _let me know: niclasrieger@gmail.com
 
@@ -66,7 +96,8 @@ This package currently supports:
 Further features:
 
 + Perform EOF analyis over arbitrary multi-dimensions using the ``axis`` or ``dim`` parameter. Check out the examples e.g. for S-mode_ or T-mode_ analysis.
-+ General weights, including some shorthands_ for
++ General weights, including some shorthands_ for:
+
   + Standardized EOF analysis ``norm=True``
   + Area weighting based on cosine of latitude (``weights='coslat'``)
 
