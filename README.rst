@@ -35,7 +35,7 @@ EOF models
 -----------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       **xeofs**
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_       **xeofs**
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
 Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
@@ -52,7 +52,7 @@ Additional features
 ----------------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca_       **xeofs**
+Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_       **xeofs**
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 ``numpy`` interface    ✅           ❌           ❌           ❌           ✅           ✅
 ``pandas`` interface   ❌           ❌           ❌           ❌           ❌           ✅
@@ -67,7 +67,7 @@ Arbitrary dimensions   ❌           ❌           ❌           ❌           �
 .. _xeof: https://github.com/dougiesquire/xeof
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _pyEOF: https://github.com/zzheng93/pyEOF
-.. _xmca: https://github.com/nicrie/xmca
+.. _xmca2: https://github.com/nicrie/xmca
 
 .. _let me know: niclasrieger@gmail.com
 
