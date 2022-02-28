@@ -113,9 +113,9 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
 
-************************
+
 Credits
-************************
+----------------------
 
 - Project folder structure: yngvem_
 - Testing data: xarray_ \& pooch_
