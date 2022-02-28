@@ -100,8 +100,6 @@ How to use it?
 ----------------------
 Documentation_ is work in progress. Meanwhile check out some examples_ to get started:
 
-Examples:
-
 + EOF analysis (S-mode_)
 + EOF analysis (T-mode_)
 + Rotated_ EOF analysis (Varimax, Promax)
