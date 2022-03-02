@@ -2,6 +2,44 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2022-03-02)
+### Feature
+* Project new data onto EOFs and rotated EOFs ([`d8b0e57`](https://github.com/nicrie/xeofs/commit/d8b0e57622bc6dec1b45ac94821eaf369a335704))
+* Project unseen data onto rotated EOFs ([`63b2d3a`](https://github.com/nicrie/xeofs/commit/63b2d3afdcb9b170b3fdbe5d38a6386463423e4a))
+* Project unseen data onto EOFs ([`341546b`](https://github.com/nicrie/xeofs/commit/341546b8b74cb1f91105aefd409fab8a087cca9a))
+* Project unseen data onto EOFs ([`64e38b1`](https://github.com/nicrie/xeofs/commit/64e38b120a5c7e16431551e4c80f9b4a2a515eb4))
+* Allow to reconstruct original data with arbitrary mode combination ([`be095d7`](https://github.com/nicrie/xeofs/commit/be095d77d5d452853a36a6719c7de8edf17bed5b))
+* Reconstruct input data after rotation ([`0c9479e`](https://github.com/nicrie/xeofs/commit/0c9479e59a4a016f442b532889437e38c4a0e9bf))
+* Reconstruct input data for EOF analysis ([`7ed306a`](https://github.com/nicrie/xeofs/commit/7ed306add5bd7cc9ef9b2e14d486fd7887c1d388))
+* Allow different scalings of EOFs an PCs ([`ea39f02`](https://github.com/nicrie/xeofs/commit/ea39f023e1c0cf980063caf2bc2fa7daaac7c8ab))
+* Add scaling for PCs and EOFs ([`c2c6fe1`](https://github.com/nicrie/xeofs/commit/c2c6fe190b7a481f3c9193b1ce541c57e3a80e94))
+* Add eofs as correlation ([`85960ab`](https://github.com/nicrie/xeofs/commit/85960abf96283978748e283053175577211ade74))
+* Eofs as correlation for rotated EOF analysis ([`cb8c472`](https://github.com/nicrie/xeofs/commit/cb8c472f12906d8b2d2750847b1ae62a741fb4f8))
+* Eofs as correlation for EOF analysis ([`e53d449`](https://github.com/nicrie/xeofs/commit/e53d4494c96b6335911a79c325382ddc0a57fae4))
+
+### Fix
+* Fix incorrect dof for rotated PC scaling ([`addeb82`](https://github.com/nicrie/xeofs/commit/addeb82b0c68f5ffbd6c3f9559503cf88c1ba525))
+* PC projections was missing -1 correction for degrees of freedom ([`a243a26`](https://github.com/nicrie/xeofs/commit/a243a26cce09d29b318cb28011e815916f25c2e4))
+* Back_transform automatically add feature coords ([`0fef30d`](https://github.com/nicrie/xeofs/commit/0fef30da1bfea0d5b26070474fbe2ee826997dd4))
+
+### Documentation
+* Update README ([`982d7e3`](https://github.com/nicrie/xeofs/commit/982d7e3520937b4b696beaa5a4753267a2278280))
+* Update README ([`c52763b`](https://github.com/nicrie/xeofs/commit/c52763bbdb4de3f261d996db47125cf44edb6113))
+* Update README ([`2d00a71`](https://github.com/nicrie/xeofs/commit/2d00a7126f5248dd766815071857e5c1af63bd28))
+* Update README ([`8c8cb29`](https://github.com/nicrie/xeofs/commit/8c8cb29a52496302fa2893f74aa05a9d855fb005))
+* Update README ([`58f539b`](https://github.com/nicrie/xeofs/commit/58f539b2d353875d3a3d6da7707f4a1b69079755))
+* Add project_onto_eofs to autosummary ([`af7d1f2`](https://github.com/nicrie/xeofs/commit/af7d1f29a33e0e782c9f1cc58932f95f729ee1a6))
+* Update docs ([`28e248b`](https://github.com/nicrie/xeofs/commit/28e248b26b840e487370bf7d33ab73fb6b445ce4))
+* Add eofs as correlations ([`64c60c1`](https://github.com/nicrie/xeofs/commit/64c60c136ba39805ac9c4886f2f635efdc1e7eb4))
+* Update README ([`29f1b4d`](https://github.com/nicrie/xeofs/commit/29f1b4d7c592038d9402ba68fe61cd94b9f72045))
+* Remove older version of sphinx-gallery ([`938f294`](https://github.com/nicrie/xeofs/commit/938f2947a91074ebafb4d031403d5c7b2ee3e539))
+* Too many "install" ;) ([`ea66ba6`](https://github.com/nicrie/xeofs/commit/ea66ba65be9a33fa99d6b648cec5fc69cde64b85))
+* Forgot to specifiy master branch ([`2c827ba`](https://github.com/nicrie/xeofs/commit/2c827ba0e73526cd711f280911025807d2e40837))
+* Install current master branch of sphinx-gallery ([`8426033`](https://github.com/nicrie/xeofs/commit/8426033b89b01bac1154532d82967f07c694db42))
+* Update links to examples ([`44a4353`](https://github.com/nicrie/xeofs/commit/44a4353c648080aedaa62701d1efba7f757b3e32))
+* Add matplotlib to environment to generate example ([`2346fcb`](https://github.com/nicrie/xeofs/commit/2346fcb0b2f8b4b4c62d3bd87891ed107914634c))
+* Update examples ([`5795ffa`](https://github.com/nicrie/xeofs/commit/5795ffa0e6902abb536c8912f7b55874b9a141b6))
+
 ## v0.3.0 (2022-02-20)
 ### Feature
 * Add Varimax and Promax rotation ([`b42ba16`](https://github.com/nicrie/xeofs/commit/b42ba160f183d7a22a8555b19bf7de340663742b))
