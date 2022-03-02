@@ -31,6 +31,12 @@ class _DataArrayTransformer(models.eof._ArrayTransformer):
         self.dims_features = tuple(d for d in self.dims if d not in dim)
 
         self.coords = X.coords
+        self.coords_samples = {
+            k: c for k, c in self.coords.items() if k in self.dims_samples
+        }
+        self.coords_features = {
+            k: c for k, c in self.coords.items() if k in self.dims_features
+        }
 
         super().fit(X=X.values, axis=axis)
         return self
@@ -70,18 +76,18 @@ class _DataArrayTransformer(models.eof._ArrayTransformer):
 
     def back_transform(self, X : np.ndarray):
         da = super().back_transform(X)
-        return xr.DataArray(da, dims=self.dims)
+        return xr.DataArray(da, dims=self.dims, coords=self.coords)
 
     def back_transform_eofs(self, X : np.ndarray):
         da = super().back_transform_eofs(X)
         dims = self.dims_features + ('mode',)
-        coords = {k: c for k, c in self.coords.items() if k in self.dims_features}
+        coords = self.coords_features
         coords['mode'] = range(1, X.shape[1] + 1)
         return xr.DataArray(da, dims=dims, coords=coords)
 
     def back_transform_pcs(self, X : np.ndarray):
         da = super().back_transform_pcs(X)
         dims = self.dims_samples + ('mode',)
-        coords = {k: c for k, c in self.coords.items() if k in self.dims_samples}
+        coords = self.coords_samples
         coords['mode'] = range(1, X.shape[1] + 1)
         return xr.DataArray(da, dims=dims, coords=coords)

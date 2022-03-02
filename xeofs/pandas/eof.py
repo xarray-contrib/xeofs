@@ -1,13 +1,13 @@
-from typing import Optional
+from typing import Optional, Tuple, Union, List
 
 import numpy as np
 import pandas as pd
 
-from ..models._eof_base import _EOF_base
+from ..models._base_eof import _BaseEOF
 from xeofs.pandas._dataframe_transformer import _DataFrameTransformer
 
 
-class EOF(_EOF_base):
+class EOF(_BaseEOF):
     '''EOF analysis of a single ``pd.DataFrame``.
 
     Parameters
@@ -92,7 +92,7 @@ class EOF(_EOF_base):
         )
         self._idx_mode = pd.Index(range(1, self.n_modes + 1), name='mode')
 
-    def singular_values(self):
+    def singular_values(self) -> pd.DataFrame:
         svalues = super().singular_values()
         svalues = pd.DataFrame(
             svalues,
@@ -101,7 +101,7 @@ class EOF(_EOF_base):
         )
         return svalues
 
-    def explained_variance(self):
+    def explained_variance(self) -> pd.DataFrame:
         expvar = super().explained_variance()
         expvar = pd.DataFrame(
             expvar,
@@ -110,7 +110,7 @@ class EOF(_EOF_base):
         )
         return expvar
 
-    def explained_variance_ratio(self):
+    def explained_variance_ratio(self) -> pd.DataFrame:
         expvar = super().explained_variance_ratio()
         expvar = pd.DataFrame(
             expvar,
@@ -119,14 +119,56 @@ class EOF(_EOF_base):
         )
         return expvar
 
-    def eofs(self):
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+        eofs = super().eofs(scaling=scaling)
         eofs = self._tf.back_transform_eofs(eofs)
         eofs.columns = self._idx_mode
         return eofs
 
-    def pcs(self):
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+        pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.columns = self._idx_mode
         return pcs
+
+    def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._tf.back_transform_eofs(corr)
+        pvals = self._tf.back_transform_eofs(pvals)
+        corr.columns = self._idx_mode
+        pvals.columns = self._idx_mode
+        return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> pd.DataFrame:
+        Xrec = super().reconstruct_X(mode)
+        Xrec = self._tf.back_transform(Xrec)
+        Xrec.index = self._tf.index_samples
+        return Xrec
+
+    def project_onto_eofs(
+        self,
+        X : pd.DataFrame,
+        scaling : int = 0
+    ) -> pd.DataFrame:
+        '''Project new data onto the EOFs.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+             New data to project. Data must have same feature shape as original
+             data.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
+        proj = _DataFrameTransformer()
+        X = proj.fit_transform(X, axis=self._tf.axis_samples)
+        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        return proj.back_transform_pcs(pcs)

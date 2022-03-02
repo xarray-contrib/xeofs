@@ -1,7 +1,9 @@
 import pandas as pd
+from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
+from ._dataframe_transformer import _DataFrameTransformer
 
 
 class Rotator(_BaseRotator):
@@ -52,10 +54,52 @@ class Rotator(_BaseRotator):
             index=self._model._idx_mode[:self._n_rot]
         )
 
-    def eofs(self) -> pd.DataFrame:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+        eofs = super().eofs(scaling=scaling)
         return self._model._tf.back_transform_eofs(eofs)
 
-    def pcs(self) -> pd.DataFrame:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+        pcs = super().pcs(scaling=scaling)
         return self._model._tf.back_transform_pcs(pcs)
+
+    def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._model._tf.back_transform_eofs(corr)
+        pvals = self._model._tf.back_transform_eofs(pvals)
+        corr.columns = self._model._idx_mode[:self._n_rot]
+        pvals.columns = self._model._idx_mode[:self._n_rot]
+        return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> pd.DataFrame:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._model._tf.back_transform(Xrec)
+        Xrec.index = self._model._tf.index_samples
+        return Xrec
+
+    def project_onto_eofs(
+        self,
+        X : pd.DataFrame,
+        scaling : int = 0
+    ) -> pd.DataFrame:
+        '''Project new data onto the rotated EOFs.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+             New data to project. Data must have same feature shape as original
+             data.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
+        proj = _DataFrameTransformer()
+        X = proj.fit_transform(X, axis=self._model._tf.axis_samples)
+        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        return proj.back_transform_pcs(pcs)

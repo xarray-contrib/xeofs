@@ -1,13 +1,13 @@
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Union, Tuple, List
 
 import numpy as np
 import xarray as xr
 
-from ..models._eof_base import _EOF_base
-from xeofs.xarray._dataarray_transformer import _DataArrayTransformer
+from ..models._base_eof import _BaseEOF
+from ._dataarray_transformer import _DataArrayTransformer
 
 
-class EOF(_EOF_base):
+class EOF(_BaseEOF):
     '''EOF analysis of a single ``xr.DataArray``.
 
     Parameters
@@ -176,14 +176,58 @@ class EOF(_EOF_base):
             name='explained_variance_ratio'
         )
 
-    def eofs(self) -> xr.DataArray:
-        eofs = super().eofs()
+    def eofs(self, scaling : int = 0) -> xr.DataArray:
+        eofs = super().eofs(scaling=scaling)
         eofs = self._tf.back_transform_eofs(eofs)
         eofs.name = 'EOFs'
         return eofs
 
-    def pcs(self) -> xr.DataArray:
-        pcs = super().pcs()
+    def pcs(self, scaling : int = 0) -> xr.DataArray:
+        pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
         pcs.name = 'PCs'
         return pcs
+
+    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+        corr, pvals = super().eofs_as_correlation()
+        corr = self._tf.back_transform_eofs(corr)
+        pvals = self._tf.back_transform_eofs(pvals)
+        corr.name = 'correlation_coeffient'
+        pvals.name = 'p_value'
+        return corr, pvals
+
+    def reconstruct_X(
+        self,
+        mode : Optional[Union[int, List[int], slice]] = None
+    ) -> xr.DataArray:
+        Xrec = super().reconstruct_X(mode=mode)
+        Xrec = self._tf.back_transform(Xrec)
+        coords = {dim: self._tf.coords[dim] for dim in self._tf.dims_samples}
+        Xrec = Xrec.assign_coords(coords)
+        Xrec.name = 'X_reconstructed'
+        return Xrec
+
+    def project_onto_eofs(
+        self,
+        X : xr.DataArray,
+        scaling : int = 0
+    ) -> xr.DataArray:
+        '''Project new data onto the EOFs.
+
+        Parameters
+        ----------
+        X : xr.DataArray
+             New data to project. Data must have same feature shape as original
+             data.
+        scaling : [0, 1, 2]
+            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
+            square root of the eigenvalues (``scaling=1``) or (iii) by the
+            singular values (``scaling=2``). In case no weights were applied,
+            scaling by the singular values results in the projections having the
+            unit of the input data (the default is 0).
+
+        '''
+        proj = _DataArrayTransformer()
+        X = proj.fit_transform(X, dim=self._tf.dims_samples)
+        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        return proj.back_transform_pcs(pcs)
