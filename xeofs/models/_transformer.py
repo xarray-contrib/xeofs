@@ -1,4 +1,4 @@
-from typing import Union, Iterable
+from typing import Union, Iterable, List
 
 import numpy as np
 import warnings
@@ -6,8 +6,11 @@ import warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
+Array = np.ndarray
+ArrayList = Union[Array, List[Array]]
 
-class _ArrayTransformer():
+
+class _ArrayTransformer:
     '''Transform any N-D ``np.ndarray`` into a 2-D ``np.ndarray``.
 
     The parameter ``axis`` allows to choose which axes of the original array
@@ -23,7 +26,9 @@ class _ArrayTransformer():
     def __init__(self):
         pass
 
-    def fit(self, X : np.ndarray, axis : Union[int, Iterable[int]] = 0):
+    def fit(self, X : Array, axis : Union[int, Iterable[int]] = 0):
+        if not isinstance(X, np.ndarray):
+            raise ValueError('This interface is for `numpy.ndarray` only')
         # Convert axis to list
         if isinstance(axis, int):
             axis = list([axis])
@@ -78,7 +83,7 @@ class _ArrayTransformer():
         self.n_valid_features = n_valid_features
         return self
 
-    def transform(self, X : np.ndarray):
+    def transform(self, X : Array):
         # Transpose data matrix X
         try:
             X = X.transpose(self.new_axes_order)
@@ -113,18 +118,17 @@ class _ArrayTransformer():
             raise ValueError('Invalid data: contains individual NaNs')
         return X
 
-    def transform_weights(
-        self,
-        weights : np.ndarray
-    ):
+    def transform_weights(self, weights : Array):
+        shape_expected = tuple(self.shape_features)
+        # Trivial case: no weighting -> weights all one
         if weights is None:
-            return None
+            weights = np.ones(shape_expected, dtype=int)
         try:
             shape_received = weights.shape
         except AttributeError:
             err_msg = 'weights must be of type {:}.'.format(repr(np.ndarray))
             raise TypeError(err_msg)
-        shape_expected = tuple(self.shape_features)
+        # Transform weights to 1D array and remove NaNs
         if shape_expected == shape_received:
             # The dimensions order is already correct, flatten is enough
             weights = weights.flatten()
@@ -138,12 +142,12 @@ class _ArrayTransformer():
             raise ValueError(err_msg)
 
     def fit_transform(
-        self, X : np.ndarray,
+        self, X : Array,
         axis : Union[int, Iterable[int]] = 0
     ):
         return self.fit(X=X, axis=axis).transform(X)
 
-    def back_transform(self, X : np.ndarray):
+    def back_transform(self, X : Array):
         if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         # Original shape
@@ -156,16 +160,83 @@ class _ArrayTransformer():
         # Inverse transposing
         return Xrec.transpose(np.argsort(self.new_axes_order))
 
-    def back_transform_eofs(self, X : np.ndarray):
+    def back_transform_eofs(self, X : Array):
         if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         eofs = np.zeros((self.n_features, X.shape[1])) * np.nan
         eofs[self.idx_valid_features, :] = X
         return eofs.reshape(tuple(self.shape_features) + (X.shape[1],))
 
-    def back_transform_pcs(self, X : np.ndarray):
+    def back_transform_pcs(self, X : Array):
         if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
         pcs = np.zeros((self.n_samples, X.shape[1])) * np.nan
         pcs[self.idx_valid_samples, :] = X
         return pcs.reshape(tuple(self.shape_samples) + (X.shape[1],))
+
+
+class _MultiArrayTransformer:
+    'Transform multiple N-D ``np.ndarray`` to a single 2D ``np.ndarry``.'
+    def __init__(self):
+        pass
+
+    def _convert2list(self, X):
+        if np.logical_not(isinstance(X, list)):
+            X = [X]
+        return X
+
+    def fit(self, X : ArrayList, axis : Union[int, Iterable[int]] = 0):
+        X = self._convert2list(X)
+
+        self.tfs = [_ArrayTransformer().fit(x, axis=axis) for x in X]
+
+        if len(set([tf.n_valid_samples for tf in self.tfs])) > 1:
+            err_msg = 'All individual arrays must have same number of samples.'
+            raise ValueError(err_msg)
+
+        self.idx_array_sep = np.cumsum([tf.n_valid_features for tf in self.tfs])
+        self.axis_samples = self.tfs[0].axis_samples
+        return self
+
+    def transform(self, X : ArrayList):
+        X = self._convert2list(X)
+
+        X_transformed = [tf.transform(x) for x, tf in zip(X, self.tfs)]
+
+        if len(set(x.shape[0] for x in X_transformed)) > 1:
+            err_msg = 'All individual arrays must have same number of samples.'
+            raise ValueError(err_msg)
+
+        return np.concatenate(X_transformed, axis=1)
+
+    def transform_weights(self, weights : ArrayList):
+        weights = self._convert2list(weights)
+        if len(self.tfs) != len(weights):
+            weights = weights * len(self.tfs)
+        if len(self.tfs) != len(weights):
+            err_msg = (
+                'Number of provided weights does not correspond to input data.'
+            )
+            raise ValueError(err_msg)
+
+        weights = [tf.transform_weights(w) for w, tf in zip(weights, self.tfs)]
+        return np.concatenate(weights, axis=0)
+
+    def fit_transform(
+        self, X : ArrayList,
+        axis : Union[int, Iterable[int]] = 0
+    ):
+        return self.fit(X=X, axis=axis).transform(X)
+
+    def back_transform(self, X : Array):
+        Xrec = np.split(X, self.idx_array_sep[:-1], axis=1)
+        Xrec = [tf.back_transform(x) for x, tf in zip(Xrec, self.tfs)]
+        return Xrec
+
+    def back_transform_eofs(self, X : Array):
+        eofs = np.split(X, self.idx_array_sep[:-1], axis=0)
+        eofs = [tf.back_transform_eofs(e) for e, tf in zip(eofs, self.tfs)]
+        return eofs
+
+    def back_transform_pcs(self, X : Array):
+        return self.tfs[0].back_transform_pcs(X)
