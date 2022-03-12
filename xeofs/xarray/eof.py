@@ -1,10 +1,13 @@
 from typing import Iterable, Optional, Union, Tuple, List
 
-import numpy as np
 import xarray as xr
 
 from ..models._base_eof import _BaseEOF
-from ._dataarray_transformer import _DataArrayTransformer
+from ..utils.tools import squeeze
+from ._transformer import _MultiDataArrayTransformer
+
+DataArray = xr.DataArray
+DataArrayList = Union[DataArray, List[DataArray]]
 
 
 class EOF(_BaseEOF):
@@ -98,18 +101,19 @@ class EOF(_BaseEOF):
 
     def __init__(
         self,
-        X: xr.DataArray,
+        X: DataArrayList,
         dim: Union[str, Iterable[str]] = 'time',
         n_modes : Optional[int] = None,
         norm : bool = False,
         weights : Optional[Union[xr.DataArray, str]] = None
     ):
+        use_coslat = True if weights == 'coslat' else False
 
-        self._tf = _DataArrayTransformer()
-        self._tf.fit(X, dim=dim)
-        if weights == 'coslat':
-            weights = self._get_coslat_weights(X)
-        X = self._tf.transform(X)
+        self._tf = _MultiDataArrayTransformer()
+        X = self._tf.fit_transform(X, dim=dim, coslat=use_coslat)
+
+        if use_coslat:
+            weights = self._tf.coslat_weights
         weights = self._tf.transform_weights(weights)
 
         super().__init__(
@@ -121,35 +125,7 @@ class EOF(_BaseEOF):
         self._idx_mode = xr.IndexVariable('mode', range(1, self.n_modes + 1))
         self._dim = dim
 
-    def _get_coslat_weights(self, X : xr.DataArray) -> xr.DataArray:
-        # Find dimension name of latitude
-        possible_lat_names = [
-            'latitude', 'Latitude', 'lat', 'Lat', 'LATITUDE', 'LAT'
-        ]
-        idx_lat_dim = np.isin(X.dims, possible_lat_names)
-        try:
-            lat_dim = np.array(X.dims)[idx_lat_dim][0]
-        except IndexError:
-            err_msg = (
-                'Latitude dimension cannot be found. Please make sure '
-                'latitude dimensions is called like one of {:}'
-            )
-            err_msg = err_msg.format(possible_lat_names)
-            raise ValueError(err_msg)
-        # Check if latitude is a MultiIndex => not allowed
-        if X.coords[lat_dim].dtype not in [np.float_, np.float64, np.float32, np.int_]:
-            err_msg = 'MultiIndex as latitude dimensions is not allowed.'
-            raise ValueError(err_msg)
-        # Compute coslat weights
-        weights = np.cos(np.deg2rad(X.coords[lat_dim]))
-        weights = np.sqrt(weights.where(weights > 0, 0))
-        # Broadcast latitude weights on other feature dimensions
-        sample_dims = self._tf.dims_samples
-        feature_grid = X.isel({k: 0 for k in sample_dims})
-        feature_grid = feature_grid.drop_vars(sample_dims)
-        return weights.broadcast_like(feature_grid)
-
-    def singular_values(self) -> xr.DataArray:
+    def singular_values(self) -> DataArray:
         svalues = super().singular_values()
         return xr.DataArray(
             svalues,
@@ -158,7 +134,7 @@ class EOF(_BaseEOF):
             name='singular_values'
         )
 
-    def explained_variance(self) -> xr.DataArray:
+    def explained_variance(self) -> DataArray:
         expvar = super().explained_variance()
         return xr.DataArray(
             expvar,
@@ -167,7 +143,7 @@ class EOF(_BaseEOF):
             name='explained_variance'
         )
 
-    def explained_variance_ratio(self) -> xr.DataArray:
+    def explained_variance_ratio(self) -> DataArray:
         expvar = super().explained_variance_ratio()
         return xr.DataArray(
             expvar,
@@ -176,42 +152,38 @@ class EOF(_BaseEOF):
             name='explained_variance_ratio'
         )
 
-    def eofs(self, scaling : int = 0) -> xr.DataArray:
+    def eofs(self, scaling : int = 0) -> DataArrayList:
         eofs = super().eofs(scaling=scaling)
         eofs = self._tf.back_transform_eofs(eofs)
-        eofs.name = 'EOFs'
-        return eofs
+        return squeeze(eofs)
 
     def pcs(self, scaling : int = 0) -> xr.DataArray:
         pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
-        pcs.name = 'PCs'
         return pcs
 
-    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+    def eofs_as_correlation(self) -> Tuple[DataArrayList, DataArrayList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._tf.back_transform_eofs(corr)
         pvals = self._tf.back_transform_eofs(pvals)
-        corr.name = 'correlation_coeffient'
-        pvals.name = 'p_value'
-        return corr, pvals
+        for c, p in zip(corr, pvals):
+            c.name = 'correlation_coeffient'
+            p.name = 'p_value'
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> xr.DataArray:
+    ) -> DataArrayList:
         Xrec = super().reconstruct_X(mode=mode)
         Xrec = self._tf.back_transform(Xrec)
-        coords = {dim: self._tf.coords[dim] for dim in self._tf.dims_samples}
-        Xrec = Xrec.assign_coords(coords)
-        Xrec.name = 'X_reconstructed'
-        return Xrec
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : xr.DataArray,
+        X : DataArrayList,
         scaling : int = 0
-    ) -> xr.DataArray:
+    ) -> DataArray:
         '''Project new data onto the EOFs.
 
         Parameters
@@ -227,7 +199,7 @@ class EOF(_BaseEOF):
             unit of the input data (the default is 0).
 
         '''
-        proj = _DataArrayTransformer()
+        proj = _MultiDataArrayTransformer()
         X = proj.fit_transform(X, dim=self._tf.dims_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
         return proj.back_transform_pcs(pcs)

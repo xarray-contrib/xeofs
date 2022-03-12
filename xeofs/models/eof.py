@@ -3,12 +3,16 @@ from typing import Optional, Union, Iterable, Tuple, List
 import numpy as np
 
 from xeofs.models._base_eof import _BaseEOF
-from xeofs.models._array_transformer import _ArrayTransformer
+from xeofs.models._transformer import _MultiArrayTransformer
+from ..utils.tools import squeeze
 
 import warnings
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+
+Array = np.ndarray
+ArrayList = Union[Array, List[Array]]
 
 
 class EOF(_BaseEOF):
@@ -85,15 +89,15 @@ class EOF(_BaseEOF):
 
     def __init__(
         self,
-        X: np.ndarray,
+        X: ArrayList,
         axis : Union[int, Iterable[int]] = 0,
         n_modes : Optional[int] = None,
         norm : bool = False,
-        weights : Optional[np.ndarray] = None,
+        weights : Optional[ArrayList] = None,
     ):
 
-        self._tf = _ArrayTransformer()
-        X = self._tf.fit_transform(X, axis=axis)
+        self._tf = _MultiArrayTransformer()
+        X = self._tf.fit_transform(X)
         weights = self._tf.transform_weights(weights)
 
         super().__init__(
@@ -103,37 +107,39 @@ class EOF(_BaseEOF):
             weights=weights
         )
 
-    def eofs(self, scaling : int = 0) -> np.ndarray:
+    def eofs(self, scaling : int = 0) -> ArrayList:
         eofs = super().eofs(scaling=scaling)
-        return self._tf.back_transform_eofs(eofs)
+        eofs = self._tf.back_transform_eofs(eofs)
+        return squeeze(eofs)
 
-    def pcs(self, scaling : int = 0) -> np.ndarray:
+    def pcs(self, scaling : int = 0) -> Array:
         pcs = super().pcs(scaling=scaling)
         return self._tf.back_transform_pcs(pcs)
 
-    def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
+    def eofs_as_correlation(self) -> Tuple[ArrayList, ArrayList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._tf.back_transform_eofs(corr)
         pvals = self._tf.back_transform_eofs(pvals)
-        return corr, pvals
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> np.ndarray:
+    ) -> ArrayList:
         Xrec = super().reconstruct_X(mode)
-        return self._tf.back_transform(Xrec)
+        Xrec = self._tf.back_transform(Xrec)
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : np.ndarray,
+        X : ArrayList,
         scaling : int = 0
-    ) -> np.ndarray:
+    ) -> Array:
         '''Project new data onto the EOFs.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : array or list of arrays
              New data to project. Data must have same feature shape as original
              data.
         scaling : [0, 1, 2]
@@ -144,7 +150,7 @@ class EOF(_BaseEOF):
             unit of the input data (the default is 0).
 
         '''
-        proj = _ArrayTransformer()
-        X = proj.fit_transform(X, axis=self._tf.axis_samples)
-        pcs = super().project_onto_eofs(X=X, scaling=scaling)
+        proj = _MultiArrayTransformer()
+        X_proj = proj.fit_transform(X, axis=self._tf.axis_samples)
+        pcs = super().project_onto_eofs(X=X_proj, scaling=scaling)
         return proj.back_transform_pcs(pcs)
