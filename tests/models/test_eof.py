@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
     ('EOF', True, None)
 ])
 def test_solution(method, norm, weights, reference_solution, sample_array):
-    # Compare pandas implementation against reference solution
+    # Compare numpy implementation against reference solution
     experiment = reference_solution.get_experiment(
         method=method, norm=norm, weights=weights
     )
@@ -28,6 +28,32 @@ def test_solution(method, norm, weights, reference_solution, sample_array):
     assert_allclose(model.explained_variance(), reference['explained_variance'])
     assert_allclose(model.explained_variance_ratio(), reference['explained_variance_ratio'])
     assert_allclose(model.eofs(), reference['eofs'])
+    assert_allclose(model.pcs(), reference['pcs'])
+
+
+@pytest.mark.parametrize('method, norm, weights', [
+    ('EOF', False, None),
+    ('EOF', True, None)
+])
+def test_multivariate_solution(method, norm, weights, reference_solution, sample_array):
+    # Univarite and multivariate solution is the same for same input
+    experiment = reference_solution.get_experiment(
+        method=method, norm=norm, weights=weights
+    )
+    reference = experiment.get_results()
+    sample_data = sample_array[:, ~np.isnan(sample_array).all(axis=0)]
+
+    # Split sample data in two subsets
+    sub_sample1 = sample_data[:, :3]
+    sub_sample2 = sample_data[:, 3:]
+
+    model = EOF([sub_sample1, sub_sample2], norm=norm)
+    model.solve()
+    eofs = np.concatenate(model.eofs(), axis=0)
+    assert_allclose(model.singular_values(), reference['singular_values'])
+    assert_allclose(model.explained_variance(), reference['explained_variance'])
+    assert_allclose(model.explained_variance_ratio(), reference['explained_variance_ratio'])
+    assert_allclose(eofs, reference['eofs'])
     assert_allclose(model.pcs(), reference['pcs'])
 
 

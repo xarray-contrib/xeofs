@@ -1,10 +1,13 @@
 from typing import Optional, Tuple, Union, List
 
-import numpy as np
 import pandas as pd
 
 from ..models._base_eof import _BaseEOF
-from xeofs.pandas._dataframe_transformer import _DataFrameTransformer
+from ..utils.tools import squeeze
+from xeofs.pandas._transformer import _MultiDataFrameTransformer
+
+DataFrame = pd.DataFrame
+DataFrameList = Union[DataFrame, List[DataFrame]]
 
 
 class EOF(_BaseEOF):
@@ -70,17 +73,14 @@ class EOF(_BaseEOF):
 
     def __init__(
         self,
-        X: pd.DataFrame,
+        X: DataFrameList,
         axis : int = 0,
         n_modes : Optional[int] = None,
         norm : bool = False,
-        weights : Optional[np.ndarray] = None
+        weights : Optional[DataFrameList] = None
     ):
 
-        if(np.logical_not(isinstance(X, pd.DataFrame))):
-            raise ValueError('This interface is for `pandas.DataFrame` only.')
-
-        self._tf = _DataFrameTransformer()
+        self._tf = _MultiDataFrameTransformer()
         X = self._tf.fit_transform(X)
         weights = self._tf.transform_weights(weights)
 
@@ -92,7 +92,7 @@ class EOF(_BaseEOF):
         )
         self._idx_mode = pd.Index(range(1, self.n_modes + 1), name='mode')
 
-    def singular_values(self) -> pd.DataFrame:
+    def singular_values(self) -> DataFrame:
         svalues = super().singular_values()
         svalues = pd.DataFrame(
             svalues,
@@ -101,7 +101,7 @@ class EOF(_BaseEOF):
         )
         return svalues
 
-    def explained_variance(self) -> pd.DataFrame:
+    def explained_variance(self) -> DataFrame:
         expvar = super().explained_variance()
         expvar = pd.DataFrame(
             expvar,
@@ -110,7 +110,7 @@ class EOF(_BaseEOF):
         )
         return expvar
 
-    def explained_variance_ratio(self) -> pd.DataFrame:
+    def explained_variance_ratio(self) -> DataFrame:
         expvar = super().explained_variance_ratio()
         expvar = pd.DataFrame(
             expvar,
@@ -119,40 +119,35 @@ class EOF(_BaseEOF):
         )
         return expvar
 
-    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+    def eofs(self, scaling : int = 0) -> DataFrameList:
         eofs = super().eofs(scaling=scaling)
         eofs = self._tf.back_transform_eofs(eofs)
-        eofs.columns = self._idx_mode
-        return eofs
+        return squeeze(eofs)
 
-    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+    def pcs(self, scaling : int = 0) -> DataFrame:
         pcs = super().pcs(scaling=scaling)
         pcs = self._tf.back_transform_pcs(pcs)
-        pcs.columns = self._idx_mode
         return pcs
 
-    def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def eofs_as_correlation(self) -> Tuple[DataFrameList, DataFrameList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._tf.back_transform_eofs(corr)
         pvals = self._tf.back_transform_eofs(pvals)
-        corr.columns = self._idx_mode
-        pvals.columns = self._idx_mode
-        return corr, pvals
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> pd.DataFrame:
+    ) -> DataFrameList:
         Xrec = super().reconstruct_X(mode)
         Xrec = self._tf.back_transform(Xrec)
-        Xrec.index = self._tf.index_samples
-        return Xrec
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : pd.DataFrame,
+        X : DataFrameList,
         scaling : int = 0
-    ) -> pd.DataFrame:
+    ) -> DataFrame:
         '''Project new data onto the EOFs.
 
         Parameters
@@ -168,7 +163,7 @@ class EOF(_BaseEOF):
             unit of the input data (the default is 0).
 
         '''
-        proj = _DataFrameTransformer()
+        proj = _MultiDataFrameTransformer()
         X = proj.fit_transform(X, axis=self._tf.axis_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
         return proj.back_transform_pcs(pcs)

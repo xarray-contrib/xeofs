@@ -68,6 +68,27 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis with additional Varimax rotation.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+     :alt: Varimax-rotated Multivariate EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1uni_plot_multivariate-eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1uni/plot_multivariate-eof
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Weighted EOF analysis (in S-mode) maximises the temporal variance considering each gridpoint wi...">
 
 .. only:: html
