@@ -104,11 +104,13 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 + EOF analysis (T-mode_)
 + Rotated_ EOF analysis (Varimax, Promax)
 + Weighted_ EOF analysis
++ Multivariate_ EOF analysis
 
 .. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
 .. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
 .. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
 .. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_rotated_eof.html#sphx-glr-auto-examples-1uni-plot-rotated-eof-py
+.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1uni-plot-multivariate-eof-analysis-py
 .. _Documentation: https://xeofs.readthedocs.io/en/latest/
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
