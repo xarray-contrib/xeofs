@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2022-03-12)
+### Feature
+* Add support for multivariate EOF analysis ([`53961d9`](https://github.com/nicrie/xeofs/commit/53961d974cda8bc6b24466c496058efc4d676a4b))
+* Merge branch 'main' into develop ([`6d2d646`](https://github.com/nicrie/xeofs/commit/6d2d6469768d3b91c63358d561b63f9581ebf2a8))
+* Add support for multivariate EOF analysis ([`fa9503a`](https://github.com/nicrie/xeofs/commit/fa9503a2a789404471b2d85121d54e575a83128c))
+* Add base and xarray class for multivariate EOF analysis ([`5ba07f0`](https://github.com/nicrie/xeofs/commit/5ba07f0e7c211e9b1a19a44d66d85d3ffc30a4d3))
+
+### Documentation
+* Update README ([`fdc76ee`](https://github.com/nicrie/xeofs/commit/fdc76ee567d442cc310571b808a6947774f23e06))
+* Add example for multivariate EOF analysis ([`59a1f1b`](https://github.com/nicrie/xeofs/commit/59a1f1be37bb1bed5d9288841ddde891c03c7600))
+* Add example ([`07b3bb8`](https://github.com/nicrie/xeofs/commit/07b3bb8d72f2f850dfa61e08613954b7c11cc99a))
+* Add example for multivariate EOF analysis ([`7ae2ae8`](https://github.com/nicrie/xeofs/commit/7ae2ae8180a0f997c2f31d45eba5daa747c9900d))
+* Add zenodo badge ([`7792953`](https://github.com/nicrie/xeofs/commit/7792953e478eeb0e772563999a6ee0688d06ad76))
+* Update README ([`5693fe9`](https://github.com/nicrie/xeofs/commit/5693fe9f2e2b10f1d0c364d0aba1eb47c84e9bc9))
+* Fix typo ([`d5505c6`](https://github.com/nicrie/xeofs/commit/d5505c6c6e9a010cb836b609ebbf7dac6b38f67e))
+
 ## v0.4.0 (2022-03-02)
 ### Feature
 * Project new data onto EOFs and rotated EOFs ([`d8b0e57`](https://github.com/nicrie/xeofs/commit/d8b0e57622bc6dec1b45ac94821eaf369a335704))
