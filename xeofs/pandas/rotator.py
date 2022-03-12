@@ -2,8 +2,12 @@ import pandas as pd
 from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
+from ._transformer import _MultiDataFrameTransformer
+from ..utils.tools import squeeze
 from ..models._base_rotator import _BaseRotator
-from ._dataframe_transformer import _DataFrameTransformer
+
+DataFrame = pd.DataFrame
+DataFrameList = Union[DataFrame, List[DataFrame]]
 
 
 class Rotator(_BaseRotator):
@@ -40,50 +44,48 @@ class Rotator(_BaseRotator):
             model=model, n_rot=n_rot, power=power, max_iter=max_iter, rtol=rtol
         )
 
-    def explained_variance(self) -> pd.DataFrame:
+    def explained_variance(self) -> DataFrame:
         expvar = super().explained_variance()
-        return pd.DataFrame(
+        return DataFrame(
             expvar,
             index=self._model._idx_mode[:self._n_rot]
         )
 
-    def explained_variance_ratio(self) -> pd.DataFrame:
+    def explained_variance_ratio(self) -> DataFrame:
         expvar_ratio = super().explained_variance_ratio()
-        return pd.DataFrame(
+        return DataFrame(
             expvar_ratio,
             index=self._model._idx_mode[:self._n_rot]
         )
 
-    def eofs(self, scaling : int = 0) -> pd.DataFrame:
+    def eofs(self, scaling : int = 0) -> DataFrameList:
         eofs = super().eofs(scaling=scaling)
-        return self._model._tf.back_transform_eofs(eofs)
+        eofs = self._model._tf.back_transform_eofs(eofs)
+        return squeeze(eofs)
 
-    def pcs(self, scaling : int = 0) -> pd.DataFrame:
+    def pcs(self, scaling : int = 0) -> DataFrame:
         pcs = super().pcs(scaling=scaling)
         return self._model._tf.back_transform_pcs(pcs)
 
-    def eofs_as_correlation(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def eofs_as_correlation(self) -> Tuple[DataFrameList, DataFrameList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._model._tf.back_transform_eofs(corr)
         pvals = self._model._tf.back_transform_eofs(pvals)
-        corr.columns = self._model._idx_mode[:self._n_rot]
-        pvals.columns = self._model._idx_mode[:self._n_rot]
-        return corr, pvals
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> pd.DataFrame:
+    ) -> DataFrameList:
         Xrec = super().reconstruct_X(mode=mode)
         Xrec = self._model._tf.back_transform(Xrec)
-        Xrec.index = self._model._tf.index_samples
-        return Xrec
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : pd.DataFrame,
+        X : DataFrameList,
         scaling : int = 0
-    ) -> pd.DataFrame:
+    ) -> DataFrame:
         '''Project new data onto the rotated EOFs.
 
         Parameters
@@ -99,7 +101,7 @@ class Rotator(_BaseRotator):
             unit of the input data (the default is 0).
 
         '''
-        proj = _DataFrameTransformer()
+        proj = _MultiDataFrameTransformer()
         X = proj.fit_transform(X, axis=self._model._tf.axis_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
         return proj.back_transform_pcs(pcs)

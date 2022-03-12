@@ -3,8 +3,8 @@ import xarray as xr
 import pytest
 import warnings
 
-from xeofs.models._array_transformer import _ArrayTransformer
-from xeofs.xarray._dataarray_transformer import _DataArrayTransformer
+from xeofs.models._transformer import _ArrayTransformer
+from xeofs.xarray._transformer import _DataArrayTransformer
 
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
