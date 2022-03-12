@@ -40,7 +40,7 @@ Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_  
 EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
 Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
 Complex EOF analysis   ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ❌
+Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ✅
 MCA                    ❌           ❌           ❌           ✅           ✅           ❌
 Rotated MCA            ❌           ❌           ❌           ❌           ✅           ❌
 Complex MCA            ❌           ❌           ❌           ❌           ✅           ❌
