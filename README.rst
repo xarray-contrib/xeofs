@@ -11,7 +11,9 @@
     :alt: PyPI - Downloads
 .. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
-
+.. |badge6| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
+   :target: https://doi.org/10.5281/zenodo.6323012
+   
 =================================
 xeofs: EOF analysis and variants
 =================================
