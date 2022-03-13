@@ -1,4 +1,4 @@
-|badge1| |badge2| |badge3| |badge4| |badge5|
+|badge1| |badge2| |badge3| |badge4| |badge5| |badge6|
 
 .. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
     :alt: GitHub tag (latest SemVer)
@@ -13,6 +13,7 @@
     :target: https://codecov.io/gh/nicrie/xeofs
 .. |badge6| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
    :target: https://doi.org/10.5281/zenodo.6323012
+   :alt: DOI - Zenodo
 
 =================================
 xeofs: EOF analysis and variants
