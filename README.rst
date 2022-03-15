@@ -90,7 +90,13 @@ If you are interested, just `contact me`_ or open an `Issue`_.
 Installation
 ----------------------
 
-The package can be installed via
+If you are using ``conda``, it is recommend to install via:
+
+.. code-block:: ini
+
+  conda install -c conda-forge xeofs
+
+Alternatively, you can install the package through ``pip``:
 
 .. code-block:: ini
 
