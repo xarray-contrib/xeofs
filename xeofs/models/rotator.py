@@ -3,7 +3,11 @@ from typing import Optional, Union, List, Tuple
 
 from .eof import EOF
 from ._base_rotator import _BaseRotator
-from ._array_transformer import _ArrayTransformer
+from ._transformer import _MultiArrayTransformer
+from ..utils.tools import squeeze
+
+Array = np.ndarray
+ArrayList = Union[Array, List[Array]]
 
 
 class Rotator(_BaseRotator):
@@ -41,39 +45,40 @@ class Rotator(_BaseRotator):
             model=model, n_rot=n_rot, power=power, max_iter=max_iter, rtol=rtol
         )
 
-    def explained_variance(self) -> np.ndarray:
+    def explained_variance(self) -> Array:
         return super().explained_variance()
 
-    def explained_variance_ratio(self) -> np.ndarray:
+    def explained_variance_ratio(self) -> Array:
         return super().explained_variance_ratio()
 
-    def eofs(self, scaling : int = 0) -> np.ndarray:
+    def eofs(self, scaling : int = 0) -> ArrayList:
         eofs = super().eofs(scaling=scaling)
-        return self._model._tf.back_transform_eofs(eofs)
+        eofs = self._model._tf.back_transform_eofs(eofs)
+        return squeeze(eofs)
 
-    def pcs(self, scaling : int = 0) -> np.ndarray:
+    def pcs(self, scaling : int = 0) -> Array:
         pcs = super().pcs(scaling=scaling)
         return self._model._tf.back_transform_pcs(pcs)
 
-    def eofs_as_correlation(self) -> Tuple[np.ndarray, np.ndarray]:
+    def eofs_as_correlation(self) -> Tuple[ArrayList, ArrayList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._model._tf.back_transform_eofs(corr)
         pvals = self._model._tf.back_transform_eofs(pvals)
-        return corr, pvals
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> np.ndarray:
+    ) -> ArrayList:
         Xrec = super().reconstruct_X(mode=mode)
         Xrec = self._model._tf.back_transform(Xrec)
-        return Xrec
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : np.ndarray,
+        X : ArrayList,
         scaling : int = 0
-    ) -> np.ndarray:
+    ) -> Array:
         '''Project new data onto the rotated EOFs.
 
         Parameters
@@ -89,7 +94,7 @@ class Rotator(_BaseRotator):
             unit of the input data (the default is 0).
 
         '''
-        proj = _ArrayTransformer()
+        proj = _MultiArrayTransformer()
         X = proj.fit_transform(X, axis=self._model._tf.axis_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
         return proj.back_transform_pcs(pcs)

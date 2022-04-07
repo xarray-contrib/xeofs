@@ -1,4 +1,4 @@
-|badge1| |badge2| |badge3| |badge4| |badge5|
+|badge1| |badge2| |badge3| |badge4| |badge5| |badge6|
 
 .. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
     :alt: GitHub tag (latest SemVer)
@@ -11,8 +11,9 @@
     :alt: PyPI - Downloads
 .. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
-
-.. role:: red
+.. |badge6| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
+   :target: https://doi.org/10.5281/zenodo.6323012
+   :alt: DOI - Zenodo
 
 =================================
 xeofs: EOF analysis and variants
@@ -40,7 +41,7 @@ Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_  
 EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
 Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
 Complex EOF analysis   ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ❌
+Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ✅
 MCA                    ❌           ❌           ❌           ✅           ✅           ❌
 Rotated MCA            ❌           ❌           ❌           ❌           ✅           ❌
 Complex MCA            ❌           ❌           ❌           ❌           ✅           ❌
@@ -89,7 +90,13 @@ If you are interested, just `contact me`_ or open an `Issue`_.
 Installation
 ----------------------
 
-The package can be installed via
+If you are using ``conda``, it is recommend to install via:
+
+.. code-block:: ini
+
+  conda install -c conda-forge xeofs
+
+Alternatively, you can install the package through ``pip``:
 
 .. code-block:: ini
 
@@ -100,24 +107,24 @@ How to use it?
 ----------------------
 Documentation_ is work in progress. Meanwhile check out some examples_ to get started:
 
-Examples:
-
 + EOF analysis (S-mode_)
 + EOF analysis (T-mode_)
 + Rotated_ EOF analysis (Varimax, Promax)
 + Weighted_ EOF analysis
++ Multivariate_ EOF analysis
 
 .. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
 .. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
 .. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
 .. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_rotated_eof.html#sphx-glr-auto-examples-1uni-plot-rotated-eof-py
+.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1uni-plot-multivariate-eof-analysis-py
 .. _Documentation: https://xeofs.readthedocs.io/en/latest/
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
 
-************************
+
 Credits
-************************
+----------------------
 
 - Project folder structure: yngvem_
 - Testing data: xarray_ \& pooch_

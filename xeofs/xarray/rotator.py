@@ -3,7 +3,12 @@ from typing import Tuple, Optional, Union, List
 
 from .eof import EOF
 from ..models._base_rotator import _BaseRotator
-from ._dataarray_transformer import _DataArrayTransformer
+from ..utils.tools import squeeze
+from ._transformer import _MultiDataArrayTransformer
+
+DataArray = xr.DataArray
+DataArrayList = Union[DataArray, List[DataArray]]
+
 
 class Rotator(_BaseRotator):
     '''Rotates a solution obtained from ``xe.xarray.EOF``.
@@ -39,7 +44,7 @@ class Rotator(_BaseRotator):
             model=model, n_rot=n_rot, power=power, max_iter=max_iter, rtol=rtol
         )
 
-    def explained_variance(self) -> xr.DataArray:
+    def explained_variance(self) -> DataArray:
         expvar = super().explained_variance()
         return xr.DataArray(
             expvar,
@@ -48,7 +53,7 @@ class Rotator(_BaseRotator):
             name='explained_variance'
         )
 
-    def explained_variance_ratio(self) -> xr.DataArray:
+    def explained_variance_ratio(self) -> DataArray:
         expvar_ratio = super().explained_variance_ratio()
         return xr.DataArray(
             expvar_ratio,
@@ -57,42 +62,38 @@ class Rotator(_BaseRotator):
             name='explained_variance_ratio'
         )
 
-    def eofs(self, scaling : int = 0) -> xr.DataArray:
+    def eofs(self, scaling : int = 0) -> DataArrayList:
         eofs = super().eofs(scaling=scaling)
         eofs = self._model._tf.back_transform_eofs(eofs)
-        eofs.name = 'EOFs'
-        return eofs
+        return squeeze(eofs)
 
-    def pcs(self, scaling : int = 0) -> xr.DataArray:
+    def pcs(self, scaling : int = 0) -> DataArray:
         pcs = super().pcs(scaling=scaling)
         pcs = self._model._tf.back_transform_pcs(pcs)
-        pcs.name = 'PCs'
         return pcs
 
-    def eofs_as_correlation(self) -> Tuple[xr.DataArray, xr.DataArray]:
+    def eofs_as_correlation(self) -> Tuple[DataArrayList, DataArrayList]:
         corr, pvals = super().eofs_as_correlation()
         corr = self._model._tf.back_transform_eofs(corr)
         pvals = self._model._tf.back_transform_eofs(pvals)
-        corr.name = 'correlation_coeffient'
-        pvals.name = 'p_value'
-        return corr, pvals
+        for c, p in zip(corr, pvals):
+            c.name = 'correlation_coeffient'
+            p.name = 'p_value'
+        return squeeze(corr), squeeze(pvals)
 
     def reconstruct_X(
         self,
         mode : Optional[Union[int, List[int], slice]] = None
-    ) -> xr.DataArray:
+    ) -> DataArray:
         Xrec = super().reconstruct_X(mode=mode)
         Xrec = self._model._tf.back_transform(Xrec)
-        coords_samples = {d: self._model._tf.coords[d] for d in self._model._tf.dims}
-        Xrec = Xrec.assign_coords(coords_samples)
-        Xrec.name = 'X_reconstructed'
-        return Xrec
+        return squeeze(Xrec)
 
     def project_onto_eofs(
         self,
-        X : xr.DataArray,
+        X : DataArrayList,
         scaling : int = 0
-    ) -> xr.DataArray:
+    ) -> DataArray:
         '''Project new data onto the rotated EOFs.
 
         Parameters
@@ -108,7 +109,7 @@ class Rotator(_BaseRotator):
             unit of the input data (the default is 0).
 
         '''
-        proj = _DataArrayTransformer()
+        proj = _MultiDataArrayTransformer()
         X = proj.fit_transform(X, dim=self._model._tf.dims_samples)
         pcs = super().project_onto_eofs(X=X, scaling=scaling)
         return proj.back_transform_pcs(pcs)

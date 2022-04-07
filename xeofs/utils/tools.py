@@ -4,8 +4,8 @@ from typing import Optional, Union, List
 def get_mode_selector(obj : Optional[Union[int, List[int], slice]]) -> Union[slice, List]:
     ''' Create a mode selector for a given input object.
 
-    For all possible input types (except for list) the object is returned
-    as a slice. Lists are returned as lists.
+    Lists are returned as lists. All other possible input types
+    are returned as slices.
 
     Parameters
     ----------
@@ -36,3 +36,16 @@ def get_mode_selector(obj : Optional[Union[int, List[int], slice]]) -> Union[sli
         err_msg = 'Invalid type {:}. Must be one of [int, slice, list, None].'
         err_msg = err_msg.format(obj_type)
         raise ValueError(err_msg)
+
+
+def squeeze(ls):
+    '''Squeeze a list.
+
+    If list is of length 1 return the element, otherwise return the list.
+    '''
+    if len(ls) > 1:
+        return ls
+    elif len(ls) == 1:
+        return ls[0]
+    else:
+        raise IndexError('list is empty')
