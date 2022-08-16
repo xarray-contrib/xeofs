@@ -54,7 +54,6 @@ class _BaseBootstrapper:
             # Project original data onto bootstrap EOFs to obtain bootstrap PCs
             self._pcs[i] = bs_pca.project_onto_eofs(self._model.X)
 
-        # return None
         # Fix sign of individual EOFs determined by correlation coefficients
         # for a given mode with all the individual bootstrap members
         for mode in range(n_modes):
