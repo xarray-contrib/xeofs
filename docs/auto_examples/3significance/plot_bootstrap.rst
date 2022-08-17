@@ -24,13 +24,14 @@ Significance via bootstrap
 Testing the significance of individual modes and obtain confidence intervals
 for both EOFs and PCs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-18
+.. GENERATED FROM PYTHON SOURCE LINES 8-19
 
 .. code-block:: default
 
 
 
     # Load packages and data:
+    import numpy as np
     import xarray as xr
     import matplotlib.pyplot as plt
     from matplotlib.gridspec import GridSpec
@@ -45,7 +46,7 @@ for both EOFs and PCs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 19-22
+.. GENERATED FROM PYTHON SOURCE LINES 20-23
 
 .. code-block:: default
 
@@ -59,11 +60,11 @@ for both EOFs and PCs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 23-24
+.. GENERATED FROM PYTHON SOURCE LINES 24-25
 
 Perform EOF analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-32
+.. GENERATED FROM PYTHON SOURCE LINES 25-33
 
 .. code-block:: default
 
@@ -82,20 +83,20 @@ Perform EOF analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 34-38
 
 Perform bootstrapping of the model to identy the number of significant modes.
-We choose an significance level of alpha=0.05 and perform 20 bootstraps.
-Note - if computationallly feasible - you typically want to you higher
+We choose a significance level of alpha=0.05 and perform 25 bootstraps.
+Note - if computationallly feasible - you typically want to choose higher
 numbers of bootstraps e.g. 100 or 1000.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-46
+.. GENERATED FROM PYTHON SOURCE LINES 38-47
 
 .. code-block:: default
 
 
     alpha = .05
-    n_boot = 20
+    n_boot = 25
 
     bs = Bootstrapper(n_boot=n_boot, alpha=alpha)
     bs.bootstrap(model)
@@ -112,46 +113,75 @@ numbers of bootstraps e.g. 100 or 1000.
 
  .. code-block:: none
 
-    Bootstrap:   0%|          | 0/20 [00:00<?, ?it/s]    Bootstrap:   5%|5         | 1/20 [00:00<00:06,  3.08it/s]    Bootstrap:  10%|#         | 2/20 [00:00<00:05,  3.10it/s]    Bootstrap:  15%|#5        | 3/20 [00:01<00:05,  2.94it/s]    Bootstrap:  20%|##        | 4/20 [00:01<00:05,  2.96it/s]    Bootstrap:  25%|##5       | 5/20 [00:01<00:04,  3.02it/s]    Bootstrap:  30%|###       | 6/20 [00:01<00:04,  3.00it/s]    Bootstrap:  35%|###5      | 7/20 [00:02<00:04,  2.97it/s]    Bootstrap:  40%|####      | 8/20 [00:02<00:04,  3.00it/s]    Bootstrap:  45%|####5     | 9/20 [00:03<00:03,  2.97it/s]    Bootstrap:  50%|#####     | 10/20 [00:03<00:03,  2.96it/s]    Bootstrap:  55%|#####5    | 11/20 [00:03<00:03,  2.97it/s]    Bootstrap:  60%|######    | 12/20 [00:04<00:02,  2.93it/s]    Bootstrap:  65%|######5   | 13/20 [00:04<00:02,  2.91it/s]    Bootstrap:  70%|#######   | 14/20 [00:04<00:02,  2.93it/s]    Bootstrap:  75%|#######5  | 15/20 [00:05<00:01,  2.92it/s]    Bootstrap:  80%|########  | 16/20 [00:05<00:01,  2.87it/s]    Bootstrap:  85%|########5 | 17/20 [00:05<00:01,  2.91it/s]    Bootstrap:  90%|######### | 18/20 [00:06<00:00,  2.88it/s]    Bootstrap:  95%|#########5| 19/20 [00:06<00:00,  2.83it/s]    Bootstrap: 100%|##########| 20/20 [00:06<00:00,  2.84it/s]    Bootstrap: 100%|##########| 20/20 [00:06<00:00,  2.93it/s]
+    Bootstrap:   0%|          | 0/25 [00:00<?, ?it/s]    Bootstrap:   4%|4         | 1/25 [00:00<00:18,  1.30it/s]    Bootstrap:   8%|8         | 2/25 [00:01<00:16,  1.41it/s]    Bootstrap:  12%|#2        | 3/25 [00:02<00:19,  1.13it/s]    Bootstrap:  16%|#6        | 4/25 [00:03<00:18,  1.16it/s]    Bootstrap:  20%|##        | 5/25 [00:04<00:15,  1.27it/s]    Bootstrap:  24%|##4       | 6/25 [00:04<00:14,  1.32it/s]    Bootstrap:  28%|##8       | 7/25 [00:05<00:13,  1.36it/s]    Bootstrap:  32%|###2      | 8/25 [00:06<00:11,  1.44it/s]    Bootstrap:  36%|###6      | 9/25 [00:06<00:11,  1.44it/s]    Bootstrap:  40%|####      | 10/25 [00:07<00:10,  1.48it/s]    Bootstrap:  44%|####4     | 11/25 [00:08<00:09,  1.49it/s]    Bootstrap:  48%|####8     | 12/25 [00:08<00:09,  1.37it/s]    Bootstrap:  52%|#####2    | 13/25 [00:09<00:08,  1.41it/s]    Bootstrap:  56%|#####6    | 14/25 [00:10<00:09,  1.20it/s]    Bootstrap:  60%|######    | 15/25 [00:11<00:09,  1.11it/s]    Bootstrap:  64%|######4   | 16/25 [00:12<00:08,  1.05it/s]    Bootstrap:  68%|######8   | 17/25 [00:13<00:07,  1.03it/s]    Bootstrap:  72%|#######2  | 18/25 [00:14<00:06,  1.08it/s]    Bootstrap:  76%|#######6  | 19/25 [00:15<00:05,  1.11it/s]    Bootstrap:  80%|########  | 20/25 [00:16<00:04,  1.18it/s]    Bootstrap:  84%|########4 | 21/25 [00:16<00:03,  1.24it/s]    Bootstrap:  88%|########8 | 22/25 [00:17<00:02,  1.27it/s]    Bootstrap:  92%|#########2| 23/25 [00:18<00:01,  1.23it/s]    Bootstrap:  96%|#########6| 24/25 [00:19<00:00,  1.29it/s]    Bootstrap: 100%|##########| 25/25 [00:20<00:00,  1.28it/s]    Bootstrap: 100%|##########| 25/25 [00:20<00:00,  1.25it/s]
     5 modes are significant at alpha=0.05
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-48
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
-Create figure showing the first two modes
+The bootstrapping procedure identifies 5 significant modes. We can also
+compute the 95 % confidence intervals of the EOFs/PCs and mask out
+insignificant elements of the obtained EOFs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-72
+.. GENERATED FROM PYTHON SOURCE LINES 51-55
 
 .. code-block:: default
 
 
-    # proj = Orthographic(central_latitude=30, central_longitude=-80)
-    # kwargs = {
-    #     'cmap' : 'RdBu', 'vmin' : -.05, 'vmax': .05, 'transform': PlateCarree()
-    # }
-    #
-    # fig = plt.figure(figsize=(10, 10))
-    # gs = GridSpec(3, 4)
-    # ax1 = fig.add_subplot(gs[0, :])
-    # ax2 = fig.add_subplot(gs[1, 2:], projection=proj)
-    # ax3 = fig.add_subplot(gs[1, :2])
-    # ax4 = fig.add_subplot(gs[2, 2:], projection=proj)
-    # ax5 = fig.add_subplot(gs[2, :2])
-    #
-    # ax2.coastlines(color='.5')
-    # ax4.coastlines(color='.5')
-    #
-    # expvar.plot(ax=ax1, marker='.')
-    # eofs.sel(mode=1).plot(ax=ax2, **kwargs)
-    # pcs.sel(mode=1).plot(ax=ax3)
-    # eofs.sel(mode=2).plot(ax=ax4, **kwargs)
-    # pcs.sel(mode=2).plot(ax=ax5)
-    # plt.tight_layout()
-    # plt.savefig('eof-smode.jpg')
+    eofs_ci, eofs_mask = bs.eofs()
+    pcs_ci, pcs_mask = bs.pcs()
 
 
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 56-57
+
+Summarize the results in a figure.
+
+.. GENERATED FROM PYTHON SOURCE LINES 57-84
+
+.. code-block:: default
+
+
+
+    lons, lats = np.meshgrid(eofs_mask.lon.values, eofs_mask.lat.values)
+    proj = Orthographic(central_latitude=30, central_longitude=-80)
+    kwargs = {
+        'cmap' : 'RdBu', 'vmin' : -.05, 'vmax': .05, 'transform': PlateCarree()
+    }
+
+    fig = plt.figure(figsize=(10, 16))
+    gs = GridSpec(5, 2)
+    ax1 = [fig.add_subplot(gs[i, 0], projection=proj) for i in range(5)]
+    ax2 = [fig.add_subplot(gs[i, 1]) for i in range(5)]
+
+    for i, (a1, a2) in enumerate(zip(ax1, ax2)):
+        a1.coastlines(color='.5')
+        eofs.isel(mode=i).plot(ax=a1, **kwargs)
+        a1.scatter(
+            lons, lats, eofs_mask.isel(mode=i).values * .5,
+            color='k', alpha=.5, transform=PlateCarree()
+        )
+        pcs_ci.isel(mode=i, quantile=0).plot(ax=a2, color='.3', lw='.5', label='2.5%')
+        pcs_ci.isel(mode=i, quantile=1).plot(ax=a2, color='.3', lw='.5', label='97.5%')
+        pcs.isel(mode=i).plot(ax=a2, lw='.5', alpha=.5, label='PC')
+        a2.legend(loc=2)
+
+    plt.tight_layout()
+    plt.savefig('bootstrap.jpg')
+
+
+
+.. image-sg:: /auto_examples/3significance/images/sphx_glr_plot_bootstrap_001.png
+   :alt: mode = 1, mode = 2, mode = 3, mode = 4, mode = 5, mode = 1, mode = 2, mode = 3, mode = 4, mode = 5
+   :srcset: /auto_examples/3significance/images/sphx_glr_plot_bootstrap_001.png
+   :class: sphx-glr-single-img
 
 
 
@@ -160,7 +190,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  7.318 seconds)
+   **Total running time of the script:** ( 0 minutes  23.529 seconds)
 
 
 .. _sphx_glr_download_auto_examples_3significance_plot_bootstrap.py:
