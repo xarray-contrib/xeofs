@@ -9,30 +9,14 @@ from ..utils.tools import squeeze
 
 
 class Bootstrapper(_BaseBootstrapper):
-    '''Short summary.'''
+    '''Bootstrapping a pandas EOF model ``xe.pandas.EOF``.
 
+    '''
     def __init__(
             self, n_boot : int,
             alpha : float = 0.05,
             test_type : Optional[str] = 'one-sided'
     ):
-        '''Short summary.
-
-        Parameters
-        ----------
-        n_boot : int
-            Description of parameter `n_boot`.
-        alpha : float
-            Description of parameter `alpha` (the default is 0.05).
-        test_type : Optional[str]
-            Description of parameter `test_type` (the default is 'one-sided').
-
-        Returns
-        -------
-        type
-            Description of returned object.
-
-        '''
         super().__init__(n_boot=n_boot, alpha=alpha, test_type=test_type)
 
     def bootstrap(self, model : EOF):

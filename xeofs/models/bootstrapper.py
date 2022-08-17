@@ -7,7 +7,9 @@ from ..utils.tools import squeeze
 
 
 class Bootstrapper(_BaseBootstrapper):
+    '''Bootstrapping a numpy EOF model ``xe.models.EOF``.
 
+    '''
     def __init__(
             self, n_boot: int,
             alpha : float = 0.05,

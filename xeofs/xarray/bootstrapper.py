@@ -7,7 +7,9 @@ from ..utils.tools import squeeze
 
 
 class Bootstrapper(_BaseBootstrapper):
+    '''Bootstrapping an xarray EOF model ``xe.xarray.EOF``.
 
+    '''
     def __init__(
             self, n_boot: int,
             alpha : float = 0.05,

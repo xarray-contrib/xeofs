@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Union, Optional, Dict, Any, Tuple, List
 
 import numpy as np
 import warnings
@@ -6,10 +6,30 @@ from tqdm import trange
 
 from ._base_eof import _BaseEOF
 
+Array = np.ndarray
+ArrayList = Union[Array, List[Array]]
+
 
 class _BaseBootstrapper:
+    '''Bootstrap a model to obtain significant modes and confidence intervals.
 
-    def __init__(self, n_boot: int, alpha : float = 0.05, test_type : Optional[str] = 'one-sided'):
+    '''
+
+    def __init__(self, n_boot: int, alpha : float = 0.05, test_type : Optional[str] = 'two-sided'):
+        '''Initialize a Bootstrapper instance.
+
+        Parameters
+        ----------
+        n_boot : int
+            Number of bootstraps.
+        alpha : float
+            Level of significance (the default is 0.05).
+        test_type : ['one-sided', 'two-sided']
+            Whether to perfrom one-sided or two-sided significance test.
+            If two-sided, the pvalues deemed significant are pvalue < alpha / 2.
+            The default is 'two-sided'.
+
+        '''
         self._params = {
             'n_boot': n_boot,
             'alpha': alpha,
@@ -32,7 +52,15 @@ class _BaseBootstrapper:
             warnings.warn(msg)
         self._params['quantiles'] = [0. + pvalue, 1. - pvalue]
 
-    def bootstrap(self, model):
+    def bootstrap(self, model : _BaseEOF) -> None:
+        '''Bootstrap a given model.
+
+        Parameters
+        ----------
+        model : _BaseEOF
+            A EOF analysis model.
+
+        '''
         self._model = model
         n_boot = self._params['n_boot']
         n_samples = model.n_samples
@@ -92,17 +120,59 @@ class _BaseBootstrapper:
         q_low, q_up = self._pcs
         self._is_significant_pc_element = np.sign(q_low) == np.sign(q_up)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
+        '''Get parameters used for bootstrapping.
+
+        Returns
+        -------
+        Dict[str, Any]
+            parameters used for bootstrapping.
+
+        '''
         return self._params
 
-    def n_significant_modes(self):
+    def n_significant_modes(self) -> int:
+        '''Get number of significant modes.
+
+        Returns
+        -------
+        int
+            Number of signifcant modes
+        '''
         return self._is_significant_mode.sum()
 
-    def explained_variance(self):
+    def explained_variance(self) -> Tuple[Array, Array]:
+        '''Get bootstrapped explained variance.
+
+        Returns
+        -------
+        Tuple[Array, Array]
+            Confidence interval of explained variance and mask
+            indicating significant (True) and non-signficant (False) modes.
+
+        '''
         return self._explained_variance, self._is_significant_mode
 
-    def eofs(self):
+    def eofs(self) -> Tuple[Array, Array]:
+        '''Get bootstrapped EOFs.
+
+        Returns
+        -------
+        Tuple[Array, Array]
+            Confidence interval of EOFs and mask
+            indicating significant (True) and non-signficant (False) modes.
+
+        '''
         return self._eofs, self._is_significant_eof_element
 
-    def pcs(self):
+    def pcs(self) -> Tuple[Array, Array]:
+        '''Get boostrapped PCs.
+
+        Returns
+        -------
+        Tuple[Array, Array]
+            Confidence interval of PCs and mask
+            indicating significant (True) and non-signficant (False) elements.
+
+        '''
         return self._pcs, self._is_significant_pc_element
