@@ -94,28 +94,28 @@ class MCA(_BaseMCA):
 
     def singular_values(self) -> DataFrame:
         svalues = super().singular_values()
-        svalues = pd.DataFrame(
+        svalues = pd.Series(
             svalues,
-            columns=['singular_values'],
-            index=self._idx_mode
+            index=self._idx_mode,
+            name='singular_values',
         )
         return svalues
 
     def explained_covariance(self) -> DataFrame:
         expvar = super().explained_covariance()
-        expvar = pd.DataFrame(
+        expvar = pd.Series(
             expvar,
-            columns=['explained_covariance'],
-            index=self._idx_mode
+            index=self._idx_mode,
+            name='explained_covariance',
         )
         return expvar
 
     def squared_covariance_fraction(self) -> DataFrame:
         scf = super().squared_covariance_fraction()
-        scf = pd.DataFrame(
+        scf = pd.Series(
             scf,
-            columns=['squared_covariance_fraction'],
-            index=self._idx_mode
+            index=self._idx_mode,
+            name='squared_covariance_fraction',
         )
         return scf
 
@@ -141,8 +141,8 @@ class MCA(_BaseMCA):
         pvalsy = squeeze(self._tfy.back_transform_eofs(pvals[1]))
         return (hom_patsx, hom_patsy), (pvalsx, pvalsy)
 
-    def heterogenous_patterns(self) -> Tuple[DataFrameList, DataFrameList]:
-        het_pats, pvals = super().heterogenous_patterns()
+    def heterogeneous_patterns(self) -> Tuple[DataFrameList, DataFrameList]:
+        het_pats, pvals = super().heterogeneous_patterns()
         het_patsx = squeeze(self._tfx.back_transform_eofs(het_pats[0]))
         het_patsy = squeeze(self._tfy.back_transform_eofs(het_pats[1]))
         pvalsx = squeeze(self._tfx.back_transform_eofs(pvals[0]))

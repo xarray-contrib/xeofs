@@ -134,28 +134,64 @@ class MCA(_BaseMCA):
         Vx, Vy = super().singular_vectors(scaling=scaling)
         Vx = self._tfx.back_transform_eofs(Vx)
         Vy = self._tfy.back_transform_eofs(Vy)
+        # Rename DataArrays
+        for da in Vx:
+            da.name = 'left_singular_vectors'
+        for da in Vy:
+            da.name = 'right_singular_vectors'
         return squeeze(Vx), squeeze(Vy)
 
     def pcs(self, scaling : int = 0) -> Tuple[DataArray, DataArray]:
         Ux, Uy = super().pcs(scaling=scaling)
         Ux = self._tfx.back_transform_pcs(Ux)
         Uy = self._tfy.back_transform_pcs(Uy)
+        # Rename DataArrays
+        Ux.name = 'left_pcs'
+        Uy.name = 'right_pcs'
         return Ux, Uy
 
     def homogeneous_patterns(self) -> Tuple[DataArrayList, DataArrayList]:
         hom_pats, pvals = super().homogeneous_patterns()
-        hom_patsx = squeeze(self._tfx.back_transform_eofs(hom_pats[0]))
-        hom_patsy = squeeze(self._tfy.back_transform_eofs(hom_pats[1]))
-        pvalsx = squeeze(self._tfx.back_transform_eofs(pvals[0]))
-        pvalsy = squeeze(self._tfy.back_transform_eofs(pvals[1]))
+        hom_patsx = self._tfx.back_transform_eofs(hom_pats[0])
+        pvalsx = self._tfx.back_transform_eofs(pvals[0])
+        hom_patsy = self._tfy.back_transform_eofs(hom_pats[1])
+        pvalsy = self._tfy.back_transform_eofs(pvals[1])
+
+        # Rename DataArrays
+        for da, p in zip(hom_patsx, pvalsx):
+            da.name = 'left_homogeneous_patterns'
+            p.name = 'left_homogeneous_patterns_p_values'
+        for da, p in zip(hom_patsy, pvalsy):
+            da.name = 'right_homogeneous_patterns'
+            p.name = 'right_homogeneous_patterns_p_values'
+
+        # Remove list if single DataArray
+        hom_patsx = squeeze(hom_patsx)
+        hom_patsy = squeeze(hom_patsy)
+        pvalsx = squeeze(pvalsx)
+        pvalsy = squeeze(pvalsy)
         return (hom_patsx, hom_patsy), (pvalsx, pvalsy)
 
     def heterogeneous_patterns(self) -> Tuple[DataArrayList, DataArrayList]:
         het_pats, pvals = super().heterogeneous_patterns()
-        het_patsx = squeeze(self._tfx.back_transform_eofs(het_pats[0]))
-        het_patsy = squeeze(self._tfy.back_transform_eofs(het_pats[1]))
-        pvalsx = squeeze(self._tfx.back_transform_eofs(pvals[0]))
-        pvalsy = squeeze(self._tfy.back_transform_eofs(pvals[1]))
+        het_patsx = self._tfx.back_transform_eofs(het_pats[0])
+        pvalsx = self._tfx.back_transform_eofs(pvals[0])
+        het_patsy = self._tfy.back_transform_eofs(het_pats[1])
+        pvalsy = self._tfy.back_transform_eofs(pvals[1])
+
+        # Rename DataArrays
+        for da, p in zip(het_patsx, pvalsx):
+            da.name = 'left_heterogeneous_patterns'
+            p.name = 'left_heterogeneous_patterns_p_values'
+        for da, p in zip(het_patsy, pvalsy):
+            da.name = 'right_heterogeneous_patterns'
+            p.name = 'right_heterogeneous_patterns_p_values'
+
+        # Remove list if single DataArray
+        het_patsx = squeeze(het_patsx)
+        het_patsy = squeeze(het_patsy)
+        pvalsx = squeeze(pvalsx)
+        pvalsy = squeeze(pvalsy)
         return (het_patsx, het_patsy), (pvalsx, pvalsy)
 
     def reconstruct_XY(
