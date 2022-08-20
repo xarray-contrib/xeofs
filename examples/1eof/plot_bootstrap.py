@@ -1,6 +1,6 @@
 """
-Significance via bootstrap
-==========================
+Significance teting of EOF analysis via bootstrap
+=================================================
 
 Testing the significance of individual modes and obtain confidence intervals
 for both EOFs and PCs.
