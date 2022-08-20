@@ -5,12 +5,9 @@ API
 .. note:: :code:`xeofs` is separated into three different interfaces providing entry points to work with popular data types of `NumPy` :code:`np.ndarray`, `pandas` :code:`pd.DataFrame` and `xarray` :code:`xr.DataArray`.
 
 
-:code:`xeofs.models` contains all EOF related techniques with a `NumPy` interface. If you rather prefer to work with :code:`pd.DataFrame` or :code:`xr.DataArray` objects, just use the corresponding models in the :code:`xeofs.pandas` or :code:`xeofs.xarray` module.
-
-
-************
-Numpy Arrays
-************
+**********************
+Numpy ``np.ndarray``
+**********************
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -20,12 +17,13 @@ Numpy Arrays
    xeofs.models.EOF
    xeofs.models.Rotator
    xeofs.models.Bootstrapper
+   xeofs.models.MCA
 
 
 
-*****************
-pandas DataFrames
-*****************
+*************************
+pandas | ``pd.DataFrame``
+*************************
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -35,11 +33,12 @@ pandas DataFrames
    xeofs.pandas.EOF
    xeofs.pandas.Rotator
    xeofs.pandas.Bootstrapper
+   xeofs.pandas.MCA
 
 
-*****************
-xarray DataArrays
-*****************
+*************************
+xarray | ``xr.DataArray``
+*************************
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -49,3 +48,4 @@ xarray DataArrays
    xeofs.xarray.EOF
    xeofs.xarray.Rotator
    xeofs.xarray.Bootstrapper
+   xeofs.xarray.MCA

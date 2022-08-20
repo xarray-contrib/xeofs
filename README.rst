@@ -36,16 +36,16 @@ EOF models
 -----------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_      **xeofs**
+Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_       xmca2_
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
-Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
+Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌           ✅
 Complex EOF analysis   ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ✅
-MCA                    ❌           ❌           ❌           ✅           ✅           ❌
+Multivariate EOF       ✅           ✅           ❌           ❌           ❌           ❌
+MCA                    ✅           ❌           ❌           ❌           ✅           ✅
 Rotated MCA            ❌           ❌           ❌           ❌           ✅           ❌
 Complex MCA            ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate MCA       ❌           ❌           ❌           ❌           ❌           ❌
+Multivariate MCA       ✅           ❌           ❌           ❌           ❌           ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
 
@@ -53,14 +53,15 @@ Additional features
 ----------------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_      **xeofs**
+Package                 **xeofs**  eofs_       pyEOF_      xeof_       xMCA_       xmca2_
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-``numpy`` interface    ✅           ❌           ❌           ❌           ✅           ✅
-``pandas`` interface   ❌           ❌           ❌           ❌           ❌           ✅
-``xarray`` interface   ?           ✅           ✅           ✅           ✅           ✅
-Fast algorithm         ❌           ✅           ❌           ❌           ❌           ✅
-Dask support           ✅           ❌           ✅           ❌           ❌           ❌
-Arbitrary dimensions   ❌           ❌           ❌           ❌           ❌           ✅
+``numpy`` interface    ✅           ✅           ❌           ❌           ❌           ✅
+``pandas`` interface   ✅           ❌           ❌           ❌           ❌           ❌
+``xarray`` interface   ✅           ?           ✅           ✅           ✅           ✅
+Fast algorithm         ✅           ❌           ✅           ❌           ❌           ❌
+Dask support           ❌           ✅           ❌           ✅           ❌           ❌
+Arbitrary dimensions   ✅           ❌           ❌           ❌           ❌           ❌
+Significance analysis  ✅           ❌           ❌           ❌           ❌           ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
 
@@ -77,7 +78,7 @@ Why ``xeofs``?
 ----------------------
 
 The goal of ``xeofs`` is to merge these different implementations and to simplify the integration of other existing and future variants of EOF analysis thanks to its modular code structure.
-The official name is deliberately chosen to be similar to the other implementations to make it clear that ``xeofs`` is initially nothing revolutionary new in itself. The point is not to distinguish this implementation from the others, but rather to unify (+ extend) already existing implementations.
+The official name is deliberately chosen to be similar to the other implementations to make it clear that ``xeofs`` is nothing revolutionary new in itself. The point is not to distinguish this implementation from the others, but rather to unify (+ extend) already existing implementations.
 
 This project is intended to be a collaborative project of the scientific community and the contribution of EOF variants in the form of pull requests is explicitly encouraged.
 If you are interested, just `contact me`_ or open an `Issue`_.
