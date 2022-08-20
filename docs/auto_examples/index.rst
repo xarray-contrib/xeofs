@@ -89,6 +89,27 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Testing the significance of individual modes and obtain confidence intervals for both EOFs and ...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_bootstrap_thumb.png
+     :alt: Significance teting of EOF analysis via bootstrap
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_bootstrap.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_bootstrap
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Weighted EOF analysis (in S-mode) maximises the temporal variance considering each gridpoint wi...">
 
 .. only:: html
@@ -113,7 +134,40 @@ Examples
 
 
 
-.. _sphx_glr_auto_examples_2rotated:
+.. _sphx_glr_auto_examples_2cross:
+
+2 Cross-decomposition
+=====================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/2cross/images/thumb/sphx_glr_plot_mca_thumb.png
+     :alt: Maximum Covariance Analysis
+
+     :ref:`sphx_glr_auto_examples_2cross_plot_mca.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/2cross/plot_mca
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>
+
+
+
+.. _sphx_glr_auto_examples_3rotated:
 
 2 | Rotated EOF analysis
 ========================
@@ -126,10 +180,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/2rotated/images/thumb/sphx_glr_plot_mreof_thumb.png
+ .. figure:: /auto_examples/3rotated/images/thumb/sphx_glr_plot_mreof_thumb.png
      :alt: Varimax-rotated Multivariate EOF analysis
 
-     :ref:`sphx_glr_auto_examples_2rotated_plot_mreof.py`
+     :ref:`sphx_glr_auto_examples_3rotated_plot_mreof.py`
 
 .. raw:: html
 
@@ -139,7 +193,7 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/2rotated/plot_mreof
+   /auto_examples/3rotated/plot_mreof
 
 .. raw:: html
 
@@ -147,10 +201,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/2rotated/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
+ .. figure:: /auto_examples/3rotated/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
      :alt: Rotated EOF analysis
 
-     :ref:`sphx_glr_auto_examples_2rotated_plot_rotated_eof.py`
+     :ref:`sphx_glr_auto_examples_3rotated_plot_rotated_eof.py`
 
 .. raw:: html
 
@@ -160,40 +214,7 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/2rotated/plot_rotated_eof
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_3significance:
-
-3 | Evaluating EOF analysis
-===========================
-
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Testing the significance of individual modes and obtain confidence intervals for both EOFs and ...">
-
-.. only:: html
-
- .. figure:: /auto_examples/3significance/images/thumb/sphx_glr_plot_bootstrap_thumb.png
-     :alt: Significance via bootstrap
-
-     :ref:`sphx_glr_auto_examples_3significance_plot_bootstrap.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/3significance/plot_bootstrap
+   /auto_examples/3rotated/plot_rotated_eof
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>
