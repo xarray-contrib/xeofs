@@ -16,6 +16,7 @@ pandas = "^1.4.1"
 xarray = "^0.21.1"
 scikit-learn = "^1.0.2"
 pooch = "^1.6.0"
+tqdm = "^4.62"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
