@@ -2,6 +2,35 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2022-08-22)
+### Feature
+* Add MCA ([`34a82d1`](https://github.com/nicrie/xeofs/commit/34a82d103699cb1b1607e2418eb3c0889fad96fb))
+* Add MCA support for xarray ([`e816e36`](https://github.com/nicrie/xeofs/commit/e816e3699928d19e828fe0bb41b5003bba6a264e))
+* Add MCA support for pandas ([`834d7dd`](https://github.com/nicrie/xeofs/commit/834d7dda131ffaf4336f775519f34228ddf62d69))
+* Add MCA support for numpy ([`8ded4df`](https://github.com/nicrie/xeofs/commit/8ded4df531281b3e19359a5d26f3e5bf4c2db320))
+* Add MCA base class ([`58612e4`](https://github.com/nicrie/xeofs/commit/58612e40ad225ce4ca30757904e5f7836b3202bc))
+* Add bootstrap methods ([`d5f6797`](https://github.com/nicrie/xeofs/commit/d5f6797ab087baabcdf71af325b0754bb3495477))
+* Bootstrapper for xarray ([`f807ea6`](https://github.com/nicrie/xeofs/commit/f807ea6dd374e989bab0a95f1ac3e5fb0a9dc282))
+* Bootstrapper for pandas ([`a32b1d3`](https://github.com/nicrie/xeofs/commit/a32b1d30a33d695b4c49a121fc343d57a68ec3d4))
+* Bootstrapper for numpy class ([`c5923b3`](https://github.com/nicrie/xeofs/commit/c5923b3822178f9ad63837ea841dbe408e8cb3f0))
+* Bootstrapper base class ([`f4ee31a`](https://github.com/nicrie/xeofs/commit/f4ee31a9fe83637c1a641f6d1d05844ed15c0ba7))
+
+### Fix
+* Set informative names of Dataframes and DataArrays ([`b5b5286`](https://github.com/nicrie/xeofs/commit/b5b528678becdf80b511a3883485304341c09692))
+
+### Documentation
+* Minor restructuring ([`dbdc885`](https://github.com/nicrie/xeofs/commit/dbdc8850befe142d567181250793202dc0e68c44))
+* Remove some old examples ([`625dd08`](https://github.com/nicrie/xeofs/commit/625dd0827cd3bda178b3c83629d399947c1b5877))
+* Minor changes in text and example arrangements ([`b7f1628`](https://github.com/nicrie/xeofs/commit/b7f162800f012e816a6243cfe3e321cf7d9d3aeb))
+* Update documentation and docstrings ([`b8fffdc`](https://github.com/nicrie/xeofs/commit/b8fffdc32387ed1ceea63674675d2ac437fe85d9))
+* Add MCA example ([`4fb881e`](https://github.com/nicrie/xeofs/commit/4fb881edcad9e7171d8045935ef32fa6a87caff0))
+* Reorganize examples ([`68d9db0`](https://github.com/nicrie/xeofs/commit/68d9db004ff23574fafb7b69cc85c7b2b33812c0))
+* Add figure to bootstrapping example ([`69894a0`](https://github.com/nicrie/xeofs/commit/69894a0363eda7886969ff7544ed069067bf1f51))
+* Add docstrings to bootstrapping methods ([`9c8145c`](https://github.com/nicrie/xeofs/commit/9c8145ccd26d1a5150f6c33bb157501cf6d42bca))
+* Add simple example for bootstrapping ([`ba62057`](https://github.com/nicrie/xeofs/commit/ba620578b379636a0fff7e914bf753c1c5397f73))
+* Add install instructions for conda ([`ef293e5`](https://github.com/nicrie/xeofs/commit/ef293e5a97b294c0aeea070a9b77fa33f214dcdf))
+* Add zenodo badge ([`4f338ef`](https://github.com/nicrie/xeofs/commit/4f338ef473ac1e742452f130fef7604d0c33dc5f))
+
 ## v0.5.0 (2022-03-12)
 ### Feature
 * Add support for multivariate EOF analysis ([`53961d9`](https://github.com/nicrie/xeofs/commit/53961d974cda8bc6b24466c496058efc4d676a4b))
