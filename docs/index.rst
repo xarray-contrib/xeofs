@@ -40,8 +40,9 @@ Documentation
 ******************
 
  .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
+    why
     installation
     auto_examples/index
     api

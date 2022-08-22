@@ -6,13 +6,12 @@ API
 
 
 **********************
-Numpy ``np.ndarray``
+Numpy | ``np.ndarray``
 **********************
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
    :recursive:
-
 
    xeofs.models.EOF
    xeofs.models.Rotator
@@ -29,7 +28,6 @@ pandas | ``pd.DataFrame``
    :template: custom-class-template.rst
    :recursive:
 
-
    xeofs.pandas.EOF
    xeofs.pandas.Rotator
    xeofs.pandas.Bootstrapper
@@ -43,7 +41,6 @@ xarray | ``xr.DataArray``
    :toctree: _autosummary
    :template: custom-class-template.rst
    :recursive:
-
 
    xeofs.xarray.EOF
    xeofs.xarray.Rotator

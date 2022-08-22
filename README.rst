@@ -2,6 +2,7 @@
   :align: center
   :width: 800
   :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
+
 Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
 
 .. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
