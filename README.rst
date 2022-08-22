@@ -1,3 +1,15 @@
+.. image:: examples/1eof/rotated_eof.jpg
+  :align: center
+  :width: 600
+  :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
+Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
+
+.. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
+
+==================================================
+xeofs: Multi-dimensional EOF analysis and variants
+==================================================
+
 |badge1| |badge2| |badge3| |badge4| |badge5| |badge6|
 
 .. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
@@ -15,9 +27,6 @@
    :target: https://doi.org/10.5281/zenodo.6323012
    :alt: DOI - Zenodo
 
-=================================
-xeofs: EOF analysis and variants
-=================================
 Empirical orthogonal function (EOF) analysis, more commonly known as
 principal component analysis (PCA), is one of the most popular methods
 for dimension reduction and structure identification in Earth system sciences.
@@ -32,20 +41,20 @@ scientific community. Each of these implementations has its own strengths,
 which need to be highlighted (please `let me know`_, if I forgot any):
 
 
-EOF models
------------
+Available Models
+----------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_       xmca2_
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
-Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌           ✅
-Complex EOF analysis   ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate EOF       ✅           ✅           ❌           ❌           ❌           ❌
-MCA                    ✅           ❌           ❌           ❌           ✅           ✅
-Rotated MCA            ❌           ❌           ❌           ❌           ✅           ❌
-Complex MCA            ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate MCA       ✅           ❌           ❌           ❌           ❌           ❌
+EOF analysis           ✅           ✅           ✅           ✅           ✅            ✅
+Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌            ✅
+Complex EOF analysis   ❌           ❌           ❌           ❌           ❌            ✅
+Multivariate EOF       ✅           ✅           ❌           ❌           ❌            ❌
+MCA                    ✅           ❌           ❌           ❌           ✅            ✅
+Rotated MCA            ❌           ❌           ❌           ❌           ❌            ✅
+Complex MCA            ❌           ❌           ❌           ❌           ❌            ✅
+Multivariate MCA       ✅           ❌           ❌           ❌           ❌            ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
 
@@ -113,6 +122,8 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 + Rotated_ EOF analysis (Varimax, Promax)
 + Weighted_ EOF analysis
 + Multivariate_ EOF analysis
++ Significance analysis via bootstrapping
++ Maximum Covariance Analysis
 
 .. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
 .. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py

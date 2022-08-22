@@ -5,10 +5,14 @@
 
 Computation times
 =================
-**00:12.438** total execution time for **auto_examples_1eof** files:
+**00:06.892** total execution time for **auto_examples_1eof** files:
 
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_bootstrap.py` (``plot_bootstrap.py``)               | 00:12.438 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py` (``plot_rotated_eof.py``)           | 00:05.133 | 0.0 MB |
++--------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py` (``plot_mreof.py``)                       | 00:01.759 | 0.0 MB |
++--------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_examples_1eof_plot_bootstrap.py` (``plot_bootstrap.py``)               | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py` (``plot_eof-smode.py``)               | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
