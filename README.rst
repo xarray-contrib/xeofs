@@ -1,6 +1,6 @@
 .. image:: examples/1eof/rotated_eof.jpg
   :align: center
-  :width: 600
+  :width: 800
   :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
 Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
 
@@ -69,7 +69,7 @@ Package                 **xeofs**  eofs_       pyEOF_      xeof_       xMCA_    
 ``xarray`` interface   ✅           ?           ✅           ✅           ✅           ✅
 Fast algorithm         ✅           ❌           ✅           ❌           ❌           ❌
 Dask support           ❌           ✅           ❌           ✅           ❌           ❌
-Arbitrary dimensions   ✅           ❌           ❌           ❌           ❌           ❌
+Multi-dimensional      ✅           ❌           ❌           ❌           ❌           ❌
 Significance analysis  ✅           ❌           ❌           ❌           ❌           ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
@@ -125,11 +125,11 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 + Significance analysis via bootstrapping
 + Maximum Covariance Analysis
 
-.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
-.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
-.. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
-.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_rotated_eof.html#sphx-glr-auto-examples-1uni-plot-rotated-eof-py
-.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1uni-plot-multivariate-eof-analysis-py
+.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-tmode.html#sphx-glr-auto-examples-1eof-plot-eof-tmode-py
+.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-smode.html#sphx-glr-auto-examples-1eof-plot-eof-smode-py
+.. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_weighted_eof.html#sphx-glr-auto-examples-1eof-plot-weighted-eof-py
+.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
+.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1eof-plot-multivariate-eof-analysis-py
 .. _Documentation: https://xeofs.readthedocs.io/en/latest/
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
@@ -140,6 +140,7 @@ Credits
 
 - Project folder structure: yngvem_
 - Testing data: xarray_ \& pooch_
+- All developers of the EOF packages mentioned above
 
 
 .. _NumPy: https://www.numpy.org
