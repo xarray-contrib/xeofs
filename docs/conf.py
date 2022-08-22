@@ -15,9 +15,12 @@
 import os
 import sys
 
-from xeofs import __version__
+# from xeofs import __version__
 
 sys.path.insert(0, os.path.abspath('..'))
+
+from importlib.metadata import version
+__version__ = version('xeofs')
 
 #
 # # prevent circular imports...
