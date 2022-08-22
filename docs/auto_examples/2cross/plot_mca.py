@@ -46,6 +46,14 @@ hom_pats, pvals_hom = mca.homogeneous_patterns()
 het_pats, pvals_het = mca.heterogeneous_patterns()
 
 #%%
+# When two fields are expected, the output of the above methods is a list of
+# length 2, with the first and second entry containing the relevant object for
+# ``X`` and ``Y``. For example, the p-values obtained from the two-sided t-test
+# for the homogeneous patterns of ``X`` are:
+
+pvals_hom[0]
+
+#%%
 # Create a mask to identifiy where p-values are below 0.05
 
 hom_mask = [values < 0.05 for values in pvals_hom]
