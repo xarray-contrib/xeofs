@@ -1,7 +1,7 @@
 name: xeofs
 channels:
   - conda-forge
-  - defaults
+  - nodefaults  # https://github.com/readthedocs/readthedocs.org/issues/9527
 dependencies:
   - python>3.8
   - numpy

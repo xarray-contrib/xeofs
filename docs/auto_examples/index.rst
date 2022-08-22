@@ -17,9 +17,9 @@ Examples
 
 
 
-.. _sphx_glr_auto_examples_1uni:
+.. _sphx_glr_auto_examples_1eof:
 
-1 | Univariate
+1 | EOF analysis
 ==================
 
 
@@ -30,10 +30,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
      :alt: EOF analysis (T-mode)
 
-     :ref:`sphx_glr_auto_examples_1uni_plot_eof-tmode.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py`
 
 .. raw:: html
 
@@ -43,7 +43,7 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1uni/plot_eof-tmode
+   /auto_examples/1eof/plot_eof-tmode
 
 .. raw:: html
 
@@ -51,10 +51,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_eof-smode_thumb.png
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-smode_thumb.png
      :alt: EOF analysis (S-mode)
 
-     :ref:`sphx_glr_auto_examples_1uni_plot_eof-smode.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py`
 
 .. raw:: html
 
@@ -64,7 +64,28 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1uni/plot_eof-smode
+   /auto_examples/1eof/plot_eof-smode
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+     :alt: Multivariate EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_multivariate-eof
 
 .. raw:: html
 
@@ -72,10 +93,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_mreof_thumb.png
      :alt: Varimax-rotated Multivariate EOF analysis
 
-     :ref:`sphx_glr_auto_examples_1uni_plot_multivariate-eof.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py`
 
 .. raw:: html
 
@@ -85,7 +106,28 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1uni/plot_multivariate-eof
+   /auto_examples/1eof/plot_mreof
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Testing the significance of individual modes and obtain confidence intervals for both EOFs and ...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_bootstrap_thumb.png
+     :alt: Significance teting of EOF analysis via bootstrap
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_bootstrap.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_bootstrap
 
 .. raw:: html
 
@@ -93,10 +135,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
      :alt: Weighted EOF analysis
 
-     :ref:`sphx_glr_auto_examples_1uni_plot_weighted-eof.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
 
 .. raw:: html
 
@@ -106,7 +148,7 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1uni/plot_weighted-eof
+   /auto_examples/1eof/plot_weighted-eof
 
 .. raw:: html
 
@@ -114,10 +156,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1uni/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
      :alt: Rotated EOF analysis
 
-     :ref:`sphx_glr_auto_examples_1uni_plot_rotated_eof.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py`
 
 .. raw:: html
 
@@ -127,7 +169,40 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1uni/plot_rotated_eof
+   /auto_examples/1eof/plot_rotated_eof
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>
+
+
+
+.. _sphx_glr_auto_examples_2cross:
+
+2 Cross-decomposition
+=====================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/2cross/images/thumb/sphx_glr_plot_mca_thumb.png
+     :alt: Maximum Covariance Analysis
+
+     :ref:`sphx_glr_auto_examples_2cross_plot_mca.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/2cross/plot_mca
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>

@@ -1,23 +1,41 @@
-|badge1| |badge2| |badge3| |badge4| |badge5| |badge6|
+.. image:: examples/1eof/rotated_eof.jpg
+  :align: center
+  :width: 800
+  :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
+Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
 
-.. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
-    :alt: GitHub tag (latest SemVer)
-.. |badge2| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
+.. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
+
+==================================================
+xeofs: Multi-dimensional EOF analysis and variants
+==================================================
+
+|badge_build_status| |badge_docs_status| |badge_version_pypi| |badge_conda_version| |badge_downloads| |badge_coverage| |badge_license| |badge_zenodo|
+
+.. |badge_version_pypi| image:: https://img.shields.io/pypi/v/xeofs
+   :alt: PyPI
+.. |badge_build_status| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
    :alt: GitHub Workflow Status (event)
-.. |badge3| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
+.. |badge_docs_status| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge4| image:: https://img.shields.io/pypi/dm/xeofs
+.. |badge_downloads_pypi| image:: https://img.shields.io/pypi/dm/xeofs
     :alt: PyPI - Downloads
-.. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
+.. |badge_coverage| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
-.. |badge6| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
+.. |badge_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
    :target: https://doi.org/10.5281/zenodo.6323012
    :alt: DOI - Zenodo
+.. |badge_license| image:: https://img.shields.io/pypi/l/xeofs
+  :alt: License
+.. |badge_conda_version| image:: https://img.shields.io/conda/vn/conda-forge/xeofs
+   :alt: Conda (channel only)
+.. |badge_downloads_conda| image:: https://img.shields.io/conda/dn/conda-forge/xeofs
+   :alt: Conda downloads
+.. |badge_downloads| image:: https://static.pepy.tech/personalized-badge/xeofs?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads
+   :target: https://pepy.tech/project/xeofs
+   :alt: Total downloads
 
-=================================
-xeofs: EOF analysis and variants
-=================================
 Empirical orthogonal function (EOF) analysis, more commonly known as
 principal component analysis (PCA), is one of the most popular methods
 for dimension reduction and structure identification in Earth system sciences.
@@ -32,20 +50,20 @@ scientific community. Each of these implementations has its own strengths,
 which need to be highlighted (please `let me know`_, if I forgot any):
 
 
-EOF models
------------
+Available Models
+----------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_      **xeofs**
+Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_       xmca2_
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-EOF analysis           ✅           ✅           ✅           ✅           ✅           ✅
-Rotated EOF analysis   ❌           ✅           ❌           ❌           ✅           ✅
-Complex EOF analysis   ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate EOF       ✅           ❌           ❌           ❌           ❌           ✅
-MCA                    ❌           ❌           ❌           ✅           ✅           ❌
-Rotated MCA            ❌           ❌           ❌           ❌           ✅           ❌
-Complex MCA            ❌           ❌           ❌           ❌           ✅           ❌
-Multivariate MCA       ❌           ❌           ❌           ❌           ❌           ❌
+EOF analysis           ✅           ✅           ✅           ✅           ✅            ✅
+Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌            ✅
+Complex EOF analysis   ❌           ❌           ❌           ❌           ❌            ✅
+Multivariate EOF       ✅           ✅           ❌           ❌           ❌            ❌
+MCA                    ✅           ❌           ❌           ❌           ✅            ✅
+Rotated MCA            ❌           ❌           ❌           ❌           ❌            ✅
+Complex MCA            ❌           ❌           ❌           ❌           ❌            ✅
+Multivariate MCA       ✅           ❌           ❌           ❌           ❌            ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
 
@@ -53,14 +71,15 @@ Additional features
 ----------------------
 
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 eofs_       pyEOF_      xeof_       xMCA_       xmca2_      **xeofs**
+Package                 **xeofs**  eofs_       pyEOF_      xeof_       xMCA_       xmca2_
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
-``numpy`` interface    ✅           ❌           ❌           ❌           ✅           ✅
-``pandas`` interface   ❌           ❌           ❌           ❌           ❌           ✅
-``xarray`` interface   ?           ✅           ✅           ✅           ✅           ✅
-Fast algorithm         ❌           ✅           ❌           ❌           ❌           ✅
-Dask support           ✅           ❌           ✅           ❌           ❌           ❌
-Arbitrary dimensions   ❌           ❌           ❌           ❌           ❌           ✅
+``numpy`` interface    ✅           ✅           ❌           ❌           ❌           ✅
+``pandas`` interface   ✅           ❌           ❌           ❌           ❌           ❌
+``xarray`` interface   ✅           ?           ✅           ✅           ✅           ✅
+Fast algorithm         ✅           ❌           ✅           ❌           ❌           ❌
+Dask support           ❌           ✅           ❌           ✅           ❌           ❌
+Multi-dimensional      ✅           ❌           ❌           ❌           ❌           ❌
+Significance analysis  ✅           ❌           ❌           ❌           ❌           ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 
 
@@ -77,7 +96,7 @@ Why ``xeofs``?
 ----------------------
 
 The goal of ``xeofs`` is to merge these different implementations and to simplify the integration of other existing and future variants of EOF analysis thanks to its modular code structure.
-The official name is deliberately chosen to be similar to the other implementations to make it clear that ``xeofs`` is initially nothing revolutionary new in itself. The point is not to distinguish this implementation from the others, but rather to unify (+ extend) already existing implementations.
+The official name is deliberately chosen to be similar to the other implementations to make it clear that ``xeofs`` is nothing revolutionary new in itself. The point is not to distinguish this implementation from the others, but rather to unify (+ extend) already existing implementations.
 
 This project is intended to be a collaborative project of the scientific community and the contribution of EOF variants in the form of pull requests is explicitly encouraged.
 If you are interested, just `contact me`_ or open an `Issue`_.
@@ -112,12 +131,14 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 + Rotated_ EOF analysis (Varimax, Promax)
 + Weighted_ EOF analysis
 + Multivariate_ EOF analysis
++ Significance analysis via bootstrapping
++ Maximum Covariance Analysis
 
-.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-tmode.html#sphx-glr-auto-examples-1uni-plot-eof-tmode-py
-.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_eof-smode.html#sphx-glr-auto-examples-1uni-plot-eof-smode-py
-.. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_weighted_eof.html#sphx-glr-auto-examples-1uni-plot-weighted-eof-py
-.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_rotated_eof.html#sphx-glr-auto-examples-1uni-plot-rotated-eof-py
-.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1uni/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1uni-plot-multivariate-eof-analysis-py
+.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-tmode.html#sphx-glr-auto-examples-1eof-plot-eof-tmode-py
+.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-smode.html#sphx-glr-auto-examples-1eof-plot-eof-smode-py
+.. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_weighted_eof.html#sphx-glr-auto-examples-1eof-plot-weighted-eof-py
+.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
+.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1eof-plot-multivariate-eof-analysis-py
 .. _Documentation: https://xeofs.readthedocs.io/en/latest/
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
@@ -128,6 +149,7 @@ Credits
 
 - Project folder structure: yngvem_
 - Testing data: xarray_ \& pooch_
+- All developers of the EOF packages mentioned above
 
 
 .. _NumPy: https://www.numpy.org

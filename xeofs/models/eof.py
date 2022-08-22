@@ -16,7 +16,7 @@ ArrayList = Union[Array, List[Array]]
 
 
 class EOF(_BaseEOF):
-    '''EOF analysis of a single ``np.ndarray``.
+    '''EOF analysis of a single or multiple ``np.ndarray``.
 
     Parameters
     ----------

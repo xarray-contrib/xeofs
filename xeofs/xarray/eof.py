@@ -11,7 +11,7 @@ DataArrayList = Union[DataArray, List[DataArray]]
 
 
 class EOF(_BaseEOF):
-    '''EOF analysis of a single ``xr.DataArray``.
+    '''EOF analysis of a single or multiple ``xr.DataArray``.
 
     Parameters
     ----------

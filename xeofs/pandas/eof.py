@@ -11,7 +11,7 @@ DataFrameList = Union[DataFrame, List[DataFrame]]
 
 
 class EOF(_BaseEOF):
-    '''EOF analysis of a single ``pd.DataFrame``.
+    '''EOF analysis of a single or multiple ``pd.DataFrame``.
 
     Parameters
     ----------
