@@ -10,22 +10,31 @@ Example_ showing North American surface temperature decomposed via EOF analysis,
 xeofs: Multi-dimensional EOF analysis and variants
 ==================================================
 
-|badge1| |badge2| |badge3| |badge4| |badge5| |badge6|
+|badge_build_status| |badge_docs_status| |badge_version_pypi| |badge_conda_version| |badge_downloads| |badge_coverage| |badge_license| |badge_zenodo|
 
-.. |badge1| image:: https://img.shields.io/github/v/tag/nicrie/xeofs?label=Release
-    :alt: GitHub tag (latest SemVer)
-.. |badge2| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
+.. |badge_version_pypi| image:: https://img.shields.io/pypi/v/xeofs
+   :alt: PyPI
+.. |badge_build_status| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
    :alt: GitHub Workflow Status (event)
-.. |badge3| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
+.. |badge_docs_status| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge4| image:: https://img.shields.io/pypi/dm/xeofs
+.. |badge_downloads_pypi| image:: https://img.shields.io/pypi/dm/xeofs
     :alt: PyPI - Downloads
-.. |badge5| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
+.. |badge_coverage| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
-.. |badge6| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
+.. |badge_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
    :target: https://doi.org/10.5281/zenodo.6323012
    :alt: DOI - Zenodo
+.. |badge_license| image:: https://img.shields.io/pypi/l/xeofs
+  :alt: License
+.. |badge_conda_version| image:: https://img.shields.io/conda/vn/conda-forge/xeofs
+   :alt: Conda (channel only)
+.. |badge_downloads_conda| image:: https://img.shields.io/conda/dn/conda-forge/xeofs
+   :alt: Conda downloads
+.. |badge_downloads| image:: https://static.pepy.tech/personalized-badge/xeofs?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads
+   :target: https://pepy.tech/project/xeofs
+   :alt: Total downloads
 
 Empirical orthogonal function (EOF) analysis, more commonly known as
 principal component analysis (PCA), is one of the most popular methods
