@@ -203,6 +203,27 @@ Examples
    :hidden:
 
    /auto_examples/2cross/plot_mca
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Rotated Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/2cross/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
+     :alt: Rotated Maximum Covariance Analysis
+
+     :ref:`sphx_glr_auto_examples_2cross_plot_rotated_mca.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/2cross/plot_rotated_mca
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>
