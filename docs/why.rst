@@ -26,5 +26,6 @@ What can ``xeofs`` do for me?
 Supported methods
 *******************
 * EOF analysis / PCA
-* Varimax/Promax rotation for better interpretability
 * Maximum Covariance Analysis
+* ROCK-PCA
+* Varimax/Promax rotation for better interpretability
