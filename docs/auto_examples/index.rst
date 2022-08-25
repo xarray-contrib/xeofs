@@ -68,6 +68,27 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Rotated complex kernel PCA by Buseo et al. (2020)">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rock_pca_thumb.png
+     :alt: ROCK PCA
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_rock_pca.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_rock_pca
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis.">
 
 .. only:: html
