@@ -163,14 +163,16 @@ class _ArrayTransformer:
     def back_transform_eofs(self, X : Array):
         if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
-        eofs = np.zeros((self.n_features, X.shape[1])) * np.nan
+        dtype = X.dtype
+        eofs = np.zeros((self.n_features, X.shape[1]), dtype=dtype) * np.nan
         eofs[self.idx_valid_features, :] = X
         return eofs.reshape(tuple(self.shape_features) + (X.shape[1],))
 
     def back_transform_pcs(self, X : Array):
         if len(X.shape) > 2:
             raise ValueError('Data must be 2D to be back-transformed.')
-        pcs = np.zeros((self.n_samples, X.shape[1])) * np.nan
+        dtype = X.dtype
+        pcs = np.zeros((self.n_samples, X.shape[1]), dtype=dtype) * np.nan
         pcs[self.idx_valid_samples, :] = X
         return pcs.reshape(tuple(self.shape_samples) + (X.shape[1],))
 

@@ -5,10 +5,10 @@
 
 Computation times
 =================
-**00:15.559** total execution time for **auto_examples_1eof** files:
+**00:04.024** total execution time for **auto_examples_1eof** files:
 
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py` (``plot_rotated_eof.py``)           | 00:15.559 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_rock_pca.py` (``plot_rock_pca.py``)                 | 00:04.024 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_examples_1eof_plot_bootstrap.py` (``plot_bootstrap.py``)               | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
@@ -19,6 +19,8 @@ Computation times
 | :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py` (``plot_mreof.py``)                       | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py` (``plot_multivariate-eof.py``) | 00:00.000 | 0.0 MB |
++--------------------------------------------------------------------------------------------+-----------+--------+
+| :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py` (``plot_rotated_eof.py``)           | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py` (``plot_weighted-eof.py``)         | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+

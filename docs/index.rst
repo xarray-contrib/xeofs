@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-####################################
-xeofs: EOF analysis and variants
-####################################
+#############################################################
+xeofs: Multi-dimensional EOF analysis and variants
+#############################################################
 Empirical orthogonal function (EOF) analysis, commonly referred to as
 principal component analysis (PCA), is a popular decomposition
 technique in climate science. Over the years, a variety of variants
@@ -30,9 +30,9 @@ and xarray_.
 .. _pandas: https://pandas.pydata.org
 .. _xarray: https://xarray.pydata.org
 
-
-.. toctree::
-   :maxdepth: 3
+.. comment
+.. toctree ::
+   :maxdepth: 4
    :caption: Contents:
 
 ******************
@@ -40,7 +40,7 @@ Documentation
 ******************
 
  .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
     why
     installation

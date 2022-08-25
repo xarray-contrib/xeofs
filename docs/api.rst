@@ -14,9 +14,11 @@ Numpy | ``np.ndarray``
    :recursive:
 
    xeofs.models.EOF
-   xeofs.models.Rotator
-   xeofs.models.Bootstrapper
+   xeofs.models.ROCK_PCA
    xeofs.models.MCA
+   xeofs.models.Rotator
+   xeofs.models.MCA_Rotator
+   xeofs.models.Bootstrapper
 
 
 
@@ -32,7 +34,8 @@ pandas | ``pd.DataFrame``
    xeofs.pandas.Rotator
    xeofs.pandas.Bootstrapper
    xeofs.pandas.MCA
-
+   xeofs.pandas.MCA_Rotator
+   xeofs.pandas.ROCK_PCA
 
 *************************
 xarray | ``xr.DataArray``
@@ -43,6 +46,8 @@ xarray | ``xr.DataArray``
    :recursive:
 
    xeofs.xarray.EOF
-   xeofs.xarray.Rotator
-   xeofs.xarray.Bootstrapper
+   xeofs.xarray.ROCK_PCA
    xeofs.xarray.MCA
+   xeofs.xarray.Rotator
+   xeofs.xarray.MCA_Rotator
+   xeofs.xarray.Bootstrapper

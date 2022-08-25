@@ -60,12 +60,15 @@ Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_   
 EOF analysis           ✅           ✅           ✅           ✅           ✅            ✅
 Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌            ✅
 Complex EOF analysis   ❌           ❌           ❌           ❌           ❌            ✅
+`ROCK-PCA`_            ✅           ❌           ❌           ❌           ❌            ❌
 Multivariate EOF       ✅           ✅           ❌           ❌           ❌            ❌
 MCA                    ✅           ❌           ❌           ❌           ✅            ✅
 Rotated MCA            ✅           ❌           ❌           ❌           ❌            ✅
 Complex MCA            ❌           ❌           ❌           ❌           ❌            ✅
 Multivariate MCA       ✅           ❌           ❌           ❌           ❌            ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
+
+.. _ROCK-PCA: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8989964&casa_token=3zKG0dtp-ewAAAAA:FM1CrVISSSqhWEAwPGpQqCgDYccfLG4N-67xNNDzUBQmMvtIOHuC7T6X-TVQgbDg3aDOpKBksg&tag=1
 
 
 Additional features
