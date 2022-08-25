@@ -25,14 +25,22 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
-from cartopy.crs import Orthographic, PlateCarree
+from cartopy.crs import Robinson, PlateCarree
 
 from xeofs.xarray import EOF, Rotator
 
 
 sns.set_context('paper')
 
-t2m = xr.tutorial.load_dataset('air_temperature')['air']
+sst = xr.tutorial.open_dataset('ersstv5')['sst']
+
+# There are some grid points with have constant values only.
+# Standardization of these time series cannot work since
+# the standard deviation is zero.
+# Remove these grid points prior to the analysis:
+minimum_std_dev = 1e-5
+valid_x = sst.stack(x=['lat', 'lon']).std('time') > minimum_std_dev
+sst = sst.stack(x=['lat', 'lon']).sel(x=valid_x).unstack()
 
 #%%
 # Perform the actual analysis
@@ -40,20 +48,16 @@ t2m = xr.tutorial.load_dataset('air_temperature')['air']
 eofs = []
 pcs = []
 # (1) Standard EOF without regularization
-model = EOF(t2m, dim=['time'], weights='coslat')
+model = EOF(sst, dim=['time'], norm=True, weights='coslat')
 model.solve()
 eofs.append(model.eofs())
 pcs.append(model.pcs())
 # (2) Varimax-rotated EOF analysis
-model_var = EOF(t2m, dim=['time'], weights='coslat')
-model_var.solve()
 rot_var = Rotator(model, n_rot=50, power=1)
 eofs.append(rot_var.eofs())
 pcs.append(rot_var.pcs())
 # (3) Promax-rotated EOF analysis
-model_pro = EOF(t2m, dim=['time'], weights='coslat')
-model_pro.solve()
-rot_pro = Rotator(model, n_rot=50, power=2)
+rot_pro = Rotator(model, n_rot=50, power=4)
 eofs.append(rot_pro.eofs())
 pcs.append(rot_pro.pcs())
 
@@ -65,21 +69,18 @@ pcs.append(rot_pro.pcs())
 # rotation, these structures completely disappear suggesting that these patterns
 # were mere artifacts due to the orthogonality.
 
-proj = Orthographic(central_latitude=30, central_longitude=-80)
+proj = Robinson(central_longitude=180)
 kwargs = {
-    'cmap' : 'RdBu', 'transform': PlateCarree(), 'vmin': -.1, 'vmax': +.1,
+    'cmap' : 'RdBu', 'transform': PlateCarree(), 'vmin': -.03, 'vmax': +.03,
     'add_colorbar': False
 
 }
-titles = [
-    '(1) Covariances', '(2) Covariances + coslat',
-    '(3) Correlation'
-]
-fig = plt.figure(figsize=(15, 5))
-gs = GridSpec(3, 6)
-ax_std = [fig.add_subplot(gs[0, i], projection=proj) for i in range(6)]
-ax_var = [fig.add_subplot(gs[1, i], projection=proj) for i in range(6)]
-ax_pro = [fig.add_subplot(gs[2, i], projection=proj) for i in range(6)]
+
+fig = plt.figure(figsize=(10, 5))
+gs = GridSpec(3, 4)
+ax_std = [fig.add_subplot(gs[0, i], projection=proj) for i in range(4)]
+ax_var = [fig.add_subplot(gs[1, i], projection=proj) for i in range(4)]
+ax_pro = [fig.add_subplot(gs[2, i], projection=proj) for i in range(4)]
 
 for i, (a0, a1, a2) in enumerate(zip(ax_std, ax_var, ax_pro)):
     mode = i + 1

@@ -92,8 +92,8 @@ class MCA(_BaseMCA):
 
         self._tfx = _MultiArrayTransformer()
         self._tfy = _MultiArrayTransformer()
-        X = self._tfx.fit_transform(X)
-        Y = self._tfy.fit_transform(Y)
+        X = self._tfx.fit_transform(X, axis=axis)
+        Y = self._tfy.fit_transform(Y, axis=axis)
         weights_X = self._tfx.transform_weights(weights_X)
         weights_Y = self._tfy.transform_weights(weights_Y)
 

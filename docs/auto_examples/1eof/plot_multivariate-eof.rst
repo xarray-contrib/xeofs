@@ -23,7 +23,7 @@ Multivariate EOF analysis
 
 Multivariate EOF analysis.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-17
+.. GENERATED FROM PYTHON SOURCE LINES 7-24
 
 .. code-block:: default
 
@@ -37,26 +37,12 @@ Multivariate EOF analysis.
 
     from xeofs.xarray import EOF
 
-
-
-
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 18-19
-
-Create four different dataarrayss
-
-.. GENERATED FROM PYTHON SOURCE LINES 19-25
-
-.. code-block:: default
-
-    t2m = xr.tutorial.load_dataset('air_temperature')['air']
-    subset1 = t2m.isel(lon=slice(0, 4))
-    subset2 = t2m.isel(lon=slice(5, 14))
-    subset3 = t2m.isel(lon=slice(15, 34))
-    subset4 = t2m.isel(lon=slice(35, None))
+    # Create four different dataarrayss
+    sst = xr.tutorial.open_dataset('ersstv5')['sst']
+    subset1 = sst.isel(lon=slice(0, 45))
+    subset2 = sst.isel(lon=slice(46, 90))
+    subset3 = sst.isel(lon=slice(91, 135))
+    subset4 = sst.isel(lon=slice(136, None))
 
 
 
@@ -65,24 +51,24 @@ Create four different dataarrayss
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-27
+.. GENERATED FROM PYTHON SOURCE LINES 25-26
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-38
+.. GENERATED FROM PYTHON SOURCE LINES 26-37
 
 .. code-block:: default
 
 
-    mpca = EOF(
+    pca = EOF(
         [subset1, subset2, subset3, subset4],
         dim='time',
         norm=False,
         weights='coslat'
     )
-    mpca.solve()
-    eofs = mpca.eofs()
-    pcs = mpca.pcs()
+    pca.solve()
+    eofs = pca.eofs()
+    pcs = pca.pcs()
 
 
 
@@ -91,28 +77,28 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-40
+.. GENERATED FROM PYTHON SOURCE LINES 38-39
 
 Plot mode 1
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-74
+.. GENERATED FROM PYTHON SOURCE LINES 39-73
 
 .. code-block:: default
 
 
-    mode = 1
+    mode = 5
     proj = PlateCarree()
     kwargs = {
         'cmap' : 'RdBu',
-        'vmin' : -.1,
-        'vmax': .1,
+        'vmin' : -.05,
+        'vmax': .05,
         'transform': proj,
         'add_colorbar': False
     }
 
     fig = plt.figure(figsize=(7.3, 6))
     fig.subplots_adjust(wspace=0)
-    gs = GridSpec(2, 4, figure=fig, width_ratios=[1, 2, 3, 2])
+    gs = GridSpec(2, 4, figure=fig, width_ratios=[1, 1, 1, 1])
     ax = [fig.add_subplot(gs[0, i], projection=proj) for i in range(4)]
     ax_pc = fig.add_subplot(gs[1, :])
 
@@ -137,7 +123,7 @@ Plot mode 1
 
 
 .. image-sg:: /auto_examples/1eof/images/sphx_glr_plot_multivariate-eof_001.png
-   :alt: Mode 1, Subset 1, Subset 2, Subset 3, Subset 4
+   :alt: Mode 5, Subset 1, Subset 2, Subset 3, Subset 4
    :srcset: /auto_examples/1eof/images/sphx_glr_plot_multivariate-eof_001.png
    :class: sphx-glr-single-img
 
@@ -148,7 +134,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.629 seconds)
+   **Total running time of the script:** ( 0 minutes  2.258 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_multivariate-eof.py:

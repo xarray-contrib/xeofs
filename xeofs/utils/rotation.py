@@ -56,7 +56,10 @@ def varimax(
     # Normalize the matrix using square root of the sum of squares (Kaiser)
     h = np.sqrt(np.sum(X * X.conjugate(), axis=1))
     # A = np.diag(1./h) @ A
-    X = (1. / h)[:, np.newaxis] * X
+
+    # Add a stabilizer to avoid zero communalities
+    eps = 1e-9
+    X = (1. / (h + eps))[:, np.newaxis] * X
 
     # Seek for rotation matrix based on varimax criteria
     delta = 0.
@@ -138,7 +141,9 @@ def promax(
 
     # Pre-normalization by communalities (sum of squared rows)
     h = np.sqrt(np.sum(X * X.conjugate(), axis=1))
-    X = (1. / h)[:, np.newaxis] * X
+    # Add a stabilizer to avoid zero communalities
+    eps = 1e-9
+    X = (1. / (h + eps))[:, np.newaxis] * X
 
     # Max-normalisation of columns
     Xnorm = X / np.max(abs(X), axis=0)
