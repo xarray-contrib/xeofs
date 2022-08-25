@@ -14,43 +14,42 @@ from cartopy.crs import PlateCarree
 
 from xeofs.xarray import EOF
 
-#%%
 # Create four different dataarrayss
-t2m = xr.tutorial.load_dataset('air_temperature')['air']
-subset1 = t2m.isel(lon=slice(0, 4))
-subset2 = t2m.isel(lon=slice(5, 14))
-subset3 = t2m.isel(lon=slice(15, 34))
-subset4 = t2m.isel(lon=slice(35, None))
+sst = xr.tutorial.open_dataset('ersstv5')['sst']
+subset1 = sst.isel(lon=slice(0, 45))
+subset2 = sst.isel(lon=slice(46, 90))
+subset3 = sst.isel(lon=slice(91, 135))
+subset4 = sst.isel(lon=slice(136, None))
 
 #%%
 # Perform the actual analysis
 
-mpca = EOF(
+pca = EOF(
     [subset1, subset2, subset3, subset4],
     dim='time',
     norm=False,
     weights='coslat'
 )
-mpca.solve()
-eofs = mpca.eofs()
-pcs = mpca.pcs()
+pca.solve()
+eofs = pca.eofs()
+pcs = pca.pcs()
 
 #%%
 # Plot mode 1
 
-mode = 1
+mode = 5
 proj = PlateCarree()
 kwargs = {
     'cmap' : 'RdBu',
-    'vmin' : -.1,
-    'vmax': .1,
+    'vmin' : -.05,
+    'vmax': .05,
     'transform': proj,
     'add_colorbar': False
 }
 
 fig = plt.figure(figsize=(7.3, 6))
 fig.subplots_adjust(wspace=0)
-gs = GridSpec(2, 4, figure=fig, width_ratios=[1, 2, 3, 2])
+gs = GridSpec(2, 4, figure=fig, width_ratios=[1, 1, 1, 1])
 ax = [fig.add_subplot(gs[0, i], projection=proj) for i in range(4)]
 ax_pc = fig.add_subplot(gs[1, :])
 

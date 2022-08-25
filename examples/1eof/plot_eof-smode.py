@@ -10,46 +10,46 @@ EOF analysis in S-mode maximises the temporal variance.
 import xarray as xr
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from cartopy.crs import Orthographic, PlateCarree
+from cartopy.crs import EqualEarth, PlateCarree
 
 from xeofs.xarray import EOF
 
 #%%
 
-t2m = xr.tutorial.load_dataset('air_temperature')['air']
+sst = xr.tutorial.open_dataset('ersstv5')['sst']
 
 #%%
 # Perform the actual analysis
 
-model = EOF(t2m, n_modes=5, norm=False, dim='time')
+model = EOF(sst, n_modes=5, norm=False, dim='time')
 model.solve()
 expvar = model.explained_variance_ratio()
 eofs = model.eofs()
 pcs = model.pcs()
 
 #%%
+# Explained variance fraction
+expvar * 100
+
+#%%
 # Create figure showing the first two modes
 
-proj = Orthographic(central_latitude=30, central_longitude=-80)
+proj = EqualEarth(central_longitude=180)
 kwargs = {
     'cmap' : 'RdBu', 'vmin' : -.05, 'vmax': .05, 'transform': PlateCarree()
 }
 
-fig = plt.figure(figsize=(10, 10))
-gs = GridSpec(3, 4)
-ax1 = fig.add_subplot(gs[0, :])
-ax2 = fig.add_subplot(gs[1, 2:], projection=proj)
-ax3 = fig.add_subplot(gs[1, :2])
-ax4 = fig.add_subplot(gs[2, 2:], projection=proj)
-ax5 = fig.add_subplot(gs[2, :2])
+fig = plt.figure(figsize=(10, 8))
+gs = GridSpec(3, 2, width_ratios=[1, 2])
+ax0 = [fig.add_subplot(gs[i, 0]) for i in range(3)]
+ax1 = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(3)]
 
-ax2.coastlines(color='.5')
-ax4.coastlines(color='.5')
+for i, (a0, a1) in enumerate(zip(ax0, ax1)):
+    pcs.sel(mode=i+1).plot(ax=a0)
+    a1.coastlines(color='.5')
+    eofs.sel(mode=i+1).plot(ax=a1, **kwargs)
 
-expvar.plot(ax=ax1, marker='.')
-eofs.sel(mode=1).plot(ax=ax2, **kwargs)
-pcs.sel(mode=1).plot(ax=ax3)
-eofs.sel(mode=2).plot(ax=ax4, **kwargs)
-pcs.sel(mode=2).plot(ax=ax5)
+    a0.set_xlabel('')
+
 plt.tight_layout()
 plt.savefig('eof-smode.jpg')
