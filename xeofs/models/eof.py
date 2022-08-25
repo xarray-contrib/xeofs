@@ -97,7 +97,7 @@ class EOF(_BaseEOF):
     ):
 
         self._tf = _MultiArrayTransformer()
-        X = self._tf.fit_transform(X)
+        X = self._tf.fit_transform(X, axis=axis)
         weights = self._tf.transform_weights(weights)
 
         super().__init__(
