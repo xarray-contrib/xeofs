@@ -2,6 +2,32 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2022-08-26)
+### Feature
+* Add support for ROCK-PCA ([`202844d`](https://github.com/nicrie/xeofs/commit/202844d0e12565bdefb39988a374c4aa20681a0d))
+* Merge branch 'develop' into rock-pca ([`6a5bda8`](https://github.com/nicrie/xeofs/commit/6a5bda8ab1fdc3e0c8c2395172385e058c0b7d3d))
+* Add ROCK PCA ([`0ba0660`](https://github.com/nicrie/xeofs/commit/0ba0660fa4f2396dc537888c80be5352dedaebc4))
+* Add Rotator class for MCA ([`0e9e8f9`](https://github.com/nicrie/xeofs/commit/0e9e8f90f00d499a385956742fc99ca0776bed83))
+* Add Rotator class for MCA ([`6adf45f`](https://github.com/nicrie/xeofs/commit/6adf45fe0d4a126726c503ab45469f3e488b4890))
+
+### Fix
+* Add stabilizer for communalities during rotation ([`462f2fe`](https://github.com/nicrie/xeofs/commit/462f2fe9b30959076a815f3236b48d94c4467f32))
+* Numpy and pandas classes did not consider axis parameter ([`8b75271`](https://github.com/nicrie/xeofs/commit/8b75271be096107f8a670f97ea6afe2d4e9740a9))
+
+### Documentation
+* Bibtex not showing up on Github ;) ([`0c2a663`](https://github.com/nicrie/xeofs/commit/0c2a6635ee5942f2c38f28a1f529ec6a4a5e24bd))
+* Add bibtex ([`1428ebf`](https://github.com/nicrie/xeofs/commit/1428ebfc5d65a62044a3f9f9fb20a4636dbfb891))
+* Fix some minor errors ([`d5d3f73`](https://github.com/nicrie/xeofs/commit/d5d3f73b27814b947903a30cf6cbde8aaf5dc67b))
+* Update README ([`2d28995`](https://github.com/nicrie/xeofs/commit/2d28995a9e6c5ce1424721497eef6e97a6430e45))
+* Change examples ([`1c69645`](https://github.com/nicrie/xeofs/commit/1c6964542dcfe3d794c6a01442822f57d422a681))
+* Adding example for ROCK PCA ([`8c6da93`](https://github.com/nicrie/xeofs/commit/8c6da93f7c6e99780299e2687960c6a22e7c6661))
+* Update ROCK PCA to documentation ([`3a7394d`](https://github.com/nicrie/xeofs/commit/3a7394d57fb4e9d79dfffef5b32df5af1a52e179))
+* Update README ([`9e3210d`](https://github.com/nicrie/xeofs/commit/9e3210d190da254850ea17c70011dab916bda24c))
+* Add example and update docs ([`8bed38a`](https://github.com/nicrie/xeofs/commit/8bed38a79094ece72487b619aa01cd45fa276a80))
+* Some minor corrections in docstrings ([`75eed31`](https://github.com/nicrie/xeofs/commit/75eed31f2cdf33a896174aca77c33ec4bc3791eb))
+* More text ([`0f9c32e`](https://github.com/nicrie/xeofs/commit/0f9c32e48dd6c9069c11802a13a3f0113e5f07f5))
+* Fix docs ([`19bb84e`](https://github.com/nicrie/xeofs/commit/19bb84e3c57c4762fb2d61b3a60df143e6c05b72))
+
 ## v0.6.0 (2022-08-22)
 ### Feature
 * Add MCA ([`34a82d1`](https://github.com/nicrie/xeofs/commit/34a82d103699cb1b1607e2418eb3c0889fad96fb))
