@@ -17,7 +17,6 @@ xarray = "^0.21.1"
 scikit-learn = "^1.0.2"
 pooch = "^1.6.0"
 tqdm = "^4.64.0"
-numba = "^0.56.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
