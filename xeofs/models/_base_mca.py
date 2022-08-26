@@ -174,7 +174,7 @@ class _BaseMCA():
         explained by a given mode `i` and is calculated by
 
         .. math::
-           SCF_i = \frac{\sigma_i**2}{\sum_{i=1}^{m} \sigma_i**2}
+           SCF_i = \\frac{\sigma_i^2}{\sum_{i=1}^{m} \sigma_i^2}
 
         where `m` is the total number of modes and :math:`\sigma_i` denotes the
         `ith` singular value of the covariance matrix.
@@ -259,15 +259,15 @@ class _BaseMCA():
         # Finally get corr coeff
         return np.dot(A_mA.T, B_mB) / np.sqrt(np.dot(ssA[:, None], ssB[None]))
 
-
     def homogeneous_patterns(self) -> Tuple[np.ndarray, np.ndarray]:
         '''Correlation coefficients between PCs and their associated input data.
 
         More precisely, the homogeneous patterns `r_{hom}` are defined as
 
         .. math::
-          r_{hom, x} = \corr \left(X, PC_x \right) \\
-          r_{hom, y} = \corr \left(Y, PC_y \right)
+          r_{hom, x} = \\corr \\left(X, PC_x \\right)
+        .. math::
+          r_{hom, y} = \\corr \\left(Y, PC_y \\right)
 
         Returns
         -------
@@ -297,8 +297,9 @@ class _BaseMCA():
         More precisely, the heterogenous patterns `r_{het}` are defined as
 
         .. math::
-          r_{het, x} = \corr \left(X, PC_y \right) \\
-          r_{het, y} = \corr \left(Y, PC_x \right)
+          r_{het, x} = \\corr \\left(X, PC_y \\right)
+        .. math::
+          r_{het, y} = \\corr \\left(Y, PC_x \\right)
 
         Returns
         -------

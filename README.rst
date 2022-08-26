@@ -3,7 +3,7 @@
   :width: 800
   :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
 
-Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
+Example_ showing sea surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
 
 .. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
 
@@ -60,12 +60,15 @@ Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_   
 EOF analysis           ✅           ✅           ✅           ✅           ✅            ✅
 Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌            ✅
 Complex EOF analysis   ❌           ❌           ❌           ❌           ❌            ✅
+`ROCK-PCA`_            ✅           ❌           ❌           ❌           ❌            ❌
 Multivariate EOF       ✅           ✅           ❌           ❌           ❌            ❌
 MCA                    ✅           ❌           ❌           ❌           ✅            ✅
-Rotated MCA            ❌           ❌           ❌           ❌           ❌            ✅
+Rotated MCA            ✅           ❌           ❌           ❌           ❌            ✅
 Complex MCA            ❌           ❌           ❌           ❌           ❌            ✅
 Multivariate MCA       ✅           ❌           ❌           ❌           ❌            ❌
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
+
+.. _ROCK-PCA: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8989964&casa_token=3zKG0dtp-ewAAAAA:FM1CrVISSSqhWEAwPGpQqCgDYccfLG4N-67xNNDzUBQmMvtIOHuC7T6X-TVQgbDg3aDOpKBksg&tag=1
 
 
 Additional features
@@ -148,9 +151,12 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 Credits
 ----------------------
 
-- Project folder structure: yngvem_
-- Testing data: xarray_ \& pooch_
-- All developers of the EOF packages mentioned above
+- to Andrew Dawson_ for the first and fundamental Python package for EOF analysis
+- to Yefee_ from which I took some inspiration to implement MCA
+- to James Chapman_ who created a great Python package for Canonical Correlation Analysis
+- to Diego Bueso_ for his open-source ROCK-PCA implementation in Matlab
+- to yngvem_ for how to organize the project folder structure
+- to all the developers of NumPy_, pandas_ \& xarray_ for their invaluable contributions to science
 
 
 .. _NumPy: https://www.numpy.org
@@ -158,3 +164,21 @@ Credits
 .. _xarray: https://xarray.pydata.org
 .. _yngvem: https://github.com/yngvem/python-project-structure
 .. _pooch: https://github.com/fatiando/pooch
+.. _Chapman: https://github.com/jameschapman19/cca_zoo
+.. _Bueso: https://github.com/DiegoBueso/ROCK-PCA
+.. _Dawson: https://github.com/ajdawson/eofs
+.. _Yefee: https://github.com/Yefee/xMCA
+
+
+How to cite?
+----------------------
+Please make sure that when using ``xeofs`` you always cite the **original source** of the method used. Additionally, if you find ``xeofs`` useful for your research, you may cite it as follows::
+
+   @software{rieger_xeofs_2022,
+     title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
+     url = {https://github.com/nicrie/xeofs}
+     version = {0.6.0},
+     author = {Rieger, Niclas},
+     date = {2022},
+     doi = {10.5281/zenodo.6323011}
+   }

@@ -68,14 +68,14 @@ Examples
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Rotated complex kernel PCA by Buseo et al. (2020)">
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
-     :alt: Multivariate EOF analysis
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rock_pca_thumb.png
+     :alt: ROCK PCA
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
+     :ref:`sphx_glr_auto_examples_1eof_plot_rock_pca.py`
 
 .. raw:: html
 
@@ -85,7 +85,7 @@ Examples
 .. toctree::
    :hidden:
 
-   /auto_examples/1eof/plot_multivariate-eof
+   /auto_examples/1eof/plot_rock_pca
 
 .. raw:: html
 
@@ -107,6 +107,27 @@ Examples
    :hidden:
 
    /auto_examples/1eof/plot_mreof
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+     :alt: Multivariate EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_multivariate-eof
 
 .. raw:: html
 
@@ -203,6 +224,27 @@ Examples
    :hidden:
 
    /auto_examples/2cross/plot_mca
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Rotated Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+ .. figure:: /auto_examples/2cross/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
+     :alt: Rotated Maximum Covariance Analysis
+
+     :ref:`sphx_glr_auto_examples_2cross_plot_rotated_mca.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/2cross/plot_rotated_mca
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>
