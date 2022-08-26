@@ -174,14 +174,12 @@ How to cite?
 ----------------------
 Please make sure that when using ``xeofs`` you always cite the **original source** of the method used. Additionally, if you find ``xeofs`` useful for your research, you may cite it as follows:
 
-.. code-block::
-   :caption: BibLaTeX citation
-
-      @software{rieger_xeofs_2022,
-         title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
-         url = {https://github.com/nicrie/xeofs},
-         version = {0.6.0},
-         author = {Rieger, Niclas},
-         date = {2022},
-         doi = {10.5281/zenodo.6323011}
-      }
+.. code-block:: bibtex
+   @software{rieger_xeofs_2022,
+     title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
+     url = {https://github.com/nicrie/xeofs}
+     version = {0.6.0},
+     author = {Rieger, Niclas},
+     date = {2022},
+     doi = {10.5281/zenodo.6323011}
+   }
