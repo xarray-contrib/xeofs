@@ -3,7 +3,7 @@
   :width: 800
   :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
 
-Example_ showing North American surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
+Example_ showing sea surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
 
 .. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
 
@@ -174,14 +174,14 @@ How to cite?
 ----------------------
 Please make sure that when using ``xeofs`` you always cite the **original source** of the method used. Additionally, if you find ``xeofs`` useful for your research, you may cite it as follows:
 
-.. code-block:: bash
+.. code-block::
    :caption: BibLaTeX citation
 
-     @software{rieger_xeofs_2022,
-       title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
-       url = {https://github.com/nicrie/xeofs},
-     	 version = {0.6.0},
-     	 author = {Rieger, Niclas},
-     	 date = {2022},
-     	 doi = {10.5281/zenodo.6323011}
-     }
+      @software{rieger_xeofs_2022,
+         title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
+         url = {https://github.com/nicrie/xeofs},
+         version = {0.6.0},
+         author = {Rieger, Niclas},
+         date = {2022},
+         doi = {10.5281/zenodo.6323011}
+      }
