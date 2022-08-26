@@ -151,9 +151,12 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 Credits
 ----------------------
 
-- Project folder structure: yngvem_
-- Testing data: xarray_ \& pooch_
-- All developers of the EOF packages mentioned above
+- to Andrew Dawson_ for the first and fundamental Python package for EOF analysis
+- to Yefee_ from which I took some inspiration to implement MCA
+- to James Chapman_ who created a great Python package for Canonical Correlation Analysis
+- to Diego Bueso_ for his open-source ROCK-PCA implementation in Matlab
+- to yngvem_ for how to organize the project folder structure
+- to all the developers of NumPy_, pandas_ \& xarray_ for their invaluable contributions to science
 
 
 .. _NumPy: https://www.numpy.org
@@ -161,20 +164,24 @@ Credits
 .. _xarray: https://xarray.pydata.org
 .. _yngvem: https://github.com/yngvem/python-project-structure
 .. _pooch: https://github.com/fatiando/pooch
+.. _Chapman: https://github.com/jameschapman19/cca_zoo
+.. _Bueso: https://github.com/DiegoBueso/ROCK-PCA
+.. _Dawson: https://github.com/ajdawson/eofs
+.. _Yefee: https://github.com/Yefee/xMCA
 
 
 How to cite?
 ----------------------
 Please make sure that when using ``xeofs`` you always cite the **original source** of the method used. Additionally, if you find ``xeofs`` useful for your research, you may cite it as follows:
 
-.. code-block:: php
-   :caption: BibLaTeX citation style
+.. code-block:: bash
+   :caption: BibLaTeX citation
 
-   @software{rieger_xeofs_2022,
-     title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
-     url = {https://github.com/nicrie/xeofs},
-   	 version = {0.6.0},
-   	 author = {Rieger, Niclas},
-   	 date = {2022},
-   	 doi = {10.5281/zenodo.6323011}
-   }
+     @software{rieger_xeofs_2022,
+       title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
+       url = {https://github.com/nicrie/xeofs},
+     	 version = {0.6.0},
+     	 author = {Rieger, Niclas},
+     	 date = {2022},
+     	 doi = {10.5281/zenodo.6323011}
+     }
