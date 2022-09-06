@@ -79,7 +79,7 @@ Package                 **xeofs**  eofs_       pyEOF_      xeof_       xMCA_    
 =====================  ==========  ==========  ==========  ==========  ==========  ==========
 ``numpy`` interface    ✅           ✅           ❌           ❌           ❌           ✅
 ``pandas`` interface   ✅           ❌           ❌           ❌           ❌           ❌
-``xarray`` interface   ✅           ?           ✅           ✅           ✅           ✅
+``xarray`` interface   ✅           ✅           ✅           ✅           ✅           ✅
 Fast algorithm         ✅           ❌           ✅           ❌           ❌           ❌
 Dask support           ❌           ✅           ❌           ✅           ❌           ❌
 Multi-dimensional      ✅           ❌           ❌           ❌           ❌           ❌
