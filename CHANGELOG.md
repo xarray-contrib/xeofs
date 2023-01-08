@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.1 (2023-01-08)
+### Fix
+* Allow newer xarray version ([`49723c0`](https://github.com/nicrie/xeofs/commit/49723c0771b87b8f4b812572f51d50f71bb139e3))
+
 ## v0.7.0 (2022-08-26)
 ### Feature
 * Add support for ROCK-PCA ([`202844d`](https://github.com/nicrie/xeofs/commit/202844d0e12565bdefb39988a374c4aa20681a0d))
