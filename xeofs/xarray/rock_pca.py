@@ -24,7 +24,9 @@ class ROCK_PCA(_BaseROCK_PCA):
         norm: bool = False,
         weights: Optional[DataArray] = None,
     ):
-        use_coslat = True if weights == 'coslat' else False
+        use_coslat = (
+            True if (isinstance(weights, str) and weights == 'coslat') else False
+        )
 
         self._tf = _MultiDataArrayTransformer()
         X = self._tf.fit_transform(X, dim=dim, coslat=use_coslat)

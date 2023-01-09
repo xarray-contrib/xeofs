@@ -71,8 +71,12 @@ class MCA(_BaseMCA):
         weights_X : Optional[Union[str, DataArrayList]] = None,
         weights_Y : Optional[Union[str, DataArrayList]] = None
     ):
-        use_coslat_X = True if weights_X == 'coslat' else False
-        use_coslat_Y = True if weights_Y == 'coslat' else False
+        use_coslat_X = (
+            True if (isinstance(weights_X, str) and weights_X == 'coslat') else False
+        )
+        use_coslat_Y = (
+            True if (isinstance(weights_Y, str) and weights_Y == 'coslat') else False
+        )
 
         self._tfx = _MultiDataArrayTransformer()
         self._tfy = _MultiDataArrayTransformer()
