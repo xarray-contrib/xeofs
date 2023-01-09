@@ -80,7 +80,7 @@ def sample_DataArray():
 
 @pytest.fixture
 def sample_DataFrame(sample_DataArray):
-    data = sample_DataArray.to_dataframe().reset_index()
+    data = sample_DataArray.to_dataframe().reset_index(level=0).reset_index(drop=True)
     return data.pivot(index='time', columns=['x', 'y'], values='Tair')
 
 
