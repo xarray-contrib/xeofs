@@ -107,7 +107,9 @@ class EOF(_BaseEOF):
         norm : bool = False,
         weights : Optional[Union[xr.DataArray, str]] = None
     ):
-        use_coslat = True if weights == 'coslat' else False
+        use_coslat = (
+            True if (isinstance(weights, str) and weights == 'coslat') else False
+        )
 
         self._tf = _MultiDataArrayTransformer()
         X = self._tf.fit_transform(X, dim=dim, coslat=use_coslat)
