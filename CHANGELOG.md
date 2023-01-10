@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.2 (2023-01-10)
+### Fix
+* FutureWarning in coslat check ([#37](https://github.com/nicrie/xeofs/issues/37)) ([`285fe0f`](https://github.com/nicrie/xeofs/commit/285fe0f6f6cb69cd84e3ac4c662c64d6d659ef47))
+
 ## v0.7.1 (2023-01-08)
 ### Fix
 * Allow newer xarray version ([`49723c0`](https://github.com/nicrie/xeofs/commit/49723c0771b87b8f4b812572f51d50f71bb139e3))
