@@ -3,7 +3,6 @@ from typing import Dict, Optional
 import numpy as np
 import pytest
 import warnings
-import pandas as pd
 import xarray as xr
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -77,13 +76,6 @@ def sample_DataArray():
     with xr.open_dataarray('tests/data/sample_data.nc') as da:
         return da.stack(loc=('x', 'y'))
 
-
-@pytest.fixture
-def sample_DataFrame(sample_DataArray):
-    data = sample_DataArray.to_dataframe().reset_index(level=0).reset_index(drop=True)
-    return data.pivot(index='time', columns=['x', 'y'], values='Tair')
-
-
 @pytest.fixture
 def sample_array(sample_DataArray):
     return sample_DataArray.data
@@ -122,13 +114,6 @@ def reference_solution(sample_array):
 def random_array(shape):
     rng = np.random.default_rng(7)
     return rng.standard_normal(shape)
-
-
-@pytest.fixture
-def random_dataframe(random_array):
-    df = pd.DataFrame(random_array)
-    df.columns = [str(c) for c in range(df.shape[1])]
-    return df
 
 
 @pytest.fixture
