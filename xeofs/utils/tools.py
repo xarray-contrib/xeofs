@@ -1,5 +1,7 @@
 from typing import Optional, Union, List
 
+import numpy as np
+import xarray as xr
 
 def get_mode_selector(obj : Optional[Union[int, List[int], slice]]) -> Union[slice, List]:
     ''' Create a mode selector for a given input object.
@@ -49,3 +51,7 @@ def squeeze(ls):
         return ls[0]
     else:
         raise IndexError('list is empty')
+
+
+def np_sqrt_cos_lat_weights(arr):
+    return np.sqrt(np.cos(np.deg2rad(arr))).clip(0, 1)
