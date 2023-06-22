@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.8, 3.9, 3.10, 3.11]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -28,7 +28,7 @@ jobs:
       - name: Install Python poetry
         uses: abatilo/actions-poetry@v2.1.0
         with:
-          poetry-version: 1.1.13
+          poetry-version: 1.5.1
       - name: Configure poetry
         shell: bash
         run: python -m poetry config virtualenvs.in-project true
