@@ -1,7 +1,35 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Sequence, Hashable
 
 import numpy as np
 import xarray as xr
+
+from .sanity_checks import ensure_tuple
+from .data_types import XarrayData, DataArrayList, DataArray, Dataset
+
+def get_dims(
+        data: DataArray | Dataset | List[DataArray],
+        sample_dims: Hashable | Sequence[Hashable] | List[Sequence[Hashable]]
+        ):
+
+    # Check for invalid types
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
+        sample_dims = ensure_tuple(sample_dims)
+        feature_dims = _get_complementary_dims(data, sample_dims)
+
+    elif isinstance(data, list):
+        sample_dims = ensure_tuple(sample_dims)
+        feature_dims = [_get_complementary_dims(da, sample_dims) for da in data]
+    else:
+        err_message = f'Invalid input type: {type(data).__name__}. Expected one of '
+        err_message += f'of the following: DataArray, Dataset or list of DataArrays.'
+        raise TypeError(err_message)
+
+    return sample_dims, feature_dims
+
+def _get_complementary_dims(data, sample_dims):
+    feature_dims = tuple([dim for dim in data.dims if dim not in sample_dims])
+    return feature_dims
+
 
 def get_mode_selector(obj : Optional[Union[int, List[int], slice]]) -> Union[slice, List]:
     ''' Create a mode selector for a given input object.

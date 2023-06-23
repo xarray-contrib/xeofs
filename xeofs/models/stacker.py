@@ -1,129 +1,184 @@
-from typing import List, Union, Tuple, Dict, Optional
+from typing import List, Union, Tuple, Dict, Optional, Sequence, Hashable
 
 import numpy as np
 import xarray as xr
 
 from ._base_stacker import _BaseStacker
+from ..utils.data_types import ModelDims, DataArray, DataArrayList, Dataset
+from ..utils.sanity_checks import ensure_tuple
 
 class DataArrayStacker(_BaseStacker):
+    ''' Reshape any N-dimensional DataArray into a 2D version.
+    
+    The new object has two dimensions, `sample` and `feature`.
 
-    def fit(self, da: xr.DataArray, sample_dims: List[str], feature_dims: List[str]):
-        self.dims['sample'] = sample_dims
-        self.dims['feature'] = feature_dims
-        self.coords = {dim: da.coords[dim] for dim in da.dims}
+    '''
 
-    def stack_data(self, da: xr.DataArray) -> xr.DataArray:
+    def fit(
+            self,
+            data: DataArray,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable]
+            ):
+
+        sample_dims = ensure_tuple(sample_dims)
+        feature_dims = ensure_tuple(feature_dims)
+        self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
+        
+        
+
+    def transform(self, data: DataArray) -> DataArray:
         # Test whether sample and feature dimensions are present in data array
-        dim_samples_exist = np.isin(self.dims['sample'], da.dims).all()
-        dim_features_exist = np.isin(self.dims['feature'], da.dims).all()
+        dim_samples_exist = np.isin(self.dims['sample'], np.array(data.dims)).all()
+        dim_features_exist = np.isin(self.dims['feature'], np.array(data.dims)).all()
         if not dim_samples_exist:
             raise ValueError(f'{self.dims["sample"]} are not present in data array')
         if not dim_features_exist:
             raise ValueError(f'{self.dims["feature"]} are not present in data array')
 
         # Stack data and remove NaN features
-        da = da.stack(sample=self.dims['sample'], feature=self.dims['feature'])
-        da = da.dropna('feature')
-        return da
-    
-    def stack_weights(self, weights: xr.DataArray) -> xr.DataArray:
-        # Test whether feature dimensions are present in weights
-        dim_features_exist = np.isin(self.dims['feature'], weights.dims).all()
-        if not dim_features_exist:
-            raise ValueError(f'{self.dims["feature"]} are not present in weights')
+        data = data.stack(sample=self.dims['sample'], feature=self.dims['feature'])
+        data = data.dropna('feature')
         
-        return weights.stack(feature=self.dims['feature']).dropna('feature')
+        self.coords = {'sample': data.coords['sample'], 'feature': data.coords['feature']}
+
+        return data
     
-    def unstack_data(self, da: xr.DataArray) -> xr.DataArray:
-        da = da.assign_coords(mode=range(1, da.coords['mode'].size + 1))
-        return da.unstack()
+    def inverse_transform_data(self, data: DataArray) -> DataArray:
+        return data.unstack()
     
-    def unstack_components(self, da: xr.DataArray) -> xr.DataArray:
-        da = da.assign_coords(mode=range(1, da.coords['mode'].size + 1))
-        return da.unstack()
+    def inverse_transform_components(self, data: DataArray) -> DataArray:
+        return data.unstack()
     
-    def unstack_scores(self, da: xr.DataArray) -> xr.DataArray:
-        da = da.assign_coords(mode=range(1, da.coords['mode'].size + 1))
-        return da.unstack()
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        return data.unstack()
 
 
 class DataArrayListStacker():
-        def __init__(self):
-            self.stackers = []
+    ''' Reshape a list of N-dimensional DataArray into a list of 2D versions.
+    
+    The new objects have two dimensions, `sample` and `feature`.
 
-        def fit(self, da_list: List[xr.DataArray], sample_dims: List[str], feature_dims: List[List[str]]) -> None:
-            if len(da_list) != len(feature_dims):
-                err_message = 'Number of data arrays and feature dimensions must be the same. '
-                err_message += f'Got {len(da_list)} data arrays and {len(feature_dims)} feature dimensions'
-                raise ValueError(err_message)
-            
-            for da, fdims in zip(da_list, feature_dims):
-                stacker = DataArrayStacker()
-                stacker.fit(da, sample_dims, fdims)
-                self.stackers.append(stacker)
-        
-        def stack_data(self, da_list: List[xr.DataArray]) -> List[xr.DataArray]:
-            return [stacker.stack_data(da) for stacker, da in zip(self.stackers, da_list)]
+    '''
+    def __init__(self):
+        self.stackers = []
 
-        def stack_weights(self, weights_list: List[xr.DataArray]) -> List[xr.DataArray]:
-            return [stacker.stack_weights(weights) for stacker, weights in zip(self.stackers, weights_list)]
+    def fit(
+            self,
+            data: DataArrayList,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: List[Hashable | Sequence[Hashable]]
+            ) -> None:
         
-        def unstack_data(self, da_list: List[xr.DataArray]) -> List[xr.DataArray]:
-            return [stacker.unstack_data(da) for stacker, da in zip(self.stackers, da_list)]
+        # Check input
+        if not isinstance(feature_dims, list):
+            raise TypeError('feature dims must be a list of the feature dimensions of each DataArray')
         
-        def unstack_components(self, da_list: List[xr.DataArray]) -> List[xr.DataArray]:
-            return [stacker.unstack_components(da) for stacker, da in zip(self.stackers, da_list)]
+        sample_dims = ensure_tuple(sample_dims)
+        feature_dims = [ensure_tuple(fdims) for fdims in feature_dims]
+
+        if len(data) != len(feature_dims):
+            err_message = 'Number of data arrays and feature dimensions must be the same. '
+            err_message += f'Got {len(data)} data arrays and {len(feature_dims)} feature dimensions'
+            raise ValueError(err_message)
         
-        def unstack_scores(self, da_list: List[xr.DataArray]) -> List[xr.DataArray]:
-            return [stacker.unstack_scores(da) for stacker, da in zip(self.stackers, da_list)]
+        for da, fdims in zip(data, feature_dims):
+            stacker = DataArrayStacker()
+            stacker.fit(da, sample_dims, fdims)
+            self.stackers.append(stacker)
+    
+    def transform(self, data: DataArrayList) -> DataArray:
+        stacked_data_list = []
+        idx_coords_size = []
+        dummy_feature_coords = []
+
+        # Stack individual DataArrays
+        for stacker, da in zip(self.stackers, data):
+            stacked_data = stacker.transform(da)
+            idx_coords_size.append(stacked_data.coords['feature'].size)
+            stacked_data_list.append(stacked_data)
+        
+        # Create dummy feature coordinates for each DataArray
+        idx_range = np.cumsum([0] + idx_coords_size)
+        for i in range(len(idx_range) - 1):
+            dummy_feature_coords.append(np.arange(idx_range[i], idx_range[i+1]))
+
+        # Replace original feature coordiantes with dummy coordinates
+        for i, data in enumerate(stacked_data_list):
+            stacked_data_list[i] = data.assign_coords(feature=dummy_feature_coords[i])
+
+        self._dummy_feature_coords = dummy_feature_coords
+
+        return xr.concat(stacked_data_list, dim='feature')
+
+    def inverse_transform_data(self, data: DataArray) -> DataArrayList:
+        dalist = []
+        for stacker, features in zip(self.stackers, self._dummy_feature_coords):
+            subda = data.sel(feature=features)
+            subda = subda.assign_coords(feature=stacker.coords['feature'])
+            subda = stacker.inverse_transform_data(subda)
+            dalist.append(subda)
+        return dalist
+    
+    def inverse_transform_components(self, data: DataArray) -> DataArrayList:
+        dalist = []
+        for stacker, features in zip(self.stackers, self._dummy_feature_coords):
+            subda = data.sel(feature=features)
+            subda = subda.assign_coords(feature=stacker.coords['feature'])
+            subda = subda.set_index(feature=stacker.dims['feature'])
+            subda = stacker.inverse_transform_components(subda)
+            dalist.append(subda)
+        return dalist
+    
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        return data.unstack()
             
 
 class DatasetStacker(_BaseStacker):
+    ''' Reshape any N-dimensional Dataset into a 2D version.
+    
+    The new object has two dimensions, `sample` and `feature`.
 
-    def fit(self, ds: xr.Dataset, sample_dims: List[str], feature_dims: List[str]):
-        self.dims['sample'] = sample_dims
-        self.dims['feature'] = feature_dims
-        self.coords = {dim: ds.coords[dim] for dim in ds.dims}
+    '''
+    def fit(
+            self,
+            data: Dataset,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable]
+            ):
 
-    def stack_data(self, ds: xr.Dataset) -> xr.Dataset:
+        sample_dims = ensure_tuple(sample_dims)
+        feature_dims = ensure_tuple(feature_dims)
+        self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
+        
+        self.coords = {dim: data.coords[dim] for dim in data.dims}
+
+    def transform(self, data: Dataset) -> DataArray:
         # Test whether sample and feature dimensions are present in dataset
-        dim_samples_exist = np.isin(self.dims['sample'], ds.dims).all()
-        dim_features_exist = np.isin(self.dims['feature'], ds.dims).all()
+        dim_samples_exist = np.isin(self.dims['sample'], np.array(data.dims)).all()
+        dim_features_exist = np.isin(self.dims['feature'], np.array(data.dims)).all()
         if not dim_samples_exist:
             raise ValueError(f'{self.dims["sample"]} are not present in data array')
         if not dim_features_exist:
             raise ValueError(f'{self.dims["feature"]} are not present in data array')
 
         # Stack data and remove NaN features
-        ds = ds.to_stacked_array(new_dim='feature', sample_dims=self.dims['sample'])
-        ds = ds.stack(sample=self.dims['sample'])
-        ds = ds.dropna('feature')
+        data_da = data.to_stacked_array(new_dim='feature', sample_dims=self.dims['sample'])
+        data_da = data_da.stack(sample=self.dims['sample'])
+        data_da = data_da.dropna('feature')
         
-        return ds
-        
-    def stack_weights(self, weights: xr.Dataset) -> xr.Dataset:
-        # Test whether feature dimensions are present in weights
-        dim_features_exist = np.isin(self.dims['feature'], weights.dims).all()
-        if not dim_features_exist:
-            raise ValueError(f'{self.dims["feature"]} are not present in weights')
-        
-        weights = weights.expand_dims({'sample': [0]})
-        weights = weights.to_stacked_array(new_dim='feature', sample_dims=('sample',)).squeeze()
-        return weights.dropna('feature')
+        return data_da
+
+    def inverse_transform_data(self, data: DataArray) -> Dataset:
+        data = data.unstack('sample')
+        data_ds = data.to_unstacked_dataset('feature', 'variable')
+        data_ds = data_ds.unstack('feature')
+        return data_ds
     
-    def unstack_data(self, ds: xr.Dataset) -> xr.Dataset:
-        ds = ds.unstack('sample')
-        ds = ds.to_unstacked_dataset('feature', 'variable')
-        ds = ds.unstack('feature')
-        ds = ds.assign_coords(mode=range(1, ds.coords['mode'].size + 1))
-        return ds
+    def inverse_transform_components(self, data: DataArray) -> Dataset:
+        data_ds = data.to_unstacked_dataset('feature').unstack()
+        return data_ds
     
-    def unstack_components(self, ds: xr.Dataset) -> xr.Dataset:
-        ds = ds.to_unstacked_dataset('feature').unstack()
-        ds = ds.assign_coords(mode=range(1, ds.coords['mode'].size + 1))
-        return ds
-    
-    def unstack_scores(self, ds: xr.Dataset) -> xr.Dataset:
-        ds = ds.unstack()
-        ds = ds.assign_coords(mode=range(1, ds.coords['mode'].size + 1))
-        return ds
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        data = data.unstack()
+        return data

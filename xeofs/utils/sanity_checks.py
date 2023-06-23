@@ -1,3 +1,5 @@
+from typing import Sequence, Hashable, Tuple, Any
+
 import xarray as xr
 
 def assert_dataarray(da, name):
@@ -54,9 +56,6 @@ def assert_dataarray_or_dataset(da, name):
     if not isinstance(da, (xr.DataArray, xr.Dataset)):
         raise TypeError(f"{name} must be either a DataArray or Dataset")
 
-
-xr.DataArray()
-from typing import Sequence, Hashable, Tuple, Any
 
 def ensure_tuple(arg: Any) -> Tuple[str]:
     # Check for invalid types

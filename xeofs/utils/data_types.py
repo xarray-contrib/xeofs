@@ -4,8 +4,8 @@ import xarray as xr
 
 DataArray: TypeAlias = xr.DataArray
 Dataset: TypeAlias = xr.Dataset
-XarrayData: TypeAlias = xr.DataArray | xr.Dataset
-DataArrayList: TypeAlias = List[xr.DataArray]
+XarrayData: TypeAlias = DataArray | Dataset
+DataArrayList: TypeAlias = List[DataArray]
 
 
 # Model dimensions are always 2-dimensional: sample and feature
