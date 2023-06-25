@@ -11,9 +11,41 @@ from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList, Mo
 from ..utils.tools import np_sqrt_cos_lat_weights
 
 class Scaler(_BaseScaler):
+    '''Scale the data along sample dimensions.
+    
+    Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
+    (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting), 
+    and (iv) multiplying by additional user-defined weights.
+
+    Parameters
+    ----------
+    with_copy : bool, default=True
+        If True, a copy of the data is made before scaling.
+    with_std : bool, default=True
+        If True, the data is divided by the standard deviation.
+    with_coslat : bool, default=False
+        If True, the data is multiplied by the square root of cosine of latitude weights.
+    with_weights : bool, default=False
+        If True, the data is multiplied by additional user-defined weights.
+
+    '''
     
     def fit(self, data: XarrayData, sample_dims: Sequence[Hashable], feature_dims: Sequence[Hashable], weights: Optional[XarrayData]=None):
-        '''Compute mean, standard deviation and cosine of latitude weights for data array.'''
+        '''Fit the scaler to the data.
+        
+        Parameters
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            Data to be scaled.
+        sample_dims : sequence of hashable
+            Dimensions along which the data is considered to be a sample.
+        feature_dims : sequence of hashable
+            Dimensions along which the data is considered to be a feature.
+        weights : xarray.DataArray or xarray.Dataset, optional
+            Weights to be applied to the data. Must have the same dimensions as the data.
+            If None, no weights are applied.
+            
+        '''
         # Check input types
         assert_dataarray_or_dataset(data, 'data')
         if weights is not None:
@@ -41,6 +73,19 @@ class Scaler(_BaseScaler):
 
 
     def transform(self, data: XarrayData) -> XarrayData:
+        '''Scale the data.
+
+        Parameters
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            Data to be scaled.
+
+        Returns
+        -------
+        xarray.DataArray or xarray.Dataset
+            Scaled data.
+
+        '''
         assert_dataarray_or_dataset(data, 'data')
         
         if self._params['with_copy']:
@@ -57,6 +102,19 @@ class Scaler(_BaseScaler):
         return data
     
     def inverse_transform(self, data: XarrayData) -> XarrayData:
+        '''Unscale the data.
+
+        Parameters
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            Data to be unscaled.
+
+        Returns
+        -------
+        xarray.DataArray or xarray.Dataset
+            Unscaled data.
+
+        '''
         assert_dataarray_or_dataset(data, 'data')
         
         if self._params['with_copy']:
@@ -73,6 +131,21 @@ class Scaler(_BaseScaler):
         return data
 
     def _compute_sqrt_cos_lat_weights(self, data: XarrayData, dim) -> XarrayData:
+        '''Compute the square root of cosine of latitude weights.
+
+        Parameters
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            Data to be scaled.
+        dim : sequence of hashable 
+            Dimensions along which the data is considered to be a feature.
+            
+        Returns
+        -------
+        xarray.DataArray or xarray.Dataset
+            Square root of cosine of latitude weights.
+
+        '''
         assert_dataarray_or_dataset(data, 'data')
 
         # Find latitude coordinate
@@ -95,6 +168,24 @@ class Scaler(_BaseScaler):
 
 
 class ListScaler(_BaseScaler):
+    ''' Scale a list of data arrays along sample dimensions.
+
+    Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
+    (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting),
+    and (iv) multiplying by additional user-defined weights.
+
+    Parameters
+    ----------
+    with_copy : bool, default=True
+        If True, a copy of the data is made before scaling.
+    with_std : bool, default=True
+        If True, the data is divided by the standard deviation.
+    with_coslat : bool, default=False   
+        If True, the data is multiplied by the square root of cosine of latitude weights.
+    with_weights : bool, default=False  
+        If True, the data is multiplied by additional user-defined weights.
+    
+    '''
     def __init__(self, with_copy=True, with_std=True, with_coslat=False, with_weights=False):
         super().__init__(with_copy=with_copy, with_std=with_std, with_coslat=with_coslat, with_weights=with_weights)
         self.scalers = []
@@ -106,6 +197,20 @@ class ListScaler(_BaseScaler):
             feature_dims_list: List[Hashable | Sequence[Hashable]],
             weights=None
             ):
+        '''Fit the scaler to the data.
+
+        Parameters
+        ----------
+        data : list of xarray.DataArray
+            Data to be scaled.
+        sample_dims : hashable or sequence of hashable
+            Dimensions along which the data is considered to be a sample.
+        feature_dims_list : list of hashable or list of sequence of hashable
+            List of dimensions along which the data is considered to be a feature.
+        weights : list of xarray.DataArray, optional
+            List of weights to be applied to the data. Must have the same dimensions as the data.
+
+        '''
         assert_list_of_dataarrays(data, 'data')
 
         # Check input
@@ -147,6 +252,19 @@ class ListScaler(_BaseScaler):
             self.scalers.append(scaler)
 
     def transform(self, da_list: DataArrayList) -> DataArrayList:
+        '''Scale the data.
+
+        Parameters
+        ----------
+        da_list : list of xarray.DataArray
+            Data to be scaled.
+
+        Returns
+        -------
+        list of xarray.DataArray
+            Scaled data.
+
+        '''
         assert_list_of_dataarrays(da_list, 'da_list')
 
         da_list_transformed = []
@@ -157,6 +275,19 @@ class ListScaler(_BaseScaler):
         return da_list_transformed
     
     def inverse_transform(self, da_list: DataArrayList) -> DataArrayList:
+        '''Unscale the data.
+
+        Parameters
+        ----------
+        da_list : list of xarray.DataArray
+            Data to be scaled.
+
+        Returns
+        -------
+        list of xarray.DataArray
+            Scaled data.
+
+        '''
         assert_list_of_dataarrays(da_list, 'da_list')
         
         da_list_transformed = []
