@@ -1,8 +1,8 @@
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray
+from dask.array import Array as DaskArray  #type: ignore
 from sklearn.utils.extmath import randomized_svd as svd
-from scipy.sparse.linalg import svds as complex_svd
+from scipy.sparse.linalg import svds as complex_svd  #type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
 
 
@@ -81,9 +81,17 @@ class Decomposer():
         U.name = 'scores'
         s.name = 'singular_values'
         VT.name = 'components'
-        
+
+        # Flip signs of components to ensure deterministic output    
+        idx_sign = abs(VT).argmax('feature').compute()
+        flip_signs = np.sign(VT.isel(feature=idx_sign))
+        flip_signs = flip_signs.compute()
+        VT *= flip_signs
+        U *= flip_signs
+
         self.scores_ = U
         self.singular_values_ = s
         self.components_ = VT
+
 
         

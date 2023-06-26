@@ -72,6 +72,11 @@ class ResultBox:
 
 
 @pytest.fixture
+def test_data():
+    with xr.open_dataarray('tests/data/sample_data.nc') as da:
+        return da
+
+@pytest.fixture
 def sample_DataArray():
     with xr.open_dataarray('tests/data/sample_data.nc') as da:
         return da.stack(loc=('x', 'y'))
