@@ -72,9 +72,19 @@ class ResultBox:
 
 
 @pytest.fixture
-def test_data():
+def test_DataArray():
     with xr.open_dataarray('tests/data/sample_data.nc') as da:
         return da
+
+@pytest.fixture
+def test_Dataset():
+    with xr.open_dataset('tests/data/sample_data.nc') as ds:
+        return ds
+
+@pytest.fixture
+def test_DataArrayList():
+    with xr.open_dataarray('tests/data/sample_data.nc') as da:
+        return [da, da, da]
 
 @pytest.fixture
 def sample_DataArray():

@@ -91,14 +91,14 @@ class Scaler(_BaseScaler):
         if self._params['with_copy']:
             data = data.copy(deep=True)
         
-        data -= self.mean
+        data = data - self.mean
         
         if self._params['with_std']:
-            data /= self.std
+            data = data / self.std
         if self._params['with_coslat']:
-            data *= self.coslat_weights
+            data = data * self.coslat_weights
         if self._params['with_weights']:
-            data *= self.weights
+            data = data * self.weights
         return data
     
     def inverse_transform(self, data: XarrayData) -> XarrayData:
@@ -120,13 +120,13 @@ class Scaler(_BaseScaler):
         if self._params['with_copy']:
             data = data.copy(deep=True)
         if self._params['with_weights']:
-            data /= self.weights
+            data = data / self.weights
         if self._params['with_coslat']:
-            data /= self.coslat_weights
+            data = data / self.coslat_weights
         if self._params['with_std']:
-            data *= self.std
+            data = data * self.std
         
-        data += self.mean
+        data = data + self.mean
         
         return data
 

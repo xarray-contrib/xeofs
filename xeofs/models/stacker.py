@@ -36,6 +36,10 @@ class DataArrayStacker(_BaseStacker):
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = ensure_tuple(feature_dims)
         self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
+        self.coords = {
+            'sample': {dim: data.coords[dim] for dim in sample_dims},
+            'feature': {dim: data.coords[dim] for dim in feature_dims}
+        }
         
         
 
@@ -64,8 +68,7 @@ class DataArrayStacker(_BaseStacker):
         # Stack data and remove NaN features
         data = data.stack(sample=self.dims['sample'], feature=self.dims['feature'])
         data = data.dropna('feature')
-        
-        self.coords = {'sample': data.coords['sample'], 'feature': data.coords['feature']}
+        self.coords_no_nan = {'sample': data.coords['sample'], 'feature': data.coords['feature']}
 
         return data
     
@@ -74,7 +77,17 @@ class DataArrayStacker(_BaseStacker):
         
 
         '''
-        return data.unstack()
+        data = data.unstack()
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
+        # if so, reindex data.coords['feature'] to self.coords['feature']
+        for dim in self.coords['feature'].keys():
+            if self.coords['feature'][dim].size != data.coords[dim].size:
+                data = data.reindex({dim: self.coords['feature'][dim]})
+
+
+        return data
     
     def inverse_transform_components(self, data: DataArray) -> DataArray:
         ''' Reshape the 2D data (mode x feature) back into its original shape.
@@ -91,7 +104,17 @@ class DataArrayStacker(_BaseStacker):
             
         '''
 
-        return data.unstack()
+        data = data.unstack()
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
+        # if so, reindex data.coords['feature'] to self.coords['feature']
+        for dim in self.coords['feature'].keys():
+            if self.coords['feature'][dim].size != data.coords[dim].size:
+                data = data.reindex({dim: self.coords['feature'][dim]})
+
+        
+        return data
     
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
         ''' Reshape the 2D data (sample x mode) back into its original shape.
@@ -143,6 +166,10 @@ class DataArrayListStacker():
         
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = [ensure_tuple(fdims) for fdims in feature_dims]
+        self.coords = {
+            'sample': [{dim: da.coords[dim] for dim in sample_dims} for da in data],
+            'feature': [{dim: da.coords[dim] for dim in fdims} for da, fdims in zip(data, feature_dims)]
+        }
 
         if len(data) != len(feature_dims):
             err_message = 'Number of data arrays and feature dimensions must be the same. '
@@ -196,7 +223,7 @@ class DataArrayListStacker():
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
             subda = data.sel(feature=features)
-            subda = subda.assign_coords(feature=stacker.coords['feature'])
+            subda = subda.assign_coords(feature=stacker.coords_no_nan['feature'])
             subda = subda.set_index(feature=stacker.dims['feature'])
             subda = stacker.inverse_transform_data(subda)
             dalist.append(subda)
@@ -206,7 +233,7 @@ class DataArrayListStacker():
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
             subda = data.sel(feature=features)
-            subda = subda.assign_coords(feature=stacker.coords['feature'])
+            subda = subda.assign_coords(feature=stacker.coords_no_nan['feature'])
             subda = subda.set_index(feature=stacker.dims['feature'])
             subda = stacker.inverse_transform_components(subda)
             dalist.append(subda)
@@ -232,8 +259,11 @@ class DatasetStacker(_BaseStacker):
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = ensure_tuple(feature_dims)
         self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
+        self.coords = {
+            'sample': {dim: data.coords[dim] for dim in sample_dims},
+            'feature': {dim: data.coords[dim] for dim in feature_dims}
+        }
         
-        self.coords = {dim: data.coords[dim] for dim in data.dims}
 
     def transform(self, data: Dataset) -> DataArray:
         # Test whether sample and feature dimensions are present in dataset
@@ -248,6 +278,7 @@ class DatasetStacker(_BaseStacker):
         data_da = data.to_stacked_array(new_dim='feature', sample_dims=self.dims['sample'])
         data_da = data_da.stack(sample=self.dims['sample'])
         data_da = data_da.dropna('feature')
+        self.coords_no_nan = {'sample': data_da.coords['sample'], 'feature': data_da.coords['feature']}
         
         return data_da
 
@@ -255,12 +286,29 @@ class DatasetStacker(_BaseStacker):
         data = data.unstack('sample')
         data_ds = data.to_unstacked_dataset('feature', 'variable')
         data_ds = data_ds.unstack('feature')
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
+        # if so, reindex data.coords['feature'] to self.coords['feature']
+        for dim in self.coords['feature'].keys():
+            if self.coords['feature'][dim].size != data.coords[dim].size:
+                data_ds = data_ds.reindex({dim: self.coords['feature'][dim]})
+
         return data_ds
     
     def inverse_transform_components(self, data: DataArray) -> Dataset:
         data_ds = data.to_unstacked_dataset('feature').unstack()
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
+        # if so, reindex data.coords['feature'] to self.coords['feature']
+        for dim in self.coords['feature'].keys():
+            if self.coords['feature'][dim].size != data.coords[dim].size:
+                data_ds = data_ds.reindex({dim: self.coords['feature'][dim]})
+
         return data_ds
     
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
         data = data.unstack()
         return data
+
