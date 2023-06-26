@@ -20,6 +20,18 @@ class DataArrayStacker(_BaseStacker):
             sample_dims: Hashable | Sequence[Hashable],
             feature_dims: Hashable | Sequence[Hashable]
             ):
+        ''' Fit the stacker to the data.
+        
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+        sample_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `sample` dimension.
+        feature_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `feature` dimension.
+
+        '''
 
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = ensure_tuple(feature_dims)
@@ -28,6 +40,19 @@ class DataArrayStacker(_BaseStacker):
         
 
     def transform(self, data: DataArray) -> DataArray:
+        ''' Reshape the data into a 2D version.
+        
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+            
+        Returns
+        -------
+        DataArray
+            The reshaped data.
+            
+        '''
         # Test whether sample and feature dimensions are present in data array
         dim_samples_exist = np.isin(self.dims['sample'], np.array(data.dims)).all()
         dim_features_exist = np.isin(self.dims['feature'], np.array(data.dims)).all()
@@ -45,20 +70,51 @@ class DataArrayStacker(_BaseStacker):
         return data
     
     def inverse_transform_data(self, data: DataArray) -> DataArray:
+        ''' Reshape the 2D data (sample x feature) back into its original shape.
+        
+
+        '''
         return data.unstack()
     
     def inverse_transform_components(self, data: DataArray) -> DataArray:
+        ''' Reshape the 2D data (mode x feature) back into its original shape.
+        
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+
+        Returns
+        -------
+        DataArray
+            The reshaped data.
+            
+        '''
+
         return data.unstack()
     
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        ''' Reshape the 2D data (sample x mode) back into its original shape.
+
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+
+        Returns
+        -------
+        DataArray
+            The reshaped data.
+            
+        '''
         return data.unstack()
 
 
 class DataArrayListStacker():
-    ''' Reshape a list of N-dimensional DataArray into a list of 2D versions.
+    ''' Reshape a list of N-dimensional DataArrays into a 2D version.
     
-    The new objects have two dimensions, `sample` and `feature`.
-
+    The new object has two dimensions, `sample` and `feature`.
+    
     '''
     def __init__(self):
         self.stackers = []
@@ -69,7 +125,18 @@ class DataArrayListStacker():
             sample_dims: Hashable | Sequence[Hashable],
             feature_dims: List[Hashable | Sequence[Hashable]]
             ) -> None:
+        ''' Fit the stacker to the data.
         
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+        sample_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `sample` dimension.
+        feature_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `feature` dimension.
+
+        '''        
         # Check input
         if not isinstance(feature_dims, list):
             raise TypeError('feature dims must be a list of the feature dimensions of each DataArray')
@@ -88,6 +155,19 @@ class DataArrayListStacker():
             self.stackers.append(stacker)
     
     def transform(self, data: DataArrayList) -> DataArray:
+        ''' Reshape the data into a 2D version.
+
+        Parameters
+        ----------
+        data: list of DataArrays
+            The data to be reshaped.
+
+        Returns
+        -------
+        DataArray
+            The reshaped 2D data.
+
+        '''
         stacked_data_list = []
         idx_coords_size = []
         dummy_feature_coords = []
@@ -105,7 +185,8 @@ class DataArrayListStacker():
 
         # Replace original feature coordiantes with dummy coordinates
         for i, data in enumerate(stacked_data_list):
-            stacked_data_list[i] = data.assign_coords(feature=dummy_feature_coords[i])
+            data = data.drop('feature')  # type: ignore
+            stacked_data_list[i] = data.assign_coords(feature=dummy_feature_coords[i])  # type: ignore
 
         self._dummy_feature_coords = dummy_feature_coords
 
