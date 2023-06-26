@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import xarray as xr
+import scipy as sc
 from scipy.signal import hilbert    # type: ignore
 
 from xeofs.models.scaler import Scaler, ListScaler
@@ -9,7 +10,7 @@ from xeofs.models.stacker import DataArrayStacker, DataArrayListStacker, Dataset
 from xeofs.models.decomposer import Decomposer
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.tools import get_dims, compute_total_variance
-
+from ..utils.testing import multipletests
 
 class _BaseModel(ABC):
     '''
@@ -96,7 +97,64 @@ class _BaseModel(ABC):
         self._components = None
         self._scores = None
 
+    def transform(self, data: XarrayData | DataArrayList):
+        '''Project new unseen data onto the components (EOFs/eigenvectors).
+
+        Parameters:
+        -------------
+        data: xr.DataArray or list of xarray.DataArray
+            Input data.
+
+        Returns:
+        ----------
+        projections: DataArray | Dataset | List[DataArray]
+            Projections of the new data onto the components.
+
+        '''
+        # Preprocess the data
+        data = self.scaler.transform(data)
+        data = self.stacker.transform(data)
+
+        # Project the data
+        projections = xr.dot(data, self._components) / self._singular_values
+        projections.name = 'scores'
+
+        # Unstack the projections
+        projections = self.stacker.inverse_transform_scores(projections)
+        return projections
     
+
+    def inverse_transform(self, mode):
+        '''Reconstruct the original data from transformed data.
+
+        Parameters:
+        -------------
+        mode: scalars, slices or array of tick labels.
+            The mode(s) used to reconstruct the data. If a scalar is given,
+            the data will be reconstructed using the given mode. If a slice
+            is given, the data will be reconstructed using the modes in the
+            given slice. If a array is given, the data will be reconstructed
+            using the modes in the given array.
+
+        Returns:
+        ----------
+        data: DataArray | Dataset | List[DataArray]
+            Reconstructed data.
+
+        '''
+        # Reconstruct the data
+        svals = self._singular_values.sel(mode=mode)
+        comps = self._components.sel(mode=mode)
+        scores = self._scores.sel(mode=mode) * svals
+        data = xr.dot(comps, scores)
+        data.name = 'reconstructed_data'
+
+        # Unstack the data
+        data = self.stacker.inverse_transform_data(data)
+        # Unscale the data
+        data = self.scaler.inverse_transform(data)
+        return data
+
     def singular_values(self):
         '''Return the singular values of the model.
 
@@ -176,6 +234,7 @@ class _BaseModel(ABC):
         self._components = self._components.compute()    # type: ignore
         self._scores = self._scores.compute()    # type: ignore
 
+
 class EOF(_BaseModel):
     '''Model to perform Empirical Orthogonal Function (EOF) analysis.
     
@@ -211,7 +270,60 @@ class EOF(_BaseModel):
 
         self._explained_variance.name = 'explained_variance'
         self._explained_variance_ratio.name = 'explained_variance_ratio'
-    
+
+    def components_as_correlation(self, alpha=.05, method='fdr_bh'):
+        '''Calculates the correlation coefficients between the component scores and the data matrix. 
+
+        This method also performs a hypothesis test for the correlation, and adjusts the p-values of this test using the method specified.
+
+        Parameters:
+        ----------
+        alpha : float, optional
+            The significance level to use for the hypothesis test. Defaults to 0.05.
+
+        method : str, optional
+            The method to use for adjusting the p-values. The methods are based on the statsmodels.sandbox.stats.multicomp.multipletests. 
+            The available methods are:
+            - 'bonferroni' : one-step correction
+            - 'sidak' : one-step correction
+            - 'holm-sidak' : step down method using Sidak adjustments
+            - 'holm' : step-down method using Bonferroni adjustments
+            - 'simes-hochberg' : step-up method (independent)
+            - 'hommel' : closed method based on Simes tests (non-negative)
+            - 'fdr_bh' : Benjamini/Hochberg (non-negative)
+            - 'fdr_by' : Benjamini/Yekutieli (negative)
+            - 'fdr_tsbh' : two stage fdr correction (non-negative)
+            - 'fdr_tsbky' : two stage fdr correction (non-negative)
+            The default is 'fdr_bh'.
+            
+        Returns:
+        --------
+        tuple: (corr, rejected, pvals_corr)
+            - corr: The correlation coefficients between the component scores and the data matrix.
+            - rejected: A Boolean array that indicates which hypothesis tests were rejected.
+            - pvals_corr: The p-values that have been adjusted using the specified method.
+        '''
+
+        # Compute Pearson correlation coefficients
+        corr = (self.data * self._scores).mean('sample') / self.data.std('sample') / self._scores.std('sample')
+
+        # Compute two-sided p-values
+        # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
+        a = self.data.shape[0] / 2 - 1
+        dist = sc.stats.beta(a, a, loc=-1, scale=2)
+        pvals = 2 * xr.apply_ufunc(
+            dist.cdf,
+            -abs(corr),
+            input_core_dims=[['mode', 'feature']],
+            output_core_dims=[['mode', 'feature']],
+            dask='allowed',
+            vectorize=False
+        )
+
+        rejected, pvals_corr = multipletests(pvals, dim='feature', alpha=alpha, method=method)
+
+        return corr, rejected, pvals_corr
+
 
 class ComplexEOF(_BaseModel):
 
