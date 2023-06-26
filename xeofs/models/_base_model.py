@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import xarray as xr
-from scipy.signal import hilbert
+from scipy.signal import hilbert    # type: ignore
 
 from xeofs.models.scaler import Scaler, ListScaler
 from xeofs.models.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
@@ -169,12 +169,12 @@ class _BaseModel(ABC):
     def compute(self):
         '''Computing the model will load and compute Dask arrays.'''
 
-        self._total_variance = self._total_variance.compute()
-        self._singular_values = self._singular_values.compute()
-        self._explained_variance = self._explained_variance.compute()
-        self._explained_variance_ratio = self._explained_variance_ratio.compute()
-        self._components = self._components.compute()
-        self._scores = self._scores.compute()
+        self._total_variance = self._total_variance.compute()  # type: ignore
+        self._singular_values = self._singular_values.compute()   # type: ignore
+        self._explained_variance = self._explained_variance.compute()   # type: ignore
+        self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
+        self._components = self._components.compute()    # type: ignore
+        self._scores = self._scores.compute()    # type: ignore
 
 class EOF(_BaseModel):
     '''Model to perform Empirical Orthogonal Function (EOF) analysis.
