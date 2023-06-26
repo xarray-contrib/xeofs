@@ -44,7 +44,6 @@ class _BaseModel(ABC):
     def singular_values(self):
         raise NotImplementedError()
     
-    @abstractmethod
     def explained_variance(self):
         raise NotImplementedError()
     

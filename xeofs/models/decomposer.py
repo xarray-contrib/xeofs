@@ -78,6 +78,10 @@ class Decomposer():
         s = s.assign_coords(mode=range(1, U.mode.size + 1))
         VT = VT.assign_coords(mode=range(1, U.mode.size + 1))
 
+        U.name = 'scores'
+        s.name = 'singular_values'
+        VT.name = 'components'
+        
         self.scores_ = U
         self.singular_values_ = s
         self.components_ = VT
