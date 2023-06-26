@@ -197,6 +197,7 @@ class DataArrayListStacker():
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
             subda = data.sel(feature=features)
             subda = subda.assign_coords(feature=stacker.coords['feature'])
+            subda = subda.set_index(feature=stacker.dims['feature'])
             subda = stacker.inverse_transform_data(subda)
             dalist.append(subda)
         return dalist

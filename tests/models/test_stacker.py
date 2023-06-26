@@ -20,52 +20,52 @@ def simple_dal():
 def test_DataArrayStacker(simple_da):
     stacker = DataArrayStacker()
     stacker.fit(simple_da, 'x', ['y', 'z'])
-    stacked = stacker.stack_data(simple_da)
+    stacked = stacker.transform(simple_da)
     assert stacked.dims == ('sample', 'feature')
     with pytest.raises(ValueError):
-        stacker.stack_data(xr.DataArray(np.random.rand(2, 4, 5), dims=("a", "y", "z")))
+        stacker.transform(xr.DataArray(np.random.rand(2, 4, 5), dims=("a", "y", "z")))
 
 
 def test_DataArrayListStacker(simple_dal):
     stacker_list = DataArrayListStacker()
     stacker_list.fit(simple_dal, 'x', [['y', 'z'], ['y', 'z'], ['y', 'z']])
-    stacked = stacker_list.stack_data(simple_dal)
-    assert all(stacked_da.dims == ('sample', 'feature') for stacked_da in stacked)
+    stacked = stacker_list.transform(simple_dal)
+    assert stacked.dims == ('sample', 'feature')
     with pytest.raises(ValueError):
-        stacker_list.stack_data([xr.DataArray(np.random.rand(2, 4, 5), dims=("a", "y", "z")) for _ in range(3)])
+        stacker_list.transform([xr.DataArray(np.random.rand(2, 4, 5), dims=("a", "y", "z")) for _ in range(3)])
 
 
 def test_DatasetStacker(simple_ds):
     stacker = DatasetStacker()
     stacker.fit(simple_ds, 'x', ['y', 'z'])
-    stacked = stacker.stack_data(simple_ds)
+    stacked = stacker.transform(simple_ds)
     assert stacked.dims == ('feature', 'sample')
     with pytest.raises(ValueError):
-        stacker.stack_data(xr.Dataset({'var': (("a", "y", "z"), np.random.rand(3, 4, 5))}))
+        stacker.transform(xr.Dataset({'var': (("a", "y", "z"), np.random.rand(3, 4, 5))}))
 
 
 def test_DataArrayStacker_unstack(simple_da):
     stacker = DataArrayStacker()
     stacker.fit(simple_da, 'x', ['y', 'z'])
-    stacked = stacker.stack_data(simple_da)
+    stacked = stacker.transform(simple_da)
 
-    unstacked = stacker.unstack_data(stacked)
+    unstacked = stacker.inverse_transform_data(stacked)
     assert unstacked.dims == simple_da.dims
 
 
 def test_DataArrayListStacker_unstack(simple_dal):
     stacker_list = DataArrayListStacker()
     stacker_list.fit(simple_dal, 'x', [['y', 'z'], ['y', 'z'], ['y', 'z']])
-    stacked = stacker_list.stack_data(simple_dal)
+    stacked = stacker_list.transform(simple_dal)
 
-    unstacked = stacker_list.unstack_data(stacked)
+    unstacked = stacker_list.inverse_transform_data(stacked)
     assert all(unstacked_da.dims == da.dims for unstacked_da, da in zip(unstacked, simple_dal))
 
 
 def test_DatasetStacker_unstack(simple_ds):
     stacker = DatasetStacker()
     stacker.fit(simple_ds, 'x', ['y', 'z'])
-    stacked = stacker.stack_data(simple_ds)
+    stacked = stacker.transform(simple_ds)
 
-    unstacked = stacker.unstack_data(stacked)
+    unstacked = stacker.inverse_transform_data(stacked)
     assert unstacked.dims == simple_ds.dims
