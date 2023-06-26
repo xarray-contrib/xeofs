@@ -24,10 +24,10 @@ def test_solution(method, standardize, use_weights, reference_solution, test_dat
 
     model = EOF(standardize=standardize)
     model.fit(test_data.transpose('time','x','y'), 'time')
-    assert_allclose(model.singular_values(), reference['singular_values'])
-    assert_allclose(model.explained_variance(), reference['explained_variance'])
-    assert_allclose(model.explained_variance_ratio(), reference['explained_variance_ratio'])
-    assert_allclose(model.components().stack(loc=('x', 'y')).dropna('loc').values, reference['eofs'].T)
+    assert_allclose(model.singular_values(), reference['singular_values'])  #type: ignore
+    assert_allclose(model.explained_variance(), reference['explained_variance'])  #type: ignore
+    assert_allclose(model.explained_variance_ratio(), reference['explained_variance_ratio'])  #type: ignore
+    assert_allclose(model.components().stack(loc=('x', 'y')).dropna('loc').values, reference['eofs'].T)  #type: ignore
     assert_allclose(model.scores().values, reference['pcs'].T)
 
 
@@ -142,23 +142,23 @@ def test_EOF_compute(test_data):
     eof.fit(dask_test_data, dims)
 
    # Assert that the attributes are indeed Dask arrays before computation
-    assert isinstance(eof._total_variance.data, da.Array)
-    assert isinstance(eof._singular_values.data, da.Array)
-    assert isinstance(eof._explained_variance.data, da.Array)
-    assert isinstance(eof._explained_variance_ratio.data, da.Array)
-    assert isinstance(eof._components.data, da.Array)
-    assert isinstance(eof._scores.data, da.Array)
+    assert isinstance(eof._total_variance.data, da.Array)  #type: ignore
+    assert isinstance(eof._singular_values.data, da.Array)  #type: ignore
+    assert isinstance(eof._explained_variance.data, da.Array)  #type: ignore
+    assert isinstance(eof._explained_variance_ratio.data, da.Array)  #type: ignore
+    assert isinstance(eof._components.data, da.Array)  #type: ignore
+    assert isinstance(eof._scores.data, da.Array)  #type: ignore
 
     # Test compute method
     eof.compute()
 
     # Assert the attributes are no longer Dask arrays after computation
-    assert not isinstance(eof._total_variance.data, da.Array)
-    assert not isinstance(eof._singular_values.data, da.Array)
-    assert not isinstance(eof._explained_variance.data, da.Array)
-    assert not isinstance(eof._explained_variance_ratio.data, da.Array)
-    assert not isinstance(eof._components.data, da.Array)
-    assert not isinstance(eof._scores.data, da.Array)
+    assert not isinstance(eof._total_variance.data, da.Array)  #type: ignore
+    assert not isinstance(eof._singular_values.data, da.Array)  #type: ignore
+    assert not isinstance(eof._explained_variance.data, da.Array)  #type: ignore
+    assert not isinstance(eof._explained_variance_ratio.data, da.Array)  #type: ignore
+    assert not isinstance(eof._components.data, da.Array)  #type: ignore
+    assert not isinstance(eof._scores.data, da.Array)  #type: ignore
 
 
 def test_ComplexEOF_fit(test_data):
