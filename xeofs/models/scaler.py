@@ -58,18 +58,18 @@ class Scaler(_BaseScaler):
         self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
 
         # Scaling parameters are computed along sample dimensions
-        self.mean = data.mean(sample_dims)
+        self.mean = data.mean(sample_dims).compute()
 
         if self._params['with_std']:
-            self.std = data.std(sample_dims)
+            self.std = data.std(sample_dims).compute()
 
         if self._params['with_coslat']:
-            self.coslat_weights = self._compute_sqrt_cos_lat_weights(data, feature_dims)
+            self.coslat_weights = self._compute_sqrt_cos_lat_weights(data, feature_dims).compute()
         
         if self._params['with_weights']:
             if weights is None:
                 raise ValueError('Weights must be provided when with_weights is True')
-            self.weights = weights
+            self.weights = weights.compute()
 
 
     def transform(self, data: XarrayData) -> XarrayData:
