@@ -1,4 +1,4 @@
-from .eof import EOF
+# from .eof import EOF
 from .rotator import Rotator
 from .bootstrapper import Bootstrapper
 from .mca import MCA
@@ -8,4 +8,4 @@ from .scaler import Scaler, ListScaler
 
 from .scaler import Scaler, ListScaler
 from .stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
-from ._base_model import EOF as  EOFnew
+from ._base_model import EOF, ComplexEOF

@@ -83,3 +83,20 @@ def squeeze(ls):
 
 def np_sqrt_cos_lat_weights(arr):
     return np.sqrt(np.cos(np.deg2rad(arr))).clip(0, 1)
+
+def np_total_variance(arr):
+    C = (arr * arr.conj()).sum(axis=0) / (arr.shape[0] - 1)
+    return C.sum().real
+
+def compute_total_variance(data):
+    tot_var = xr.apply_ufunc(
+        np_total_variance,
+        data,
+        input_core_dims=[['sample', 'feature']],
+        output_core_dims=[[]],
+        vectorize=False,
+        dask='allowed',
+        output_dtypes=[float],
+    )
+    tot_var.name = 'total_variance'
+    return tot_var
