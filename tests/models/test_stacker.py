@@ -32,7 +32,7 @@ def test_DataArrayListStacker(test_DataArrayList):
     dim_sample = 'time'
     dim_feature = [('y', 'x')] * 3
     stacker_list = DataArrayListStacker()
-    stacker_list.fit(test_DataArrayList, dim_sample, dim_feature)
+    stacker_list.fit(test_DataArrayList, dim_sample, dim_feature)  #type: ignore
     stacked = stacker_list.transform(test_DataArrayList)
     assert stacked.dims == ('sample', 'feature')
     with pytest.raises(ValueError):
@@ -68,7 +68,7 @@ def test_DataArrayListStacker_unstack(test_DataArrayList):
     dim_sample = 'time'
     dim_feature = [('y', 'x')] * 3
     stacker_list = DataArrayListStacker()
-    stacker_list.fit(test_DataArrayList, dim_sample, dim_feature)
+    stacker_list.fit(test_DataArrayList, dim_sample, dim_feature)  #type: ignore
     stacked = stacker_list.transform(test_DataArrayList)
 
     unstacked = stacker_list.inverse_transform_data(stacked)

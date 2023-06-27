@@ -168,7 +168,7 @@ class DataArrayListStacker():
         feature_dims = [ensure_tuple(fdims) for fdims in feature_dims]
         self.coords = {
             'sample': [{dim: da.coords[dim] for dim in sample_dims} for da in data],
-            'feature': [{dim: da.coords[dim] for dim in fdims} for da, fdims in zip(data, feature_dims)]
+            'feature': [{dim: da.coords[dim] for dim in fdims} for da, fdims in zip(data, feature_dims)]  #type: ignore
         }
 
         if len(data) != len(feature_dims):

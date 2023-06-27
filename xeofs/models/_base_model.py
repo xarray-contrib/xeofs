@@ -112,8 +112,8 @@ class _BaseModel(ABC):
 
         '''
         # Preprocess the data
-        data = self.scaler.transform(data)
-        data = self.stacker.transform(data)
+        data = self.scaler.transform(data)  #type: ignore
+        data = self.stacker.transform(data)  #type: ignore
 
         # Project the data
         projections = xr.dot(data, self._components) / self._singular_values
@@ -143,16 +143,16 @@ class _BaseModel(ABC):
 
         '''
         # Reconstruct the data
-        svals = self._singular_values.sel(mode=mode)
-        comps = self._components.sel(mode=mode)
-        scores = self._scores.sel(mode=mode) * svals
+        svals = self._singular_values.sel(mode=mode)  # type: ignore
+        comps = self._components.sel(mode=mode)  # type: ignore
+        scores = self._scores.sel(mode=mode) * svals  # type: ignore
         data = xr.dot(comps, scores)
         data.name = 'reconstructed_data'
 
         # Unstack the data
         data = self.stacker.inverse_transform_data(data)
         # Unscale the data
-        data = self.scaler.inverse_transform(data)
+        data = self.scaler.inverse_transform(data)  # type: ignore
         return data
 
     def singular_values(self):
@@ -310,7 +310,7 @@ class EOF(_BaseModel):
         # Compute two-sided p-values
         # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
         a = self.data.shape[0] / 2 - 1
-        dist = sc.stats.beta(a, a, loc=-1, scale=2)
+        dist = sc.stats.beta(a, a, loc=-1, scale=2)  # type: ignore
         pvals = 2 * xr.apply_ufunc(
             dist.cdf,
             -abs(corr),
@@ -404,9 +404,9 @@ class ComplexEOF(_BaseModel):
     def scores_amplitude(self):
         amplitudes = abs(self._scores)
         amplitudes.name = 'scores_amplitude'
-        return self.stacker.inverse_transform_components(amplitudes)
+        return self.stacker.inverse_transform_scores(amplitudes)
     
     def scores_phase(self):
         phases = np.arctan2(self._scores.imag, self._scores.real)
         phases.name = 'scores_phase'
-        return self.stacker.inverse_transform_components(phases)
+        return self.stacker.inverse_transform_scores(phases)

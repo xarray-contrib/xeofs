@@ -274,7 +274,7 @@ def test_ComplexEOF_components_amplitude(test_DataArray):
 
     comp_amp = ceof.components_amplitude()
     assert comp_amp is not None
-    assert (comp_amp.fillna(0) >= 0).all()
+    assert (comp_amp.fillna(0) >= 0).all()  #type: ignore
 
 
 def test_ComplexEOF_components_phase(test_DataArray):
@@ -285,7 +285,7 @@ def test_ComplexEOF_components_phase(test_DataArray):
 
     comp_phase = ceof.components_phase()
     assert comp_phase is not None
-    assert ((-np.pi <= comp_phase.fillna(0)) & (comp_phase.fillna(0) <= np.pi)).all()
+    assert ((-np.pi <= comp_phase.fillna(0)) & (comp_phase.fillna(0) <= np.pi)).all()  #type: ignore
 
 
 def test_ComplexEOF_scores_amplitude(test_DataArray):
@@ -296,7 +296,7 @@ def test_ComplexEOF_scores_amplitude(test_DataArray):
 
     scores_amp = ceof.scores_amplitude()
     assert scores_amp is not None
-    assert (scores_amp.fillna(0) >= 0).all()
+    assert (scores_amp.fillna(0) >= 0).all()  #type: ignore
 
 
 def test_ComplexEOF_scores_phase(test_DataArray):
@@ -307,4 +307,4 @@ def test_ComplexEOF_scores_phase(test_DataArray):
 
     scores_phase = ceof.scores_phase()
     assert scores_phase is not None
-    assert ((-np.pi <= scores_phase.fillna(0)) & (scores_phase.fillna(0) <= np.pi)).all()
+    assert ((-np.pi <= scores_phase.fillna(0)) & (scores_phase.fillna(0) <= np.pi)).all()  #type: ignore
