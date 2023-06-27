@@ -10,7 +10,6 @@ from xeofs.models.stacker import DataArrayStacker, DataArrayListStacker, Dataset
 from xeofs.models.decomposer import Decomposer
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.tools import get_dims, compute_total_variance
-from ..utils.testing import multipletests
 
 class _BaseModel(ABC):
     '''
@@ -97,31 +96,6 @@ class _BaseModel(ABC):
         self._components = None
         self._scores = None
 
-    def transform(self, data: XarrayData | DataArrayList):
-        '''Project new unseen data onto the components (EOFs/eigenvectors).
-
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
-            Input data.
-
-        Returns:
-        ----------
-        projections: DataArray | Dataset | List[DataArray]
-            Projections of the new data onto the components.
-
-        '''
-        # Preprocess the data
-        data = self.scaler.transform(data)  #type: ignore
-        data = self.stacker.transform(data)  #type: ignore
-
-        # Project the data
-        projections = xr.dot(data, self._components) / self._singular_values
-        projections.name = 'scores'
-
-        # Unstack the projections
-        projections = self.stacker.inverse_transform_scores(projections)
-        return projections
     
 
     def inverse_transform(self, mode):
@@ -237,7 +211,7 @@ class _BaseModel(ABC):
 
 class EOF(_BaseModel):
     '''Model to perform Empirical Orthogonal Function (EOF) analysis.
-    
+    ComplexEOF
     EOF analysis is more commonly referend to as principal component analysis.
 
     Parameters:
@@ -271,60 +245,32 @@ class EOF(_BaseModel):
         self._explained_variance.name = 'explained_variance'
         self._explained_variance_ratio.name = 'explained_variance_ratio'
 
-    def components_as_correlation(self, alpha=.05, method='fdr_bh'):
-        '''Calculates the correlation coefficients between the component scores and the data matrix. 
-
-        This method also performs a hypothesis test for the correlation, and adjusts the p-values of this test using the method specified.
+    def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
+        '''Project new unseen data onto the components (EOFs/eigenvectors).
 
         Parameters:
-        ----------
-        alpha : float, optional
-            The significance level to use for the hypothesis test. Defaults to 0.05.
+        -------------
+        data: xr.DataArray or list of xarray.DataArray
+            Input data.
 
-        method : str, optional
-            The method to use for adjusting the p-values. The methods are based on the statsmodels.sandbox.stats.multicomp.multipletests. 
-            The available methods are:
-            - 'bonferroni' : one-step correction
-            - 'sidak' : one-step correction
-            - 'holm-sidak' : step down method using Sidak adjustments
-            - 'holm' : step-down method using Bonferroni adjustments
-            - 'simes-hochberg' : step-up method (independent)
-            - 'hommel' : closed method based on Simes tests (non-negative)
-            - 'fdr_bh' : Benjamini/Hochberg (non-negative)
-            - 'fdr_by' : Benjamini/Yekutieli (negative)
-            - 'fdr_tsbh' : two stage fdr correction (non-negative)
-            - 'fdr_tsbky' : two stage fdr correction (non-negative)
-            The default is 'fdr_bh'.
-            
         Returns:
-        --------
-        tuple: (corr, rejected, pvals_corr)
-            - corr: The correlation coefficients between the component scores and the data matrix.
-            - rejected: A Boolean array that indicates which hypothesis tests were rejected.
-            - pvals_corr: The p-values that have been adjusted using the specified method.
+        ----------
+        projections: DataArray | Dataset | List[DataArray]
+            Projections of the new data onto the components.
+
         '''
+        # Preprocess the data
+        data = self.scaler.transform(data)  #type: ignore
+        data = self.stacker.transform(data)  #type: ignore
 
-        # Compute Pearson correlation coefficients
-        corr = (self.data * self._scores).mean('sample') / self.data.std('sample') / self._scores.std('sample')
+        # Project the data
+        projections = xr.dot(data, self._components) / self._singular_values
+        projections.name = 'scores'
 
-        # Compute two-sided p-values
-        # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
-        a = self.data.shape[0] / 2 - 1
-        dist = sc.stats.beta(a, a, loc=-1, scale=2)  # type: ignore
-        pvals = 2 * xr.apply_ufunc(
-            dist.cdf,
-            -abs(corr),
-            input_core_dims=[['mode', 'feature']],
-            output_core_dims=[['mode', 'feature']],
-            dask='allowed',
-            vectorize=False
-        )
-
-        rejected, pvals_corr = multipletests(pvals, dim='feature', alpha=alpha, method=method)
-
-        return corr, rejected, pvals_corr
-
-
+        # Unstack the projections
+        projections = self.stacker.inverse_transform_scores(projections)
+        return projections
+    
 class ComplexEOF(_BaseModel):
 
     def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, decay_factor=.2, **kwargs):
