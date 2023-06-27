@@ -86,12 +86,17 @@ class Decomposer():
         idx_sign = abs(VT).argmax('feature').compute()
         flip_signs = np.sign(VT.isel(feature=idx_sign))
         flip_signs = flip_signs.compute()
+        # Drop all dimensions except 'mode' so that the index is clean
+        for dim, coords in flip_signs.coords.items():
+            if dim != 'mode':
+                flip_signs = flip_signs.drop(dim)
         VT *= flip_signs
         U *= flip_signs
 
         self.scores_ = U
         self.singular_values_ = s
-        self.components_ = VT
+        # NOTE: we just use the conjugate without the transpose to save computation time;
+        self.components_ = VT.conj()
 
 
         
