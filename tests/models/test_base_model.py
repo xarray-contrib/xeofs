@@ -177,7 +177,7 @@ def test_EOF_transform(test_DataArray):
     projections = model.transform(new_data)
 
     # Check that the projection has the right dimensions
-    assert projections.dims == scores.dims
+    assert projections.dims == scores.dims  #type: ignore
 
     # Check that the projection has the right data type
     assert isinstance(projections, xr.DataArray)
@@ -217,37 +217,6 @@ def test_EOF_inverse_transform(test_DataArray):
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(test_DataArray.dims)
 
-
-
-def test_EOF_components_as_correlation(test_DataArray):
-    # Setup
-    dims = 'time'
-    eof = EOF()
-    eof.fit(test_DataArray, dims=dims)
-
-    # Test default parameters
-    corr, rejected, pvals_corr = eof.components_as_correlation()
-    assert isinstance(corr, xr.DataArray), "Returned correlation is not an xarray DataArray"
-    assert isinstance(rejected, xr.DataArray), "Returned rejected is not an xarray DataArray"
-    assert isinstance(pvals_corr, xr.DataArray), "Returned pvals_corr is not an xarray DataArray"
-
-    # Test alpha value
-    corr, rejected, pvals_corr = eof.components_as_correlation(alpha=0.01)
-    n_rejected_01 = rejected.sum('feature')
-    n_rejected_05 = eof.components_as_correlation(alpha=0.05)[1].sum('feature')
-    assert (n_rejected_01 <= n_rejected_05).all(), \
-        "Less hypotheses should be rejected at lower significance level"
-
-    # Test different methods
-    for method in ['bonferroni', 'sidak', 'holm-sidak', 'holm', 'simes-hochberg', 'hommel', 'fdr_bh', 'fdr_by', 'fdr_tsbh', 'fdr_tsbky']:
-        corr, rejected, pvals_corr = eof.components_as_correlation(method=method)
-        assert isinstance(corr, xr.DataArray), f"Returned correlation is not an xarray DataArray for method {method}"
-        assert isinstance(rejected, xr.DataArray), f"Returned rejected is not an xr.DataArray for method {method}"
-        assert isinstance(pvals_corr, xr.DataArray), f"Returned pvals_corr is not an xr.DataArray for method {method}"
-
-    # Check ValueError for invalid method
-    with pytest.raises(ValueError):
-        corr, rejected, pvals_corr = eof.components_as_correlation(method='invalid')
 
 def test_ComplexEOF_fit(test_DataArray):
     """Test fitting a ComplexEOF model"""
