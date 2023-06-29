@@ -4,7 +4,7 @@ import pytest
 import dask.array as da
 from numpy.testing import assert_allclose
 
-from xeofs.models._base_model import EOF
+from xeofs.models.eof import EOF
 
 
 @pytest.mark.parametrize('method, standardize, use_weights', [
@@ -28,7 +28,7 @@ def test_solution(method, standardize, use_weights, reference_solution, test_Dat
 
 
 def test_EOF_initialization():
-    """Tests the initialization of the EOF class"""
+    '''Tests the initialization of the EOF class'''
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
     # Assert parameters are correctly stored in the _params attribute
@@ -39,7 +39,7 @@ def test_EOF_initialization():
 
 
 def test_EOF_fit(test_DataArray):
-    """Tests the fit method of the EOF class"""
+    '''Tests the fit method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -58,7 +58,7 @@ def test_EOF_fit(test_DataArray):
 
 
 def test_EOF_singular_values(test_DataArray):
-    """Tests the singular_values method of the EOF class"""
+    '''Tests the singular_values method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -70,7 +70,7 @@ def test_EOF_singular_values(test_DataArray):
 
 
 def test_EOF_explained_variance(test_DataArray):
-    """Tests the explained_variance method of the EOF class"""
+    '''Tests the explained_variance method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -82,7 +82,7 @@ def test_EOF_explained_variance(test_DataArray):
 
 
 def test_EOF_explained_variance_ratio(test_DataArray):
-    """Tests the explained_variance_ratio method of the EOF class"""
+    '''Tests the explained_variance_ratio method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -94,7 +94,7 @@ def test_EOF_explained_variance_ratio(test_DataArray):
 
 
 def test_EOF_components(test_DataArray):
-    """Tests the components method of the EOF class"""
+    '''Tests the components method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -106,7 +106,7 @@ def test_EOF_components(test_DataArray):
 
 
 def test_EOF_scores(test_DataArray):
-    """Tests the scores method of the EOF class"""
+    '''Tests the scores method of the EOF class'''
     dims = 'time'
 
     eof = EOF()
@@ -118,7 +118,7 @@ def test_EOF_scores(test_DataArray):
 
 
 def test_EOF_get_params():
-    """Tests the get_params method of the EOF class"""
+    '''Tests the get_params method of the EOF class'''
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
     # Test get_params method
@@ -128,7 +128,7 @@ def test_EOF_get_params():
 
 
 def test_EOF_compute(test_DataArray):
-    """Tests the compute method of the EOF class"""
+    '''Tests the compute method of the EOF class'''
     
     dims = 'time'
     
@@ -158,7 +158,7 @@ def test_EOF_compute(test_DataArray):
 
 
 def test_EOF_transform(test_DataArray):
-    """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
+    '''Test projecting new unseen data onto the components (EOFs/eigenvectors)'''
 
     # Create a xarray DataArray with random data
     dims = 'time'
@@ -186,7 +186,7 @@ def test_EOF_transform(test_DataArray):
 
 
 def test_EOF_inverse_transform(test_DataArray):
-    """Test inverse_transform method in EOF class."""
+    '''Test inverse_transform method in EOF class.'''
 
     # instantiate the EOF class with necessary parameters
     dims = 'time'
@@ -212,3 +212,4 @@ def test_EOF_inverse_transform(test_DataArray):
 
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(test_DataArray.dims)
+

@@ -5,7 +5,8 @@ import scipy as sc
 import xarray as xr
 from typing import Optional, Union, List, Tuple
 
-from ._base_model import EOF, ComplexEOF
+from .eof import EOF
+from .complex_eof import ComplexEOF
 from ..utils.rotation import promax
 
 
@@ -95,7 +96,7 @@ class _BaseRotator():
 
     
     def inverse_transform(self, mode: int | List[int] | slice = slice(None)):
-        dof = self._model.data.shape[0] - 1
+        dof = self._model.data.shape[0] - 1  # type: ignore
 
         components = self._components
         scores = self._scores * np.sqrt(self._explained_variance * dof)  # type: ignore

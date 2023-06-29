@@ -2,7 +2,8 @@ import numpy as np
 import xarray as xr
 from typing import Optional, Union, List, Tuple
 
-from ._base_model import EOF, ComplexEOF
+from .eof import EOF
+from .complex_eof import ComplexEOF
 from ._base_rotator import _BaseRotator
 from ..utils.rotation import promax
 from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray

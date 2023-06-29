@@ -70,6 +70,10 @@ class ResultBox:
                 return self.experiments[i]
         raise ValueError('Experiment does not exit.')
 
+@pytest.fixture
+def random_dataarray(shape):
+    rng = np.random.default_rng(7)
+    return xr.DataArray(rng.standard_normal(shape))
 
 @pytest.fixture
 def test_DataArray():
@@ -87,18 +91,12 @@ def test_DataArrayList():
         return [da, da, da]
 
 @pytest.fixture
-def sample_DataArray():
-    with xr.open_dataarray('tests/data/sample_data.nc') as da:
-        return da.stack(loc=('x', 'y'))
+def test_DaskDataArray(test_DataArray):
+    return test_DataArray.chunk({'x': 2})
 
 @pytest.fixture
-def sample_array(sample_DataArray):
-    return sample_DataArray.data
-
-
-@pytest.fixture
-def reference_solution(sample_array):
-    X = sample_array
+def reference_solution(test_DataArray):
+    X = test_DataArray.stack(z=('x', 'y')).transpose('time', 'z').values
     X = X[:, ~np.isnan(X).all(axis=0)]
     X -= X.mean(axis=0)
 
@@ -125,12 +123,3 @@ def reference_solution(sample_array):
     return results
 
 
-@pytest.fixture
-def random_array(shape):
-    rng = np.random.default_rng(7)
-    return rng.standard_normal(shape)
-
-
-@pytest.fixture
-def random_dataarray(random_array):
-    return xr.DataArray(random_array)

@@ -5,6 +5,9 @@ from .rotator import RotatorFactory
 # from .mca_rotator import MCA_Rotator
 # from .rock_pca import ROCK_PCA
 
+from .eof import EOF
+from .complex_eof import ComplexEOF
+from .mca import MCA
+from .complex_mca import ComplexMCA
 from .scaler import Scaler, ListScaler
 from .stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
-from ._base_model import EOF, ComplexEOF, MCA, ComplexMCA

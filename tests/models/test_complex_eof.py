@@ -5,7 +5,8 @@ import dask.array as da
 import warnings
 from numpy.testing import assert_allclose
 
-from xeofs.models._base_model import EOF, ComplexEOF
+from xeofs.models.eof import EOF
+from xeofs.models.complex_eof import ComplexEOF
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
