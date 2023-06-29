@@ -2,6 +2,7 @@ from typing import Optional, Union, List, Sequence, Hashable
 
 import numpy as np
 import xarray as xr
+from scipy.signal import hilbert    # type: ignore
 
 from .sanity_checks import ensure_tuple
 from .data_types import XarrayData, DataArrayList, DataArray, Dataset
@@ -100,3 +101,34 @@ def compute_total_variance(data):
     )
     tot_var.name = 'total_variance'
     return tot_var
+
+def _hilbert_transform_with_padding(y, decay_factor=.2):
+    n_samples = y.shape[0]
+
+    y = _pad_exp(y, decay_factor=decay_factor)
+    y = hilbert(y, axis=0)
+    y = y[n_samples:2*n_samples]
+    return y
+
+def _pad_exp(y, decay_factor=.2):
+    x = np.arange(y.shape[0])
+    x_ext = np.arange(-x.size, 2*x.size)
+
+    coefs = np.polynomial.polynomial.polyfit(x, y, deg=1)
+    yfit = np.polynomial.polynomial.polyval(x, coefs).T
+    yfit_ext= np.polynomial.polynomial.polyval(x_ext, coefs).T
+
+    y_ano = y - yfit
+
+    amp_pre = y_ano.take(0, axis=0)[:,None]
+    amp_pos = y_ano.take(-1, axis=0)[:,None]
+
+    exp_ext = np.exp(-x / x.size / decay_factor)
+    exp_ext_reverse = exp_ext[::-1]
+    
+    pad_pre = amp_pre * exp_ext_reverse
+    pad_pos = amp_pos * exp_ext
+
+    y_ext = np.concatenate([pad_pre.T, y_ano, pad_pos.T], axis=0)
+    y_ext += yfit_ext
+    return y_ext
