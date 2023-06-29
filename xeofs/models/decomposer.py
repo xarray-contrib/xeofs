@@ -7,6 +7,24 @@ from dask.array.linalg import svd_compressed as dask_svd
 
 
 class Decomposer():
+    '''Decomposes a data object using Singular Value Decomposition (SVD).
+     
+    The data object will be decomposed into its components, scores and singular values.
+
+    Parameters
+    ----------
+    n_components : int
+        Number of components to be computed.
+    allow_complex : bool
+        If True, the data is allowed to be complex. If False, the data is assumed to be real.
+    n_iter : int
+        Number of iterations for the SVD algorithm.
+    random_state : int
+        Random seed for the SVD algorithm.
+    verbose : bool
+        If True, print information about the SVD algorithm.
+    
+    '''
     def __init__(self, n_components=100, allow_complex=False, n_iter=5, random_state=None, verbose=False):
         self.params = {
             'n_components': n_components,
@@ -95,8 +113,132 @@ class Decomposer():
 
         self.scores_ = U
         self.singular_values_ = s
-        # NOTE: we just use the conjugate without the transpose to save computation time;
-        self.components_ = VT.conj()
+        self.components_ = VT.conj().transpose('feature', 'mode')
 
 
         
+class CrossDecomposer(Decomposer):
+    '''Decomposes two data objects based on their cross-covariance matrix.
+
+    The data objects will be decomposed into left and right singular vectors components and their corresponding
+    singular values.
+
+    Parameters
+    ----------
+    n_components : int
+        Number of components to be computed.
+    allow_complex : bool
+        If True, the data is allowed to be complex. If False, the data is assumed to be real.
+    n_iter : int
+        Number of iterations for the SVD algorithm.
+    random_state : int
+        Random seed for the SVD algorithm.
+    verbose : bool
+        If True, print information about the SVD algorithm.
+    
+    '''
+    def fit(self, X1, X2):
+        # Cannot fit data with different number of samples
+        if X1.sample.size != X2.sample.size:
+            raise ValueError('The two data objects must have the same number of samples.')
+    
+        # Rename feature and associated dimensions of data objects to avoid conflicts
+        feature_dims_temp1 = {dim: dim + '1' for dim in X1.coords['feature'].coords.keys()}
+        feature_dims_temp2 = {dim: dim + '2' for dim in X2.coords['feature'].coords.keys()}
+        for old, new in feature_dims_temp1.items():
+            X1 = X1.rename({old: new})
+        for old, new in feature_dims_temp2.items():
+            X2 = X2.rename({old: new})
+
+        # Compute cross-covariance matrix
+        # Assuming that X1 and X2 are centered
+        cov_matrix = xr.dot(X1.conj(), X2, dims='sample') / (X1.sample.size - 1)
+
+        # Compute squared total variance
+        self.squared_total_variance_ = (cov_matrix**2).sum().compute()
+
+        if isinstance(cov_matrix.data, DaskArray):
+            self.params['use_dask'] = True
+            
+        svd_kwargs = {}
+        if (not self.params['allow_complex']) and (not self.params['use_dask']):
+            svd_kwargs.update({
+                'n_components': self.params['n_components'],
+                'random_state': self.params['random_state']
+            })
+
+            U, s, VT = xr.apply_ufunc(
+                svd,
+                cov_matrix,
+                kwargs=svd_kwargs,
+                input_core_dims=[['feature1', 'feature2']],
+                output_core_dims=[['feature1', 'mode'], ['mode'], ['mode', 'feature2']],
+            )
+
+        elif (self.params['allow_complex']) and (not self.params['use_dask']):
+            # Scipy sparse version
+            svd_kwargs.update({
+                'solver': 'lobpcg',
+                'k': self.params['n_components'],
+            })
+            U, s, VT = xr.apply_ufunc(
+                complex_svd,
+                cov_matrix,
+                kwargs=svd_kwargs,
+                input_core_dims=[['feature1', 'feature2']],
+                output_core_dims=[['feature1', 'mode'], ['mode'], ['mode', 'feature2']],
+            )
+            idx_sort = np.argsort(s)[::-1]
+            U = U[:, idx_sort]
+            s = s[idx_sort]
+            VT = VT[idx_sort, :]
+
+        elif (not self.params['allow_complex']) and (self.params['use_dask']):
+            svd_kwargs.update({
+                'k': self.params['n_components']
+            })
+            U, s, VT = xr.apply_ufunc(
+                dask_svd,
+                cov_matrix,
+                kwargs=svd_kwargs,
+                input_core_dims=[['feature1', 'feature2']],
+                output_core_dims=[['feature1', 'mode'], ['mode'], ['mode', 'feature2']],
+                dask='allowed'
+            ) 
+        else:
+            err_msg = (
+                'Complex data together with dask is currently not implemented. See dask issue 7639 '
+                'https://github.com/dask/dask/issues/7639'
+            )
+            raise NotImplementedError(err_msg)
+        
+        U = U.assign_coords(mode=range(1, U.mode.size + 1))
+        s = s.assign_coords(mode=range(1, U.mode.size + 1))
+        VT = VT.assign_coords(mode=range(1, U.mode.size + 1))
+
+        U.name = 'left_singular_vectors'
+        s.name = 'singular_values'
+        VT.name = 'right_singular_vectors'
+
+        # Flip signs of components to ensure deterministic output    
+        idx_sign = abs(VT).argmax('feature2').compute()
+        flip_signs = np.sign(VT.isel(feature2=idx_sign))
+        flip_signs = flip_signs.compute()
+        # Drop all dimensions except 'mode' so that the index is clean
+        # and multiplying will not introduce additional coordinates
+        for dim, coords in flip_signs.coords.items():
+            if dim != 'mode':
+                flip_signs = flip_signs.drop(dim)
+        VT *= flip_signs
+        U *= flip_signs
+
+        # Rename back to original feature dimensions (remove 1 and 2)
+        for old, new in feature_dims_temp1.items():
+            U = U.rename({new: old})
+        for old, new in feature_dims_temp2.items():
+            VT = VT.rename({new: old})
+
+        self.singular_vectors1_ = U
+        self.singular_values_ = s
+        self.singular_vectors2_ = VT.conj().transpose('feature', 'mode')
+
