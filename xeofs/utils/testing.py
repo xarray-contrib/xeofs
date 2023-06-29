@@ -2,22 +2,21 @@ from typing import Tuple
 
 import xarray as xr
 from statsmodels.stats.multitest import multipletests as statsmodels_multipletests
-from ..models import EOF
-from ..models.rotator import EOFRotator
 
 from .constants import MULTIPLE_TESTS
 
-def compute_components_as_correlation(model: EOF | EOFRotator, alpha=0.05, method='fdr_bh') -> Tuple[xr.DataArray, xr.DataArray, xr.DataArray]:
-    """Compute the components as Pearson correlation between the original data and the
-    scores.
-
+def pearson_correlation(data1, data2, correction=None, alpha=0.05):
+    """Compute Pearson correlation between two xarray objects.
+     
+    Additionally, compute two-sided p-values and adjust them for multiple testing.
+     
     Parameters
     ----------
-    model : EOF | Rotator
-        A EOF model solution.
-    alpha : float
-        The desired family-wise error rate.
-    method : str
+    data1 : xr.DataArray
+         First data array.
+    data2 : xr.DataArray
+        Second data array.
+    correction : Optional, str
         Method used for testing and adjustment of pvalues. Can be
             either the full name or initial letters.  Available methods are:
             - bonferroni : one-step correction
@@ -30,35 +29,32 @@ def compute_components_as_correlation(model: EOF | EOFRotator, alpha=0.05, metho
             - fdr_by : Benjamini/Yekutieli (negative)
             - fdr_tsbh : two stage fdr correction (non-negative)
             - fdr_tsbky : two stage fdr correction (non-negative)
-
+    alpha : float
+        The desired family-wise error rate.
+        
     Returns
     -------
     corr : xr.DataArray
         Pearson correlation between the original data and the scores.
     pvalues : xr.DataArray
         Adjusted p-values for the Pearson correlation.
-    rejected : xr.DataArray
-        Boolean array of the same shape as ``pvalues``, where ``True`` indicates
-        a rejected hypothesis.
 
     """
-    if isinstance(model, EOFRotator):
-        scores = model._model._scores
-        data = model._model.data
-    else:
-        scores = model._scores
-        data = model.data
-    
+    n_samples = data1.shape[0]
+
     # Compute Pearson correlation coefficients
-    corr = (data * scores).mean('sample') / data.std('sample') / scores.std('sample')
-
+    corr = (data1 * data2).mean('sample') / data1.std('sample') / data2.std('sample')
+    
     # Compute two-sided p-values
-    pvals = _compute_pvalues(corr, data.shape[0], dims=['mode', 'feature'])
+    pvals = _compute_pvalues(corr, n_samples, dims=['feature'])
+    
+    if correction is not None:
+        # Adjust p-values for multiple testing
+        rejected, pvals = _multipletests(pvals, dim='feature', alpha=alpha, method=correction)
+        return corr, pvals
 
-    # Adjust p-values for multiple testing
-    rejected, pvals_corr = _multipletests(pvals, dim='feature', alpha=alpha, method=method)
-
-    return corr, pvals_corr, rejected
+    else:
+        return corr, pvals
 
 
 def _compute_pvalues(pearsonr, n_samples: int, dims) -> xr.DataArray:
@@ -106,10 +102,6 @@ def _multipletests(p, dim, alpha=0.05, method=None, **multipletests_kwargs):
         reject (xr.object): true for hypothesis that can be rejected for given
             alpha
         pvals_corrected (xr.object): p-values corrected for multiple tests
-
-    Example:
-        >>> from esmtools.testing import multipletests
-        >>> reject, xpvals_corrected = multipletests(p, method='fdr_bh')
 
     """
     if method is None:
