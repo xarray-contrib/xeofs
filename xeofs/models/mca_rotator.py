@@ -3,7 +3,7 @@
 
 # from ._base_mca_rotator import _BaseMCARotator
 # from ._transformer import _MultiArrayTransformer
-# from ..utils.tools import squeeze
+# from ..utils.xarray_utils import squeeze
 
 # Array = np.ndarray
 # ArrayList = Union[Array, List[Array]]

@@ -4,8 +4,7 @@ import xarray as xr
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import CrossDecomposer
 from ..utils.data_types import XarrayData, DataArrayList
-from ..utils.tools import _hilbert_transform_with_padding
-from ..utils.testing import pearson_correlation
+from ..utils.statistics import pearson_correlation
 
 
 class MCA(_BaseCrossModel):

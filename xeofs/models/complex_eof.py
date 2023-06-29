@@ -3,9 +3,9 @@ import xarray as xr
 
 from .eof import EOF
 from .decomposer import Decomposer
-from ..utils.tools import compute_total_variance
+from ..utils.xarray_utils import total_variance
 from ..utils.data_types import XarrayData, DataArrayList
-from ..utils.tools import _hilbert_transform_with_padding
+from ..utils.xarray_utils import _hilbert_transform_with_padding
 
 
 class ComplexEOF(EOF):
@@ -32,7 +32,7 @@ class ComplexEOF(EOF):
         # apply hilbert transform:
         self.data = self._hilbert_transform(self.data, decay_factor=self._params['decay_factor'])
 
-        self._total_variance = compute_total_variance(self.data)
+        self._total_variance = total_variance(self.data)
 
         decomposer = Decomposer(n_components=n_modes)
         decomposer.fit(self.data)

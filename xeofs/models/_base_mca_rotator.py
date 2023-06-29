@@ -3,7 +3,7 @@
 # from typing import Optional, Union, List, Tuple
 
 # from ..utils.rotation import promax
-# from ..utils.tools import get_mode_selector
+# from ..utils.xarray_utils import get_mode_selector
 
 
 # class _BaseMCARotator:

@@ -3,7 +3,7 @@
 # import numpy as np
 
 # from ._base_bootstrapper import _BaseBootstrapper
-# from ..utils.tools import squeeze
+# from ..utils.xarray_utils import squeeze
 
 
 # class Bootstrapper(_BaseBootstrapper):

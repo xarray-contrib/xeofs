@@ -4,7 +4,7 @@ import xarray as xr
 from .mca import MCA
 from .decomposer import CrossDecomposer
 from ..utils.data_types import XarrayData, DataArrayList
-from ..utils.tools import _hilbert_transform_with_padding
+from ..utils.xarray_utils import hilbert_transform
 
 
 class ComplexMCA(MCA):
@@ -42,7 +42,7 @@ class ComplexMCA(MCA):
 
     def _hilbert_transform(self, data, decay_factor=.2):
        return xr.apply_ufunc(
-            _hilbert_transform_with_padding,
+            hilbert_transform,
             data,
             input_core_dims=[['sample', 'feature']],
             output_core_dims=[['sample', 'feature']],

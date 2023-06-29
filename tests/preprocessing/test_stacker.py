@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.models.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
+from xeofs.preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
 
 @pytest.fixture
 def simple_da():

@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.models.scaler import Scaler, ListScaler
+from xeofs.preprocessing.scaler import Scaler, ListScaler
 
 # TEST INPUT TYPES
 def test_fit_input_type():

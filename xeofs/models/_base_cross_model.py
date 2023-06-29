@@ -4,9 +4,9 @@ import numpy as np
 import xarray as xr
 import dask.array as da
 
-from .scaler import Scaler, ListScaler
-from .stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
-from ..utils.tools import get_dims
+from ..preprocessing.scaler import Scaler, ListScaler
+from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
+from ..utils.xarray_utils import get_dims
 from ..utils.data_types import XarrayData, DataArrayList
 
 class _BaseCrossModel(ABC):

@@ -5,10 +5,10 @@ import xarray as xr
 import scipy as sc
 
 
-from xeofs.models.scaler import Scaler, ListScaler
-from xeofs.models.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
+from ..preprocessing.scaler import Scaler, ListScaler
+from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
-from ..utils.tools import get_dims
+from ..utils.xarray_utils import get_dims
 
 class _BaseModel(ABC):
     '''

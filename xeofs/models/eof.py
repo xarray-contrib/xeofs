@@ -4,7 +4,7 @@ import xarray as xr
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
 from ..utils.data_types import XarrayData, DataArrayList
-from ..utils.tools import compute_total_variance, _hilbert_transform_with_padding
+from ..utils.xarray_utils import total_variance
 
 
 class EOF(_BaseModel):
@@ -29,7 +29,7 @@ class EOF(_BaseModel):
         
         super()._preprocessing(data, dims, weights)
 
-        self._total_variance = compute_total_variance(self.data)
+        self._total_variance = total_variance(self.data)
 
         decomposer = Decomposer(n_components=n_modes)
         decomposer.fit(self.data)

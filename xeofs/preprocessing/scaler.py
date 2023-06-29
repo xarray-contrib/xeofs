@@ -4,11 +4,11 @@ import numpy as np
 import xarray as xr
 
 
-from xeofs.models._base_scaler import _BaseScaler
+from ._base_scaler import _BaseScaler
 from ..utils.constants import VALID_LATITUDE_NAMES
 from ..utils.sanity_checks import assert_dataarray_or_dataset, assert_list_of_dataarrays, ensure_tuple
 from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList, ModelDims
-from ..utils.tools import np_sqrt_cos_lat_weights
+from ..utils.xarray_utils import sqrt_cos_lat_weights
 
 class Scaler(_BaseScaler):
     '''Scale the data along sample dimensions.
@@ -158,7 +158,7 @@ class Scaler(_BaseScaler):
             raise ValueError(f'{lat_coord} are ambiguous latitude coordinates. Only ONE of the following is allowed for computing coslat weights: {VALID_LATITUDE_NAMES}')
 
         if len(lat_coord) == 1:
-            weights = xr.apply_ufunc(np_sqrt_cos_lat_weights, data.coords[lat_coord[0]])
+            weights = sqrt_cos_lat_weights(data.coords[lat_coord[0]])
             # Features that cannot be associated to a latitude receive a weight of 1
             weights = weights.where(weights.notnull(), 1)
         else:
