@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import xarray as xr
-import dask.array as da
+from dask.array import Array as DaskArray  # type: ignore
 from numpy.testing import assert_allclose
 
 from xeofs.models.mca import MCA
@@ -103,8 +103,8 @@ def test_heterogeneous_patterns(mca_model, test_DataArray):
 
 def test_compute(mca_model, test_DaskDataArray):
     mca_model.fit(test_DaskDataArray, test_DaskDataArray, ('time'))
-    assert isinstance(mca_model._singular_values.data, da.Array)
-    assert isinstance(mca_model._explained_variance.data, da.Array)
+    assert isinstance(mca_model._singular_values.data, DaskArray)
+    assert isinstance(mca_model._explained_variance.data, DaskArray)
     mca_model.compute()
     assert isinstance(mca_model._singular_values.data, np.ndarray)
     assert isinstance(mca_model._explained_variance.data, np.ndarray)
