@@ -13,10 +13,8 @@ class Decomposer():
 
     Parameters
     ----------
-    n_components : int
+    n_modes : int
         Number of components to be computed.
-    allow_complex : bool
-        If True, the data is allowed to be complex. If False, the data is assumed to be real.
     n_iter : int
         Number of iterations for the SVD algorithm.
     random_state : int
@@ -25,11 +23,9 @@ class Decomposer():
         If True, print information about the SVD algorithm.
     
     '''
-    def __init__(self, n_components=100, allow_complex=False, n_iter=5, random_state=None, verbose=False):
+    def __init__(self, n_modes=100, n_iter=5, random_state=None, verbose=False):
         self.params = {
-            'n_components': n_components,
-            'allow_complex': allow_complex,
-            'use_dask': False,
+            'n_modes': n_modes,
             'n_iter': n_iter,
             'random_state': random_state,
             'verbose': verbose,
@@ -38,12 +34,12 @@ class Decomposer():
     def fit(self, X):
         svd_kwargs = {}
         
-        if isinstance(X.data, DaskArray):
-            self.params['use_dask'] = True
+        is_dask = True if isinstance(X.data, DaskArray) else False
+        is_complex = True if np.iscomplexobj(X.data) else False
             
-        if (not self.params['allow_complex']) and (not self.params['use_dask']):
+        if (not is_complex) and (not is_dask):
             svd_kwargs.update({
-                'n_components': self.params['n_components'],
+                'n_components': self.params['n_modes'],
                 'random_state': self.params['random_state']
             })
 
@@ -55,11 +51,11 @@ class Decomposer():
                 output_core_dims=[['sample', 'mode'], ['mode'], ['mode', 'feature']],
             )
 
-        elif (self.params['allow_complex']) and (not self.params['use_dask']):
+        elif is_complex and (not is_dask):
             # Scipy sparse version
             svd_kwargs.update({
                 'solver': 'lobpcg',
-                'k': self.params['n_components'],
+                'k': self.params['n_modes'],
             })
             U, s, VT = xr.apply_ufunc(
                 complex_svd,
@@ -73,9 +69,9 @@ class Decomposer():
             s = s[idx_sort]
             VT = VT[idx_sort, :]
 
-        elif (not self.params['allow_complex']) and (self.params['use_dask']):
+        elif (not is_complex) and is_dask:
             svd_kwargs.update({
-                'k': self.params['n_components']
+                'k': self.params['n_modes']
             })
             U, s, VT = xr.apply_ufunc(
                 dask_svd,
@@ -125,10 +121,8 @@ class CrossDecomposer(Decomposer):
 
     Parameters
     ----------
-    n_components : int
+    n_modes : int
         Number of components to be computed.
-    allow_complex : bool
-        If True, the data is allowed to be complex. If False, the data is assumed to be real.
     n_iter : int
         Number of iterations for the SVD algorithm.
     random_state : int
@@ -157,13 +151,13 @@ class CrossDecomposer(Decomposer):
         # Compute squared total variance
         self.squared_total_variance_ = (cov_matrix**2).sum().compute()
 
-        if isinstance(cov_matrix.data, DaskArray):
-            self.params['use_dask'] = True
-            
+        is_dask = True if isinstance(cov_matrix.data, DaskArray) else False
+        is_complex = True if np.iscomplexobj(cov_matrix.data) else False
+                        
         svd_kwargs = {}
-        if (not self.params['allow_complex']) and (not self.params['use_dask']):
+        if (not is_complex) and (not is_dask):
             svd_kwargs.update({
-                'n_components': self.params['n_components'],
+                'n_components': self.params['n_modes'],
                 'random_state': self.params['random_state']
             })
 
@@ -175,11 +169,11 @@ class CrossDecomposer(Decomposer):
                 output_core_dims=[['feature1', 'mode'], ['mode'], ['mode', 'feature2']],
             )
 
-        elif (self.params['allow_complex']) and (not self.params['use_dask']):
+        elif (is_complex) and (not is_dask):
             # Scipy sparse version
             svd_kwargs.update({
                 'solver': 'lobpcg',
-                'k': self.params['n_components'],
+                'k': self.params['n_modes'],
             })
             U, s, VT = xr.apply_ufunc(
                 complex_svd,
@@ -193,9 +187,9 @@ class CrossDecomposer(Decomposer):
             s = s[idx_sort]
             VT = VT[idx_sort, :]
 
-        elif (not self.params['allow_complex']) and (self.params['use_dask']):
+        elif (not is_complex) and (is_dask):
             svd_kwargs.update({
-                'k': self.params['n_components']
+                'k': self.params['n_modes']
             })
             U, s, VT = xr.apply_ufunc(
                 dask_svd,
