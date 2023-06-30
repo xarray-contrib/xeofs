@@ -36,17 +36,17 @@ class ComplexMCA(MCA):
         Not implemented in the ComplexMCA class.
     '''
 
-    def __init__(self, decay_factor=.2, **kwargs):
-        super().__init__(**kwargs)
-        self._params['decay_factor'] = decay_factor
+    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(n_modes=n_modes, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
+        self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
-    def _hilbert_transform(self, data, decay_factor=.2):
+    def _hilbert_transform(self, data, **kwargs):
        return xr.apply_ufunc(
             hilbert_transform,
             data,
             input_core_dims=[['sample', 'feature']],
             output_core_dims=[['sample', 'feature']],
-            kwargs={'decay_factor': decay_factor},
+            kwargs=kwargs,
         )
 
     def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dims, weights1=None, weights2=None):
@@ -71,10 +71,10 @@ class ComplexMCA(MCA):
         self._preprocessing(data1, data2, dims, weights1, weights2)
         
         # apply hilbert transform:
-        self.data1 = self._hilbert_transform(self.data1, decay_factor=self._params['decay_factor'])
-        self.data2 = self._hilbert_transform(self.data2, decay_factor=self._params['decay_factor'])
+        self.data1 = self._hilbert_transform(self.data1, **self._hilbert_params)
+        self.data2 = self._hilbert_transform(self.data2, **self._hilbert_params)
         
-        decomposer = CrossDecomposer(n_components=self._params['n_modes'])
+        decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
 
         # Note:

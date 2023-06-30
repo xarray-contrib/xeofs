@@ -9,18 +9,45 @@ from ..utils.xarray_utils import _hilbert_transform_with_padding
 
 
 class ComplexEOF(EOF):
+    '''Decomposes a data object using Complex Empirical Orthogonal Functions (EOF).
+    
+    Complex EOFs are computed by applying a Hilbert transform to the data before
+    computing the EOFs. The Hilbert transform is applied to each feature of the
+    data individually. Optionally, the Hilbert transform is applied after padding
+    the data with exponentially decaying values to mitigate the impact of spectral leakage.
 
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, decay_factor=.2, **kwargs):
-        super().__init__(n_modes, standardize, use_coslat, **kwargs)
-        self._params.update({'decay_factor':decay_factor})
+    Parameters
+    ----------
+    n_modes : int
+        Number of modes to be computed.
+    standardize : bool
+        If True, standardize the data before computing the EOFs.
+    use_coslat : bool
+        If True, weight the data by the square root of the cosine of the latitude
+        weights.
+    use_weights : bool
+        If True, weight the data by the weights.
+    padding : Optional, str
+        Padding method for the Hilbert transform to mitigate spectral leakage. Currently, only ``'exp'`` is
+        supported.
+    decay_factor : float
+        Decay factor of the exponential padding. Only used if ``padding='exp'``. A good value typically
+        depends on the data. If the data is highly variable, a small value (e.g. 0.05) is recommended. For
+        data with low variability, a larger value (e.g. 0.2) is recommended.
 
-    def _hilbert_transform(self, data, decay_factor=.2):
+    '''
+
+    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(n_modes, standardize, use_coslat, use_weights, **kwargs)
+        self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
+
+    def _hilbert_transform(self, data, **kwargs):
        return xr.apply_ufunc(
             _hilbert_transform_with_padding,
             self.data,
             input_core_dims=[['sample', 'feature']],
             output_core_dims=[['sample', 'feature']],
-            kwargs={'decay_factor': decay_factor},
+            kwargs=kwargs,
         )
 
     def fit(self, data: XarrayData | DataArrayList, dims, weights=None):
@@ -30,11 +57,11 @@ class ComplexEOF(EOF):
         super()._preprocessing(data, dims, weights)
         
         # apply hilbert transform:
-        self.data = self._hilbert_transform(self.data, decay_factor=self._params['decay_factor'])
+        self.data = self._hilbert_transform(self.data, **self._hilbert_params)
 
         self._total_variance = total_variance(self.data)
 
-        decomposer = Decomposer(n_components=n_modes)
+        decomposer = Decomposer(n_modes=n_modes)
         decomposer.fit(self.data)
 
         self._singular_values = decomposer.singular_values_

@@ -31,7 +31,7 @@ class EOF(_BaseModel):
 
         self._total_variance = total_variance(self.data)
 
-        decomposer = Decomposer(n_components=n_modes)
+        decomposer = Decomposer(n_modes=n_modes)
         decomposer.fit(self.data)
 
         self._singular_values = decomposer.singular_values_

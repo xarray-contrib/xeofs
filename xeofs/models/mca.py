@@ -30,7 +30,7 @@ class MCA(_BaseCrossModel):
         '''
         self._preprocessing(data1, data2, dims, weights1, weights2)
 
-        decomposer = CrossDecomposer(n_components=self._params['n_modes'])
+        decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
 
         # Note:
