@@ -93,7 +93,7 @@ class ComplexEOFRotator(_BaseRotator):
             Phase of the components.
 
         '''
-        comps = np.angle(self._components)
+        comps = xr.apply_ufunc(np.angle, self._components)
         comps.name = 'phase'
         comps = self._model.stacker.inverse_transform_components(comps)
         return comps
