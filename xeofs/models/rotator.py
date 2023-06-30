@@ -152,9 +152,23 @@ class RotatorFactory:
 
 
     def create_rotator(self, model: EOF | ComplexEOF) -> EOFRotator | ComplexEOFRotator:
-        if isinstance(model, EOF):
+        '''Create a rotator for the given model.
+        
+        Parameters
+        ----------
+        model : xeofs model
+            Model to be rotated.
+        
+        Returns
+        -------
+        xeofs Rotator
+            Rotator for the given model.
+        '''
+        # We need to check the type of the model instead of isinstance because
+        # of inheritance.
+        if type(model) == EOF:
             return EOFRotator(**self.params)
-        elif isinstance(model, ComplexEOF):
+        elif type(model) == ComplexEOF:
             return ComplexEOFRotator(**self.params)
         else:
             err_msg = f'Invalid model type. Valid types are {self._valid_types}.'
