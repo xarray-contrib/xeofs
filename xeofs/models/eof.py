@@ -15,7 +15,7 @@ class EOF(_BaseModel):
 
     Parameters:
     -------------
-    n_modes: int, default=10
+    n_components: int, default=10
         Number of modes to calculate.
     standardize: bool, default=False
         Whether to standardize the input data.
@@ -26,13 +26,13 @@ class EOF(_BaseModel):
 
     def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
-        n_modes = self._params['n_modes']
+        n_components = self._params['n_components']
         
         super()._preprocessing(data, dim, weights)
 
         self._total_variance = total_variance(self.data)
 
-        decomposer = Decomposer(n_modes=n_modes)
+        decomposer = Decomposer(n_components=n_components)
         decomposer.fit(self.data)
 
         self._singular_values = decomposer.singular_values_
@@ -115,7 +115,7 @@ class ComplexEOF(EOF):
 
     Parameters
     ----------
-    n_modes : int
+    n_components : int
         Number of modes to be computed.
     standardize : bool
         If True, standardize the data before computing the EOFs.
@@ -134,13 +134,13 @@ class ComplexEOF(EOF):
 
     '''
 
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
-        super().__init__(n_modes, standardize, use_coslat, use_weights, **kwargs)
+    def __init__(self, n_components=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(n_components, standardize, use_coslat, use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
     def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
-        n_modes = self._params['n_modes']
+        n_components = self._params['n_components']
         
         super()._preprocessing(data, dim, weights)
         
@@ -149,7 +149,7 @@ class ComplexEOF(EOF):
 
         self._total_variance = total_variance(self.data)
 
-        decomposer = Decomposer(n_modes=n_modes)
+        decomposer = Decomposer(n_components=n_components)
         decomposer.fit(self.data)
 
         self._singular_values = decomposer.singular_values_

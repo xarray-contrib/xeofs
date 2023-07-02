@@ -15,7 +15,7 @@ class _BaseCrossModel(ABC):
 
     Parameters:
     -------------
-    n_modes: int, default=10
+    n_components: int, default=10
         Number of modes to calculate.
     standardize: bool, default=False
         Whether to standardize the input data.
@@ -25,9 +25,9 @@ class _BaseCrossModel(ABC):
         Whether to use weights.
 
     '''
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
+    def __init__(self, n_components=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
         self._params = {
-            'n_modes': n_modes,
+            'n_components': n_components,
             'standardize': standardize,
             'use_coslat': use_coslat,
             'use_weights': use_weights
