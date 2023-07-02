@@ -10,7 +10,7 @@ def test_BaseRotator_init(test_DataArray):
     # Instantiate the BaseRotator class
     base_rotator = _BaseRotator(10, power=2, max_iter=100, rtol=1e-6)
 
-    assert base_rotator._params['n_rot'] == 10
+    assert base_rotator._params['n_modes'] == 10
     assert base_rotator._params['power'] == 2
     assert base_rotator._params['max_iter'] == 100
     assert base_rotator._params['rtol'] == 1e-6

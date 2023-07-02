@@ -14,7 +14,7 @@ class MCARotator(_BaseRotator):
     
     Parameters
     ----------
-    n_rot : int
+    n_modes : int
         Number of modes to be rotated.
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals
@@ -37,8 +37,8 @@ class MCARotator(_BaseRotator):
 
     '''
 
-    def __init__(self, n_rot: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8, squared_loadings: bool = False):
-        super().__init__(n_rot=n_rot, power=power, max_iter=max_iter, rtol=rtol)
+    def __init__(self, n_modes: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8, squared_loadings: bool = False):
+        super().__init__(n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol)
         self._params['squared_loadings'] = squared_loadings
 
     def fit(self, model: MCA | ComplexMCA):
@@ -52,7 +52,7 @@ class MCARotator(_BaseRotator):
         '''
         self._model = model
         
-        n_rot = self._params.get('n_rot')
+        n_modes = self._params.get('n_modes')
         power = self._params.get('power')
         max_iter = self._params.get('max_iter')
         rtol = self._params.get('rtol')
@@ -72,13 +72,13 @@ class MCARotator(_BaseRotator):
         # modes' importance. 
         if use_squared_loadings:
             # Squared loadings approach conserving squared covariance
-            scaling = self._model._singular_values.sel(mode=slice(1, n_rot))
+            scaling = self._model._singular_values.sel(mode=slice(1, n_modes))
         else:
             # Cheng & Dunkerton approach conserving covariance
-            scaling = np.sqrt(self._model._singular_values.sel(mode=slice(1, n_rot)))
+            scaling = np.sqrt(self._model._singular_values.sel(mode=slice(1, n_modes)))
 
-        svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_rot))
-        svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_rot))
+        svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_modes))
+        svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_modes))
         loadings = xr.concat([svecs1, svecs2], dim='feature') * scaling
 
         # Rotate loadings
@@ -129,8 +129,8 @@ class MCARotator(_BaseRotator):
         self._singular_vectors2 = svecs2_rot.isel(mode=idx_sort).assign_coords(mode=svecs2_rot.mode)
 
         # Rotate scores using rotation matrix
-        scores1 = self._model._scores1.sel(mode=slice(1,n_rot))
-        scores2 = self._model._scores2.sel(mode=slice(1,n_rot))
+        scores1 = self._model._scores1.sel(mode=slice(1,n_modes))
+        scores2 = self._model._scores2.sel(mode=slice(1,n_modes))
         R = self._get_rotation_matrix(inverse_transpose=True)
         scores1 = xr.dot(scores1, R, dims='mode1')
         scores2 = xr.dot(scores2, R, dims='mode1')
@@ -178,8 +178,8 @@ class MCARotator(_BaseRotator):
         if not kwargs:
             raise ValueError('No data provided. Please provide data1 and/or data2.')
     
-        n_rot = self._params['n_rot']
-        expvar = self._explained_variance.sel(mode=slice(1, self._params['n_rot']))
+        n_modes = self._params['n_modes']
+        expvar = self._explained_variance.sel(mode=slice(1, self._params['n_modes']))
         rot_matrix = self._get_rotation_matrix(inverse_transpose=True)
 
         results = []
@@ -188,7 +188,7 @@ class MCARotator(_BaseRotator):
 
             data1 = kwargs['data1']
             # Select the (non-rotated) singular vectors of the first dataset
-            svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_rot))
+            svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
             data1 = self._model.scaler1.transform(data1)  #type: ignore
@@ -213,7 +213,7 @@ class MCARotator(_BaseRotator):
 
             data2 = kwargs['data2']            
             # Select the (non-rotated) singular vectors of the second dataset
-            svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_rot))
+            svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
             data2 = self._model.scaler2.transform(data2)  #type: ignore
@@ -324,7 +324,7 @@ class ComplexMCARotator(MCARotator):
 
     Parameters
     ----------
-    n_rot : int
+    n_modes : int
         Number of modes to be rotated.
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals

@@ -13,7 +13,7 @@ class _BaseRotator():
 
     Parameters
     ----------
-    n_rot : int
+    n_modes : int
         Number of modes to be rotated.
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals
@@ -28,9 +28,9 @@ class _BaseRotator():
 
     '''
 
-    def __init__(self, n_rot: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+    def __init__(self, n_modes: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
         self._params = {
-            'n_rot': n_rot,
+            'n_modes': n_modes,
             'power': power,
             'max_iter': max_iter,
             'rtol': rtol,

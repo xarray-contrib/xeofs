@@ -14,7 +14,7 @@ class EOFRotator(_BaseRotator):
 
     Parameters
     ----------
-    n_rot : int
+    n_modes : int
         Number of modes to be rotated.
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals
@@ -39,14 +39,14 @@ class EOFRotator(_BaseRotator):
         '''
         self._model = model
 
-        n_rot = self._params.get('n_rot')
+        n_modes = self._params.get('n_modes')
         power = self._params.get('power')
         max_iter = self._params.get('max_iter')
         rtol = self._params.get('rtol')
 
         # Select modes to rotate
-        components = self._model._components.sel(mode=slice(1, n_rot))
-        expvar = self._model._explained_variance.sel(mode=slice(1, n_rot))
+        components = self._model._components.sel(mode=slice(1, n_modes))
+        expvar = self._model._explained_variance.sel(mode=slice(1, n_modes))
 
         # Rotate loadings
         loadings = components * np.sqrt(expvar)
@@ -79,7 +79,7 @@ class EOFRotator(_BaseRotator):
         self._components = rot_components
 
         # Rotate scores
-        scores = self._model._scores.sel(mode=slice(1,n_rot))
+        scores = self._model._scores.sel(mode=slice(1,n_modes))
         R = self._get_rotation_matrix(inverse_transpose=True)
         scores = xr.dot(scores, R, dims='mode1')
 
@@ -89,9 +89,9 @@ class EOFRotator(_BaseRotator):
 
     def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
 
-        n_rot = self._params['n_rot']
-        svals = self._model._singular_values.sel(mode=slice(1, self._params['n_rot']))
-        components = self._model._components.sel(mode=slice(1, n_rot))
+        n_modes = self._params['n_modes']
+        svals = self._model._singular_values.sel(mode=slice(1, self._params['n_modes']))
+        components = self._model._components.sel(mode=slice(1, n_modes))
 
         # Preprocess the data
         data = self._model.scaler.transform(data)  #type: ignore
@@ -178,7 +178,7 @@ class ComplexEOFRotator(EOFRotator):
 
     Parameters
     ----------
-    n_rot : int
+    n_modes : int
         Number of modes to be rotated.
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals

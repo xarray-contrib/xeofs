@@ -19,22 +19,22 @@ def mca_model_delayed(test_DaskDataArray):
     return mca
 
 def test_mcarotator_init():
-    mca_rotator = MCARotator(n_rot=2)
-    assert mca_rotator._params['n_rot'] == 2
+    mca_rotator = MCARotator(n_modes=2)
+    assert mca_rotator._params['n_modes'] == 2
     assert mca_rotator._params['power'] == 1
     assert mca_rotator._params['max_iter'] == 1000
     assert mca_rotator._params['rtol'] == 1e-8
     assert mca_rotator._params['squared_loadings'] == False
 
 def test_mcarotator_fit(mca_model):
-    mca_rotator = MCARotator(n_rot=2)
+    mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
     assert hasattr(mca_rotator, "_rotation_matrix")
     assert hasattr(mca_rotator, "_idx_expvar")
 
 def test_mcarotator_transform(mca_model, test_DataArray):
-    mca_rotator = MCARotator(n_rot=2)
+    mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     
     projections = mca_rotator.transform(data1=test_DataArray, data2=test_DataArray)
@@ -42,7 +42,7 @@ def test_mcarotator_transform(mca_model, test_DataArray):
     assert len(projections) == 2
 
 def test_mcarotator_inverse_transform(mca_model):
-    mca_rotator = MCARotator(n_rot=2)
+    mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     
     reconstructed_data = mca_rotator.inverse_transform(mode=slice(1,3))
@@ -57,7 +57,7 @@ def test_mcarotator_compute(mca_model_delayed):
     # in a separate file is much faster. I don't have a clue why this is the case but for the moment
     # I will leave it as is but deactivate the test. 
     
-    # mca_rotator = MCARotator(n_rot=2, rtol=1e-5)
+    # mca_rotator = MCARotator(n_modes=2, rtol=1e-5)
     # mca_rotator.fit(mca_model_delayed)
     
     # mca_rotator.compute()

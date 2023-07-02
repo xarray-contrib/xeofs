@@ -34,7 +34,7 @@ def test_EOFRotator_init():
     # Instantiate the EOFRotator class
     eof_rotator = EOFRotator(3, power=2, max_iter=100, rtol=1e-6)
 
-    assert eof_rotator._params['n_rot'] == 3
+    assert eof_rotator._params['n_modes'] == 3
     assert eof_rotator._params['power'] == 2
     assert eof_rotator._params['max_iter'] == 100
     assert eof_rotator._params['rtol'] == 1e-6
@@ -117,7 +117,7 @@ def test_ComplexEOFRotator_init():
     # Instantiate the ComplexEOFRotator class
     ceof_rotator = ComplexEOFRotator(3, power=2, max_iter=100, rtol=1e-6)
 
-    assert ceof_rotator._params['n_rot'] == 3
+    assert ceof_rotator._params['n_modes'] == 3
     assert ceof_rotator._params['power'] == 2
     assert ceof_rotator._params['max_iter'] == 100
     assert ceof_rotator._params['rtol'] == 1e-6
