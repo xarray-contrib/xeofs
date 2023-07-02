@@ -14,7 +14,7 @@ class _BaseRotator():
     Parameters
     ----------
     n_modes : int
-        Number of modes to be rotated.
+        Number of modes to be rotated (the default is 10).
     power : int
         Defines the power of Promax rotation. Choosing ``power=1`` equals
         a Varimax solution (the default is 1).
@@ -28,7 +28,7 @@ class _BaseRotator():
 
     '''
 
-    def __init__(self, n_modes: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+    def __init__(self, n_modes: int = 10, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
         self._params = {
             'n_modes': n_modes,
             'power': power,
