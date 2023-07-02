@@ -43,15 +43,15 @@ def varimax(
 
     '''
     X = X.copy()
-    n_samples, n_components = X.shape
+    n_samples, n_modes = X.shape
 
-    if n_components < 2:
+    if n_modes < 2:
         err_msg = 'Cannot rotate {:} modes (columns), but must be 2 or more.'
-        err_msg = err_msg.format(n_components)
+        err_msg = err_msg.format(n_modes)
         raise ValueError(err_msg)
 
     # Initialize rotation matrix
-    R = np.eye(n_components)
+    R = np.eye(n_modes)
 
     # Normalize the matrix using square root of the sum of squares (Kaiser)
     h = np.sqrt(np.sum(X * X.conj(), axis=1))

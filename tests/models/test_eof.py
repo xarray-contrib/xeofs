@@ -29,10 +29,10 @@ def test_solution(method, standardize, use_weights, reference_solution, test_Dat
 
 def test_EOF_initialization():
     '''Tests the initialization of the EOF class'''
-    eof = EOF(n_components=5, standardize=True, use_coslat=True)
+    eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
     # Assert parameters are correctly stored in the _params attribute
-    assert eof._params == {'n_components': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
+    assert eof._params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
 
     # Assert correct values are stored in the _scaling_params attribute
     assert eof._scaling_params == {'with_std': True, 'with_coslat': True, 'with_weights': False}
@@ -119,12 +119,12 @@ def test_EOF_scores(test_DataArray):
 
 def test_EOF_get_params():
     '''Tests the get_params method of the EOF class'''
-    eof = EOF(n_components=5, standardize=True, use_coslat=True)
+    eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
     # Test get_params method
     params = eof.get_params()
     assert isinstance(params, dict)
-    assert params == {'n_components': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
+    assert params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
 
 
 def test_EOF_compute(test_DataArray):
@@ -163,7 +163,7 @@ def test_EOF_transform(test_DataArray):
     # Create a xarray DataArray with random data
     dim = 'time'
     
-    model = EOF(n_components=2)
+    model = EOF(n_modes=2)
     model.fit(test_DataArray, dim)
     scores = model.scores()
 
@@ -190,7 +190,7 @@ def test_EOF_inverse_transform(test_DataArray):
 
     # instantiate the EOF class with necessary parameters
     dim = 'time'
-    eof = EOF(n_components=3, standardize=True)
+    eof = EOF(n_modes=3, standardize=True)
     
     # fit the EOF model
     eof.fit(test_DataArray, dim=dim)

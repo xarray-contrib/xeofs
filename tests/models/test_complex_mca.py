@@ -8,10 +8,10 @@ from xeofs.models import ComplexMCA
 
 @pytest.fixture
 def mca_model():
-    return ComplexMCA(n_components=3)
+    return ComplexMCA(n_modes=3)
 
 def test_complex_mca_initialization():
-    mca = ComplexMCA(n_components=1)
+    mca = ComplexMCA(n_modes=1)
     assert mca is not None
 
 

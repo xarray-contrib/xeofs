@@ -10,11 +10,11 @@ from xeofs.models.decomposer import Decomposer, CrossDecomposer
 
 @pytest.fixture
 def decomposer():
-    return Decomposer(n_components=2, n_iter=3, random_state=42, verbose=False)
+    return Decomposer(n_modes=2, n_iter=3, random_state=42, verbose=False)
 
 @pytest.fixture
 def cross_decomposer():
-    return CrossDecomposer(n_components=2, n_iter=3, random_state=42, verbose=False)
+    return CrossDecomposer(n_modes=2, n_iter=3, random_state=42, verbose=False)
 
 @pytest.fixture
 def test_DataArray(test_DataArray):
@@ -34,13 +34,13 @@ def test_complex_DaskDataArray(test_complex_DataArray):
 
 
 def test_decomposer_init(decomposer):
-    assert decomposer.params['n_components'] == 2
+    assert decomposer.params['n_modes'] == 2
     assert decomposer.params['n_iter'] == 3
     assert decomposer.params['random_state'] == 42
     assert decomposer.params['verbose'] == False
 
 def test_cross_decomposer_init(cross_decomposer):
-    assert cross_decomposer.params['n_components'] == 2
+    assert cross_decomposer.params['n_modes'] == 2
     assert cross_decomposer.params['n_iter'] == 3
     assert cross_decomposer.params['random_state'] == 42
     assert cross_decomposer.params['verbose'] == False

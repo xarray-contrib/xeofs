@@ -8,13 +8,13 @@ from xeofs.models import MCA, MCARotator
 
 @pytest.fixture
 def mca_model(test_DataArray):
-    mca = MCA(n_components=5)
+    mca = MCA(n_modes=5)
     mca.fit(test_DataArray, test_DataArray, dim='time')
     return mca
 
 @pytest.fixture
 def mca_model_delayed(test_DaskDataArray):
-    mca = MCA(n_components=5)
+    mca = MCA(n_modes=5)
     mca.fit(test_DaskDataArray, test_DaskDataArray, dim='time')
     return mca
 

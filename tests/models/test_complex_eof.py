@@ -18,7 +18,7 @@ def test_ComplexEOF_fit(test_DataArray):
     # Create a xarray DataArray with random data
     dim = 'time'
     
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     ceof.fit(test_DataArray, dim)
 
     # Check that the fit method has properly populated the attributes
@@ -33,7 +33,7 @@ def test_ComplexEOF_fit(test_DataArray):
 def test_ComplexEOF_components_amplitude(test_DataArray):
     """Test computation of components amplitude in ComplexEOF model"""
     dim = 'time'
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     ceof.fit(test_DataArray, dim)
 
     comp_amp = ceof.components_amplitude()
@@ -44,7 +44,7 @@ def test_ComplexEOF_components_amplitude(test_DataArray):
 def test_ComplexEOF_components_phase(test_DataArray):
     """Test computation of components phase in ComplexEOF model"""
     dim = 'time'
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     ceof.fit(test_DataArray, dim)
 
     comp_phase = ceof.components_phase()
@@ -55,7 +55,7 @@ def test_ComplexEOF_components_phase(test_DataArray):
 def test_ComplexEOF_scores_amplitude(test_DataArray):
     """Test computation of scores amplitude in ComplexEOF model"""
     dim = 'time'
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     ceof.fit(test_DataArray, dim)
 
     scores_amp = ceof.scores_amplitude()
@@ -66,7 +66,7 @@ def test_ComplexEOF_scores_amplitude(test_DataArray):
 def test_ComplexEOF_scores_phase(test_DataArray):
     """Test computation of scores phase in ComplexEOF model"""
     dim = 'time'
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     ceof.fit(test_DataArray, dim)
 
     scores_phase = ceof.scores_phase()
@@ -77,6 +77,6 @@ def test_ComplexEOF_scores_phase(test_DataArray):
 def test_ComplexEOF_compute(test_DaskDataArray):
     """Test computation of all attributes in ComplexEOF model"""
     dim = 'time'
-    ceof = ComplexEOF(n_components=2)
+    ceof = ComplexEOF(n_modes=2)
     with pytest.raises(NotImplementedError):
         ceof.fit(test_DaskDataArray, dim)

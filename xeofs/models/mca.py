@@ -32,7 +32,7 @@ class MCA(_BaseCrossModel):
         '''
         self._preprocessing(data1, data2, dim, weights1, weights2)
 
-        decomposer = CrossDecomposer(n_components=self._params['n_components'])
+        decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
 
         # Note:
@@ -379,8 +379,8 @@ class ComplexMCA(MCA):
         Not implemented in the ComplexMCA class.
     '''
 
-    def __init__(self, n_components=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
-        super().__init__(n_components=n_components, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
+    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(n_modes=n_modes, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
     def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
@@ -408,7 +408,7 @@ class ComplexMCA(MCA):
         self.data1 = hilbert_transform(self.data1, dim='sample', **self._hilbert_params)
         self.data2 = hilbert_transform(self.data2, dim='sample', **self._hilbert_params)
         
-        decomposer = CrossDecomposer(n_components=self._params['n_components'])
+        decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
 
         # Note:
