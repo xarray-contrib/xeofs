@@ -4,10 +4,8 @@ from typing import Optional, Union, List, Tuple
 
 from xeofs.utils.data_types import DataArrayList, XarrayData
 
-from .eof import EOF
-from .complex_eof import ComplexEOF
-from .mca import MCA
-from .complex_mca import ComplexMCA
+from .eof import EOF, ComplexEOF
+from .mca import MCA, ComplexMCA
 from .eof_rotator import EOFRotator, ComplexEOFRotator
 from .mca_rotator import MCARotator, ComplexMCARotator
 from ._base_rotator import _BaseRotator

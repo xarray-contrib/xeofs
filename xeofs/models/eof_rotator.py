@@ -4,8 +4,7 @@ from dask.diagnostics.progress import ProgressBar
 from typing import List
 
 from ._base_rotator import _BaseRotator
-from .eof import EOF
-from .complex_eof import ComplexEOF
+from .eof import EOF, ComplexEOF
 
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList

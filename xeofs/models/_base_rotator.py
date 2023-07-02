@@ -5,8 +5,6 @@ import scipy as sc
 import xarray as xr
 from typing import Optional, Union, List, Tuple
 
-from .eof import EOF
-from .complex_eof import ComplexEOF
 from ..utils.rotation import promax
 
 

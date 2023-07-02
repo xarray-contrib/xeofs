@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import Mock
 
-from xeofs.models import EOF, ComplexEOF
-from xeofs.models import MCA, ComplexMCA
-from xeofs.models.rotator import RotatorFactory, EOFRotator, ComplexEOFRotator, MCARotator, ComplexMCARotator
+from xeofs.models import EOF, ComplexEOF, MCA, ComplexMCA
+from xeofs.models import EOFRotator, ComplexEOFRotator, MCARotator, ComplexMCARotator
+from xeofs.models.rotator_factory import RotatorFactory
 
 # RotatorFactory should be imported from its module
 # from module import RotatorFactory

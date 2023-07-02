@@ -4,7 +4,7 @@ import xarray as xr
 import dask.array as da
 from numpy.testing import assert_allclose
 
-from xeofs.models.complex_mca import ComplexMCA
+from xeofs.models import ComplexMCA
 
 @pytest.fixture
 def mca_model():

@@ -4,8 +4,7 @@ import xarray as xr
 from dask.array import Array as DaskArray   # type: ignore
 
 # Import the classes from your modules
-from xeofs.models import MCA, ComplexMCA
-from xeofs.models.mca_rotator import MCARotator, ComplexMCARotator
+from xeofs.models import MCA, MCARotator
 
 @pytest.fixture
 def mca_model(test_DataArray):

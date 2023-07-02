@@ -3,10 +3,7 @@ import numpy as np
 import xarray as xr
 from dask.array import Array as DaskArray   # type: ignore
 
-# Import the classes from your modules
-from xeofs.models.eof import EOF
-from xeofs.models.complex_eof import ComplexEOF
-from xeofs.models.eof_rotator import EOFRotator, ComplexEOFRotator
+from xeofs.models import EOF, ComplexEOF, EOFRotator, ComplexEOFRotator
 
 
 @pytest.fixture

@@ -4,8 +4,7 @@ from dask.diagnostics.progress import ProgressBar
 from typing import List
 
 from ._base_rotator import _BaseRotator
-from .mca import MCA
-from .complex_mca import ComplexMCA
+from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
 from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray
 
