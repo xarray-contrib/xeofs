@@ -5,7 +5,7 @@ from .eof import EOF
 from .decomposer import Decomposer
 from ..utils.xarray_utils import total_variance
 from ..utils.data_types import XarrayData, DataArrayList
-from ..utils.xarray_utils import _hilbert_transform_with_padding
+from ..utils.xarray_utils import hilbert_transform
 
 
 class ComplexEOF(EOF):
@@ -41,15 +41,6 @@ class ComplexEOF(EOF):
         super().__init__(n_modes, standardize, use_coslat, use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
-    def _hilbert_transform(self, data, **kwargs):
-       return xr.apply_ufunc(
-            _hilbert_transform_with_padding,
-            self.data,
-            input_core_dims=[['sample', 'feature']],
-            output_core_dims=[['sample', 'feature']],
-            kwargs=kwargs,
-        )
-
     def fit(self, data: XarrayData | DataArrayList, dims, weights=None):
         
         n_modes = self._params['n_modes']
@@ -57,7 +48,7 @@ class ComplexEOF(EOF):
         super()._preprocessing(data, dims, weights)
         
         # apply hilbert transform:
-        self.data = self._hilbert_transform(self.data, **self._hilbert_params)
+        self.data = hilbert_transform(self.data, dim='sample', **self._hilbert_params)
 
         self._total_variance = total_variance(self.data)
 

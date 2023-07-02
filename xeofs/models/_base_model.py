@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import xarray as xr
 import scipy as sc
+from dask.diagnostics.progress import ProgressBar
 
 
 from ..preprocessing.scaler import Scaler, ListScaler
@@ -174,12 +175,36 @@ class _BaseModel(ABC):
     def get_params(self):
         return self._params
 
-    def compute(self):
-        '''Computing the model will load and compute Dask arrays.'''
+    def compute(self, verbose: bool = False):
+        '''Computing the model will load and compute Dask arrays.
+        
+        Parameters:
+        -------------
+        verbose: bool, default=False
+            If True, print information about the computation process.
+            
+        '''
 
-        self._total_variance = self._total_variance.compute()  # type: ignore
-        self._singular_values = self._singular_values.compute()   # type: ignore
-        self._explained_variance = self._explained_variance.compute()   # type: ignore
-        self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
-        self._components = self._components.compute()    # type: ignore
-        self._scores = self._scores.compute()    # type: ignore
+        if verbose:
+            with ProgressBar():
+                print('Computing STANDARD MODEL...')
+                print('-'*80)
+                print('Total variance...')
+                self._total_variance = self._total_variance.compute()  # type: ignore
+                print('Singular values...')
+                self._singular_values = self._singular_values.compute()   # type: ignore
+                print('Explained variance...')
+                self._explained_variance = self._explained_variance.compute()   # type: ignore
+                print('Explained variance ratio...')
+                self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
+                print('Components...')
+                self._components = self._components.compute()    # type: ignore
+                print('Scores...')
+                self._scores = self._scores.compute()    # type: ignore
+        else:
+            self._total_variance = self._total_variance.compute()  # type: ignore
+            self._singular_values = self._singular_values.compute()   # type: ignore
+            self._explained_variance = self._explained_variance.compute()   # type: ignore
+            self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
+            self._components = self._components.compute()    # type: ignore
+            self._scores = self._scores.compute()    # type: ignore

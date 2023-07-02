@@ -38,114 +38,59 @@ class _BaseRotator():
             'rtol': rtol,
         }
     
-    def fit(self, model: EOF | ComplexEOF):
-        '''Fit the model.
-        
-        Parameters
-        ----------
-        model : xe.models.EOF
-            A EOF model solution.
-            
-        '''
-        self._model = model
+    @abstractmethod
+    def fit(self, model):
+        '''Fit the model.'''
 
-        n_rot = self._params['n_rot']
-        power = self._params['power']
-        max_iter = self._params['max_iter']
-        rtol = self._params['rtol']
+        # VARIABLES TO BE DEFINED
+        # self._model
+        # self._rotation_matrix --> rotation matrix to be applied to the loadings
+        # self._idx_expvar --> order of explained variance so that modes can be reordered
+        # according to highest explained variance
 
-        # Select modes to rotate
-        components = self._model._components.sel(mode=slice(1, n_rot))
-        expvar = self._model._explained_variance.sel(mode=slice(1, n_rot))
-
-        # Rotate loadings
-        loadings = components * np.sqrt(expvar)
-        rot_loadings, rot_matrix, Phi =  xr.apply_ufunc(
-            promax,
-            loadings,
-            power,
-            input_core_dims=[['feature', 'mode'], []],
-            output_core_dims=[['feature', 'mode'], ['mode', 'mode1'], ['mode', 'mode1']],
-            kwargs={'max_iter': max_iter, 'rtol': rtol},
-        )
-        self._rotation_matrix = rot_matrix
-        
-        # Reorder according to variance
-        expvar = (abs(rot_loadings)**2).sum('feature')
-        idx_sort = expvar.argsort().values[::-1]
-        expvar = expvar.isel(mode=idx_sort).assign_coords(mode=expvar.mode)
-        rot_loadings = rot_loadings.isel(mode=idx_sort).assign_coords(mode=rot_loadings.mode)
-        self._idx_expvar = idx_sort
-
-        # Explained variance
-        self._explained_variance = expvar
-        self._explained_variance_ratio = expvar / self._model._total_variance
-
-        # Normalize loadings
-        rot_components = rot_loadings / np.sqrt(expvar)
-        self._components = rot_components
-
-        # Rotate scores
-        scores = self._model._scores.sel(mode=slice(1,n_rot))
-        R = self._get_rotation_matrix(inverse_transpose=True)
-        scores = xr.dot(scores, R, dims='mode1')
-
-        # Reorder according to variance
-        scores = scores.isel(mode=idx_sort).assign_coords(mode=scores.mode)
-        self._scores = scores
-
+        # OTHER VARIABLES THAT DEPEND ON THE SPECIFIC MODEL TO BE ROTATED
+        # self._explained_variance
+        # self._explained_variance_ratio | self._squared_covariance_fraction
+        # self._components
+        # self._scores
+        raise NotImplementedError
     
+    @abstractmethod
+    def transform(self, data):
+        '''Transform the model.'''
+        raise NotImplementedError
+    
+    @abstractmethod
     def inverse_transform(self, mode: int | List[int] | slice = slice(None)):
-        dof = self._model.data.shape[0] - 1  # type: ignore
-
-        components = self._components
-        scores = self._scores * np.sqrt(self._explained_variance * dof)  # type: ignore
-
-        components = components.sel(mode=mode)  # type: ignore
-        scores = scores.sel(mode=mode)
-        Xrec = xr.dot(scores, components.conj(), dims='mode')
-
-        Xrec = self._model.stacker.inverse_transform_data(Xrec)
-        Xrec = self._model.scaler.inverse_transform(Xrec)  # type: ignore
-        
-        return Xrec
+        '''Inverse transform the model.'''
+        raise NotImplementedError
     
-    def explained_variance(self):
-        return self._explained_variance
     
-    def explained_variance_ratio(self):
-        return self._explained_variance_ratio
-    
-    def components(self):
-        return self._model.stacker.inverse_transform_components(self._components)  #type: ignore
-    
-    def scores(self):
-        return self._model.stacker.inverse_transform_scores(self._scores)  #type: ignore
-
     def _get_rotation_matrix(self, inverse_transpose : bool = False) -> xr.DataArray:
         '''Return the rotation matrix.
 
         Parameters
         ----------
-        inverse_transpose : boolean
-            If True, return the inverse transposed of the rotation matrix.
-            For orthogonal rotations (Varimax) the inverse transpose equals
-            the rotation matrix itself. For oblique rotations (Promax), it
-            will be different in general (the default is False).
+        inverse_transpose : bool, default=False
+            Determines whether to return the rotation matrix or its inverse transposed. 
+            For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent 
+            to the rotation matrix itself. However, for oblique rotations (e.g., Promax), it may differ.
 
         Returns
         -------
         rotation_matrix : xr.DataArray
 
         '''
-        R = self._rotation_matrix
+        R = self._rotation_matrix  # type: ignore
         if inverse_transpose and self._params['power'] > 1:
+            # inverse matrix
             R = xr.apply_ufunc(
                 np.linalg.pinv,
                 R,
                 input_core_dims=[['mode','mode1']],
                 output_core_dims=[['mode','mode1']]
             )
+            # transpose matrix
             R = R.conj().T
         return R  # type: ignore
 

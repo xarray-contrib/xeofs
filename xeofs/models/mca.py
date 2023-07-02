@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import CrossDecomposer
@@ -135,7 +136,7 @@ class MCA(_BaseCrossModel):
         return Xrec1, Xrec2
 
     def singular_values(self):
-        '''Return the singular values of the model.
+        '''Get the singular values of the cross-covariance matrix.
 
         Returns:
         ----------
@@ -146,22 +147,26 @@ class MCA(_BaseCrossModel):
         return self._singular_values
     
     def explained_variance(self):
-        '''Return explained variance.'''
+        '''Get the explained covariance.
+
+        The explained covariance corresponds to the singular values of the covariance matrix. Each singular value 
+        represents the amount of variance explained by the corresponding mode in the data.
+            
+        '''
         return self._explained_variance
     
     def squared_covariance_fraction(self):
-        '''Return the squared covariance fraction.
-        
-        The squared covariance fraction (SCF) is the ratio of the squared covariance
-        to the total squared variance and is a measure of importance of the
-        mode. It is the analogue of the explained variance ratio in PCA.
+        '''Calculate the squared covariance fraction (SCF).
 
-        The SCF for mode `i` is given by:
+        The SCF is a measure of the proportion of the total covariance that is explained by each mode `i`. It is computed 
+        as follows:
 
         .. math::
-            SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{n} \\sigma_i^2}
+        SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{m} \\sigma_i^2}
 
-        where :math:`\\sigma_i` is the singular value of mode `i`.
+        where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
+
+        The SCF is the analogue of the explained variance ratio in PCA.
 
         '''
         return self._squared_covariance_fraction
@@ -296,16 +301,46 @@ class MCA(_BaseCrossModel):
 
         return patterns1, patterns2, pvals1, pvals2
 
-    def compute(self):
-        '''Computing the model will compute and load all DaskArrays.'''
+    def compute(self, verbose: bool = False):
+        '''Computing the model will compute and load all DaskArrays.
+        
+        Parameters:
+        -------------
+        verbose: bool, default=False
+            If True, print information about the computation process.
+            
+        '''
 
-        self._singular_values = self._singular_values.compute()
-        self._explained_variance = self._explained_variance.compute()
-        self._squared_total_variance = self._squared_total_variance.compute()
-        self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
-        self._singular_vectors1 = self._singular_vectors1.compute()
-        self._singular_vectors2 = self._singular_vectors2.compute()
-        self._norm1 = self._norm1.compute()
-        self._norm2 = self._norm2.compute()
-        self._scores1 = self._scores1.compute()
-        self._scores2 = self._scores2.compute()
+        if verbose:
+            with ProgressBar():
+                print('Computing STANDARD MODEL...')
+                print('-'*80)
+                print('Singular values...')        
+                self._singular_values = self._singular_values.compute()
+                print('Explained variance...')
+                self._explained_variance = self._explained_variance.compute()
+                print('Squared total variance...')
+                self._squared_total_variance = self._squared_total_variance.compute()
+                print('Squared covariance fraction...')
+                self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
+                print('Singular vectors...')
+                self._singular_vectors1 = self._singular_vectors1.compute()
+                self._singular_vectors2 = self._singular_vectors2.compute()
+                print('Norms...')
+                self._norm1 = self._norm1.compute()
+                self._norm2 = self._norm2.compute()
+                print('Scores...')
+                self._scores1 = self._scores1.compute()
+                self._scores2 = self._scores2.compute()
+        
+        else:
+            self._singular_values = self._singular_values.compute()
+            self._explained_variance = self._explained_variance.compute()
+            self._squared_total_variance = self._squared_total_variance.compute()
+            self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
+            self._singular_vectors1 = self._singular_vectors1.compute()
+            self._singular_vectors2 = self._singular_vectors2.compute()
+            self._norm1 = self._norm1.compute()
+            self._norm2 = self._norm2.compute()
+            self._scores1 = self._scores1.compute()
+            self._scores2 = self._scores2.compute()

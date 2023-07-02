@@ -112,13 +112,15 @@ def total_variance(data: DataArray) -> DataArray:
     tot_var.name = 'total_variance'
     return tot_var
 
-def hilbert_transform(data: DataArray, padding='exp', decay_factor=.2) -> DataArray:
+def hilbert_transform(data: DataArray, dim, padding='exp', decay_factor=.2) -> DataArray:
     '''Hilbert transform with optional padding to mitigate spectral leakage.
 
     Parameters:
     ------------
     data: DataArray
         Input data.
+    dim: str
+        Dimension along which to apply the Hilbert transform.
     padding: str
         Padding type. Can be 'exp' or None.
     decay_factor: float
@@ -133,9 +135,10 @@ def hilbert_transform(data: DataArray, padding='exp', decay_factor=.2) -> DataAr
     return xr.apply_ufunc(
         _hilbert_transform_with_padding,
         data,
-        input_core_dims=[['sample', 'feature']],
-        output_core_dims=[['sample', 'feature']],
+        input_core_dims=[['sample']],
+        output_core_dims=[['sample']],
         kwargs={'padding': padding, 'decay_factor': decay_factor},
+        dask='parallelized',
     )
 
 def _np_sqrt_cos_lat_weights(data):
@@ -230,8 +233,8 @@ def _pad_exp(y, decay_factor=.2):
 
     y_ano = y - yfit
 
-    amp_pre = y_ano.take(0, axis=0)[:,None]
-    amp_pos = y_ano.take(-1, axis=0)[:,None]
+    amp_pre = np.take(y_ano, 0, axis=0)[:,None]
+    amp_pos = np.take(y_ano, -1, axis=0)[:,None]
 
     exp_ext = np.exp(-x / x.size / decay_factor)
     exp_ext_reverse = exp_ext[::-1]

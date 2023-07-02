@@ -40,15 +40,6 @@ class ComplexMCA(MCA):
         super().__init__(n_modes=n_modes, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
-    def _hilbert_transform(self, data, **kwargs):
-       return xr.apply_ufunc(
-            hilbert_transform,
-            data,
-            input_core_dims=[['sample', 'feature']],
-            output_core_dims=[['sample', 'feature']],
-            kwargs=kwargs,
-        )
-
     def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dims, weights1=None, weights2=None):
         '''Fit the model.
 
@@ -71,8 +62,8 @@ class ComplexMCA(MCA):
         self._preprocessing(data1, data2, dims, weights1, weights2)
         
         # apply hilbert transform:
-        self.data1 = self._hilbert_transform(self.data1, **self._hilbert_params)
-        self.data2 = self._hilbert_transform(self.data2, **self._hilbert_params)
+        self.data1 = hilbert_transform(self.data1, dim='sample', **self._hilbert_params)
+        self.data2 = hilbert_transform(self.data2, dim='sample', **self._hilbert_params)
         
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)

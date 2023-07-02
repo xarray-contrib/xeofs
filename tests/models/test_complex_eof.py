@@ -73,3 +73,11 @@ def test_ComplexEOF_scores_phase(test_DataArray):
     scores_phase = ceof.scores_phase()
     assert scores_phase is not None
     assert ((-np.pi <= scores_phase.fillna(0)) & (scores_phase.fillna(0) <= np.pi)).all()  #type: ignore
+
+
+def test_ComplexEOF_compute(test_DaskDataArray):
+    """Test computation of all attributes in ComplexEOF model"""
+    dims = 'time'
+    ceof = ComplexEOF(n_modes=2)
+    with pytest.raises(NotImplementedError):
+        ceof.fit(test_DaskDataArray, dims)
