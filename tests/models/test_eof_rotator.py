@@ -9,25 +9,25 @@ from xeofs.models import EOF, ComplexEOF, EOFRotator, ComplexEOFRotator
 @pytest.fixture
 def eof_model(test_DataArray):
     eof = EOF(n_modes=5)
-    eof.fit(test_DataArray, dims='time')
+    eof.fit(test_DataArray, dim='time')
     return eof
 
 @pytest.fixture
 def eof_model_delayed(test_DaskDataArray):
     eof = EOF(n_modes=5)
-    eof.fit(test_DaskDataArray, dims='time')
+    eof.fit(test_DaskDataArray, dim='time')
     return eof
 
 @pytest.fixture
 def ceof_model(test_DataArray):
     ceof = ComplexEOF(n_modes=5)
-    ceof.fit(test_DataArray, dims='time')
+    ceof.fit(test_DataArray, dim='time')
     return ceof
 
 @pytest.fixture
 def ceof_model_delayed(test_DaskDataArray):
     ceof = ComplexEOF(n_modes=5)
-    ceof.fit(test_DaskDataArray, dims='time')
+    ceof.fit(test_DaskDataArray, dim='time')
     return ceof
 
 def test_EOFRotator_init():

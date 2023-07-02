@@ -40,10 +40,10 @@ def test_EOF_initialization():
 
 def test_EOF_fit(test_DataArray):
     '''Tests the fit method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Assert that data has been preprocessed
     assert isinstance(eof.data, xr.DataArray)
@@ -59,10 +59,10 @@ def test_EOF_fit(test_DataArray):
 
 def test_EOF_singular_values(test_DataArray):
     '''Tests the singular_values method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Test singular_values method
     singular_values = eof.singular_values()
@@ -71,10 +71,10 @@ def test_EOF_singular_values(test_DataArray):
 
 def test_EOF_explained_variance(test_DataArray):
     '''Tests the explained_variance method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Test explained_variance method
     explained_variance = eof.explained_variance()
@@ -83,10 +83,10 @@ def test_EOF_explained_variance(test_DataArray):
 
 def test_EOF_explained_variance_ratio(test_DataArray):
     '''Tests the explained_variance_ratio method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Test explained_variance_ratio method
     explained_variance_ratio = eof.explained_variance_ratio()
@@ -95,10 +95,10 @@ def test_EOF_explained_variance_ratio(test_DataArray):
 
 def test_EOF_components(test_DataArray):
     '''Tests the components method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Test components method
     components = eof.components()
@@ -107,10 +107,10 @@ def test_EOF_components(test_DataArray):
 
 def test_EOF_scores(test_DataArray):
     '''Tests the scores method of the EOF class'''
-    dims = 'time'
+    dim = 'time'
 
     eof = EOF()
-    eof.fit(test_DataArray, dims)
+    eof.fit(test_DataArray, dim)
 
     # Test scores method
     scores = eof.scores()
@@ -130,12 +130,12 @@ def test_EOF_get_params():
 def test_EOF_compute(test_DataArray):
     '''Tests the compute method of the EOF class'''
     
-    dims = 'time'
+    dim = 'time'
     
     dask_test_DataArray = test_DataArray.chunk({'time': 1})
     
     eof = EOF()
-    eof.fit(dask_test_DataArray, dims)
+    eof.fit(dask_test_DataArray, dim)
 
    # Assert that the attributes are indeed Dask arrays before computation
     assert isinstance(eof._total_variance.data, da.Array)  #type: ignore
@@ -161,10 +161,10 @@ def test_EOF_transform(test_DataArray):
     '''Test projecting new unseen data onto the components (EOFs/eigenvectors)'''
 
     # Create a xarray DataArray with random data
-    dims = 'time'
+    dim = 'time'
     
     model = EOF(n_modes=2)
-    model.fit(test_DataArray, dims)
+    model.fit(test_DataArray, dim)
     scores = model.scores()
 
     # Create a new xarray DataArray with random data
@@ -189,11 +189,11 @@ def test_EOF_inverse_transform(test_DataArray):
     '''Test inverse_transform method in EOF class.'''
 
     # instantiate the EOF class with necessary parameters
-    dims = 'time'
+    dim = 'time'
     eof = EOF(n_modes=3, standardize=True)
     
     # fit the EOF model
-    eof.fit(test_DataArray, dims=dims)
+    eof.fit(test_DataArray, dim=dim)
 
     # Test with scalar
     mode = 1

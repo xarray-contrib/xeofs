@@ -58,7 +58,7 @@ class _BaseCrossModel(ABC):
         else:
             raise ValueError(f'Cannot stack data of type: {type(data)}')
 
-    def _preprocessing(self, data1, data2, dims, weights1=None, weights2=None):
+    def _preprocessing(self, data1, data2, dim, weights1=None, weights2=None):
         '''Preprocess the data.
         
         This will scale and stack the data.
@@ -69,7 +69,7 @@ class _BaseCrossModel(ABC):
             Left input data.
         data2: xr.DataArray or list of xarray.DataArray
             Right input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
         weights1: xr.DataArray or xr.Dataset or None, default=None
@@ -79,9 +79,9 @@ class _BaseCrossModel(ABC):
         
         '''
         # Set sample and feature dimensions
-        sample_dims, feature_dims1 = get_dims(data1, sample_dims=dims)
-        sample_dims, feature_dims2 = get_dims(data2, sample_dims=dims)
-        self.dims = {'sample': sample_dims, 'feature1': feature_dims1, 'feature2': feature_dims2}
+        sample_dims, feature_dims1 = get_dims(data1, sample_dims=dim)
+        sample_dims, feature_dims2 = get_dims(data2, sample_dims=dim)
+        self.dim = {'sample': sample_dims, 'feature1': feature_dims1, 'feature2': feature_dims2}
         
         # Scale the data
         self.scaler1 = self._create_scaler(data1, **self._scaling_params)
@@ -102,7 +102,7 @@ class _BaseCrossModel(ABC):
         self.data2 = self.stacker2.transform(data2)  # type: ignore
 
     @abstractmethod
-    def fit(self, data1, data2, dims, weights1=None, weights2=None):
+    def fit(self, data1, data2, dim, weights1=None, weights2=None):
         '''
         Abstract method to fit the model.
 
@@ -112,7 +112,7 @@ class _BaseCrossModel(ABC):
             Left input data.
         data2: xr.DataArray or list of xarray.DataArray
             Right input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
         weights1: xr.DataArray or xr.Dataset or None, default=None
@@ -122,7 +122,7 @@ class _BaseCrossModel(ABC):
 
         '''
         # Here follows the implementation to fit the model
-        # Typically you want to start by calling self._preprocessing(data1, data2, dims, weights)
+        # Typically you want to start by calling self._preprocessing(data1, data2, dim, weights)
         # ATTRIBUTES TO BE DEFINED:
 
         raise NotImplementedError

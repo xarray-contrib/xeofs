@@ -16,10 +16,10 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 def test_ComplexEOF_fit(test_DataArray):
     """Test fitting a ComplexEOF model"""
     # Create a xarray DataArray with random data
-    dims = 'time'
+    dim = 'time'
     
     ceof = ComplexEOF(n_modes=2)
-    ceof.fit(test_DataArray, dims)
+    ceof.fit(test_DataArray, dim)
 
     # Check that the fit method has properly populated the attributes
     assert ceof._total_variance is not None
@@ -32,9 +32,9 @@ def test_ComplexEOF_fit(test_DataArray):
 
 def test_ComplexEOF_components_amplitude(test_DataArray):
     """Test computation of components amplitude in ComplexEOF model"""
-    dims = 'time'
+    dim = 'time'
     ceof = ComplexEOF(n_modes=2)
-    ceof.fit(test_DataArray, dims)
+    ceof.fit(test_DataArray, dim)
 
     comp_amp = ceof.components_amplitude()
     assert comp_amp is not None
@@ -43,9 +43,9 @@ def test_ComplexEOF_components_amplitude(test_DataArray):
 
 def test_ComplexEOF_components_phase(test_DataArray):
     """Test computation of components phase in ComplexEOF model"""
-    dims = 'time'
+    dim = 'time'
     ceof = ComplexEOF(n_modes=2)
-    ceof.fit(test_DataArray, dims)
+    ceof.fit(test_DataArray, dim)
 
     comp_phase = ceof.components_phase()
     assert comp_phase is not None
@@ -54,9 +54,9 @@ def test_ComplexEOF_components_phase(test_DataArray):
 
 def test_ComplexEOF_scores_amplitude(test_DataArray):
     """Test computation of scores amplitude in ComplexEOF model"""
-    dims = 'time'
+    dim = 'time'
     ceof = ComplexEOF(n_modes=2)
-    ceof.fit(test_DataArray, dims)
+    ceof.fit(test_DataArray, dim)
 
     scores_amp = ceof.scores_amplitude()
     assert scores_amp is not None
@@ -65,9 +65,9 @@ def test_ComplexEOF_scores_amplitude(test_DataArray):
 
 def test_ComplexEOF_scores_phase(test_DataArray):
     """Test computation of scores phase in ComplexEOF model"""
-    dims = 'time'
+    dim = 'time'
     ceof = ComplexEOF(n_modes=2)
-    ceof.fit(test_DataArray, dims)
+    ceof.fit(test_DataArray, dim)
 
     scores_phase = ceof.scores_phase()
     assert scores_phase is not None
@@ -76,7 +76,7 @@ def test_ComplexEOF_scores_phase(test_DataArray):
 
 def test_ComplexEOF_compute(test_DaskDataArray):
     """Test computation of all attributes in ComplexEOF model"""
-    dims = 'time'
+    dim = 'time'
     ceof = ComplexEOF(n_modes=2)
     with pytest.raises(NotImplementedError):
-        ceof.fit(test_DaskDataArray, dims)
+        ceof.fit(test_DaskDataArray, dim)

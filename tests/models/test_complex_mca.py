@@ -16,7 +16,7 @@ def test_complex_mca_initialization():
 
 
 def test_complex_mca_fit(mca_model, test_DataArray):
-    mca_model.fit(test_DataArray, test_DataArray, dims='time')
+    mca_model.fit(test_DataArray, test_DataArray, dim='time')
     assert mca_model._singular_values is not None
     assert mca_model._explained_variance is not None
     assert mca_model._squared_total_variance is not None
@@ -28,12 +28,12 @@ def test_complex_mca_fit(mca_model, test_DataArray):
 def test_complex_mca_fit_empty_data():
     mca = ComplexMCA()
     with pytest.raises(ValueError):
-        mca.fit(xr.DataArray(), xr.DataArray(), dims='time')
+        mca.fit(xr.DataArray(), xr.DataArray(), dim='time')
 
 
 def test_complex_mca_fit_invalid_dims(mca_model, test_DataArray):
     with pytest.raises(ValueError):
-        mca_model.fit(test_DataArray, test_DataArray, dims=('invalid_dim1', 'invalid_dim2'))
+        mca_model.fit(test_DataArray, test_DataArray, dim=('invalid_dim1', 'invalid_dim2'))
 
 
 def test_complex_mca_transform_not_implemented(mca_model, test_DataArray):
@@ -53,10 +53,10 @@ def test_complex_mca_heterogeneous_patterns_not_implemented():
         mca.heterogeneous_patterns()
 
 def test_complex_mca_fit_with_dataset(mca_model, test_Dataset):
-    mca_model.fit(test_Dataset, test_Dataset, dims='time')
+    mca_model.fit(test_Dataset, test_Dataset, dim='time')
     assert mca_model._singular_values is not None
 
 
 def test_complex_mca_fit_with_dataarraylist(mca_model, test_DataArrayList):
-    mca_model.fit(test_DataArrayList, test_DataArrayList, dims='time')
+    mca_model.fit(test_DataArrayList, test_DataArrayList, dim='time')
     assert mca_model._singular_values is not None

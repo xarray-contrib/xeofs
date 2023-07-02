@@ -11,7 +11,7 @@ from ..utils.xarray_utils import hilbert_transform
 
 class MCA(_BaseCrossModel):
 
-    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dims, weights1=None, weights2=None):
+    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
         '''
         Fit the model.
 
@@ -21,7 +21,7 @@ class MCA(_BaseCrossModel):
             Left input data.
         data2: xr.DataArray or list of xarray.DataArray
             Right input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
         weights1: xr.DataArray or xr.Dataset or None, default=None
@@ -30,7 +30,7 @@ class MCA(_BaseCrossModel):
             If specified, the right input data will be weighted by this array.
 
         '''
-        self._preprocessing(data1, data2, dims, weights1, weights2)
+        self._preprocessing(data1, data2, dim, weights1, weights2)
 
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
@@ -366,7 +366,7 @@ class ComplexMCA(MCA):
 
     Methods
     -------
-    fit(data1, data2, dims, weights1=None, weights2=None):
+    fit(data1, data2, dim, weights1=None, weights2=None):
         Fit the model to two datasets.
 
     transform(data1, data2):
@@ -383,7 +383,7 @@ class ComplexMCA(MCA):
         super().__init__(n_modes=n_modes, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
-    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dims, weights1=None, weights2=None):
+    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
         '''Fit the model.
 
         Parameters:
@@ -392,7 +392,7 @@ class ComplexMCA(MCA):
             Left input data.
         data2: xr.DataArray or list of xarray.DataArray
             Right input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
         weights1: xr.DataArray or xr.Dataset or None, default=None
@@ -402,7 +402,7 @@ class ComplexMCA(MCA):
 
         '''
 
-        self._preprocessing(data1, data2, dims, weights1, weights2)
+        self._preprocessing(data1, data2, dim, weights1, weights2)
         
         # apply hilbert transform:
         self.data1 = hilbert_transform(self.data1, dim='sample', **self._hilbert_params)

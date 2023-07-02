@@ -24,11 +24,11 @@ class EOF(_BaseModel):
     
     '''
 
-    def fit(self, data: XarrayData | DataArrayList, dims, weights=None):
+    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
         n_modes = self._params['n_modes']
         
-        super()._preprocessing(data, dims, weights)
+        super()._preprocessing(data, dim, weights)
 
         self._total_variance = total_variance(self.data)
 
@@ -138,11 +138,11 @@ class ComplexEOF(EOF):
         super().__init__(n_modes, standardize, use_coslat, use_weights, **kwargs)
         self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
 
-    def fit(self, data: XarrayData | DataArrayList, dims, weights=None):
+    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
         n_modes = self._params['n_modes']
         
-        super()._preprocessing(data, dims, weights)
+        super()._preprocessing(data, dim, weights)
         
         # apply hilbert transform:
         self.data = hilbert_transform(self.data, dim='sample', **self._hilbert_params)

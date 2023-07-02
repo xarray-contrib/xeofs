@@ -60,7 +60,7 @@ class _BaseModel(ABC):
         else:
             raise ValueError(f'Cannot stack data of type: {type(data)}')
 
-    def _preprocessing(self, data, dims, weights=None):
+    def _preprocessing(self, data, dim, weights=None):
         '''Preprocess the data.
         
         This will scale and stack the data.
@@ -69,7 +69,7 @@ class _BaseModel(ABC):
         -------------
         data: xr.DataArray or list of xarray.DataArray
             Input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
         weights: xr.DataArray or xr.Dataset or None, default=None
@@ -77,7 +77,7 @@ class _BaseModel(ABC):
         
         '''
         # Set sample and feature dimensions
-        sample_dims, feature_dims = get_dims(data, sample_dims=dims)
+        sample_dims, feature_dims = get_dims(data, sample_dims=dim)
         self.dims = {'sample': sample_dims, 'feature': feature_dims}
         
         # Scale the data
@@ -91,7 +91,7 @@ class _BaseModel(ABC):
         self.data = self.stacker.transform(data)  # type: ignore
 
     @abstractmethod
-    def fit(self, data, dims, weights=None):
+    def fit(self, data, dim, weights=None):
         '''
         Abstract method to fit the model.
 
@@ -99,7 +99,7 @@ class _BaseModel(ABC):
         -------------
         data: xr.DataArray or list of xarray.DataArray
             Input data.
-        dims: tuple
+        dim: tuple
             Tuple specifying the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
         weights: xr.DataArray or xr.Dataset or None, default=None
@@ -107,7 +107,7 @@ class _BaseModel(ABC):
 
         '''
         # Here follows the implementation to fit the model
-        # Typically you want to start by calling self._preprocessing(data, dims, weights)
+        # Typically you want to start by calling self._preprocessing(data, dim, weights)
         # ATTRIBUTES TO BE DEFINED:
         self._total_variance = None
         self._singular_values = None
