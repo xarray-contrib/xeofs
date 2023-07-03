@@ -216,8 +216,11 @@ class DataArrayListStacker():
             stacked_data_list[i] = data.assign_coords(feature=dummy_feature_coords[i])  # type: ignore
 
         self._dummy_feature_coords = dummy_feature_coords
-
-        return xr.concat(stacked_data_list, dim='feature')
+        
+        stacked_data = xr.concat(stacked_data_list, dim='feature')
+        self.coords_no_nan = {'sample': stacked_data.coords['sample'], 'feature': stacked_data.coords['feature']}
+        
+        return stacked_data
 
     def inverse_transform_data(self, data: DataArray) -> DataArrayList:
         dalist = []
