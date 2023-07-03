@@ -38,9 +38,9 @@ def test_EOF_initialization():
     assert eof._scaling_params == {'with_std': True, 'with_coslat': True, 'with_weights': False}
 
 
-def test_EOF_fit(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_fit(dim, test_DataArray):
     '''Tests the fit method of the EOF class'''
-    dim = 'time'
 
     eof = EOF()
     eof.fit(test_DataArray, dim)
@@ -57,9 +57,9 @@ def test_EOF_fit(test_DataArray):
     assert eof._scores is not None
 
 
-def test_EOF_singular_values(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_singular_values(dim, test_DataArray):
     '''Tests the singular_values method of the EOF class'''
-    dim = 'time'
 
     eof = EOF()
     eof.fit(test_DataArray, dim)
@@ -69,10 +69,9 @@ def test_EOF_singular_values(test_DataArray):
     assert isinstance(singular_values, xr.DataArray)
 
 
-def test_EOF_explained_variance(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_explained_variance(dim, test_DataArray):
     '''Tests the explained_variance method of the EOF class'''
-    dim = 'time'
-
     eof = EOF()
     eof.fit(test_DataArray, dim)
 
@@ -81,10 +80,9 @@ def test_EOF_explained_variance(test_DataArray):
     assert isinstance(explained_variance, xr.DataArray)
 
 
-def test_EOF_explained_variance_ratio(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_explained_variance_ratio(dim, test_DataArray):
     '''Tests the explained_variance_ratio method of the EOF class'''
-    dim = 'time'
-
     eof = EOF()
     eof.fit(test_DataArray, dim)
 
@@ -93,10 +91,9 @@ def test_EOF_explained_variance_ratio(test_DataArray):
     assert isinstance(explained_variance_ratio, xr.DataArray)
 
 
-def test_EOF_components(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_components(dim, test_DataArray):
     '''Tests the components method of the EOF class'''
-    dim = 'time'
-
     eof = EOF()
     eof.fit(test_DataArray, dim)
 
@@ -105,10 +102,9 @@ def test_EOF_components(test_DataArray):
     assert isinstance(components, xr.DataArray)
 
 
-def test_EOF_scores(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_scores(dim, test_DataArray):
     '''Tests the scores method of the EOF class'''
-    dim = 'time'
-
     eof = EOF()
     eof.fit(test_DataArray, dim)
 
@@ -127,10 +123,9 @@ def test_EOF_get_params():
     assert params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
 
 
-def test_EOF_compute(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_compute(dim, test_DataArray):
     '''Tests the compute method of the EOF class'''
-    
-    dim = 'time'
     
     dask_test_DataArray = test_DataArray.chunk({'time': 1})
     
@@ -157,39 +152,38 @@ def test_EOF_compute(test_DataArray):
     assert not isinstance(eof._scores.data, da.Array)  #type: ignore
 
 
-def test_EOF_transform(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_transform(dim, test_DataArray):
     '''Test projecting new unseen data onto the components (EOFs/eigenvectors)'''
 
     # Create a xarray DataArray with random data
-    dim = 'time'
-    
     model = EOF(n_modes=2)
     model.fit(test_DataArray, dim)
     scores = model.scores()
 
     # Create a new xarray DataArray with random data
-    new_data = test_DataArray.isel(time=range(5))
+    new_data = test_DataArray
 
     projections = model.transform(new_data)
 
     # Check that the projection has the right dimensions
-    assert projections.dims == scores.dims  #type: ignore
+    assert projections.dims == scores.dims, 'Projection has wrong dimensions' #type: ignore
 
     # Check that the projection has the right data type
-    assert isinstance(projections, xr.DataArray)
+    assert isinstance(projections, xr.DataArray), 'Projection is not a DataArray'
 
     # Check that the projection has the right name
-    assert projections.name == 'scores'
+    assert projections.name == 'scores', 'Projection has wrong name'
 
     # Check that the projection's data is the same as the scores
-    np.testing.assert_allclose(scores.isel(time=range(5)).data, projections.data)
+    np.testing.assert_allclose(scores.data, projections.data)
 
 
-def test_EOF_inverse_transform(test_DataArray):
+@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
+def test_EOF_inverse_transform(dim, test_DataArray):
     '''Test inverse_transform method in EOF class.'''
 
     # instantiate the EOF class with necessary parameters
-    dim = 'time'
     eof = EOF(n_modes=3, standardize=True)
     
     # fit the EOF model
@@ -212,4 +206,3 @@ def test_EOF_inverse_transform(test_DataArray):
 
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(test_DataArray.dims)
-

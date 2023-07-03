@@ -1,18 +1,69 @@
-from typing import List, Union, Tuple, Dict, Optional, Sequence, Hashable
+from typing import List, Sequence, Hashable
 
 import numpy as np
 import xarray as xr
 
+from xeofs.utils.data_types import DataArray
+
 from ._base_stacker import _BaseStacker
-from ..utils.data_types import ModelDims, DataArray, DataArrayList, Dataset
+from ..utils.data_types import DataArray, DataArrayList, Dataset
 from ..utils.sanity_checks import ensure_tuple
 
-class DataArrayStacker(_BaseStacker):
-    ''' Reshape any N-dimensional DataArray into a 2D version.
-    
-    The new object has two dimensions, `sample` and `feature`.
 
+class DataArrayStacker(_BaseStacker):
+    ''' Converts a DataArray of any dimensionality into a 2D structure.
+
+    This operation generates a reshaped DataArray with two distinct dimensions: 'sample' and 'feature'.
+    
+    The handling of NaNs is specific: if they are found to populate an entire dimension (be it 'sample' or 'feature'), 
+    they are temporarily removed during transformations and subsequently reinstated. 
+    However, the presence of isolated NaNs will trigger an error.
+        
     '''
+
+    def _to_2d(self, data: DataArray, sample_dims, feature_dims) -> DataArray:
+        ''' Reshape a DataArray to 2D.
+
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reshaped.
+        sample_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `sample` dimension.
+        feature_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `feature` dimension.
+
+        Returns
+        -------
+        data_stacked : DataArray
+            The reshaped 2d-data.
+        '''
+        return data.stack(sample=sample_dims, feature=feature_dims)
+
+    def _reindex_dim(self, data: DataArray,  model_dim : str):
+        ''' Reindex data to original coordinates in case that some features at the boundaries were dropped
+        
+        Parameters
+        ----------
+        data : DataArray
+            The data to be reindex.
+        model_dim : str ['sample', 'feature']
+            The dimension to be reindexed.
+            
+        Returns
+        -------
+        DataArray
+            The reindexed data.
+            
+        '''
+        # check if coordinates in self.coords have different length from data.coords
+        # if so, reindex data.coords to self.coords
+        # input_dim : dimensions of input data
+        # model_dim : dimensions of model data i.e. sample or feature
+        for input_dim in self.coords[model_dim].keys():
+            if self.coords[model_dim][input_dim].size != data.coords[input_dim].size:
+                data = data.reindex({input_dim: self.coords[model_dim][input_dim]})
+        return data
 
     def fit(
             self,
@@ -35,13 +86,11 @@ class DataArrayStacker(_BaseStacker):
 
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = ensure_tuple(feature_dims)
-        self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
+        self.dims = {'sample': sample_dims, 'feature': feature_dims}
         self.coords = {
             'sample': {dim: data.coords[dim] for dim in sample_dims},
             'feature': {dim: data.coords[dim] for dim in feature_dims}
         }
-        
-        
 
     def transform(self, data: DataArray) -> DataArray:
         ''' Reshape the data into a 2D version.
@@ -55,6 +104,15 @@ class DataArrayStacker(_BaseStacker):
         -------
         DataArray
             The reshaped data.
+
+        Raises
+        ------
+        ValueError
+            If the data to be transformed has different dimensions than the data used to fit the stacker.
+        ValueError
+            If the data to be transformed has different coordinates than the data used to fit the stacker.
+        ValueError
+            If the data to be transformed has individual NaNs.
             
         '''
         # Test whether sample and feature dimensions are present in data array
@@ -65,78 +123,131 @@ class DataArrayStacker(_BaseStacker):
         if not dim_features_exist:
             raise ValueError(f'{self.dims["feature"]} are not present in data array')
 
+        # Check if data to be transformed has the same coordinates as the data used to fit the stacker
+        if not all([data.coords[dim].equals(self.coords['feature'][dim]) for dim in self.dims['feature']]):  #type: ignore
+            raise ValueError('Data to be transformed has different coordinates than the data used to fit.')
+
         # Stack data and remove NaN features
-        data = data.stack(sample=self.dims['sample'], feature=self.dims['feature'])
-        data = data.dropna('feature')
+        data = self._to_2d(data, self.dims['sample'], self.dims['feature'])
+        data = data.dropna('feature', how='all')
+        data = data.dropna('sample', how='all')
         self.coords_no_nan = {'sample': data.coords['sample'], 'feature': data.coords['feature']}
+
+        # Ensure that no NaNs are present in the data
+        if data.isnull().any():
+            raise ValueError('Isolated NaNs are present in the data. Please remove them before fitting the model.')
 
         return data
     
     def inverse_transform_data(self, data: DataArray) -> DataArray:
-        ''' Reshape the 2D data (sample x feature) back into its original shape.
-        
+        ''' Reshape the 2D data (sample x feature) back into its original shape.'''
 
-        '''
         data = data.unstack()
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
-        # if so, reindex data.coords['feature'] to self.coords['feature']
-        for dim in self.coords['feature'].keys():
-            if self.coords['feature'][dim].size != data.coords[dim].size:
-                data = data.reindex({dim: self.coords['feature'][dim]})
-
+        data = self._reindex_dim(data, 'feature')
+        data = self._reindex_dim(data, 'sample')
 
         return data
     
     def inverse_transform_components(self, data: DataArray) -> DataArray:
-        ''' Reshape the 2D data (mode x feature) back into its original shape.
-        
-        Parameters
-        ----------
-        data : DataArray
-            The data to be reshaped.
-
-        Returns
-        -------
-        DataArray
-            The reshaped data.
-            
-        '''
+        ''' Reshape the 2D data (mode x feature) back into its original shape.'''
 
         data = data.unstack()
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
-        # if so, reindex data.coords['feature'] to self.coords['feature']
-        for dim in self.coords['feature'].keys():
-            if self.coords['feature'][dim].size != data.coords[dim].size:
-                data = data.reindex({dim: self.coords['feature'][dim]})
-
+        data = self._reindex_dim(data, 'feature')
         
         return data
     
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
-        ''' Reshape the 2D data (sample x mode) back into its original shape.
+        ''' Reshape the 2D data (sample x mode) back into its original shape.'''
+
+        data = data.unstack()
+
+        # Scores are not to be reindexed since they new data typically has different sample coordinates
+        # than the original data used for fitting the model
+
+        return data
+
+
+class DatasetStacker(DataArrayStacker):
+    ''' Converts a Dataset of any dimensionality into a 2D structure.
+
+    This operation generates a reshaped Dataset with two distinct dimensions: 'sample' and 'feature'.
+    
+    The handling of NaNs is specific: if they are found to populate an entire dimension (be it 'sample' or 'feature'), 
+    they are temporarily removed during transformations and subsequently reinstated. 
+    However, the presence of isolated NaNs will trigger an error.
+
+    '''
+
+    def _to_2d(self, data: Dataset, sample_dims, feature_dims) -> DataArray:
+        ''' Reshape a Dataset to 2D.
 
         Parameters
         ----------
-        data : DataArray
+        data : Dataset
             The data to be reshaped.
+        sample_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `sample` dimension.
+        feature_dims : Hashable or Sequence[Hashable]
+            The dimensions of the data that will be stacked along the `feature` dimension.
 
         Returns
         -------
-        DataArray
-            The reshaped data.
-            
+        data_stacked : DataArray | Dataset
+            The reshaped 2d-data.
         '''
-        return data.unstack()
+        data_da = data.to_stacked_array(new_dim='feature', sample_dims=sample_dims)
+        return data_da.stack(sample=sample_dims)
+    
+    def _reindex_dim(self, data: Dataset, model_dim: str) -> Dataset:
+        return super()._reindex_dim(data, model_dim)  # type: ignore
+
+    def fit(self, data: Dataset, sample_dims: Hashable | Sequence[Hashable], feature_dims: Hashable | Sequence[Hashable]):
+        return super().fit(data, sample_dims, feature_dims)  # type: ignore
+
+    def transform(self, data: Dataset) -> Dataset:
+        return super().transform(data)  # type: ignore
+
+    def inverse_transform_data(self, data: DataArray) -> Dataset:
+        ''' Reshape the 2D data (sample x feature) back into its original shape.'''
+        data_ds = data.to_unstacked_dataset('variable').unstack()
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        data_ds = self._reindex_dim(data_ds, 'feature')
+        data_ds = self._reindex_dim(data_ds, 'sample')
+
+        return data_ds
+    
+    def inverse_transform_components(self, data: DataArray) -> Dataset:
+        ''' Reshape the 2D data (mode x feature) back into its original shape.'''
+        data_ds = data.to_unstacked_dataset('feature').unstack()
+
+        # Reindex data to original coordinates in case that some features at the boundaries were dropped
+        data_ds = self._reindex_dim(data_ds, 'feature')
+
+        return data_ds
+    
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        ''' Reshape the 2D data (sample x mode) back into its original shape.'''
+        data = data.unstack()
+
+        # Scores are not to be reindexed since they new data typically has different sample coordinates
+        # than the original data used for fitting the model
+
+        return data
 
 
 class DataArrayListStacker():
-    ''' Reshape a list of N-dimensional DataArrays into a 2D version.
+    ''' Converts a list of DataArrays of any dimensionality into a 2D structure.
+
+    This operation generates a reshaped DataArray with two distinct dimensions: 'sample' and 'feature'.
     
-    The new object has two dimensions, `sample` and `feature`.
+    The handling of NaNs is specific: if they are found to populate an entire dimension (be it 'sample' or 'feature'), 
+    they are temporarily removed during transformations and subsequently reinstated. 
+    However, the presence of isolated NaNs will trigger an error.
     
     '''
     def __init__(self):
@@ -222,9 +333,16 @@ class DataArrayListStacker():
     def inverse_transform_data(self, data: DataArray) -> DataArrayList:
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
+            # Select the features corresponding to the current DataArray
             subda = data.sel(feature=features)
+            # Replace dummy feature coordinates with original feature coordinates
             subda = subda.assign_coords(feature=stacker.coords_no_nan['feature'])
             subda = subda.set_index(feature=stacker.dims['feature'])
+            # NOTE: This is a workaround for the case where the feature dimension is a tuple of length 1
+            # the problem is described here: https://github.com/pydata/xarray/discussions/7958
+            if len(stacker.dims['feature']) == 1:
+                subda = subda.rename(feature=stacker.dims['feature'][0])
+            # Inverse transform the data using the corresponding stacker
             subda = stacker.inverse_transform_data(subda)
             dalist.append(subda)
         return dalist
@@ -232,9 +350,16 @@ class DataArrayListStacker():
     def inverse_transform_components(self, data: DataArray) -> DataArrayList:
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
+            # Select the features corresponding to the current DataArray
             subda = data.sel(feature=features)
+            # Replace dummy feature coordinates with original feature coordinates
             subda = subda.assign_coords(feature=stacker.coords_no_nan['feature'])
             subda = subda.set_index(feature=stacker.dims['feature'])
+            # NOTE: This is a workaround for the case where the feature dimension is a tuple of length 1
+            # the problem is described here: https://github.com/pydata/xarray/discussions/7958
+            if len(stacker.dims['feature']) == 1:
+                subda = subda.rename(feature=stacker.dims['feature'][0])
+            # Inverse transform the data using the corresponding stacker
             subda = stacker.inverse_transform_components(subda)
             dalist.append(subda)
         return dalist
@@ -242,73 +367,3 @@ class DataArrayListStacker():
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
         return data.unstack()
             
-
-class DatasetStacker(_BaseStacker):
-    ''' Reshape any N-dimensional Dataset into a 2D version.
-    
-    The new object has two dimensions, `sample` and `feature`.
-
-    '''
-    def fit(
-            self,
-            data: Dataset,
-            sample_dims: Hashable | Sequence[Hashable],
-            feature_dims: Hashable | Sequence[Hashable]
-            ):
-
-        sample_dims = ensure_tuple(sample_dims)
-        feature_dims = ensure_tuple(feature_dims)
-        self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
-        self.coords = {
-            'sample': {dim: data.coords[dim] for dim in sample_dims},
-            'feature': {dim: data.coords[dim] for dim in feature_dims}
-        }
-        
-
-    def transform(self, data: Dataset) -> DataArray:
-        # Test whether sample and feature dimensions are present in dataset
-        dim_samples_exist = np.isin(self.dims['sample'], np.array(data.dims)).all()
-        dim_features_exist = np.isin(self.dims['feature'], np.array(data.dims)).all()
-        if not dim_samples_exist:
-            raise ValueError(f'{self.dims["sample"]} are not present in data array')
-        if not dim_features_exist:
-            raise ValueError(f'{self.dims["feature"]} are not present in data array')
-
-        # Stack data and remove NaN features
-        data_da = data.to_stacked_array(new_dim='feature', sample_dims=self.dims['sample'])
-        data_da = data_da.stack(sample=self.dims['sample'])
-        data_da = data_da.dropna('feature')
-        self.coords_no_nan = {'sample': data_da.coords['sample'], 'feature': data_da.coords['feature']}
-        
-        return data_da
-
-    def inverse_transform_data(self, data: DataArray) -> Dataset:
-        data = data.unstack('sample')
-        data_ds = data.to_unstacked_dataset('feature', 'variable')
-        data_ds = data_ds.unstack('feature')
-
-        # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
-        # if so, reindex data.coords['feature'] to self.coords['feature']
-        for dim in self.coords['feature'].keys():
-            if self.coords['feature'][dim].size != data.coords[dim].size:
-                data_ds = data_ds.reindex({dim: self.coords['feature'][dim]})
-
-        return data_ds
-    
-    def inverse_transform_components(self, data: DataArray) -> Dataset:
-        data_ds = data.to_unstacked_dataset('feature').unstack()
-
-        # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        # check if coordinates in self.coords['feature'] have different length from data.coords['feature']
-        # if so, reindex data.coords['feature'] to self.coords['feature']
-        for dim in self.coords['feature'].keys():
-            if self.coords['feature'][dim].size != data.coords[dim].size:
-                data_ds = data_ds.reindex({dim: self.coords['feature'][dim]})
-
-        return data_ds
-    
-    def inverse_transform_scores(self, data: DataArray) -> DataArray:
-        data = data.unstack()
-        return data
-
