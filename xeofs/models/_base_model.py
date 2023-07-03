@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -5,11 +6,14 @@ import xarray as xr
 import scipy as sc
 from dask.diagnostics.progress import ProgressBar
 
-
 from ..preprocessing.scaler import Scaler, ListScaler
 from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.xarray_utils import get_dims
+
+# Ignore warnings from numpy casting with additional coordinates
+warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
+
 
 class _BaseModel(ABC):
     '''
