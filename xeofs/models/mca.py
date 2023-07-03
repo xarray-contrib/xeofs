@@ -254,8 +254,8 @@ class MCA(_BaseCrossModel):
         patterns1, pvals1 = pearson_correlation(self.data1, self._scores1, correction=correction, alpha=alpha)
         patterns2, pvals2 = pearson_correlation(self.data2, self._scores2, correction=correction, alpha=alpha)
 
-        patterns1 = self.stacker1.inverse_transform_data(self._singular_vectors1)
-        patterns2 = self.stacker2.inverse_transform_data(self._singular_vectors2)
+        patterns1 = self.stacker1.inverse_transform_components(self._singular_vectors1)
+        patterns2 = self.stacker2.inverse_transform_components(self._singular_vectors2)
 
         return patterns1, patterns2, pvals1, pvals2
 
@@ -297,8 +297,8 @@ class MCA(_BaseCrossModel):
         patterns1, pvals1 = pearson_correlation(self.data1, self._scores2, correction=correction, alpha=alpha)
         patterns2, pvals2 = pearson_correlation(self.data2, self._scores1, correction=correction, alpha=alpha)
 
-        patterns1 = self.stacker1.inverse_transform_data(self._singular_vectors2)
-        patterns2 = self.stacker2.inverse_transform_data(self._singular_vectors1)
+        patterns1 = self.stacker1.inverse_transform_components(self._singular_vectors2)
+        patterns2 = self.stacker2.inverse_transform_components(self._singular_vectors1)
 
         return patterns1, patterns2, pvals1, pvals2
 

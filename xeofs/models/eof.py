@@ -63,7 +63,7 @@ class EOF(_BaseModel):
         data = self.stacker.transform(data)  #type: ignore
 
         # Project the data
-        projections = xr.dot(data, self._components) / self._singular_values
+        projections = xr.dot(data, self._components, dims='feature') / self._singular_values
         projections.name = 'scores'
 
         # Unstack the projections
