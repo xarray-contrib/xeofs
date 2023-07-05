@@ -7,16 +7,17 @@ from dask.array import Array as DaskArray   # type: ignore
 from xeofs.models import MCA, MCARotator
 
 @pytest.fixture
-def mca_model(test_DataArray):
+def mca_model(mock_data_array, dim):
     mca = MCA(n_modes=5)
-    mca.fit(test_DataArray, test_DataArray, dim='time')
+    mca.fit(mock_data_array, mock_data_array, dim)
     return mca
 
 @pytest.fixture
-def mca_model_delayed(test_DaskDataArray):
+def mca_model_delayed(mock_dask_data_array, dim):
     mca = MCA(n_modes=5)
-    mca.fit(test_DaskDataArray, test_DaskDataArray, dim='time')
+    mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
+
 
 def test_mcarotator_init():
     mca_rotator = MCARotator(n_modes=2)
@@ -26,6 +27,12 @@ def test_mcarotator_init():
     assert mca_rotator._params['rtol'] == 1e-8
     assert mca_rotator._params['squared_loadings'] == False
 
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
 def test_mcarotator_fit(mca_model):
     mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
@@ -33,14 +40,26 @@ def test_mcarotator_fit(mca_model):
     assert hasattr(mca_rotator, "_rotation_matrix")
     assert hasattr(mca_rotator, "_idx_expvar")
 
-def test_mcarotator_transform(mca_model, test_DataArray):
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_mcarotator_transform(mca_model, mock_data_array):
     mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     
-    projections = mca_rotator.transform(data1=test_DataArray, data2=test_DataArray)
+    projections = mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
     
     assert len(projections) == 2
 
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
 def test_mcarotator_inverse_transform(mca_model):
     mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
@@ -50,9 +69,15 @@ def test_mcarotator_inverse_transform(mca_model):
     assert isinstance(reconstructed_data, tuple)
     assert len(reconstructed_data) == 2
 
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
 def test_mcarotator_compute(mca_model_delayed):
     '''Test the compute method of the MCARotator class.'''
-
+    pass
     # NOTE: This test takes a long time to run though it should not. Running the same example
     # in a separate file is much faster. I don't have a clue why this is the case but for the moment
     # I will leave it as is but deactivate the test. 

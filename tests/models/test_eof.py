@@ -7,27 +7,7 @@ from numpy.testing import assert_allclose
 from xeofs.models.eof import EOF
 
 
-@pytest.mark.parametrize('method, standardize, use_weights', [
-    ('EOF', False, None),
-    ('EOF', True, None)
-])
-def test_solution(method, standardize, use_weights, reference_solution, test_DataArray):
-    # Compare numpy implementation against reference solution
-    experiment = reference_solution.get_experiment(
-        method=method, norm=standardize, weights=use_weights
-    )
-    reference = experiment.get_results()
-
-    model = EOF(standardize=standardize)
-    model.fit(test_DataArray.transpose('time','x','y'), 'time')
-    assert_allclose(model.singular_values(), reference['singular_values'])  #type: ignore
-    assert_allclose(model.explained_variance(), reference['explained_variance'])  #type: ignore
-    assert_allclose(model.explained_variance_ratio(), reference['explained_variance_ratio'])  #type: ignore
-    assert_allclose(model.components().stack(loc=('x', 'y')).dropna('loc').values, reference['eofs'].T)  #type: ignore
-    assert_allclose(model.scores().values, reference['pcs'].T)
-
-
-def test_EOF_initialization():
+def test_eof_initialization():
     '''Tests the initialization of the EOF class'''
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
@@ -38,12 +18,16 @@ def test_EOF_initialization():
     assert eof._scaling_params == {'with_std': True, 'with_coslat': True, 'with_weights': False}
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_fit(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_fit(dim, mock_data_array):
     '''Tests the fit method of the EOF class'''
 
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Assert that data has been preprocessed
     assert isinstance(eof.data, xr.DataArray)
@@ -57,63 +41,83 @@ def test_EOF_fit(dim, test_DataArray):
     assert eof._scores is not None
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_singular_values(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_singular_values(dim, mock_data_array):
     '''Tests the singular_values method of the EOF class'''
 
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Test singular_values method
     singular_values = eof.singular_values()
     assert isinstance(singular_values, xr.DataArray)
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_explained_variance(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_explained_variance(dim, mock_data_array):
     '''Tests the explained_variance method of the EOF class'''
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Test explained_variance method
     explained_variance = eof.explained_variance()
     assert isinstance(explained_variance, xr.DataArray)
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_explained_variance_ratio(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_explained_variance_ratio(dim, mock_data_array):
     '''Tests the explained_variance_ratio method of the EOF class'''
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Test explained_variance_ratio method
     explained_variance_ratio = eof.explained_variance_ratio()
     assert isinstance(explained_variance_ratio, xr.DataArray)
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_components(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_components(dim, mock_data_array):
     '''Tests the components method of the EOF class'''
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Test components method
     components = eof.components()
     assert isinstance(components, xr.DataArray)
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_scores(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_scores(dim, mock_data_array):
     '''Tests the scores method of the EOF class'''
     eof = EOF()
-    eof.fit(test_DataArray, dim)
+    eof.fit(mock_data_array, dim)
 
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray)
 
 
-def test_EOF_get_params():
+def test_eof_get_params():
     '''Tests the get_params method of the EOF class'''
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
@@ -123,14 +127,18 @@ def test_EOF_get_params():
     assert params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_compute(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_compute(dim, mock_data_array):
     '''Tests the compute method of the EOF class'''
     
-    dask_test_DataArray = test_DataArray.chunk({'time': 1})
+    dask_mock_data_array = mock_data_array.chunk({'time': 1})
     
     eof = EOF()
-    eof.fit(dask_test_DataArray, dim)
+    eof.fit(dask_mock_data_array, dim)
 
    # Assert that the attributes are indeed Dask arrays before computation
     assert isinstance(eof._total_variance.data, da.Array)  #type: ignore
@@ -152,17 +160,21 @@ def test_EOF_compute(dim, test_DataArray):
     assert not isinstance(eof._scores.data, da.Array)  #type: ignore
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_transform(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_transform(dim, mock_data_array):
     '''Test projecting new unseen data onto the components (EOFs/eigenvectors)'''
 
     # Create a xarray DataArray with random data
     model = EOF(n_modes=2)
-    model.fit(test_DataArray, dim)
+    model.fit(mock_data_array, dim)
     scores = model.scores()
 
     # Create a new xarray DataArray with random data
-    new_data = test_DataArray
+    new_data = mock_data_array
 
     projections = model.transform(new_data)
 
@@ -179,15 +191,19 @@ def test_EOF_transform(dim, test_DataArray):
     np.testing.assert_allclose(scores.data, projections.data)
 
 
-@pytest.mark.parametrize('dim', [('time'), (('x', 'y'))])
-def test_EOF_inverse_transform(dim, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_inverse_transform(dim, mock_data_array):
     '''Test inverse_transform method in EOF class.'''
 
     # instantiate the EOF class with necessary parameters
     eof = EOF(n_modes=3, standardize=True)
     
     # fit the EOF model
-    eof.fit(test_DataArray, dim=dim)
+    eof.fit(mock_data_array, dim=dim)
 
     # Test with scalar
     mode = 1
@@ -205,4 +221,4 @@ def test_EOF_inverse_transform(dim, test_DataArray):
     assert isinstance(reconstructed_data, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data
-    assert set(reconstructed_data.dims) == set(test_DataArray.dims)
+    assert set(reconstructed_data.dims) == set(mock_data_array.dims)

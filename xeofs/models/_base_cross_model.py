@@ -94,12 +94,10 @@ class _BaseCrossModel(ABC):
 
         # Stack the data
         self.stacker1 = self._create_stacker(data1)
-        self.stacker1.fit(data1, sample_dims, feature_dims1)  # type: ignore
-        self.data1 = self.stacker1.transform(data1)  # type: ignore
+        self.data1 = self.stacker1.fit_transform(data1, sample_dims, feature_dims1)  # type: ignore
 
         self.stacker2 = self._create_stacker(data2)
-        self.stacker2.fit(data2, sample_dims, feature_dims2)  # type: ignore
-        self.data2 = self.stacker2.transform(data2)  # type: ignore
+        self.data2 = self.stacker2.fit_transform(data2, sample_dims, feature_dims2)  # type: ignore
 
     @abstractmethod
     def fit(self, data1, data2, dim, weights1=None, weights2=None):
