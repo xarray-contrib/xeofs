@@ -139,6 +139,7 @@ def hilbert_transform(data: DataArray, dim, padding='exp', decay_factor=.2) -> D
         output_core_dims=[['sample']],
         kwargs={'padding': padding, 'decay_factor': decay_factor},
         dask='parallelized',
+        dask_gufunc_kwargs={'allow_rechunk': True}
     )
 
 def _np_sqrt_cos_lat_weights(data):

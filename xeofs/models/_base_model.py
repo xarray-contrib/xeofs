@@ -91,8 +91,7 @@ class _BaseModel(ABC):
 
         # Stack the data
         self.stacker = self._create_stacker(data)
-        self.stacker.fit(data, sample_dims, feature_dims)  # type: ignore
-        self.data = self.stacker.transform(data)  # type: ignore
+        self.data = self.stacker.fit_transform(data, sample_dims, feature_dims)  # type: ignore
 
     @abstractmethod
     def fit(self, data, dim, weights=None):

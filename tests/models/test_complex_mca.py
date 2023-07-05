@@ -15,8 +15,13 @@ def test_complex_mca_initialization():
     assert mca is not None
 
 
-def test_complex_mca_fit(mca_model, test_DataArray):
-    mca_model.fit(test_DataArray, test_DataArray, dim='time')
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+    ])
+def test_complex_mca_fit(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
     assert mca_model._singular_values is not None
     assert mca_model._explained_variance is not None
     assert mca_model._squared_total_variance is not None
@@ -25,20 +30,35 @@ def test_complex_mca_fit(mca_model, test_DataArray):
     assert mca_model._norm1 is not None
     assert mca_model._norm2 is not None
 
-def test_complex_mca_fit_empty_data():
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+    ])
+def test_complex_mca_fit_empty_data(dim):
     mca = ComplexMCA()
     with pytest.raises(ValueError):
-        mca.fit(xr.DataArray(), xr.DataArray(), dim='time')
+        mca.fit(xr.DataArray(), xr.DataArray(), dim)
 
 
-def test_complex_mca_fit_invalid_dims(mca_model, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('invalid_dim')),
+    ])
+def test_complex_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
     with pytest.raises(ValueError):
-        mca_model.fit(test_DataArray, test_DataArray, dim=('invalid_dim1', 'invalid_dim2'))
+        mca_model.fit(mock_data_array, mock_data_array, dim)
 
 
-def test_complex_mca_transform_not_implemented(mca_model, test_DataArray):
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+    ])
+def test_complex_mca_transform_not_implemented(mca_model, mock_data_array, dim):
     with pytest.raises(NotImplementedError):
-        mca_model.transform(test_DataArray, test_DataArray)
+        mca_model.transform(mock_data_array, mock_data_array)
+
 
 
 def test_complex_mca_homogeneous_patterns_not_implemented():
@@ -52,11 +72,22 @@ def test_complex_mca_heterogeneous_patterns_not_implemented():
     with pytest.raises(NotImplementedError):
         mca.heterogeneous_patterns()
 
-def test_complex_mca_fit_with_dataset(mca_model, test_Dataset):
-    mca_model.fit(test_Dataset, test_Dataset, dim='time')
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+    ])
+def test_complex_mca_fit_with_dataset(mca_model, mock_dataset, dim):
+    mca_model.fit(mock_dataset, mock_dataset, dim)
     assert mca_model._singular_values is not None
 
 
-def test_complex_mca_fit_with_dataarraylist(mca_model, test_DataArrayList):
-    mca_model.fit(test_DataArrayList, test_DataArrayList, dim='time')
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+    ])
+def test_complex_mca_fit_with_dataarraylist(mca_model, mock_data_array_list, dim):
+    mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
     assert mca_model._singular_values is not None
