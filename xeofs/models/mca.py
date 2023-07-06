@@ -4,7 +4,7 @@ from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import CrossDecomposer
-from ..utils.data_types import XarrayData, DataArrayList
+from ..utils.data_types import XarrayData, DataArrayList, DataArray, Dataset
 from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import hilbert_transform
 
@@ -488,6 +488,86 @@ class ComplexMCA(MCA):
 
         # Assign analysis relevant meta data
         self._assign_meta_data()
+
+    def components_amplitude(self) -> DataArray | Dataset | DataArrayList:
+        '''Compute the amplitude of the components.
+
+        Returns
+        -------
+        xr.DataArray
+            Amplitude of the components.
+
+        '''
+        comps1 = abs(self._singular_vectors1)
+        comps2 = abs(self._singular_vectors2)
+
+        comps1.name = 'singular_vector_amplitudes'
+        comps2.name = 'singular_vector_amplitudes'
+
+        comps1 = self.stacker1.inverse_transform_components(comps1) # type: ignore
+        comps2 = self.stacker2.inverse_transform_components(comps2) # type: ignore
+
+        return comps1, comps2  # type: ignore
+
+    def components_phase(self) -> DataArray | Dataset | DataArrayList:
+        '''Compute the phase of the components.
+
+        Returns
+        -------
+        xr.DataArray
+            Phase of the components.
+
+        '''
+        comps1 = xr.apply_ufunc(np.angle, self._singular_vectors1, keep_attrs=True)
+        comps2 = xr.apply_ufunc(np.angle, self._singular_vectors2, keep_attrs=True)
+
+        comps1.name = 'singular_vector_phases'
+        comps2.name = 'singular_vector_phases'
+
+        comps1 = self.stacker1.inverse_transform_components(comps1) # type: ignore
+        comps2 = self.stacker2.inverse_transform_components(comps2) # type: ignore
+
+        return comps1, comps2  # type: ignore
+    
+    def scores_amplitude(self) -> DataArray | Dataset | DataArrayList:
+        '''Compute the amplitude of the scores.
+
+        Returns
+        -------
+        xr.DataArray
+            Amplitude of the scores.
+
+        '''
+        scores1 = abs(self._scores1)
+        scores2 = abs(self._scores2)
+
+        scores1.name = 'score_amplitudes'
+        scores2.name = 'score_amplitudes'
+
+        scores1 = self.stacker1.inverse_transform_scores(scores1) # type: ignore
+        scores2 = self.stacker2.inverse_transform_scores(scores2) # type: ignore
+
+        return scores1, scores2  # type: ignore
+    
+    def scores_phase(self) -> DataArray | Dataset | DataArrayList:
+        '''Compute the phase of the scores.
+
+        Returns
+        -------
+        xr.DataArray
+            Phase of the scores.
+
+        '''
+        scores1 = xr.apply_ufunc(np.angle, self._scores1, keep_attrs=True)
+        scores2 = xr.apply_ufunc(np.angle, self._scores2, keep_attrs=True)
+
+        scores1.name = 'score_phases'
+        scores2.name = 'score_phases'
+
+        scores1 = self.stacker1.inverse_transform_scores(scores1) # type: ignore
+        scores2 = self.stacker2.inverse_transform_scores(scores2) # type: ignore
+
+        return scores1, scores2  # type: ignore
 
     
     def transform(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList):
