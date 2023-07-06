@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 import numpy as np
 import xarray as xr
@@ -8,6 +9,7 @@ from ..preprocessing.scaler import Scaler, ListScaler
 from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
 from ..utils.xarray_utils import get_dims
 from ..utils.data_types import XarrayData, DataArrayList
+from .._version import __version__
 
 class _BaseCrossModel(ABC):
     '''
@@ -26,12 +28,23 @@ class _BaseCrossModel(ABC):
 
     '''
     def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
+        # Define model parameters
         self._params = {
             'n_modes': n_modes,
             'standardize': standardize,
             'use_coslat': use_coslat,
             'use_weights': use_weights
         }
+
+        # Define analysis-relevant meta data
+        self.attrs = {'model': 'BaseCrossModel'}
+        self.attrs.update(self._params)
+        self.attrs.update({
+            'software': 'xeofs',
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+        # Some more parameters used for scaling
         self._scaling_params = {
             'with_std': standardize,
             'with_coslat': use_coslat,
@@ -140,4 +153,3 @@ class _BaseCrossModel(ABC):
     def compute(self):
         '''Computing the model will load and compute Dask arrays.'''
         raise NotImplementedError
-

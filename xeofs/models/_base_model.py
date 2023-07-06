@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 import numpy as np
 import xarray as xr
@@ -10,6 +11,7 @@ from ..preprocessing.scaler import Scaler, ListScaler
 from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.xarray_utils import get_dims
+from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
 warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
@@ -32,12 +34,24 @@ class _BaseModel(ABC):
 
     '''
     def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
+        # Define model parameters
         self._params = {
             'n_modes': n_modes,
             'standardize': standardize,
             'use_coslat': use_coslat,
             'use_weights': use_weights
         }
+
+        # Define analysis-relevant meta data
+        self.attrs = {'model': 'BaseModel'}
+        self.attrs.update(self._params)
+        self.attrs.update({
+            'software': 'xeofs',
+            'version': __version__,
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+        # Some more parameters used for scaling
         self._scaling_params = {
             'with_std': standardize,
             'with_coslat': use_coslat,
@@ -211,3 +225,12 @@ class _BaseModel(ABC):
             self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
             self._components = self._components.compute()    # type: ignore
             self._scores = self._scores.compute()    # type: ignore
+
+    def _assign_meta_data(self):
+        '''Set attributes to the model output.'''
+        self._total_variance.attrs.update(self.attrs)  # type: ignore
+        self._singular_values.attrs.update(self.attrs)  # type: ignore
+        self._explained_variance.attrs.update(self.attrs)  # type: ignore
+        self._explained_variance_ratio.attrs.update(self.attrs)  # type: ignore
+        self._components.attrs.update(self.attrs)  # type: ignore
+        self._scores.attrs.update(self.attrs)  # type: ignore

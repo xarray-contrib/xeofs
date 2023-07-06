@@ -9,6 +9,7 @@ from .eof import EOF, ComplexEOF
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList
 
+
 class EOFRotator(_BaseRotator):
     '''Rotates a solution obtained from ``xe.models.EOF``.
 
@@ -27,6 +28,10 @@ class EOFRotator(_BaseRotator):
         process (the default is 1e-8).
 
     '''
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'Rotated EOF analysis'})
 
     def fit(self, model: EOF | ComplexEOF):
         '''Fit the model.
@@ -86,6 +91,9 @@ class EOFRotator(_BaseRotator):
         # Reorder according to variance
         scores = scores.isel(mode=idx_sort).assign_coords(mode=scores.mode)
         self._scores = scores
+
+        # Assign analysis-relevant meta data
+        self._assign_meta_data()
 
     def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
 
@@ -172,6 +180,17 @@ class EOFRotator(_BaseRotator):
             self._scores = self._scores.compute()
 
 
+    def _assign_meta_data(self):
+        '''Assign analysis-relevant meta data.'''
+        # Attributes of fitted model
+        attrs = self._model.attrs.copy()  # type: ignore
+        # Include meta data of the rotation
+        attrs.update(self.attrs)
+        self._explained_variance.attrs.update(attrs)  # type: ignore
+        self._explained_variance_ratio.attrs.update(attrs)  # type: ignore
+        self._components.attrs.update(attrs)  # type: ignore
+        self._scores.attrs.update(attrs)  # type: ignore
+
  
 class ComplexEOFRotator(EOFRotator):
     '''Rotates a solution obtained from ``xe.models.ComplexEOF``.
@@ -191,6 +210,9 @@ class ComplexEOFRotator(EOFRotator):
         process (the default is 1e-8).
 
     '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'Rotated Complex EOF analysis'})
 
     def transform(self, data: XarrayData | DataArrayList):
         raise NotImplementedError('Complex EOF does not support transform.')
@@ -218,7 +240,7 @@ class ComplexEOFRotator(EOFRotator):
             Phase of the components.
 
         '''
-        comps = xr.apply_ufunc(np.angle, self._components)
+        comps = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
         comps.name = 'phase'
         comps = self._model.stacker.inverse_transform_components(comps)
         return comps
@@ -246,7 +268,7 @@ class ComplexEOFRotator(EOFRotator):
             Phase of the scores.
 
         '''
-        scores = xr.apply_ufunc(np.angle, self._scores)
+        scores = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
         scores.name = 'phase'
         scores = self._model.stacker.inverse_transform_scores(scores)
         return scores

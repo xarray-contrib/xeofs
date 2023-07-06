@@ -37,9 +37,10 @@ class MCARotator(_BaseRotator):
 
     '''
 
-    def __init__(self, n_modes: int, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8, squared_loadings: bool = False):
-        super().__init__(n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol)
-        self._params['squared_loadings'] = squared_loadings
+    def __init__(self, squared_loadings: bool = False, **kwargs):
+        super().__init__(**kwargs)
+        self._params.update({'squared_loadings': squared_loadings})
+        self.attrs.update({'model': 'Rotated MCA'})
 
     def fit(self, model: MCA | ComplexMCA):
         '''Fit the model.
@@ -155,6 +156,8 @@ class MCARotator(_BaseRotator):
         self._scores2 *= flip_signs
 
         self._mode_signs = flip_signs
+
+        # Assign analysis-relevant meta data
 
 
 
@@ -316,7 +319,18 @@ class MCARotator(_BaseRotator):
             self._scores1 = self._scores1.compute()
             self._scores2 = self._scores2.compute()
 
-
+    def _assign_meta_data(self):
+        '''Assign analysis-relevant meta data.'''
+        # Attributes of fitted model
+        attrs = self._model.attrs.copy()
+        # Include meta data of the rotation
+        attrs.update(self.attrs)
+        self._explained_variance.attrs.update(attrs)
+        self._squared_covariance_fraction.attrs.update(attrs)
+        self._singular_vectors1.attrs.update(attrs)
+        self._singular_vectors2.attrs.update(attrs)
+        self._scores1.attrs.update(attrs)
+        self._scores2.attrs.update(attrs)
 
 
 class ComplexMCARotator(MCARotator):
@@ -346,6 +360,9 @@ class ComplexMCARotator(MCARotator):
     .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
 
     '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'Rotated Complex MCA'})
 
     def transform(self, **kwargs) -> XarrayData | DataArrayList:
         raise NotImplementedError('Complex MCA does not support transform.')
@@ -362,8 +379,8 @@ class ComplexMCARotator(MCARotator):
         comps1 = abs(self._singular_vectors1)
         comps2 = abs(self._singular_vectors2)
 
-        comps1.name = 'singular_vector_amplitude'
-        comps2.name = 'singular_vector_amplitude'
+        comps1.name = 'singular_vector_amplitudes'
+        comps2.name = 'singular_vector_amplitudes'
 
         comps1 = self._model.stacker1.inverse_transform_components(comps1)
         comps2 = self._model.stacker2.inverse_transform_components(comps2)
@@ -379,11 +396,11 @@ class ComplexMCARotator(MCARotator):
             Phase of the components.
 
         '''
-        comps1 = xr.apply_ufunc(np.angle, self._singular_vectors1)
-        comps2 = xr.apply_ufunc(np.angle, self._singular_vectors2)
+        comps1 = xr.apply_ufunc(np.angle, self._singular_vectors1, keep_attrs=True)
+        comps2 = xr.apply_ufunc(np.angle, self._singular_vectors2, keep_attrs=True)
 
-        comps1.name = 'singular_vector_phase'
-        comps2.name = 'singular_vector_phase'
+        comps1.name = 'singular_vector_phases'
+        comps2.name = 'singular_vector_phases'
 
         comps1 = self._model.stacker1.inverse_transform_components(comps1)
         comps2 = self._model.stacker2.inverse_transform_components(comps2)
@@ -402,8 +419,8 @@ class ComplexMCARotator(MCARotator):
         scores1 = abs(self._scores1)
         scores2 = abs(self._scores2)
 
-        scores1.name = 'score_amplitude'
-        scores2.name = 'score_amplitude'
+        scores1.name = 'score_amplitudes'
+        scores2.name = 'score_amplitudes'
 
         scores1 = self._model.stacker1.inverse_transform_scores(scores1)
         scores2 = self._model.stacker2.inverse_transform_scores(scores2)
@@ -419,11 +436,11 @@ class ComplexMCARotator(MCARotator):
             Phase of the scores.
 
         '''
-        scores1 = xr.apply_ufunc(np.angle, self._scores1)
-        scores2 = xr.apply_ufunc(np.angle, self._scores2)
+        scores1 = xr.apply_ufunc(np.angle, self._scores1, keep_attrs=True)
+        scores2 = xr.apply_ufunc(np.angle, self._scores2, keep_attrs=True)
 
-        scores1.name = 'score_phase'
-        scores2.name = 'score_phase'
+        scores1.name = 'score_phases'
+        scores2.name = 'score_phases'
 
         scores1 = self._model.stacker1.inverse_transform_scores(scores1)
         scores2 = self._model.stacker2.inverse_transform_scores(scores2)

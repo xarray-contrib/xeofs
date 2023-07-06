@@ -10,8 +10,8 @@ from ..utils.xarray_utils import hilbert_transform
 
 class EOF(_BaseModel):
     '''Model to perform Empirical Orthogonal Function (EOF) analysis.
-    ComplexEOF
-    EOF analysis is more commonly referend to as principal component analysis.
+
+    EOF analysis is more commonly referend to as principal component analysis (PCA).
 
     Parameters:
     -------------
@@ -21,8 +21,13 @@ class EOF(_BaseModel):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
+    use_weights: bool, default=False
+        Whether to use weights.
     
     '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'EOF analysis'})
 
     def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
@@ -43,6 +48,9 @@ class EOF(_BaseModel):
 
         self._explained_variance.name = 'explained_variance'
         self._explained_variance_ratio.name = 'explained_variance_ratio'
+
+        # Assign analysis relevant meta data
+        self._assign_meta_data()
 
     def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
         '''Project new unseen data onto the components (EOFs/eigenvectors).
@@ -134,9 +142,10 @@ class ComplexEOF(EOF):
 
     '''
 
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
-        super().__init__(n_modes, standardize, use_coslat, use_weights, **kwargs)
-        self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
+    def __init__(self, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(**kwargs)
+        self._name = 'Complex EOF analysis'    
+        self._params.update({'padding': padding, 'decay_factor': decay_factor})
 
     def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
         
@@ -145,7 +154,12 @@ class ComplexEOF(EOF):
         super()._preprocessing(data, dim, weights)
         
         # apply hilbert transform:
-        self.data = hilbert_transform(self.data, dim='sample', **self._hilbert_params)
+        padding = self._params['padding']
+        decay_factor = self._params['decay_factor']
+        self.data = hilbert_transform(
+            self.data, dim='sample',
+            padding=padding, decay_factor=decay_factor
+        )
 
         self._total_variance = total_variance(self.data)
 
@@ -161,6 +175,9 @@ class ComplexEOF(EOF):
         self._explained_variance.name = 'explained_variance'
         self._explained_variance_ratio.name = 'explained_variance_ratio'
 
+        # Assign analysis-relevant meta data to the results
+        self._assign_meta_data()
+
     def transform(self, data: XarrayData | DataArrayList):
         raise NotImplementedError('ComplexEOF does not support transform method.')
 
@@ -170,7 +187,7 @@ class ComplexEOF(EOF):
         return self.stacker.inverse_transform_components(amplitudes)
     
     def components_phase(self):
-        phases = np.arctan2(self._components.imag, self._components.real)
+        phases = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
         phases.name = 'components_phase'
         return self.stacker.inverse_transform_components(phases)
 
@@ -180,7 +197,7 @@ class ComplexEOF(EOF):
         return self.stacker.inverse_transform_scores(amplitudes)
     
     def scores_phase(self):
-        phases = np.arctan2(self._scores.imag, self._scores.real)
+        phases = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
         phases.name = 'scores_phase'
         return self.stacker.inverse_transform_scores(phases)
     

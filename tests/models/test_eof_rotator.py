@@ -33,7 +33,7 @@ def ceof_model_delayed(mock_dask_data_array, dim):
 
 def test_eof_rotator_init():
     # Instantiate the EOFRotator class
-    eof_rotator = EOFRotator(3, power=2, max_iter=100, rtol=1e-6)
+    eof_rotator = EOFRotator(n_modes=3, power=2, max_iter=100, rtol=1e-6)
 
     assert eof_rotator._params['n_modes'] == 3
     assert eof_rotator._params['power'] == 2
@@ -47,7 +47,7 @@ def test_eof_rotator_init():
     (('lon', 'lat')),
 ])
 def test_eof_rotator_fit(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
 
     assert hasattr(eof_rotator, '_model')
@@ -65,7 +65,7 @@ def test_eof_rotator_fit(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_transform(eof_model, mock_data_array):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     projections = eof_rotator.transform(mock_data_array)
     
@@ -78,7 +78,7 @@ def test_eof_rotator_transform(eof_model, mock_data_array):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_inverse_transform(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     Xrec = eof_rotator.inverse_transform()
 
@@ -91,7 +91,7 @@ def test_eof_rotator_inverse_transform(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_explained_variance(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     exp_var = eof_rotator.explained_variance()
 
@@ -104,7 +104,7 @@ def test_eof_rotator_explained_variance(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_explained_variance_ratio(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     exp_var_ratio = eof_rotator.explained_variance_ratio()
 
@@ -117,7 +117,7 @@ def test_eof_rotator_explained_variance_ratio(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_components(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     components = eof_rotator.components()
 
@@ -130,7 +130,7 @@ def test_eof_rotator_components(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_scores(eof_model):
-    eof_rotator = EOFRotator(3)
+    eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     scores = eof_rotator.scores()
 
@@ -143,7 +143,7 @@ def test_eof_rotator_scores(eof_model):
     (('lon', 'lat')),
 ])
 def test_eof_rotator_compute(eof_model_delayed):
-    eof_rotator = EOFRotator(5)
+    eof_rotator = EOFRotator(n_modes=5)
     eof_rotator.fit(eof_model_delayed)
     
     # before computation, the attributes should be dask arrays
@@ -165,7 +165,7 @@ def test_eof_rotator_compute(eof_model_delayed):
 
 def test_complex_eof_rotator_init():
     # Instantiate the ComplexEOFRotator class
-    ceof_rotator = ComplexEOFRotator(3, power=2, max_iter=100, rtol=1e-6)
+    ceof_rotator = ComplexEOFRotator(n_modes=3, power=2, max_iter=100, rtol=1e-6)
 
     assert ceof_rotator._params['n_modes'] == 3
     assert ceof_rotator._params['power'] == 2
@@ -179,7 +179,7 @@ def test_complex_eof_rotator_init():
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_fit(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
     assert hasattr(ceof_rotator, '_model')
@@ -197,7 +197,7 @@ def test_complex_eof_rotator_fit(ceof_model):
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_transform_not_implemented(ceof_model, mock_data_array):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
     with pytest.raises(NotImplementedError):
@@ -210,7 +210,7 @@ def test_complex_eof_rotator_transform_not_implemented(ceof_model, mock_data_arr
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_inverse_transform(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     Xrec = ceof_rotator.inverse_transform()
 
@@ -223,7 +223,7 @@ def test_complex_eof_rotator_inverse_transform(ceof_model):
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_components_amplitude(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     comps_amp = ceof_rotator.components_amplitude()
 
@@ -236,7 +236,7 @@ def test_complex_eof_rotator_components_amplitude(ceof_model):
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_components_phase(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     comps_phase = ceof_rotator.components_phase()
 
@@ -249,7 +249,7 @@ def test_complex_eof_rotator_components_phase(ceof_model):
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_scores_amplitude(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     scores_amp = ceof_rotator.scores_amplitude()
 
@@ -262,7 +262,7 @@ def test_complex_eof_rotator_scores_amplitude(ceof_model):
     (('lon', 'lat')),
 ])
 def test_complex_eof_rotator_scores_phase(ceof_model):
-    ceof_rotator = ComplexEOFRotator(3)
+    ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     scores_phase = ceof_rotator.scores_phase()
 

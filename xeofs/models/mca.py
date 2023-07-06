@@ -10,6 +10,25 @@ from ..utils.xarray_utils import hilbert_transform
 
 
 class MCA(_BaseCrossModel):
+    '''Fit a Maximum Covariance Analyis (MCA) model.
+    
+    Parameters:
+    -------------
+    n_modes: int, default=10
+        Number of modes to calculate.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    use_weights: bool, default=False
+        Whether to use additional weights.
+
+    '''
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'Maximum Covariance Analysis'})
+
 
     def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
         '''
@@ -61,6 +80,9 @@ class MCA(_BaseCrossModel):
         sqrt_expvar = np.sqrt(self._explained_variance)
         self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
         self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
+
+        # Assign analysis relevant meta data
+        self._assign_meta_data()
 
     def transform(self, **kwargs):
         '''Project new unseen data onto the singular vectors.
@@ -346,19 +368,43 @@ class MCA(_BaseCrossModel):
             self._scores1 = self._scores1.compute()
             self._scores2 = self._scores2.compute()
 
+    def _assign_meta_data(self):
+        '''Assign analysis-relevant meta data.'''
 
+        self._singular_values.attrs.update(self.attrs)
+        self._explained_variance.attrs.update(self.attrs)
+        self._squared_total_variance.attrs.update(self.attrs)
+        self._squared_covariance_fraction.attrs.update(self.attrs)
+        self._singular_vectors1.attrs.update(self.attrs)
+        self._singular_vectors2.attrs.update(self.attrs)
+        self._scores1.attrs.update(self.attrs)
+        self._scores2.attrs.update(self.attrs)
 
 
 
 class ComplexMCA(MCA):
     '''
-    A class used to perform complex maximum covariance analysis (MCA) on two sets of data. 
+    Complex maximum covariance analysis (MCA) on two sets of data. 
 
     This class inherits from the MCA class and overloads its methods to implement a version of MCA 
     that uses complex numbers (i.e., applies the Hilbert transform) to capture phase relationships 
     in the input datasets.
 
-    ...
+    Parameters:
+    -------------
+    n_modes: int, default=10
+        Number of modes to calculate.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    use_weights: bool, default=False
+        Whether to use additional weights.
+    padding: str, default='exp'or None
+        Padding method to use for the Hilbert transform. Currently, only exponential padding is supported.
+    decay_factor: float, default=0.2
+        Decay factor for the exponential padding. Only used if `padding` is set to 'exp'.
+
 
     Attributes
     ----------
@@ -379,9 +425,9 @@ class ComplexMCA(MCA):
         Not implemented in the ComplexMCA class.
     '''
 
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, padding='exp', decay_factor=.2, **kwargs):
-        super().__init__(n_modes=n_modes, standardize=standardize, use_coslat=use_coslat, use_weights=use_weights, **kwargs)
-        self._hilbert_params = {'padding': padding, 'decay_factor': decay_factor}
+    def __init__(self, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(**kwargs)
+        self._params.update({'padding': padding, 'decay_factor': decay_factor})
 
     def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
         '''Fit the model.
@@ -405,8 +451,10 @@ class ComplexMCA(MCA):
         self._preprocessing(data1, data2, dim, weights1, weights2)
         
         # apply hilbert transform:
-        self.data1 = hilbert_transform(self.data1, dim='sample', **self._hilbert_params)
-        self.data2 = hilbert_transform(self.data2, dim='sample', **self._hilbert_params)
+        padding = self._params['padding']
+        decay_factor = self._params['decay_factor']
+        self.data1 = hilbert_transform(self.data1, dim='sample', padding=padding, decay_factor=decay_factor)
+        self.data2 = hilbert_transform(self.data2, dim='sample', padding=padding, decay_factor=decay_factor)
         
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
@@ -437,6 +485,9 @@ class ComplexMCA(MCA):
         sqrt_expvar = np.sqrt(self._explained_variance)
         self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
         self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
+
+        # Assign analysis relevant meta data
+        self._assign_meta_data()
 
     
     def transform(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList):

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 import numpy as np
 import scipy as sc
@@ -6,6 +7,7 @@ import xarray as xr
 from typing import Optional, Union, List, Tuple
 
 from ..utils.rotation import promax
+from .._version import __version__
 
 
 class _BaseRotator():
@@ -29,13 +31,25 @@ class _BaseRotator():
     '''
 
     def __init__(self, n_modes: int = 10, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+        
+        # Define model parameters
         self._params = {
             'n_modes': n_modes,
             'power': power,
             'max_iter': max_iter,
             'rtol': rtol,
         }
-    
+        
+        # Define analysis-relevant meta data
+        self.attrs = {'model': 'BaseRotator'}
+        self.attrs.update(self._params)
+        self.attrs.update({
+            'software': 'xeofs',
+            'version': __version__,
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+
     @abstractmethod
     def fit(self, model):
         '''Fit the model.'''
@@ -91,4 +105,3 @@ class _BaseRotator():
             # transpose matrix
             R = R.conj().T
         return R  # type: ignore
-
