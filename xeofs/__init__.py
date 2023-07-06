@@ -1,4 +1,2 @@
-from importlib.metadata import version
 from xeofs import models, validation
-
-__version__ = version('xeofs')
+from xeofs._version import __version__
