@@ -81,6 +81,7 @@ class EOFBootstrapper(_BaseBootstrapper):
             bst_model.fit(bst_data, dim='sample_bst')
             expvar = bst_model.explained_variance()
             components = bst_model.components()
+            print(components.coords)
             scores = bst_model.transform(data)
             bst_expvar.append(expvar)
             bst_components.append(components)
@@ -93,18 +94,22 @@ class EOFBootstrapper(_BaseBootstrapper):
         bst_components = bst_components.rename({'feature_bst': 'feature'})
         bst_scores = bst_scores.rename({'sample_bst': 'sample'})
 
-        bst_components = bst_components.assign_coords(feature=model.stacker.coords_no_nan['feature'])
-        bst_scores = bst_scores.assign_coords(sample=model.stacker.coords_no_nan['sample'])
+        bst_components = bst_components.assign_coords(feature=model.stacker.coords_out_['feature'])
+        bst_scores = bst_scores.assign_coords(sample=model.stacker.coords_out_['sample'])
 
+        # NOTE: this is a bit of an ugly workaround to set the index of the DataArray. Will have to dig more 
+        # into this to find a better solution
         try:
-            bst_components = bst_components.set_index(feature=model.stacker.dims['feature'])
+            indexes = [k for k in model.stacker.coords_out_['feature'].coords.keys() if k != 'feature']
+            bst_components = bst_components.set_index(feature=indexes)
         # DataArrayListStacker does not have dims but then we don't need to set the index
-        except AttributeError:
+        except ValueError:
             pass
         try:
-            bst_scores = bst_scores.set_index(sample=model.stacker.dims['sample'])
+            indexes = [k for k in model.stacker.coords_out_['sample'].coords.keys() if k != 'sample']
+            bst_scores = bst_scores.set_index(sample=indexes)
         # DataArrayListStacker does not have dims but then we don't need to set the index
-        except AttributeError:
+        except ValueError:
             pass
 
         self._explained_variance = bst_expvar

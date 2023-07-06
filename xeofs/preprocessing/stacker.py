@@ -431,7 +431,7 @@ class DataArrayListStacker():
 
         stacked_data_list = xr.concat(stacked_data_list, dim='feature')
 
-        self._coords_out = {
+        self.coords_out_ = {
             'sample': stacked_data_list.coords['sample'], 
             'feature': stacked_data_list.coords['feature']
         }

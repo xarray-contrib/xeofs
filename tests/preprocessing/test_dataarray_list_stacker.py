@@ -78,9 +78,9 @@ def test_data_array_list_stacker_unstack_components(dim_sample, dim_feature, moc
     stacked = stacker_list.fit_transform(mock_data_array_list, dim_sample, feature_dims_list)
     
     components = xr.DataArray(
-        np.random.normal(size=(stacker_list._coords_out['feature'].size, 10)),
+        np.random.normal(size=(stacker_list.coords_out_['feature'].size, 10)),
         dims=('feature', 'mode'),
-        coords={'feature': stacker_list._coords_out['feature']}
+        coords={'feature': stacker_list.coords_out_['feature']}
     )
     unstacked = stacker_list.inverse_transform_components(components)
 
