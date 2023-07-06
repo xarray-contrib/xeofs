@@ -7,6 +7,7 @@ from ._base_rotator import _BaseRotator
 from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
 from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray
+from ..utils.statistics import pearson_correlation
 
 
 class MCARotator(_BaseRotator):
@@ -158,7 +159,7 @@ class MCARotator(_BaseRotator):
         self._mode_signs = flip_signs
 
         # Assign analysis-relevant meta data
-
+        self._assign_meta_data()
 
 
     def transform(self, **kwargs) -> XarrayData | DataArrayList:
@@ -332,6 +333,162 @@ class MCARotator(_BaseRotator):
         self._scores1.attrs.update(attrs)
         self._scores2.attrs.update(attrs)
 
+    def components(self) -> tuple[DataArray | Dataset | DataArrayList, DataArray | Dataset | DataArrayList]:
+        '''Return the rotated singular vectors.
+
+        Returns
+        -------
+        xr.DataArray | xr.Dataset | xr.DataArraylist
+            Rotated singular vectors.
+
+        '''
+        svecs1 = self._model.stacker1.inverse_transform_components(self._singular_vectors1)
+        svecs2 = self._model.stacker2.inverse_transform_components(self._singular_vectors2)
+
+        return svecs1, svecs2
+
+    def scores(self):
+        '''Return the rotated scores.
+
+        Returns
+        -------
+        xr.DataArray | xr.Dataset | xr.DataArraylist
+            Rotated scores.
+
+        '''
+        scores1 = self._model.stacker1.inverse_transform_scores(self._scores1)
+        scores2 = self._model.stacker2.inverse_transform_scores(self._scores2)
+
+        return scores1, scores2
+    
+    def homogeneous_patterns(self, correction='fdr_bh', alpha=.05):
+        '''Return the rotated homogeneous patterns.
+
+        The homogeneous patterns are the correlation coefficients between the 
+        input data and the scores.
+
+        More precisely, the homogeneous patterns `r_{hom}` are defined as
+
+        .. math::
+          r_{hom, x} = \\corr \\left(X, A_x \\right)
+        .. math::
+          r_{hom, y} = \\corr \\left(Y, A_y \\right)
+
+        where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
+        are the scores of the left and right field, respectively.
+
+        Parameters:
+        -------------
+        correction: str, default=None
+            Method to apply a multiple testing correction. If None, no correction
+            is applied.  Available methods are:
+            - bonferroni : one-step correction
+            - sidak : one-step correction
+            - holm-sidak : step down method using Sidak adjustments
+            - holm : step-down method using Bonferroni adjustments
+            - simes-hochberg : step-up method (independent)
+            - hommel : closed method based on Simes tests (non-negative)
+            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
+            - fdr_by : Benjamini/Yekutieli (negative)
+            - fdr_tsbh : two stage fdr correction (non-negative)
+            - fdr_tsbky : two stage fdr correction (non-negative)
+        alpha: float, default=0.05
+            The desired family-wise error rate. Not used if `correction` is None.
+
+        Returns:
+        ----------
+        patterns1: DataArray | Dataset | List[DataArray]
+            Left homogenous patterns.
+        patterns2: DataArray | Dataset | List[DataArray]
+            Right homogenous patterns.
+        pvals1: DataArray | Dataset | List[DataArray]
+            Left p-values.
+        pvals2: DataArray | Dataset | List[DataArray]
+            Right p-values.
+
+        '''
+
+        hom_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
+        hom_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
+
+        hom_pats1 = self._model.stacker1.inverse_transform_components(hom_pats1)
+        hom_pats2 = self._model.stacker2.inverse_transform_components(hom_pats2)
+
+        pvals1 = self._model.stacker1.inverse_transform_components(pvals1)
+        pvals2 = self._model.stacker2.inverse_transform_components(pvals2)
+
+        hom_pats1.name = 'homogeneous_patterns'
+        hom_pats2.name = 'homogeneous_patterns'
+
+        pvals1.name = 'pvalues'
+        pvals2.name = 'pvalues'
+
+        return (hom_pats1, hom_pats2), (pvals1, pvals2)
+
+
+    def heterogeneous_patterns(self, correction='fdr_bh', alpha=.05):
+        '''Return the rotated heterogeneous patterns.
+
+        The heterogeneous patterns are the correlation coefficients between the 
+        input data and the scores.
+
+        More precisely, the heterogeneous patterns `r_{het}` are defined as
+
+        .. math::
+          r_{het, x} = \\corr \\left(X, A_x \\right)
+        .. math::
+          r_{het, y} = \\corr \\left(Y, A_y \\right)
+
+        where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
+        are the scores of the left and right field, respectively.
+
+        Parameters:
+        -------------
+        correction: str, default=None
+            Method to apply a multiple testing correction. If None, no correction
+            is applied.  Available methods are:
+            - bonferroni : one-step correction
+            - sidak : one-step correction
+            - holm-sidak : step down method using Sidak adjustments
+            - holm : step-down method using Bonferroni adjustments
+            - simes-hochberg : step-up method (independent)
+            - hommel : closed method based on Simes tests (non-negative)
+            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
+            - fdr_by : Benjamini/Yekutieli (negative)
+            - fdr_tsbh : two stage fdr correction (non-negative)
+            - fdr_tsbky : two stage fdr correction (non-negative)
+        alpha: float, default=0.05
+            The desired family-wise error rate. Not used if `correction` is None.
+
+        Returns:
+        ----------
+        patterns1: DataArray | Dataset | List[DataArray]
+            Left heterogeneous patterns.
+        patterns2: DataArray | Dataset | List[DataArray]
+            Right heterogeneous patterns.
+        pvals1: DataArray | Dataset | List[DataArray]
+            Left p-values.
+        pvals2: DataArray | Dataset | List[DataArray]
+            Right p-values.
+
+        '''
+
+        het_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
+        het_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
+
+        het_pats1 = self._model.stacker1.inverse_transform_components(het_pats1)
+        het_pats2 = self._model.stacker2.inverse_transform_components(het_pats2)
+
+        pvals1 = self._model.stacker1.inverse_transform_components(pvals1)
+        pvals2 = self._model.stacker2.inverse_transform_components(pvals2)
+
+        het_pats1.name = 'heterogeneous_patterns'
+        het_pats2.name = 'heterogeneous_patterns'
+
+        pvals1.name = 'pvalues'
+        pvals2.name = 'pvalues'
+
+        return (het_pats1, het_pats2), (pvals1, pvals2)
 
 class ComplexMCARotator(MCARotator):
     '''Rotates a solution obtained from ``xe.models.ComplexMCA``.

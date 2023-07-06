@@ -273,13 +273,22 @@ class MCA(_BaseCrossModel):
             Right p-values.
 
         '''
-        patterns1, pvals1 = pearson_correlation(self.data1, self._scores1, correction=correction, alpha=alpha)
-        patterns2, pvals2 = pearson_correlation(self.data2, self._scores2, correction=correction, alpha=alpha)
+        hom_pat1, pvals1 = pearson_correlation(self.data1, self._scores1, correction=correction, alpha=alpha)
+        hom_pat2, pvals2 = pearson_correlation(self.data2, self._scores2, correction=correction, alpha=alpha)
 
-        patterns1 = self.stacker1.inverse_transform_components(self._singular_vectors1)
-        patterns2 = self.stacker2.inverse_transform_components(self._singular_vectors2)
+        hom_pat1 = self.stacker1.inverse_transform_components(hom_pat1)
+        hom_pat2 = self.stacker2.inverse_transform_components(hom_pat2)
 
-        return patterns1, patterns2, pvals1, pvals2
+        pvals1 = self.stacker1.inverse_transform_components(pvals1)
+        pvals2 = self.stacker2.inverse_transform_components(pvals2)
+
+        hom_pat1.name = 'left_homogeneous_patterns'
+        hom_pat2.name = 'right_homogeneous_patterns'
+
+        pvals1.name = 'pvalues'
+        pvals2.name = 'pvalues'
+
+        return (hom_pat1, hom_pat2), (pvals1, pvals2)
 
     def heterogeneous_patterns(self, correction=None, alpha=0.05):
         '''Return the heterogeneous patterns of the left and right field.
@@ -319,10 +328,19 @@ class MCA(_BaseCrossModel):
         patterns1, pvals1 = pearson_correlation(self.data1, self._scores2, correction=correction, alpha=alpha)
         patterns2, pvals2 = pearson_correlation(self.data2, self._scores1, correction=correction, alpha=alpha)
 
-        patterns1 = self.stacker1.inverse_transform_components(self._singular_vectors2)
-        patterns2 = self.stacker2.inverse_transform_components(self._singular_vectors1)
+        patterns1 = self.stacker1.inverse_transform_components(patterns1)
+        patterns2 = self.stacker2.inverse_transform_components(patterns2)
 
-        return patterns1, patterns2, pvals1, pvals2
+        pvals1 = self.stacker1.inverse_transform_components(pvals1)
+        pvals2 = self.stacker2.inverse_transform_components(pvals2)
+
+        patterns1.name = 'left_heterogeneous_patterns'
+        patterns2.name = 'right_heterogeneous_patterns'
+
+        pvals1.name = 'pvalues'
+        pvals2.name = 'pvalues'
+
+        return (patterns1, patterns2), (pvals1, pvals2)
 
     def compute(self, verbose: bool = False):
         '''Computing the model will compute and load all DaskArrays.
