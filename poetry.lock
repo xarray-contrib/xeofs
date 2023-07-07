@@ -1023,6 +1023,7 @@ version = "1.4.0"
 description = "Appendable key-value storage"
 optional = false
 python-versions = ">=3.7"
+
 files = [
     {file = "partd-1.4.0-py3-none-any.whl", hash = "sha256:7a63529348cf0dff14b986db641cd1b83c16b5cb9fc647c2851779db03282ef8"},
     {file = "partd-1.4.0.tar.gz", hash = "sha256:aa0ff35dbbcc807ae374db56332f4c1b39b46f67bf2975f5151e0b4186aed0d5"},
@@ -1052,6 +1053,7 @@ six = "*"
 
 [package.extras]
 test = ["pytest", "pytest-cov", "scipy"]
+
 
 [[package]]
 name = "platformdirs"
@@ -2022,3 +2024,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 lock-version = "2.0"
 python-versions = "^3.9"
 content-hash = "57ed1b52afce3af123d56b99344b920526fa8a6d454dcb0f2d8ae2404e90d3eb"
+
