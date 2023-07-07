@@ -1,156 +1,203 @@
-from typing import Optional, Union, Iterable, Tuple, List
-
 import numpy as np
+import xarray as xr
 
-from xeofs.models._base_eof import _BaseEOF
-from xeofs.models._transformer import _MultiArrayTransformer
-from ..utils.tools import squeeze
-
-import warnings
-
-warnings.filterwarnings("ignore", message="numpy.dtype size changed")
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
-
-Array = np.ndarray
-ArrayList = Union[Array, List[Array]]
+from ._base_model import _BaseModel
+from .decomposer import Decomposer
+from ..utils.data_types import XarrayData, DataArrayList
+from ..utils.xarray_utils import total_variance
+from ..utils.xarray_utils import hilbert_transform
 
 
-class EOF(_BaseEOF):
-    '''EOF analysis of a single or multiple ``np.ndarray``.
+class EOF(_BaseModel):
+    '''Empirical Orthogonal Functions (EOF) analysis.
+
+    EOF analysis is more commonly referend to as principal component analysis (PCA).
+
+    Parameters:
+    -------------
+    n_modes: int, default=10
+        Number of modes to calculate.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    use_weights: bool, default=False
+        Whether to use weights.
+    
+    '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({'model': 'EOF analysis'})
+
+    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
+        
+        n_modes = self._params['n_modes']
+        
+        super()._preprocessing(data, dim, weights)
+
+        self._total_variance = total_variance(self.data)
+
+        decomposer = Decomposer(n_modes=n_modes)
+        decomposer.fit(self.data)
+
+        self._singular_values = decomposer.singular_values_
+        self._explained_variance = self._singular_values**2 / (self.data.shape[0] - 1)
+        self._explained_variance_ratio = self._explained_variance / self._total_variance
+        self._components = decomposer.components_
+        self._scores = decomposer.scores_    
+
+        self._explained_variance.name = 'explained_variance'
+        self._explained_variance_ratio.name = 'explained_variance_ratio'
+
+        # Assign analysis relevant meta data
+        self._assign_meta_data()
+
+    def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
+        '''Project new unseen data onto the components (EOFs/eigenvectors).
+
+        Parameters:
+        -------------
+        data: xr.DataArray or list of xarray.DataArray
+            Input data.
+
+        Returns:
+        ----------
+        projections: DataArray | Dataset | List[DataArray]
+            Projections of the new data onto the components.
+
+        '''
+        # Preprocess the data
+        data = self.scaler.transform(data)  #type: ignore
+        data = self.stacker.transform(data)  #type: ignore
+
+        # Project the data
+        projections = xr.dot(data, self._components, dims='feature') / self._singular_values
+        projections.name = 'scores'
+
+        # Unstack the projections
+        projections = self.stacker.inverse_transform_scores(projections)
+        return projections
+    
+    def inverse_transform(self, mode):
+        '''Reconstruct the original data from transformed data.
+
+        Parameters:
+        -------------
+        mode: scalars, slices or array of tick labels.
+            The mode(s) used to reconstruct the data. If a scalar is given,
+            the data will be reconstructed using the given mode. If a slice
+            is given, the data will be reconstructed using the modes in the
+            given slice. If a array is given, the data will be reconstructed
+            using the modes in the given array.
+
+        Returns:
+        ----------
+        data: DataArray | Dataset | List[DataArray]
+            Reconstructed data.
+
+        '''
+        # Reconstruct the data
+        svals = self._singular_values.sel(mode=mode)  # type: ignore
+        comps = self._components.sel(mode=mode)  # type: ignore
+        scores = self._scores.sel(mode=mode) * svals  # type: ignore
+        data = xr.dot(comps, scores)
+        data.name = 'reconstructed_data'
+
+        # Unstack the data
+        data = self.stacker.inverse_transform_data(data)
+        # Unscale the data
+        data = self.scaler.inverse_transform(data)  # type: ignore
+        return data
+
+
+
+
+
+class ComplexEOF(EOF):
+    '''Complex Empirical Orthogonal Functions (EOF) analysis.
+    
+    Complex EOFs are computed by applying a Hilbert transform to the data before
+    computing the EOFs. The Hilbert transform is applied to each feature of the
+    data individually. Optionally, the Hilbert transform is applied after padding
+    the data with exponentially decaying values to mitigate the impact of spectral leakage.
 
     Parameters
     ----------
-    X : np.ndarray
-        Data matrix to be decomposed. ``X`` can be any N-dimensional array.
-        Dimensions whose variance shall be maximised (denoted as *samples*)
-        have to be defined by the ``axis`` parameter. All remaining axes will
-        be reshaped into a new axis called *features*.
-    n_modes : Optional[int]
-        Number of modes to compute. Computing less modes can results in
-        performance gains. If None, then the maximum number of modes is
-        equivalent to ``min(n_samples, n_features)`` (the default is None).
-    norm : bool
-        Normalize each feature (e.g. grid cell) by its temporal standard
-        deviation (the default is False).
-    weights : Optional[np.ndarray] = None
-        Weights applied to features. Must have the same dimensions as the
-        original features which are the remaining axes not specified by
-        ``axis`` parameter).
-    axis : Union[int, Iterable[int]]
-        Axis along which variance should be maximised. Can also be
-        multi-dimensional. For example, given a data array of dimensions
-        ``(n x p1 x p2)`` with `n` time series at ``p1`` and ``p2`` different
-        locations, ``axis=0`` will maximise `temporal` variance along ``n``.
-        In contrast, ``axis=[1, 2]`` will maximise `spatial` variance along
-        ``(p1 x p2)`` (the default is 0).
-
-
-    Examples
-    --------
-
-    Import package and create data:
-
-    >>> import numpy as np
-    >>> from xeofs.models import EOF
-    >>> rng = np.random.default_rng(7)
-    >>> X = rng.standard_normal((4, 2, 3))
-
-    Initialize standardized EOF analysis and compute the first 2 modes:
-
-    >>> model = EOF(X, norm=True, n_modes=2)
-    >>> model.solve()
-
-    Get explained variance:
-
-    >>> model.explained_variance()
-    ... array([4.81848833, 2.20765019])
-
-    Get EOFs:
-
-    >>> model.eofs()
-    ... array([[[ 0.52002146, -0.00698575],
-    ...         [ 0.41059796, -0.31603563]],
-    ...
-    ...         [[ 0.32091783,  0.47647144],
-    ...         [-0.51771611,  0.01380736]],
-    ...
-    ...         [[-0.28840959,  0.63341346],
-    ...         [ 0.32678537,  0.52119516]]])
-
-    Get PCs:
-
-    >>> model.pcs()
-    ... array([[ 1.76084189, -0.92030205],
-    ...        [-2.13581896, -1.49704775],
-    ...        [ 2.02091078,  0.65502667],
-    ...        [-1.64593371,  1.76232312]])
+    n_modes : int
+        Number of modes to be computed.
+    standardize : bool
+        If True, standardize the data before computing the EOFs.
+    use_coslat : bool
+        If True, weight the data by the square root of the cosine of the latitude
+        weights.
+    use_weights : bool
+        If True, weight the data by the weights.
+    padding : Optional, str
+        Padding method for the Hilbert transform to mitigate spectral leakage. Currently, only ``'exp'`` is
+        supported.
+    decay_factor : float
+        Decay factor of the exponential padding. Only used if ``padding='exp'``. A good value typically
+        depends on the data. If the data is highly variable, a small value (e.g. 0.05) is recommended. For
+        data with low variability, a larger value (e.g. 0.2) is recommended.
 
     '''
 
-    def __init__(
-        self,
-        X: ArrayList,
-        axis : Union[int, Iterable[int]] = 0,
-        n_modes : Optional[int] = None,
-        norm : bool = False,
-        weights : Optional[ArrayList] = None,
-    ):
+    def __init__(self, padding='exp', decay_factor=.2, **kwargs):
+        super().__init__(**kwargs)
+        self._name = 'Complex EOF analysis'    
+        self._params.update({'padding': padding, 'decay_factor': decay_factor})
 
-        self._tf = _MultiArrayTransformer()
-        X = self._tf.fit_transform(X, axis=axis)
-        weights = self._tf.transform_weights(weights)
-
-        super().__init__(
-            X=X,
-            n_modes=n_modes,
-            norm=norm,
-            weights=weights
+    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
+        
+        n_modes = self._params['n_modes']
+        
+        super()._preprocessing(data, dim, weights)
+        
+        # apply hilbert transform:
+        padding = self._params['padding']
+        decay_factor = self._params['decay_factor']
+        self.data = hilbert_transform(
+            self.data, dim='sample',
+            padding=padding, decay_factor=decay_factor
         )
 
-    def eofs(self, scaling : int = 0) -> ArrayList:
-        eofs = super().eofs(scaling=scaling)
-        eofs = self._tf.back_transform_eofs(eofs)
-        return squeeze(eofs)
+        self._total_variance = total_variance(self.data)
 
-    def pcs(self, scaling : int = 0) -> Array:
-        pcs = super().pcs(scaling=scaling)
-        return self._tf.back_transform_pcs(pcs)
+        decomposer = Decomposer(n_modes=n_modes)
+        decomposer.fit(self.data)
 
-    def eofs_as_correlation(self) -> Tuple[ArrayList, ArrayList]:
-        corr, pvals = super().eofs_as_correlation()
-        corr = self._tf.back_transform_eofs(corr)
-        pvals = self._tf.back_transform_eofs(pvals)
-        return squeeze(corr), squeeze(pvals)
+        self._singular_values = decomposer.singular_values_
+        self._explained_variance = self._singular_values**2 / (self.data.shape[0] - 1)
+        self._explained_variance_ratio = self._explained_variance / self._total_variance
+        self._components = decomposer.components_
+        self._scores = decomposer.scores_
 
-    def reconstruct_X(
-        self,
-        mode : Optional[Union[int, List[int], slice]] = None
-    ) -> ArrayList:
-        Xrec = super().reconstruct_X(mode)
-        Xrec = self._tf.back_transform(Xrec)
-        return squeeze(Xrec)
+        self._explained_variance.name = 'explained_variance'
+        self._explained_variance_ratio.name = 'explained_variance_ratio'
 
-    def project_onto_eofs(
-        self,
-        X : ArrayList,
-        scaling : int = 0
-    ) -> Array:
-        '''Project new data onto the EOFs.
+        # Assign analysis-relevant meta data to the results
+        self._assign_meta_data()
 
-        Parameters
-        ----------
-        X : array or list of arrays
-             New data to project. Data must have same feature shape as original
-             data.
-        scaling : [0, 1, 2]
-            Projections are scaled (i) to be orthonormal (``scaling=0``), (ii) by the
-            square root of the eigenvalues (``scaling=1``) or (iii) by the
-            singular values (``scaling=2``). In case no weights were applied,
-            scaling by the singular values results in the projections having the
-            unit of the input data (the default is 0).
+    def transform(self, data: XarrayData | DataArrayList):
+        raise NotImplementedError('ComplexEOF does not support transform method.')
 
-        '''
-        proj = _MultiArrayTransformer()
-        X_proj = proj.fit_transform(X, axis=self._tf.axis_samples)
-        pcs = super().project_onto_eofs(X=X_proj, scaling=scaling)
-        return proj.back_transform_pcs(pcs)
+    def components_amplitude(self):
+        amplitudes = abs(self._components)
+        amplitudes.name = 'components_amplitude'
+        return self.stacker.inverse_transform_components(amplitudes)
+    
+    def components_phase(self):
+        phases = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
+        phases.name = 'components_phase'
+        return self.stacker.inverse_transform_components(phases)
+
+    def scores_amplitude(self):
+        amplitudes = abs(self._scores)
+        amplitudes.name = 'scores_amplitude'
+        return self.stacker.inverse_transform_scores(amplitudes)
+    
+    def scores_phase(self):
+        phases = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
+        phases.name = 'scores_phase'
+        return self.stacker.inverse_transform_scores(phases)
+    

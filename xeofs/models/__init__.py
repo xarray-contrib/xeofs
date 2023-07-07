@@ -1,6 +1,5 @@
-from .eof import EOF
-from .rotator import Rotator
-from .bootstrapper import Bootstrapper
-from .mca import MCA
-from .mca_rotator import MCA_Rotator
-from .rock_pca import ROCK_PCA
+from .eof import EOF, ComplexEOF
+from .mca import MCA, ComplexMCA
+from .rotator_factory import RotatorFactory
+from .eof_rotator import EOFRotator, ComplexEOFRotator
+from .mca_rotator import MCARotator, ComplexMCARotator

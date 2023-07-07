@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_auto_examples_1eof_plot_eof-tmode.py>`
+        :ref:`Go to the end <sphx_glr_download_auto_examples_1eof_plot_eof-tmode.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -34,7 +34,7 @@ Load packages and data:
     from matplotlib.gridspec import GridSpec
     from cartopy.crs import EqualEarth, PlateCarree
 
-    from xeofs.xarray import EOF
+    from xeofs.models import EOF
 
     sst = xr.tutorial.open_dataset('ersstv5')['sst']
 
@@ -54,11 +54,11 @@ Perform the actual analysis
 .. code-block:: default
 
 
-    model = EOF(sst, n_modes=5, norm=False, dim=['lat', 'lon'])
-    model.solve()
+    model = EOF(n_modes=5, standardize=False)
+    model.fit(sst, dim=('lat', 'lon'))
     expvar = model.explained_variance_ratio()
-    eofs = model.eofs()
-    pcs = model.pcs()
+    components = model.components()
+    scores = model.scores()
 
 
 
@@ -87,9 +87,9 @@ Create figure showing the first two modes
     ax1 = [fig.add_subplot(gs[i, 1]) for i in range(3)]
 
     for i, (a0, a1) in enumerate(zip(ax0, ax1)):
-        pcs.sel(mode=i+1).plot(ax=a0, **kwargs)
+        scores.sel(mode=i+1).plot(ax=a0, **kwargs)
         a0.coastlines(color='.5')
-        eofs.sel(mode=i+1).plot(ax=a1)
+        components.sel(mode=i+1).plot(ax=a1)
 
         a0.set_xlabel('')
 
@@ -110,28 +110,25 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  4.896 seconds)
+   **Total running time of the script:** ( 0 minutes  4.957 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_eof-tmode.py:
 
+.. only:: html
 
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-example
+  .. container:: sphx-glr-footer sphx-glr-footer-example
 
 
 
-  .. container:: sphx-glr-download sphx-glr-download-python
 
-     :download:`Download Python source code: plot_eof-tmode.py <plot_eof-tmode.py>`
+    .. container:: sphx-glr-download sphx-glr-download-python
 
+      :download:`Download Python source code: plot_eof-tmode.py <plot_eof-tmode.py>`
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-     :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
+      :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
 
 
 .. only:: html

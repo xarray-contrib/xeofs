@@ -1,15 +1,24 @@
-##################
 Installation
-##################
+------------
 
-If you are using ``conda``, it is recommend to install via:
+The ``xeofs`` package can be installed using either the ``conda`` package manager or ``pip``.
 
-.. code-block:: ini
+Conda
+~~~~~~~~~~~~~~~~~~
 
-  conda install -c conda-forge xeofs
+If you are using the ``conda`` package manager, installation is recommended via the ``conda-forge`` channel:
 
-Alternatively, you can install the package through ``pip``:
+.. code-block:: bash
 
-.. code-block:: ini
+    conda install -c conda-forge xeofs
 
-  pip install xeofs
+PIP
+~~~~~~~~~~~~~~~~
+
+Alternatively, you can also install ``xeofs`` using the Python package installer ``pip``:
+
+.. code-block:: bash
+
+    pip install xeofs
+
+Make sure to install the package in an appropriate virtual environment to avoid conflicts with other packages or system-wide Python installations.
