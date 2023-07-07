@@ -10,7 +10,7 @@ repository = "https://github.com/nicrie/xeofs"
 documentation = "https://xeofs.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.10"
 numpy = ">=1.19.2"
 pandas = ">=1.4.1"
 xarray = ">=0.21.1"
