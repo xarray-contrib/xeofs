@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.1 (2023-07-07)
+
+### Fix
+
+* Build and ci ([#45](https://github.com/nicrie/xeofs/issues/45)) ([`7d1a88b`](https://github.com/nicrie/xeofs/commit/7d1a88b1cda8a66d04f3ffa96e1aa5cfe899029b))
+* Add dask as dependency ([#42](https://github.com/nicrie/xeofs/issues/42)) ([`2bb2b6b`](https://github.com/nicrie/xeofs/commit/2bb2b6b817a457a7a24918914e88675f08e298d6))
+
 ## v1.0.0 (2023-07-07)
 
 ### Feature
