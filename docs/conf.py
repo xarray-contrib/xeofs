@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'xeofs'
-copyright = '2022, Niclas Rieger'
+copyright = '2023, Niclas Rieger'
 author = 'Niclas Rieger'
 
 # The short X.Y version
@@ -53,6 +53,9 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx_gallery.gen_gallery',
+    'sphinx_design',
+    'nbsphinx',
+    'sphinx_copybutton',
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
@@ -101,8 +104,11 @@ html_theme = 'sphinxawesome_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
-
+# html_theme_options = {
+    # "logo_light": "logo/to/light/logo",
+    # "logo_dark": "path/to/dark/logo"
+# }
+html_logo = './logos/xeofs_logo_mini.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

@@ -11,7 +11,7 @@ from ..utils.statistics import pearson_correlation
 
 
 class MCARotator(_BaseRotator):
-    '''Rotates a solution obtained from ``xe.models.MCA``.
+    '''Rotate a solution obtained from ``xe.models.MCA``.
     
     Parameters
     ----------
@@ -491,7 +491,7 @@ class MCARotator(_BaseRotator):
         return (het_pats1, het_pats2), (pvals1, pvals2)
 
 class ComplexMCARotator(MCARotator):
-    '''Rotates a solution obtained from ``xe.models.ComplexMCA``.
+    '''Rotate a solution obtained from ``xe.models.ComplexMCA``.
 
     Parameters
     ----------

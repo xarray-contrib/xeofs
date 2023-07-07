@@ -11,7 +11,7 @@ from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList
 
 
 class EOFRotator(_BaseRotator):
-    '''Rotates a solution obtained from ``xe.models.EOF``.
+    '''Rotate a solution obtained from ``xe.models.EOF``.
 
     Parameters
     ----------
@@ -193,7 +193,7 @@ class EOFRotator(_BaseRotator):
 
  
 class ComplexEOFRotator(EOFRotator):
-    '''Rotates a solution obtained from ``xe.models.ComplexEOF``.
+    '''Rotate a solution obtained from ``xe.models.ComplexEOF``.
 
     Parameters
     ----------

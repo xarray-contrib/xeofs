@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from cartopy.crs import PlateCarree
 
-from xeofs.xarray import EOF, Rotator
+from xeofs.models import EOF, EOFRotator
 
 #%%
 # Create four different dataarrayss
@@ -25,16 +25,13 @@ subset4 = sst.isel(lon=slice(136, None))
 #%%
 # Perform the actual analysis
 
-mpca = EOF(
-    [subset1, subset2, subset3, subset4],
-    dim='time',
-    norm=False,
-    weights='coslat'
-)
-mpca.solve()
-rot = Rotator(mpca, n_rot=50)
-reofs = rot.eofs()
-rpcs = rot.pcs()
+multivariate_data = [subset1, subset2, subset3, subset4]
+mpca = EOF(n_modes=100, standardize=False, use_coslat=True)
+mpca.fit(multivariate_data, dim='time')
+rotator = EOFRotator(n_modes=20)
+rotator.fit(mpca)
+rcomponents = rotator.components()
+rscores = rotator.scores()
 
 #%%
 # Plot mode 1
@@ -56,14 +53,14 @@ ax = [fig.add_subplot(gs[0, i], projection=proj) for i in range(4)]
 ax_pc = fig.add_subplot(gs[1, :])
 
 # PC
-rpcs.sel(mode=mode).plot(ax=ax_pc)
+rscores.sel(mode=mode).plot(ax=ax_pc)
 ax_pc.set_xlabel('')
 ax_pc.set_title('')
 
 # EOFs
-for i, (a, eof) in enumerate(zip(ax, reofs)):
+for i, (a, comps) in enumerate(zip(ax, rcomponents)):
     a.coastlines(color='.5')
-    eof.sel(mode=mode).plot(ax=a, **kwargs)
+    comps.sel(mode=mode).plot(ax=a, **kwargs)
     a.set_xticks([])
     a.set_yticks([])
     a.set_xlabel('')

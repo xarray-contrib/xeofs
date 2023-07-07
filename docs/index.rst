@@ -1,56 +1,63 @@
-.. xeofs documentation master file, created by
-   sphinx-quickstart on Fri Feb 11 21:42:02 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+:sd_hide_title:
+
+.. image:: logos/xeofs_logo.png
+  :align: center
+  :width: 800
+  :alt: logo of xeofs
 
 #############################################################
-xeofs: Multi-dimensional EOF analysis and variants
+Advanced EOF Analysis in Python
 #############################################################
-Empirical orthogonal function (EOF) analysis, commonly referred to as
-principal component analysis (PCA), is a popular decomposition
-technique in climate science. Over the years, a variety of variants
-have emerged but the lack of availability of these different methods
-in the form of easy-to-use software seems to unnecessarily hinder the
-acceptance and uptake of these EOF variants by the broad climate science
-community.
+``xeofs`` is a toolbox designed to handle multi-dimensional EOF analysis and related methods
+for Earth system sciences, leveraging the power of packages like ``xarray`` for 
+labeled, multi-dimensional analysis and 
+``dask`` for scalability. It supports various forms of 
+EOF analysis including standard, rotated, and multivariate analysis. 
+The overall goal of ``xeofs`` is to unify and extend existing EOF implementations, 
+thereby enhancing their application in the broader scientific community.
+
+
+.. grid:: 2
+
+    .. grid-item-card::  Overview
+      :link: overview
+      :link-type: doc
+
+
+      Get an idea of what xeofs is all about.
+
+    .. grid-item-card::  Getting started
+      :link: getting_started
+      :link-type: doc
+
+      Learn how to use xeofs.
+
+
+.. grid:: 2
+
+    .. grid-item-card::  Examples
+      :link: auto_examples/index
+      :link-type: doc
+
+      Follow along with some examples. 
+
+    .. grid-item-card::  API
+      :link: api
+      :link-type: doc
+
+      Explore the API.
+
 
 .. note:: Work in progress.
 
-*********
-Goal
-*********
-Create a Python package that provides simple access to a variety of different
-EOF-related techniques through the popular interfaces of NumPy_, pandas_
-and xarray_.
 
 
+.. toctree::
+   :maxdepth: 3
+   :hidden:
 
-
-.. _NumPy: https://www.numpy.org
-.. _pandas: https://pandas.pydata.org
-.. _xarray: https://xarray.pydata.org
-
-.. comment
-.. toctree ::
-   :maxdepth: 4
-   :caption: Contents:
-
-******************
-Documentation
-******************
-
- .. toctree::
-    :maxdepth: 2
-
-    why
-    installation
-    auto_examples/index
-    api
-
-..
-.. Indices and tables
-.. ==================
-..
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
+   overview
+   installation
+   getting_started
+   auto_examples/index
+   api

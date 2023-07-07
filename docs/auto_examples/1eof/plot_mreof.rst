@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_auto_examples_1eof_plot_mreof.py>`
+        :ref:`Go to the end <sphx_glr_download_auto_examples_1eof_plot_mreof.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -35,7 +35,7 @@ Multivariate EOF analysis with additional Varimax rotation.
     from matplotlib.gridspec import GridSpec
     from cartopy.crs import PlateCarree
 
-    from xeofs.xarray import EOF, Rotator
+    from xeofs.models import EOF, EOFRotator
 
 
 
@@ -69,21 +69,18 @@ Create four different dataarrayss
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-39
+.. GENERATED FROM PYTHON SOURCE LINES 27-36
 
 .. code-block:: default
 
 
-    mpca = EOF(
-        [subset1, subset2, subset3, subset4],
-        dim='time',
-        norm=False,
-        weights='coslat'
-    )
-    mpca.solve()
-    rot = Rotator(mpca, n_rot=50)
-    reofs = rot.eofs()
-    rpcs = rot.pcs()
+    multivariate_data = [subset1, subset2, subset3, subset4]
+    mpca = EOF(n_modes=100, standardize=False, use_coslat=True)
+    mpca.fit(multivariate_data, dim='time')
+    rotator = EOFRotator(n_modes=20)
+    rotator.fit(mpca)
+    rcomponents = rotator.components()
+    rscores = rotator.scores()
 
 
 
@@ -92,11 +89,11 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-41
+.. GENERATED FROM PYTHON SOURCE LINES 37-38
 
 Plot mode 1
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-75
+.. GENERATED FROM PYTHON SOURCE LINES 38-72
 
 .. code-block:: default
 
@@ -118,14 +115,14 @@ Plot mode 1
     ax_pc = fig.add_subplot(gs[1, :])
 
     # PC
-    rpcs.sel(mode=mode).plot(ax=ax_pc)
+    rscores.sel(mode=mode).plot(ax=ax_pc)
     ax_pc.set_xlabel('')
     ax_pc.set_title('')
 
     # EOFs
-    for i, (a, eof) in enumerate(zip(ax, reofs)):
+    for i, (a, comps) in enumerate(zip(ax, rcomponents)):
         a.coastlines(color='.5')
-        eof.sel(mode=mode).plot(ax=a, **kwargs)
+        comps.sel(mode=mode).plot(ax=a, **kwargs)
         a.set_xticks([])
         a.set_yticks([])
         a.set_xlabel('')
@@ -149,28 +146,25 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  5.051 seconds)
+   **Total running time of the script:** ( 0 minutes  6.262 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_mreof.py:
 
+.. only:: html
 
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-example
+  .. container:: sphx-glr-footer sphx-glr-footer-example
 
 
 
-  .. container:: sphx-glr-download sphx-glr-download-python
 
-     :download:`Download Python source code: plot_mreof.py <plot_mreof.py>`
+    .. container:: sphx-glr-download sphx-glr-download-python
 
+      :download:`Download Python source code: plot_mreof.py <plot_mreof.py>`
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-     :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
+      :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
 
 
 .. only:: html

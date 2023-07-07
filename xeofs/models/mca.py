@@ -10,7 +10,7 @@ from ..utils.xarray_utils import hilbert_transform
 
 
 class MCA(_BaseCrossModel):
-    '''Fit a Maximum Covariance Analyis (MCA) model.
+    '''Maximum Covariance Analyis (MCA).
     
     Parameters:
     -------------
@@ -401,8 +401,7 @@ class MCA(_BaseCrossModel):
 
 
 class ComplexMCA(MCA):
-    '''
-    Complex maximum covariance analysis (MCA) on two sets of data. 
+    '''Complex Maximum Covariance Analysis (MCA). 
 
     This class inherits from the MCA class and overloads its methods to implement a version of MCA 
     that uses complex numbers (i.e., applies the Hilbert transform) to capture phase relationships 

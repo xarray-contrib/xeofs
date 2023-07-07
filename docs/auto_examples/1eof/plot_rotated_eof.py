@@ -2,24 +2,24 @@
 Rotated EOF analysis
 ========================
 
-EOF analysis is often used in climate science to interpret the obtained
-eigenvectors (EOFs) as patterns of climatic variability. Given the mathematical
-nature of EOF analysis which leads to orthogonal EOFs, this interpretation
-is questionable for all but the first EOF. Rotated EOF anaylsis helps to
-alleviate the orthogonal constraint of the EOFs by applying an additional
-rotation to the (loaded) EOFs by means of a optimization criteria (Varimax,
-Promax). Varimax (orthogonal) and Promax (oblique) rotation have the additional
-side effect of creating "sparse" solutions, i.e. turning the otherwise dense
-EOFs into a more "interpretable" solutions by reducing the number of variables
-contributing to an EOF. As such, rotation acts as a kind of regularization of
-the EOF solution, with the ``power`` parameter defining its strength (the
-higher, the more sparse the EOFs become). In case of small regularization, i.e.
-``power=1``, the Promax rotation reduces to a Varimax rotation.
+EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting 
+the derived eigenvectors (EOFs) as climatic variability patterns. However, due to 
+the inherent orthogonality constraint in EOF analysis, the interpretation of all 
+but the first EOF can be problematic. Rotated EOF analysis, using optimization criteria 
+like Varimax and Promax, offers a solution by releasing this orthogonality constraint, 
+thus enabling a more accurate interpretation of variability patterns.
 
-Here we compare the first three modes of EOF analysis (1) without
-regularization, (2) with Varimax rotation and (3) with Promax rotation.
+Both Varimax (orthogonal) and Promax (oblique) rotations result in "sparse" solutions, 
+meaning the EOFs become more interpretable by limiting the number of variables that 
+contribute to each EOF. This rotation effectively serves as a regularization method 
+for the EOF solution, with the strength of regularization determined by the power parameter; 
+the higher the value, the sparser the EOFs.
 
-Load packages and data:
+Promax rotation, with a small regularization value (i.e., power=1), reverts to Varimax 
+rotation. In this context, we compare the first three modes of EOF analysis: (1) 
+without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
+
+We'll start by loading the necessary packages and data:
 """
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ import seaborn as sns
 from matplotlib.gridspec import GridSpec
 from cartopy.crs import Robinson, PlateCarree
 
-from xeofs.xarray import EOF, Rotator
+from xeofs.models import EOF, EOFRotator
 
 
 sns.set_context('paper')
@@ -38,28 +38,30 @@ sst = xr.tutorial.open_dataset('ersstv5')['sst']
 # Standardization of these time series cannot work since
 # the standard deviation is zero.
 # Remove these grid points prior to the analysis:
-minimum_std_dev = 1e-5
-valid_x = sst.stack(x=['lat', 'lon']).std('time') > minimum_std_dev
-sst = sst.stack(x=['lat', 'lon']).sel(x=valid_x).unstack()
+# minimum_std_dev = 1e-5
+# valid_x = sst.stack(x=['lat', 'lon']).std('time') > minimum_std_dev
+# sst = sst.stack(x=['lat', 'lon']).sel(x=valid_x).unstack()
 
 #%%
 # Perform the actual analysis
 
-eofs = []
-pcs = []
+components = []
+scores = []
 # (1) Standard EOF without regularization
-model = EOF(sst, dim=['time'], norm=True, weights='coslat')
-model.solve()
-eofs.append(model.eofs())
-pcs.append(model.pcs())
+model = EOF(n_modes=100, standardize=True, use_coslat=True)
+model.fit(sst, dim='time')
+components.append(model.components())
+scores.append(model.scores())
 # (2) Varimax-rotated EOF analysis
-rot_var = Rotator(model, n_rot=50, power=1)
-eofs.append(rot_var.eofs())
-pcs.append(rot_var.pcs())
+rot_var = EOFRotator(n_modes=50, power=1)
+rot_var.fit(model)
+components.append(rot_var.components())
+scores.append(rot_var.scores())
 # (3) Promax-rotated EOF analysis
-rot_pro = Rotator(model, n_rot=50, power=4)
-eofs.append(rot_pro.eofs())
-pcs.append(rot_pro.pcs())
+rot_pro = EOFRotator(n_modes=50, power=4)
+rot_pro.fit(model)
+components.append(rot_pro.components())
+scores.append(rot_pro.scores())
 
 
 #%%
@@ -87,9 +89,9 @@ for i, (a0, a1, a2) in enumerate(zip(ax_std, ax_var, ax_pro)):
     a0.coastlines(color='.5')
     a1.coastlines(color='.5')
     a2.coastlines(color='.5')
-    eofs[0].sel(mode=mode).plot(ax=a0, **kwargs)
-    eofs[1].sel(mode=mode).plot(ax=a1, **kwargs)
-    eofs[2].sel(mode=mode).plot(ax=a2, **kwargs)
+    components[0].sel(mode=mode).plot(ax=a0, **kwargs)
+    components[1].sel(mode=mode).plot(ax=a1, **kwargs)
+    components[2].sel(mode=mode).plot(ax=a2, **kwargs)
 
 title_kwargs = dict(rotation=90, va='center', weight='bold')
 ax_std[0].text(-.1, .5, 'Standard', transform=ax_std[0].transAxes, **title_kwargs)

@@ -9,7 +9,7 @@ from ..utils.xarray_utils import hilbert_transform
 
 
 class EOF(_BaseModel):
-    '''Model to perform Empirical Orthogonal Function (EOF) analysis.
+    '''Empirical Orthogonal Functions (EOF) analysis.
 
     EOF analysis is more commonly referend to as principal component analysis (PCA).
 
@@ -114,7 +114,7 @@ class EOF(_BaseModel):
 
 
 class ComplexEOF(EOF):
-    '''Decomposes a data object using Complex Empirical Orthogonal Functions (EOF).
+    '''Complex Empirical Orthogonal Functions (EOF) analysis.
     
     Complex EOFs are computed by applying a Hilbert transform to the data before
     computing the EOFs. The Hilbert transform is applied to each feature of the

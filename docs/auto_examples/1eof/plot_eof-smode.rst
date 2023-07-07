@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_auto_examples_1eof_plot_eof-smode.py>`
+        :ref:`Go to the end <sphx_glr_download_auto_examples_1eof_plot_eof-smode.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -35,7 +35,7 @@ EOF analysis in S-mode maximises the temporal variance.
     from matplotlib.gridspec import GridSpec
     from cartopy.crs import EqualEarth, PlateCarree
 
-    from xeofs.xarray import EOF
+    from xeofs.models import EOF
 
 
 
@@ -67,11 +67,11 @@ Perform the actual analysis
 .. code-block:: default
 
 
-    model = EOF(sst, n_modes=5, norm=False, dim='time')
-    model.solve()
+    model = EOF(n_modes=5, standardize=False)
+    model.fit(sst, dim='time')
     expvar = model.explained_variance_ratio()
-    eofs = model.eofs()
-    pcs = model.pcs()
+    components = model.components()
+    scores = model.scores()
 
 
 
@@ -84,9 +84,10 @@ Perform the actual analysis
 
 Explained variance fraction
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-34
+.. GENERATED FROM PYTHON SOURCE LINES 32-35
 
 .. code-block:: default
+
 
     expvar * 100
 
@@ -129,6 +130,7 @@ Explained variance fraction
     }
 
     html[theme=dark],
+    body[data-theme=dark],
     body.vscode-dark {
       --xr-font-color0: rgba(255, 255, 255, 1);
       --xr-font-color2: rgba(255, 255, 255, 0.54);
@@ -358,6 +360,11 @@ Explained variance fraction
       grid-column: 4;
     }
 
+    .xr-index-preview {
+      grid-column: 2 / 5;
+      color: var(--xr-font-color2);
+    }
+
     .xr-var-name,
     .xr-var-dims,
     .xr-var-dtype,
@@ -379,14 +386,16 @@ Explained variance fraction
     }
 
     .xr-var-attrs,
-    .xr-var-data {
+    .xr-var-data,
+    .xr-index-data {
       display: none;
       background-color: var(--xr-background-color) !important;
       padding-bottom: 5px !important;
     }
 
     .xr-var-attrs-in:checked ~ .xr-var-attrs,
-    .xr-var-data-in:checked ~ .xr-var-data {
+    .xr-var-data-in:checked ~ .xr-var-data,
+    .xr-index-data-in:checked ~ .xr-index-data {
       display: block;
     }
 
@@ -396,13 +405,16 @@ Explained variance fraction
 
     .xr-var-name span,
     .xr-var-data,
+    .xr-index-name div,
+    .xr-index-data,
     .xr-attrs {
       padding-left: 25px !important;
     }
 
     .xr-attrs,
     .xr-var-attrs,
-    .xr-var-data {
+    .xr-var-data,
+    .xr-index-data {
       grid-column: 1 / -1;
     }
 
@@ -440,7 +452,8 @@ Explained variance fraction
     }
 
     .xr-icon-database,
-    .xr-icon-file-text2 {
+    .xr-icon-file-text2,
+    .xr-no-icon {
       display: inline-block;
       vertical-align: middle;
       width: 1em;
@@ -450,18 +463,20 @@ Explained variance fraction
       fill: currentColor;
     }
     </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance_ratio&#x27; (mode: 5)&gt;
-    array([85.52534243,  3.23632856,  2.73484689,  1.21513263,  0.92978572])
+    array([85.52533   ,  3.23633   ,  2.734847  ,  1.2151341 ,  0.92978525],
+          dtype=float32)
     Coordinates:
-      * mode     (mode) int64 1 2 3 4 5</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance_ratio'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-d5034f83-d917-4c78-a751-ebad91c2a980' class='xr-array-in' type='checkbox' checked><label for='section-d5034f83-d917-4c78-a751-ebad91c2a980' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>85.53 3.236 2.735 1.215 0.9298</span></div><div class='xr-array-data'><pre>array([85.52534243,  3.23632856,  2.73484689,  1.21513263,  0.92978572])</pre></div></div></li><li class='xr-section-item'><input id='section-2debbecb-740d-4eaa-9070-e8e9687c7e91' class='xr-section-summary-in' type='checkbox'  checked><label for='section-2debbecb-740d-4eaa-9070-e8e9687c7e91' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-739660ea-31bd-4486-8533-8de44bc49c24' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-739660ea-31bd-4486-8533-8de44bc49c24' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-77dad6cf-7005-4f52-bd0b-6edf10ccdf18' class='xr-var-data-in' type='checkbox'><label for='data-77dad6cf-7005-4f52-bd0b-6edf10ccdf18' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-5b22fdb5-7410-4f89-b657-332af3e54f72' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-5b22fdb5-7410-4f89-b657-332af3e54f72' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
+      * mode     (mode) int64 1 2 3 4 5</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance_ratio'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-c78c8a77-4975-4431-a02b-275bf340c70f' class='xr-array-in' type='checkbox' checked><label for='section-c78c8a77-4975-4431-a02b-275bf340c70f' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>85.53 3.236 2.735 1.215 0.9298</span></div><div class='xr-array-data'><pre>array([85.52533   ,  3.23633   ,  2.734847  ,  1.2151341 ,  0.92978525],
+          dtype=float32)</pre></div></div></li><li class='xr-section-item'><input id='section-090b007e-d892-48ce-a795-18eaf04b120a' class='xr-section-summary-in' type='checkbox'  checked><label for='section-090b007e-d892-48ce-a795-18eaf04b120a' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-5069a367-b24e-4bea-a16f-4c8a87dbd004' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-5069a367-b24e-4bea-a16f-4c8a87dbd004' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0b05b61e-6564-4614-97f0-e86981108cf5' class='xr-var-data-in' type='checkbox'><label for='data-0b05b61e-6564-4614-97f0-e86981108cf5' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1b6833f4-19da-4820-8f37-ded55bedaf1f' class='xr-section-summary-in' type='checkbox'  ><label for='section-1b6833f4-19da-4820-8f37-ded55bedaf1f' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-9380bcbb-43cb-492e-9501-64a3617736ae' class='xr-index-data-in' type='checkbox'/><label for='index-9380bcbb-43cb-492e-9501-64a3617736ae' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Int64Index([1, 2, 3, 4, 5], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-0f561b97-36c2-41ce-872a-0ac3e2fb3940' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-0f561b97-36c2-41ce-872a-0ac3e2fb3940' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-36
+.. GENERATED FROM PYTHON SOURCE LINES 36-37
 
 Create figure showing the first two modes
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-56
+.. GENERATED FROM PYTHON SOURCE LINES 37-57
 
 .. code-block:: default
 
@@ -477,9 +492,9 @@ Create figure showing the first two modes
     ax1 = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(3)]
 
     for i, (a0, a1) in enumerate(zip(ax0, ax1)):
-        pcs.sel(mode=i+1).plot(ax=a0)
+        scores.sel(mode=i+1).plot(ax=a0)
         a1.coastlines(color='.5')
-        eofs.sel(mode=i+1).plot(ax=a1, **kwargs)
+        components.sel(mode=i+1).plot(ax=a1, **kwargs)
 
         a0.set_xlabel('')
 
@@ -500,28 +515,25 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  4.760 seconds)
+   **Total running time of the script:** ( 0 minutes  5.117 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_eof-smode.py:
 
+.. only:: html
 
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-example
+  .. container:: sphx-glr-footer sphx-glr-footer-example
 
 
 
-  .. container:: sphx-glr-download sphx-glr-download-python
 
-     :download:`Download Python source code: plot_eof-smode.py <plot_eof-smode.py>`
+    .. container:: sphx-glr-download sphx-glr-download-python
 
+      :download:`Download Python source code: plot_eof-smode.py <plot_eof-smode.py>`
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-     :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
+      :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
 
 
 .. only:: html
