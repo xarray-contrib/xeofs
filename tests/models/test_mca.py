@@ -160,11 +160,11 @@ def test_scores(mca_model, mock_data_array, dim):
 ])
 def test_homogeneous_patterns(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    patterns1, patterns2, pvals1, pvals2 = mca_model.homogeneous_patterns()
-    assert isinstance(patterns1, xr.DataArray)
-    assert isinstance(patterns2, xr.DataArray)
-    assert isinstance(pvals1, xr.DataArray)
-    assert isinstance(pvals2, xr.DataArray)
+    patterns, pvals = mca_model.homogeneous_patterns()
+    assert isinstance(patterns[0], xr.DataArray)
+    assert isinstance(patterns[1], xr.DataArray)
+    assert isinstance(pvals[0], xr.DataArray)
+    assert isinstance(pvals[1], xr.DataArray)
 
 
 @pytest.mark.parametrize('dim', [
@@ -174,11 +174,11 @@ def test_homogeneous_patterns(mca_model, mock_data_array, dim):
 ])
 def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    patterns1, patterns2, pvals1, pvals2 = mca_model.heterogeneous_patterns()
-    assert isinstance(patterns1, xr.DataArray)
-    assert isinstance(patterns2, xr.DataArray)
-    assert isinstance(pvals1, xr.DataArray)
-    assert isinstance(pvals2, xr.DataArray)
+    patterns, pvals = mca_model.heterogeneous_patterns()
+    assert isinstance(patterns[0], xr.DataArray)
+    assert isinstance(patterns[1], xr.DataArray)
+    assert isinstance(pvals[0], xr.DataArray)
+    assert isinstance(pvals[1], xr.DataArray)
 
 
 @pytest.mark.parametrize('dim', [
