@@ -1,15 +1,8 @@
-.. image:: examples/1eof/rotated_eof.jpg
+.. image:: docs/logos/xeofs_logo.png
   :align: center
   :width: 800
-  :alt: Comparison of standard, Varimax-rotated and Proxmax-rotated EOF analysis for temperature field over North America.
+  :alt: xeofs logo
 
-Example_ showing sea surface temperature decomposed via EOF analysis, Varimax rotation and Promax rotation.
-
-.. _Example: https://xeofs.readthedocs.io/en/stable/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
-
-==================================================
-xeofs: Multi-dimensional EOF analysis and variants
-==================================================
 
 |badge_build_status| |badge_docs_status| |badge_version_pypi| |badge_conda_version| |badge_downloads| |badge_coverage| |badge_license| |badge_zenodo|
 
@@ -37,113 +30,93 @@ xeofs: Multi-dimensional EOF analysis and variants
    :target: https://pepy.tech/project/xeofs
    :alt: Total downloads
 
-Empirical orthogonal function (EOF) analysis, more commonly known as
-principal component analysis (PCA), is one of the most popular methods
-for dimension reduction and structure identification in Earth system sciences.
-Due to this popularity, a number of different EOF variants have been developed
-over the last few years, either to mitigate some pitfalls of ordinary EOF
-analysis (e.g. orthogonality, interpretability, linearity) or to broaden its
-scope (e.g. multivariate variants).
-
-Currently, there are several implementations of EOF analysis on GitHub that
-facilitate the acceptance and application of this method by the broader
-scientific community. Each of these implementations has its own strengths,
-which need to be highlighted (please `let me know`_, if I forgot any):
 
 
-Available Models
-----------------
 
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 **xeofs**   eofs_       pyEOF_      xeof_       xMCA_       xmca2_
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
-EOF analysis           ✅           ✅           ✅           ✅           ✅            ✅
-Rotated EOF analysis   ✅           ❌           ✅           ❌           ❌            ✅
-Complex EOF analysis   ❌           ❌           ❌           ❌           ❌            ✅
-`ROCK-PCA`_            ✅           ❌           ❌           ❌           ❌            ❌
-Multivariate EOF       ✅           ✅           ❌           ❌           ❌            ❌
-MCA                    ✅           ❌           ❌           ❌           ✅            ✅
-Rotated MCA            ✅           ❌           ❌           ❌           ❌            ✅
-Complex MCA            ❌           ❌           ❌           ❌           ❌            ✅
-Multivariate MCA       ✅           ❌           ❌           ❌           ❌            ❌
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
+Overview
+---------------------
 
-.. _ROCK-PCA: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8989964&casa_token=3zKG0dtp-ewAAAAA:FM1CrVISSSqhWEAwPGpQqCgDYccfLG4N-67xNNDzUBQmMvtIOHuC7T6X-TVQgbDg3aDOpKBksg&tag=1
+``xeofs`` is a Python package that provides a platform for performing Empirical Orthogonal Function (EOF) analysis, a popular technique also known as Principal Component Analysis (PCA). It was born out of a necessity to process and analyse multi-dimensional Earth observation data, where the complexity extends beyond simple 2D matrices to include spatial (longitude, latitude, height), temporal (time, steps, lead times), and other dimensions.
 
+The benefits of using ``xeofs`` include:
 
-Additional features
-----------------------
-
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
-Package                 **xeofs**  eofs_       pyEOF_      xeof_       xMCA_       xmca2_
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
-``numpy`` interface    ✅           ✅           ❌           ❌           ❌           ✅
-``pandas`` interface   ✅           ❌           ❌           ❌           ❌           ❌
-``xarray`` interface   ✅           ✅           ✅           ✅           ✅           ✅
-Fast algorithm         ✅           ❌           ✅           ❌           ❌           ❌
-Dask support           ❌           ✅           ❌           ✅           ❌           ❌
-Multi-dimensional      ✅           ❌           ❌           ❌           ❌           ❌
-Significance analysis  ✅           ❌           ❌           ❌           ❌           ❌
-=====================  ==========  ==========  ==========  ==========  ==========  ==========
-
-
-.. _eofs: https://github.com/ajdawson/eofs
-.. _xeof: https://github.com/dougiesquire/xeof
-.. _xMCA: https://github.com/Yefee/xMCA
-.. _pyEOF: https://github.com/zzheng93/pyEOF
-.. _xmca2: https://github.com/nicrie/xmca
-
-.. _let me know: niclasrieger@gmail.com
-
-
-Why ``xeofs``?
-----------------------
-
-The goal of ``xeofs`` is to merge these different implementations and to simplify the integration of other existing and future variants of EOF analysis thanks to its modular code structure.
-The official name is deliberately chosen to be similar to the other implementations to make it clear that ``xeofs`` is nothing revolutionary new in itself. The point is not to distinguish this implementation from the others, but rather to unify (+ extend) already existing implementations.
-
-This project is intended to be a collaborative project of the scientific community and the contribution of EOF variants in the form of pull requests is explicitly encouraged.
-If you are interested, just `contact me`_ or open an `Issue`_.
-
-.. _contact me: niclasrieger@gmail.com
-.. _Issue: https://github.com/nicrie/xeofs/issues
-
-
+- **Multi-dimensional Analysis**: Execute labeled EOF analysis with the extensive features of ``xarray``.
+- **Scalability**: Handle large datasets effectively with ``dask``.
+- **Speed**: Enjoy quick EOF analysis using ``scipy``'s randomized SVD.
+- **Model Validation**: Validate models through bootstrapping.
+- **Modular Code Structure**: Incorporate new EOF variants with ease due to the package's modular structure.
 
 Installation
-----------------------
+------------
 
-If you are using ``conda``, it is recommend to install via:
+To install the package, use either of the following commands:
 
-.. code-block:: ini
+.. code-block:: bash
 
-  conda install -c conda-forge xeofs
+   pip install xeofs
 
-Alternatively, you can install the package through ``pip``:
+or 
 
-.. code-block:: ini
+.. code-block:: bash
 
-  pip install xeofs
+   conda install -c conda-forge xeofs
 
 
-How to use it?
-----------------------
-Documentation_ is work in progress. Meanwhile check out some examples_ to get started:
+Quickstart
+----------
 
-+ EOF analysis (S-mode_)
-+ EOF analysis (T-mode_)
-+ Rotated_ EOF analysis (Varimax, Promax)
-+ Weighted_ EOF analysis
-+ Multivariate_ EOF analysis
-+ Significance analysis via bootstrapping
-+ Maximum Covariance Analysis
+In order to get started with ``xeofs``, follow these simple steps:
 
-.. _T-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-tmode.html#sphx-glr-auto-examples-1eof-plot-eof-tmode-py
-.. _S-mode: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_eof-smode.html#sphx-glr-auto-examples-1eof-plot-eof-smode-py
-.. _Weighted: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_weighted_eof.html#sphx-glr-auto-examples-1eof-plot-weighted-eof-py
-.. _Rotated: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_rotated_eof.html#sphx-glr-auto-examples-1eof-plot-rotated-eof-py
-.. _Multivariate: https://xeofs.readthedocs.io/en/latest/auto_examples/1eof/plot_multivariate-eof-analysis.html#sphx-glr-auto-examples-1eof-plot-multivariate-eof-analysis-py
-.. _Documentation: https://xeofs.readthedocs.io/en/latest/
+1. **Import the package**
+
+   .. code-block:: python
+
+      import xeofs as xe
+
+2. **Instantiate the model**
+
+   Select the type of analysis you want to perform (in this case, EOF analysis) and set the parameters. For example, if you want to analyze the first 10 modes, you would use the following code:
+
+   .. code-block:: python
+
+      model = xe.models.EOF(n_modes=10)
+
+3. **Fit the model to your data**
+
+   Fit the model to your data by specifying the dimensions along which the analysis should be performed. Replace 'your_data' and 'your_dimension' with your specific data and dimension:
+
+   .. code-block:: python
+
+      model.fit(your_data, dim=your_dimension)
+
+Congratulations! You have performed your first analysis with ``xeofs``. To further explore the capabilities of ``xeofs``, check the documentation_ and examples_.
+
+
+
+Documentation
+-------------
+
+For a more comprehensive overview and usage examples, visit the documentation_.
+
+Contributing
+------------
+
+Contributions are highly welcomed and appreciated. If you're interested in improving ``xeofs`` or fixing issues, please open a Github issue_.
+
+License
+-------
+
+This project is licensed under the terms of the MIT license.
+
+Contact
+-------
+
+For questions or support, please open a Github issue_.
+
+
+
+.. _issue: https://github.com/nicrie/xeofs/issues
+.. _documentation: https://xeofs.readthedocs.io/en/latest/
 .. _examples: https://xeofs.readthedocs.io/en/latest/auto_examples/index.html
 
 
@@ -151,19 +124,19 @@ Documentation_ is work in progress. Meanwhile check out some examples_ to get st
 Credits
 ----------------------
 
-- to Andrew Dawson_ for the first and fundamental Python package for EOF analysis
-- to Yefee_ from which I took some inspiration to implement MCA
-- to James Chapman_ who created a great Python package for Canonical Correlation Analysis
-- to Diego Bueso_ for his open-source ROCK-PCA implementation in Matlab
-- to yngvem_ for how to organize the project folder structure
-- to all the developers of NumPy_, pandas_ \& xarray_ for their invaluable contributions to science
+I want to acknowledge
+
+- Andrew Dawson_, for his foundational Python package for EOF analysis.
+- Yefee_, whose work provided useful references for implementing MCA in ``xeofs``.
+- James Chapman_, creator of a Python package for Canonical Correlation Analysis.
+- Diego Bueso_, for his open-source ROCK-PCA implementation in Matlab.
+- The developers of NumPy_, pandas_, and xarray_ for their indispensable tools for scientific computations in Python.
+
 
 
 .. _NumPy: https://www.numpy.org
 .. _pandas: https://pandas.pydata.org
 .. _xarray: https://xarray.pydata.org
-.. _yngvem: https://github.com/yngvem/python-project-structure
-.. _pooch: https://github.com/fatiando/pooch
 .. _Chapman: https://github.com/jameschapman19/cca_zoo
 .. _Bueso: https://github.com/DiegoBueso/ROCK-PCA
 .. _Dawson: https://github.com/ajdawson/eofs
@@ -174,11 +147,11 @@ How to cite?
 ----------------------
 Please make sure that when using ``xeofs`` you always cite the **original source** of the method used. Additionally, if you find ``xeofs`` useful for your research, you may cite it as follows::
 
-   @software{rieger_xeofs_2022,
+   @software{rieger_xeofs_2023,
      title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
      url = {https://github.com/nicrie/xeofs}
-     version = {0.6.0},
+     version = {1.0.0},
      author = {Rieger, Niclas},
-     date = {2022},
+     date = {2023},
      doi = {10.5281/zenodo.6323011}
    }

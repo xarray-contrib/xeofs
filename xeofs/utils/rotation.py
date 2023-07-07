@@ -54,7 +54,7 @@ def varimax(
     R = np.eye(n_modes)
 
     # Normalize the matrix using square root of the sum of squares (Kaiser)
-    h = np.sqrt(np.sum(X * X.conjugate(), axis=1))
+    h = np.sqrt(np.sum(X * X.conj(), axis=1))
     # A = np.diag(1./h) @ A
 
     # Add a stabilizer to avoid zero communalities
@@ -68,12 +68,12 @@ def varimax(
         delta_old = delta
         basis = X @ R
 
-        basis2 = basis * basis.conjugate()
+        basis2 = basis * basis.conj()
         basis3 = basis2 * basis
         W = np.diag(np.sum(basis2, axis=0))
         alpha = gamma / n_samples
 
-        transformed = X.conjugate().T @ (basis3 - (alpha * basis @ W))
+        transformed = X.conj().T @ (basis3 - (alpha * basis @ W))
         U, svals, VT = np.linalg.svd(transformed)
         R = U @ VT
         delta = np.sum(svals)
@@ -140,7 +140,7 @@ def promax(
     X, rot_mat = varimax(X=X, max_iter=max_iter, rtol=rtol)
 
     # Pre-normalization by communalities (sum of squared rows)
-    h = np.sqrt(np.sum(X * X.conjugate(), axis=1))
+    h = np.sqrt(np.sum(X * X.conj(), axis=1))
     # Add a stabilizer to avoid zero communalities
     eps = 1e-9
     X = (1. / (h + eps))[:, np.newaxis] * X
@@ -153,13 +153,13 @@ def promax(
 
     # Fit linear regression model of "Procrustes" equation
     # see Richman 1986 for derivation
-    L = np.linalg.inv(X.conjugate().T @ X) @ X.conjugate().T @ P
+    L = np.linalg.inv(X.conj().T @ X) @ X.conj().T @ P
 
     # calculate diagonal of inverse square
     try:
-        sigma_inv = np.diag(np.diag(np.linalg.inv(L.conjugate().T @ L)))
+        sigma_inv = np.diag(np.diag(np.linalg.inv(L.conj().T @ L)))
     except np.linalg.LinAlgError:
-        sigma_inv = np.diag(np.diag(np.linalg.pinv(L.conjugate().T @ L)))
+        sigma_inv = np.diag(np.diag(np.linalg.pinv(L.conj().T @ L)))
 
     # transform and calculate inner products
     L = L @ np.sqrt(sigma_inv)
@@ -172,6 +172,6 @@ def promax(
 
     # Correlation matrix
     L_inv = np.linalg.inv(L)
-    phi = L_inv @ L_inv.conjugate().T
+    phi = L_inv @ L_inv.conj().T
 
     return Xrot, rot_mat, phi

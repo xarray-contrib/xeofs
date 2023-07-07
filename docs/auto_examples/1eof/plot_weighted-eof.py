@@ -16,7 +16,7 @@ import seaborn as sns
 from matplotlib.gridspec import GridSpec
 from cartopy.crs import Orthographic, PlateCarree
 
-from xeofs.xarray import EOF
+from xeofs.models import EOF
 
 sns.set_context('paper')
 
@@ -25,28 +25,28 @@ t2m = xr.tutorial.load_dataset('air_temperature')['air']
 #%%
 # Perform the actual analysis
 
-eofs = []
-pcs = []
+components = []
+scores = []
 # (1) Based on covariance matrix
-model_cov = EOF(t2m, dim=['time'], n_modes=5, norm=False, weights=None)
-model_cov.solve()
-eofs.append(model_cov.eofs())
-pcs.append(model_cov.pcs())
+model_cov = EOF(n_modes=5, standardize=False, use_coslat=False)
+model_cov.fit(t2m, 'time')
+components.append(model_cov.components())
+scores.append(model_cov.scores())
 # (2) Based on coslat weighted covariance matrix
-model_lat = EOF(t2m, dim=['time'], n_modes=5, norm=False, weights='coslat')
-model_lat.solve()
-eofs.append(model_lat.eofs())
-pcs.append(model_lat.pcs())
+model_lat = EOF(n_modes=5, standardize=False, use_coslat=True)
+model_lat.fit(t2m, 'time')
+components.append(model_lat.components())
+scores.append(model_lat.scores())
 # (3) Based on correlation matrix
-model_cor = EOF(t2m, dim=['time'], n_modes=5, norm=True, weights=None)
-model_cor.solve()
-eofs.append(model_cor.eofs())
-pcs.append(model_cor.pcs())
+model_cor = EOF(n_modes=5, standardize=True, use_coslat=False)
+model_cor.fit(t2m, 'time')
+components.append(model_cor.components())
+scores.append(model_cor.scores())
 # (4) Based on coslat weighted correlation matrix
-model_cor_lat = EOF(t2m, dim=['time'], n_modes=5, norm=True, weights='coslat')
-model_cor_lat.solve()
-eofs.append(model_cor_lat.eofs())
-pcs.append(model_cor_lat.pcs())
+model_cor_lat = EOF(n_modes=5, standardize=True, use_coslat=True)
+model_cor_lat.fit(t2m, 'time')
+components.append(model_cor_lat.components())
+scores.append(model_cor_lat.scores())
 
 
 #%%
@@ -60,15 +60,15 @@ titles = [
     '(1) Covariances', '(2) Covariances + coslat',
     '(3) Correlation', '(4) Correlation + coslat',
 ]
-fig = plt.figure(figsize=(16, 8))
-gs = GridSpec(4, 4)
+fig = plt.figure(figsize=(10, 12))
+gs = GridSpec(4, 2)
 ax_pcs = [fig.add_subplot(gs[i, 0]) for i in range(4)]
 ax_eofs = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(4)]
 
 for i, (a1, a2) in enumerate(zip(ax_eofs, ax_pcs)):
     a1.coastlines(color='.5')
-    eofs[i].sel(mode=1).plot(ax=a1, **kwargs)
-    pcs[i].sel(mode=1).plot(ax=a2, color='darkred')
+    components[i].sel(mode=1).plot(ax=a1, **kwargs)
+    scores[i].sel(mode=1).plot(ax=a2, color='darkred')
     a2.set_xlabel('')
     a1.set_title('', loc='center')
     a2.set_title('', loc='center')
