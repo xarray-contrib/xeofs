@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2023-07-07)
+
+### Feature
+
+* V1.0.0 ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
+
+### Breaking
+
+* drop pandas support; add support for dask, complex EOF and flexible inputs ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
+
 ## v0.7.2 (2023-01-10)
 ### Fix
 * FutureWarning in coslat check ([#37](https://github.com/nicrie/xeofs/issues/37)) ([`285fe0f`](https://github.com/nicrie/xeofs/commit/285fe0f6f6cb69cd84e3ac4c662c64d6d659ef47))
