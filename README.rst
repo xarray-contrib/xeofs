@@ -8,7 +8,7 @@
 
 .. |badge_version_pypi| image:: https://img.shields.io/pypi/v/xeofs
    :alt: PyPI
-.. |badge_build_status| image:: https://img.shields.io/github/workflow/status/nicrie/xeofs/CI
+.. |badge_build_status| image:: https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/CI.yml?branch=main
    :alt: GitHub Workflow Status (event)
 .. |badge_docs_status| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
