@@ -2,6 +2,61 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.0 (2023-07-09)
+
+### Feature
+
+* Complex MCA amplitude and phase ([`55ce3b1`](https://github.com/nicrie/xeofs/commit/55ce3b17f2cb77ea2f11e4fe6444f9860ca5920d))
+* Add meta data to model output ([`083a8e0`](https://github.com/nicrie/xeofs/commit/083a8e049140bfbec87f354ed7f0504bbb208fd8))
+* Skeleton of Bootstrapper class ([`4934b31`](https://github.com/nicrie/xeofs/commit/4934b31f8ab3d2d35f371f13abedfd5c178775a1))
+* Rotation supports dask input ([`78360cf`](https://github.com/nicrie/xeofs/commit/78360cfbc3b237e8791a32b65aca3f0e7b5d7ec7))
+* Add complex MCA ([`13f8bbc`](https://github.com/nicrie/xeofs/commit/13f8bbc8b29e82af37ec6793b416a0ca1e2d1aa5))
+* RotatorFactory to access rotator classes ([`90b2db6`](https://github.com/nicrie/xeofs/commit/90b2db687314bc1b62aae5c74c0817eeb806203e))
+* EOF class transform, inverse_trans and corr ([`fb71ffe`](https://github.com/nicrie/xeofs/commit/fb71ffede30fdfd65b4b812a62340e9f292fbea6))
+* Add support for complex EOF ([`6bff6af`](https://github.com/nicrie/xeofs/commit/6bff6af12f0202fbce9cf06453ac66e8921d1d5c))
+
+### Fix
+
+* Add dependency statsmodels ([`87e7e1d`](https://github.com/nicrie/xeofs/commit/87e7e1d89f5d8dd3f7954bb4ebc79d2d41738404))
+* Add components and pattern method to MCA ([`849059b`](https://github.com/nicrie/xeofs/commit/849059b65d9218753ef886f5790742ea832a504d))
+* Merge 'release-v1.0.0' into bootstrapper ([`e6ea275`](https://github.com/nicrie/xeofs/commit/e6ea27536a43ff086c615ed720a03166d20718de))
+* Stacker in T-mode ([`2f9be99`](https://github.com/nicrie/xeofs/commit/2f9be995f2a73e75c0bf88b86290246effc5989c))
+* Supress warning when unstacking coords ([`2f01695`](https://github.com/nicrie/xeofs/commit/2f01695eac40bae2519f7dfd7b4d936b4c6647c5))
+* Number of modes to be rotated defaults 10 ([`b13c833`](https://github.com/nicrie/xeofs/commit/b13c833bd12241878b218cf62bbdc3121a8034de))
+* Rename n_rot to n_modes ([`5b39cd4`](https://github.com/nicrie/xeofs/commit/5b39cd4d565a82185c76f16b248e6aeae78577cc))
+* N_components instead of n_modes ([`5d282b1`](https://github.com/nicrie/xeofs/commit/5d282b1fc83f150113b13d4f736838676e5d9fff))
+* Change parameter dims to dim ([`70fe651`](https://github.com/nicrie/xeofs/commit/70fe65147f2dab8be7d9bdf08a81fbd36cc45897))
+* Phase of complex methods returns np.ndarray ([`dfb050d`](https://github.com/nicrie/xeofs/commit/dfb050d82b8d12cc137bd51316b220dd1deb93c3))
+* Complex decomposition not used ([`2086546`](https://github.com/nicrie/xeofs/commit/208654683c9071bc3927e8c7dd549a01e409dea3))
+* Added missing import ([`207af0a`](https://github.com/nicrie/xeofs/commit/207af0ab15267eca5fccbbfb5a464ceb4004d56e))
+* Remove unecessary  dimensions in scores ([`63e2204`](https://github.com/nicrie/xeofs/commit/63e2204ab3cce1fdf4ae6a1a153a987fde69e5c0))
+* Reindex data to ensure deterministic output ([`60c382b`](https://github.com/nicrie/xeofs/commit/60c382bc181aacb8997d955c225df96a7b3bed11))
+* ListStacker correctly unstacks ([`e363357`](https://github.com/nicrie/xeofs/commit/e363357851199b08d916b8efae4bac6a56f5c806))
+* Define names of output arrays ([`c826aa8`](https://github.com/nicrie/xeofs/commit/c826aa81dbd1bc9c6441982847bff08c4e9cd333))
+
+### Breaking
+
+* rename n_rot to n_modes ([`5b39cd4`](https://github.com/nicrie/xeofs/commit/5b39cd4d565a82185c76f16b248e6aeae78577cc))
+* n_components instead of n_modes ([`5d282b1`](https://github.com/nicrie/xeofs/commit/5d282b1fc83f150113b13d4f736838676e5d9fff))
+* change parameter dims to dim ([`70fe651`](https://github.com/nicrie/xeofs/commit/70fe65147f2dab8be7d9bdf08a81fbd36cc45897))
+* drop support for pandas ([`96196e5`](https://github.com/nicrie/xeofs/commit/96196e55a3094ae63266b534aa36e4cedf56d03a))
+
+### Documentation
+
+* Improve documentation ([#48](https://github.com/nicrie/xeofs/issues/48)) ([`378aae8`](https://github.com/nicrie/xeofs/commit/378aae871c15ad19b1e63631d58d8b00bafd65a2))
+* Move to pydata sphinx theme ([`9e92920`](https://github.com/nicrie/xeofs/commit/9e92920d75114f1525ab59f01e81daf044f3f975))
+* Add comparison to other packages ([`7985585`](https://github.com/nicrie/xeofs/commit/7985585b34fd27fd391f8a0d388723e2f639df30))
+* Fix broken badge ([`9d9b5d8`](https://github.com/nicrie/xeofs/commit/9d9b5d889bbef74f67c3a2b9d946c2373e51d725))
+* Add dev-dependeny for readthedocs ([#46](https://github.com/nicrie/xeofs/issues/46)) ([`e1e6379`](https://github.com/nicrie/xeofs/commit/e1e6379e2da146e7d8422da45e68bf678561d600))
+* Add sphinx related packages to env ([`6e07d3b`](https://github.com/nicrie/xeofs/commit/6e07d3b3c6797a787a5b10885c2f73ef5c14cdf8))
+* Improve documentation ([`b7c6680`](https://github.com/nicrie/xeofs/commit/b7c6680d196b269301b16143626fc0fea15cd038))
+* Add more docstrings ([`84ebb5a`](https://github.com/nicrie/xeofs/commit/84ebb5ac9a4abca9b30c04b9e9089d3c73ce15a7))
+* Add docstrings ([`0fe6e24`](https://github.com/nicrie/xeofs/commit/0fe6e242f9f4bc1067e8b2fb8e2c0eafaaebf2b2))
+
+### Performance
+
+* Always compute scaling arrays prior to analy ([`5b810ce`](https://github.com/nicrie/xeofs/commit/5b810ce3f7ecddd9fb44d307e600cd472e07d599))
+
 ## v1.0.1 (2023-07-07)
 
 ### Fix
