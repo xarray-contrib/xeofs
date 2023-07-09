@@ -1,13 +1,13 @@
 :sd_hide_title:
 
-##################
+==================
 API
-##################
+==================
 
 
-*************
+
 Models
-*************
+==================
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -18,9 +18,9 @@ Models
    xeofs.models.MCA
    xeofs.models.ComplexMCA
 
-*************
+
 Rotators
-*************
+==================
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -33,9 +33,9 @@ Rotators
    xeofs.models.RotatorFactory
 
 
-*************
+
 Validation
-*************
+==================
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst

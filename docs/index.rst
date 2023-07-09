@@ -48,9 +48,12 @@ thereby enhancing their application in the broader scientific community.
       Explore the API.
 
 
-.. note:: Work in progress.
 
+.. admonition:: Note
+    :class: info
 
+    Work in progress.
+  
 
 .. toctree::
    :maxdepth: 3
