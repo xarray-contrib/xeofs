@@ -36,15 +36,27 @@
 Overview
 ---------------------
 
-``xeofs`` is a Python package that provides a platform for performing Empirical Orthogonal Function (EOF) analysis, a popular technique also known as Principal Component Analysis (PCA). It was born out of a necessity to process and analyse multi-dimensional Earth observation data, where the complexity extends beyond simple 2D matrices to include spatial (longitude, latitude, height), temporal (time, steps, lead times), and other dimensions.
+``xeofs`` is a Python package designed for Empirical Orthogonal Function (EOF) analysis, also known as Principal Component Analysis (PCA), 
+and related variants. The package stands out due to its capacity 
+to handle multi-dimensional Earth observation data, thereby optimizing the speed and efficiency of EOF analysis. 
+Here are the key strengths of ``xeofs``:
 
 The benefits of using ``xeofs`` include:
 
 - **Multi-dimensional Analysis**: Execute labeled EOF analysis with the extensive features of ``xarray``.
 - **Scalability**: Handle large datasets effectively with ``dask``.
 - **Speed**: Enjoy quick EOF analysis using ``scipy``'s randomized SVD.
+- **Variety of Methods**: Perform diverse variants of EOF analysis, including complex and rotated version, along with related techniques such as Maximum Covariance Analysis (MCA).
 - **Model Validation**: Validate models through bootstrapping.
 - **Modular Code Structure**: Incorporate new EOF variants with ease due to the package's modular structure.
+- **Flexible Data Formats**: Accepts a variety of ``xarray`` input types (``DataArray``, ``Dataset``, list of ``DataArray``).
+
+Compared to similar packages like eofs_, pyEOF_, and xMCA_, ``xeofs`` is more comprehensive and flexible, providing unique capabilities like handling fully multidimensional dimensions 
+(both samples and features) and a simple interface for bootstrapping. This makes ``xeofs`` a powerful one-stop-shop for most of your EOF analysis needs.
+
+.. _pyEOF: https://github.com/zhonghua-zheng/pyEOF
+.. _xMCA: https://github.com/Yefee/xMCA
+.. _eofs: https://github.com/ajdawson/eofs
 
 Installation
 ------------
