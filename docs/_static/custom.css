@@ -1,0 +1,44 @@
+
+
+::-moz-selection { /* Code for Firefox */
+    color: #405168;
+    background: #f9d264;
+}    
+::selection {
+    color: #405168;
+    background: #f9d264;
+}
+
+
+
+  /* unvisited link */
+a:link {
+    color: #405168;
+}
+
+/* visited link */
+a:visited {
+    color: #748494;
+}
+
+/* mouse over link */
+a:hover {
+    color: hotpink;
+}
+
+/* selected link */
+a:active {
+    color: hotpink;
+}
+
+
+/* INFO admonition */
+div.admonition.info {
+    border-color: #f9d264;
+}
+div.admonition.info > .admonition-title:before {
+    background-color: #f9d264;
+}
+div.admonition.info > .admonition-title:after {
+    color: #f9d264;
+}
