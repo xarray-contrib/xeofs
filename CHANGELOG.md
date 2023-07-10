@@ -2,10 +2,19 @@
 
 <!--next-version-placeholder-->
 
-## v2.0.0 (2023-07-09)
+
+## v1.0.1 (2023-07-07)
+
+### Fix
+
+* Build and ci ([#45](https://github.com/nicrie/xeofs/issues/45)) ([`7d1a88b`](https://github.com/nicrie/xeofs/commit/7d1a88b1cda8a66d04f3ffa96e1aa5cfe899029b))
+* Add dask as dependency ([#42](https://github.com/nicrie/xeofs/issues/42)) ([`2bb2b6b`](https://github.com/nicrie/xeofs/commit/2bb2b6b817a457a7a24918914e88675f08e298d6))
+
+## v1.0.0 (2023-07-07)
 
 ### Feature
 
+* V1.0.0 ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
 * Complex MCA amplitude and phase ([`55ce3b1`](https://github.com/nicrie/xeofs/commit/55ce3b17f2cb77ea2f11e4fe6444f9860ca5920d))
 * Add meta data to model output ([`083a8e0`](https://github.com/nicrie/xeofs/commit/083a8e049140bfbec87f354ed7f0504bbb208fd8))
 * Skeleton of Bootstrapper class ([`4934b31`](https://github.com/nicrie/xeofs/commit/4934b31f8ab3d2d35f371f13abedfd5c178775a1))
@@ -40,6 +49,7 @@
 * n_components instead of n_modes ([`5d282b1`](https://github.com/nicrie/xeofs/commit/5d282b1fc83f150113b13d4f736838676e5d9fff))
 * change parameter dims to dim ([`70fe651`](https://github.com/nicrie/xeofs/commit/70fe65147f2dab8be7d9bdf08a81fbd36cc45897))
 * drop support for pandas ([`96196e5`](https://github.com/nicrie/xeofs/commit/96196e55a3094ae63266b534aa36e4cedf56d03a))
+* drop pandas support; add support for dask, complex EOF and flexible inputs ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
 
 ### Documentation
 
@@ -56,24 +66,6 @@
 ### Performance
 
 * Always compute scaling arrays prior to analy ([`5b810ce`](https://github.com/nicrie/xeofs/commit/5b810ce3f7ecddd9fb44d307e600cd472e07d599))
-
-## v1.0.1 (2023-07-07)
-
-### Fix
-
-* Build and ci ([#45](https://github.com/nicrie/xeofs/issues/45)) ([`7d1a88b`](https://github.com/nicrie/xeofs/commit/7d1a88b1cda8a66d04f3ffa96e1aa5cfe899029b))
-* Add dask as dependency ([#42](https://github.com/nicrie/xeofs/issues/42)) ([`2bb2b6b`](https://github.com/nicrie/xeofs/commit/2bb2b6b817a457a7a24918914e88675f08e298d6))
-
-## v1.0.0 (2023-07-07)
-
-### Feature
-
-* V1.0.0 ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
-
-### Breaking
-
-* drop pandas support; add support for dask, complex EOF and flexible inputs ([`ec70e8a`](https://github.com/nicrie/xeofs/commit/ec70e8a9321d0aa1dc0b44ca83be14f441afef18))
-
 ## v0.7.2 (2023-01-10)
 ### Fix
 * FutureWarning in coslat check ([#37](https://github.com/nicrie/xeofs/issues/37)) ([`285fe0f`](https://github.com/nicrie/xeofs/commit/285fe0f6f6cb69cd84e3ac4c662c64d6d659ef47))
