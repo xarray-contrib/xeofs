@@ -157,7 +157,9 @@ I want to acknowledge
 
 How to cite?
 ----------------------
- When utilizing ``xeofs``, kindly remember to cite the original creators of the methods employed in your work. Additionally, if ``xeofs`` is proving useful in your research, I'd appreciate if you could acknowledge its use with the following citation:
+When utilizing ``xeofs``, kindly remember to cite the original creators of the methods employed in your work. Additionally, if ``xeofs`` is proving useful in your research, I'd appreciate if you could acknowledge its use with the following citation:
+
+.. code-block:: bibtex
 
    @software{rieger_xeofs_2023,
      title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
