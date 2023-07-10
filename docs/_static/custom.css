@@ -1,34 +1,26 @@
 
+html[data-theme="light"] {
+    --pst-color-primary: #2c445c;
+    --pst-color-secondary: #FE5F55;
+    --pst-color-info: #2c445c,
+    --pst-color-warning: #F9D264,
+}
+
+html[data-theme="dark"] {
+    --pst-color-primary: #F9D264;
+    --pst-color-secondary: #FE5F55;
+    --pst-color-info: #2c445c,
+    --pst-color-warning: #F9D264,
+}
+
 
 ::-moz-selection { /* Code for Firefox */
-    color: #405168;
+    color: #000000;
     background: #f9d264;
 }    
 ::selection {
-    color: #405168;
+    color: #000000;
     background: #f9d264;
-}
-
-
-
-  /* unvisited link */
-a:link {
-    color: #405168;
-}
-
-/* visited link */
-a:visited {
-    color: #748494;
-}
-
-/* mouse over link */
-a:hover {
-    color: hotpink;
-}
-
-/* selected link */
-a:active {
-    color: hotpink;
 }
 
 
