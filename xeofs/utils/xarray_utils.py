@@ -135,8 +135,8 @@ def hilbert_transform(data: DataArray, dim, padding='exp', decay_factor=.2) -> D
     return xr.apply_ufunc(
         _hilbert_transform_with_padding,
         data,
-        input_core_dims=[['sample']],
-        output_core_dims=[['sample']],
+        input_core_dims=[['sample', 'feature']],
+        output_core_dims=[['sample', 'feature']],
         kwargs={'padding': padding, 'decay_factor': decay_factor},
         dask='parallelized',
         dask_gufunc_kwargs={'allow_rechunk': True}
@@ -203,6 +203,10 @@ def _hilbert_transform_with_padding(y, padding='exp', decay_factor=.2):
     
     if padding == 'exp':
         y = y[n_samples:2*n_samples]
+
+    # Padding can introduce a shift in the mean of the imaginary part
+    # of the Hilbert transform. Correct for this shift.
+    y = y - y.mean(axis=0)
 
     return y
 
