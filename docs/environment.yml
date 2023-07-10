@@ -15,7 +15,7 @@ dependencies:
   - matplotlib
   - seaborn
   - pip:
-    - sphinxawesome-theme
+    - pydata-sphinx-theme
     - sphinx-gallery
     - sphinx-design
     - nbsphinx
