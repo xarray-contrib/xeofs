@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.preprocessing.stacker import DataArrayStacker
+from xeofs.preprocessing.stacker import SingleDataArrayStacker
 
 
 @pytest.mark.parametrize('dim_sample, dim_feature', [
@@ -20,7 +20,7 @@ def test_data_array_stacker_fit_transform(
     mock_data_array_boundary_nans
 ):
     # Test basic functionality
-    stacker = DataArrayStacker()
+    stacker = SingleDataArrayStacker()
     stacked = stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
     assert stacked.ndim == 2
     assert set(stacked.dims) == {'sample', 'feature'}
@@ -58,7 +58,7 @@ def test_data_array_stacker_fit_transform(
 ])
 def test_data_array_stacker_transform(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
-    stacker = DataArrayStacker()
+    stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
     other_data = mock_data_array.copy(deep=True)
     transformed = stacker.transform(other_data)
@@ -80,7 +80,7 @@ def test_data_array_stacker_transform(mock_data_array, dim_sample, dim_feature):
 ])
 def test_data_array_stacker_inverse_transform_data(mock_data_array, dim_sample, dim_feature):
     # Test inverse transform
-    stacker = DataArrayStacker()
+    stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
     stacked = stacker.transform(mock_data_array)
     unstacked = stacker.inverse_transform_data(stacked)
@@ -98,7 +98,7 @@ def test_data_array_stacker_inverse_transform_data(mock_data_array, dim_sample, 
 ])
 def test_data_array_stacker_inverse_transform_components(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
-    stacker = DataArrayStacker()
+    stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
     components = xr.DataArray(
         np.random.normal(size=(len(stacker.coords_out_['feature']), 10)),
@@ -123,7 +123,7 @@ def test_data_array_stacker_inverse_transform_components(mock_data_array, dim_sa
 ])
 def test_data_array_stacker_inverse_transform_scores(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
-    stacker = DataArrayStacker()
+    stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
     scores = xr.DataArray(
         np.random.rand(len(stacker.coords_out_['sample']), 10),

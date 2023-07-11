@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.preprocessing.stacker import DatasetStacker
+from xeofs.preprocessing.stacker import SingleDatasetStacker
 
 
 @pytest.mark.parametrize('dim_sample, dim_feature', [
@@ -12,7 +12,7 @@ from xeofs.preprocessing.stacker import DatasetStacker
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_fit_transform(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
     # check output type and dimensions
@@ -33,7 +33,7 @@ def test_DatasetStacker_fit_transform(mock_dataset, dim_sample, dim_feature):
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_transform(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
     # create a new dataset for testing the transform function
@@ -53,7 +53,7 @@ def test_DatasetStacker_transform(mock_dataset, dim_sample, dim_feature):
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_inverse_transform_data(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
     inverse_transformed = stacker.inverse_transform_data(stacked)
@@ -70,7 +70,7 @@ def test_DatasetStacker_inverse_transform_data(mock_dataset, dim_sample, dim_fea
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_inverse_transform_components(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
     # dummy components
@@ -95,7 +95,7 @@ def test_DatasetStacker_inverse_transform_components(mock_dataset, dim_sample, d
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_inverse_transform_scores(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
     # dummy scores
@@ -123,13 +123,13 @@ def test_DatasetStacker_inverse_transform_scores(mock_dataset, dim_sample, dim_f
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_fit_transform_raises_on_invalid_dims(mock_dataset, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     with pytest.raises(ValueError):
         stacker.fit_transform(mock_dataset, ('invalid_dim',), dim_feature)
 
 
 def test_DatasetStacker_fit_transform_raises_on_isolated_nans(mock_data_array_isolated_nans):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     invalid_dataset = xr.Dataset({'var': mock_data_array_isolated_nans})
     with pytest.raises(ValueError):
         stacker.fit_transform(invalid_dataset, ('time',), ('lat', 'lon'))
@@ -142,7 +142,7 @@ def test_DatasetStacker_fit_transform_raises_on_isolated_nans(mock_data_array_is
     (('lon', 'lat'), ('time',)),
     ])
 def test_DatasetStacker_fit_transform_passes_on_full_dimensional_nans(mock_data_array_full_dimensional_nans, dim_sample, dim_feature):
-    stacker = DatasetStacker()
+    stacker = SingleDatasetStacker()
     valid_dataset = xr.Dataset({'var': mock_data_array_full_dimensional_nans})
     try:
         stacker.fit_transform(valid_dataset, dim_sample, dim_feature)

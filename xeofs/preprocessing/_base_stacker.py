@@ -26,6 +26,17 @@ class _BaseStacker(ABC):
     def __init__(self):
         pass
 
+    def fit(self, data, sample_dims: Hashable | Sequence[Hashable], feature_dims: Hashable | Sequence[Hashable] | List[Sequence[Hashable]]):
+        ''' Invoking a `fit` operation for a stacker object isn't practical because it requires stacking the data, 
+        only to ascertain the output dimensions. This step is computationally expensive and unnecessary. 
+        Therefore, instead of using a separate `fit` method, we combine the fit and transform steps 
+        into the `fit_transform` method for efficiency. However, to maintain consistency with other classes 
+        that do utilize a `fit` method, we retain the `fit` method here, albeit unimplemented.
+
+        '''
+        raise NotImplementedError('Stacker does not implement fit method. Use fit_transform instead.')
+        
+
     @abstractmethod
     def fit_transform(
             self,

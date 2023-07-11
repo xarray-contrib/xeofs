@@ -6,11 +6,12 @@ import xarray as xr
 
 from ._base_scaler import _BaseScaler
 from ..utils.constants import VALID_LATITUDE_NAMES
-from ..utils.sanity_checks import assert_dataarray_or_dataset, assert_list_of_dataarrays, ensure_tuple
-from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList, ModelDims
-from ..utils.xarray_utils import sqrt_cos_lat_weights
+from ..utils.sanity_checks import assert_single_dataarray, assert_single_dataset, assert_list_dataarrays, ensure_tuple
+from ..utils.data_types import DataArray, Dataset, DataArrayList, ModelDims, SingleDataObject
+from ..utils.xarray_utils import compute_sqrt_cos_lat_weights
 
-class Scaler(_BaseScaler):
+
+class _SingleDataScaler(_BaseScaler):
     '''Scale the data along sample dimensions.
     
     Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
@@ -19,8 +20,6 @@ class Scaler(_BaseScaler):
 
     Parameters
     ----------
-    with_copy : bool, default=True
-        If True, a copy of the data is made before scaling.
     with_std : bool, default=True
         If True, the data is divided by the standard deviation.
     with_coslat : bool, default=False
@@ -30,26 +29,52 @@ class Scaler(_BaseScaler):
 
     '''
     
-    def fit(self, data: XarrayData, sample_dims: Sequence[Hashable], feature_dims: Sequence[Hashable], weights: Optional[XarrayData]=None):
+    def _verify_input(self, data: SingleDataObject, name: str):
+        raise NotImplementedError
+
+    def _compute_sqrt_cos_lat_weights(self, data: SingleDataObject, dim) -> SingleDataObject:
+        '''Compute the square root of cosine of latitude weights.
+
+        Parameters
+        ----------
+        data : SingleDataObject
+            Data to be scaled.
+        dim : sequence of hashable 
+            Dimensions along which the data is considered to be a feature.
+            
+        Returns
+        -------
+        SingleDataObject
+            Square root of cosine of latitude weights.
+
+        '''
+        self._verify_input(data, 'data')
+
+        weights = compute_sqrt_cos_lat_weights(data, dim)
+        weights.name = 'coslat_weights'
+
+        return weights
+
+    def fit(self, data: SingleDataObject, sample_dims: Hashable | Sequence[Hashable], feature_dims: Hashable | Sequence[Hashable], weights: Optional[SingleDataObject]=None):
         '''Fit the scaler to the data.
         
         Parameters
         ----------
-        data : xarray.DataArray or xarray.Dataset
+        data : SingleDataObject
             Data to be scaled.
         sample_dims : sequence of hashable
             Dimensions along which the data is considered to be a sample.
         feature_dims : sequence of hashable
             Dimensions along which the data is considered to be a feature.
-        weights : xarray.DataArray or xarray.Dataset, optional
+        weights : SingleDataObject, optional
             Weights to be applied to the data. Must have the same dimensions as the data.
             If None, no weights are applied.
             
         '''
         # Check input types
-        assert_dataarray_or_dataset(data, 'data')
+        self._verify_input(data, 'data')
         if weights is not None:
-            assert_dataarray_or_dataset(weights, 'weights')
+            self._verify_input(weights, 'weights')
 
         sample_dims = ensure_tuple(sample_dims)
         feature_dims = ensure_tuple(feature_dims)
@@ -58,38 +83,35 @@ class Scaler(_BaseScaler):
         self.dims: ModelDims = {'sample': sample_dims, 'feature': feature_dims}
 
         # Scaling parameters are computed along sample dimensions
-        self.mean = data.mean(sample_dims).compute()
+        self.mean: SingleDataObject = data.mean(sample_dims).compute()
 
         if self._params['with_std']:
-            self.std = data.std(sample_dims).compute()
+            self.std: SingleDataObject = data.std(sample_dims).compute()
 
         if self._params['with_coslat']:
-            self.coslat_weights = self._compute_sqrt_cos_lat_weights(data, feature_dims).compute()
+            self.coslat_weights: SingleDataObject = self._compute_sqrt_cos_lat_weights(data, feature_dims).compute()
         
         if self._params['with_weights']:
             if weights is None:
                 raise ValueError('Weights must be provided when with_weights is True')
-            self.weights = weights.compute()
+            self.weights: SingleDataObject = weights.compute()
 
 
-    def transform(self, data: XarrayData) -> XarrayData:
+    def transform(self, data: SingleDataObject) -> SingleDataObject:
         '''Scale the data.
 
         Parameters
         ----------
-        data : xarray.DataArray or xarray.Dataset
+        data : SingleDataObject
             Data to be scaled.
 
         Returns
         -------
-        xarray.DataArray or xarray.Dataset
+        SingleDataObject
             Scaled data.
 
         '''
-        assert_dataarray_or_dataset(data, 'data')
-        
-        if self._params['with_copy']:
-            data = data.copy(deep=True)
+        self._verify_input(data, 'data')
         
         data = data - self.mean
         
@@ -101,24 +123,46 @@ class Scaler(_BaseScaler):
             data = data * self.weights
         return data
     
-    def inverse_transform(self, data: XarrayData) -> XarrayData:
+    def fit_transform(self, data: SingleDataObject, sample_dims: Hashable | Sequence[Hashable], feature_dims: Hashable | Sequence[Hashable], weights: Optional[SingleDataObject]=None) -> SingleDataObject:
+        '''Fit the scaler to the data and scale it.
+
+        Parameters
+        ----------
+        data : SingleDataObject
+            Data to be scaled.
+        sample_dims : sequence of hashable
+            Dimensions along which the data is considered to be a sample.
+        feature_dims : sequence of hashable
+            Dimensions along which the data is considered to be a feature.
+        weights : SingleDataObject, optional
+            Weights to be applied to the data. Must have the same dimensions as the data.
+            If None, no weights are applied.
+
+        Returns
+        -------
+        SingleDataObject
+            Scaled data.
+
+        '''
+        self.fit(data, sample_dims, feature_dims, weights)
+        return self.transform(data)
+
+    def inverse_transform(self, data: SingleDataObject) -> SingleDataObject:
         '''Unscale the data.
 
         Parameters
         ----------
-        data : xarray.DataArray or xarray.Dataset
+        data : SingleDataObject
             Data to be unscaled.
 
         Returns
         -------
-        xarray.DataArray or xarray.Dataset
+        SingleDataObject
             Unscaled data.
 
         '''
-        assert_dataarray_or_dataset(data, 'data')
+        self._verify_input(data, 'data')
         
-        if self._params['with_copy']:
-            data = data.copy(deep=True)
         if self._params['with_weights']:
             data = data / self.weights
         if self._params['with_coslat']:
@@ -130,45 +174,92 @@ class Scaler(_BaseScaler):
         
         return data
 
-    def _compute_sqrt_cos_lat_weights(self, data: XarrayData, dim) -> XarrayData:
-        '''Compute the square root of cosine of latitude weights.
+
+class SingleDataArrayScaler(_SingleDataScaler):
+
+    def _verify_input(self, data: DataArray, name: str):
+        '''Verify that the input data is a DataArray.
 
         Parameters
         ----------
-        data : xarray.DataArray or xarray.Dataset
-            Data to be scaled.
-        dim : sequence of hashable 
-            Dimensions along which the data is considered to be a feature.
-            
-        Returns
-        -------
-        xarray.DataArray or xarray.Dataset
-            Square root of cosine of latitude weights.
+        data : xarray.Dataset
+            Data to be checked.
 
         '''
-        assert_dataarray_or_dataset(data, 'data')
+        assert_single_dataarray(data, name)
 
-        # Find latitude coordinate
-        is_lat_coord = np.isin(dim, VALID_LATITUDE_NAMES)
+    def _compute_sqrt_cos_lat_weights(self, data: DataArray, dim) -> DataArray:
+        return super()._compute_sqrt_cos_lat_weights(data, dim)
+    
+    def fit(
+            self,
+            data: DataArray,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable],
+            weights: Optional[DataArray]=None
+            ):
+        super().fit(data, sample_dims, feature_dims, weights)
 
-        # Select latitude coordinate and compute coslat weights
-        lat_coord = np.array(dim)[is_lat_coord]
-        
-        if len(lat_coord) > 1:
-            raise ValueError(f'{lat_coord} are ambiguous latitude coordinates. Only ONE of the following is allowed for computing coslat weights: {VALID_LATITUDE_NAMES}')
+    def transform(self, data: DataArray) -> DataArray:
+        return super().transform(data)
+    
+    def fit_transform(
+            self,
+            data: DataArray,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable],
+            weights: Optional[DataArray]=None
+        ) -> DataArray:
+        return super().fit_transform(data, sample_dims, feature_dims, weights)
+    
+    def inverse_transform(self, data: DataArray) -> DataArray:
+        return super().inverse_transform(data)
 
-        if len(lat_coord) == 1:
-            weights = sqrt_cos_lat_weights(data.coords[lat_coord[0]])
-            # Features that cannot be associated to a latitude receive a weight of 1
-            weights = weights.where(weights.notnull(), 1)
-        else:
-            raise ValueError('No latitude coordinate was found to compute coslat weights. Must be one of the following: {:}'.format(VALID_LATITUDE_NAMES))
-        weights.name = 'coslat_weights'
-        return weights
 
 
-class ListScaler(_BaseScaler):
-    ''' Scale a list of data arrays along sample dimensions.
+class SingleDatasetScaler(_SingleDataScaler):
+
+    def _verify_input(self, data: Dataset, name: str):
+        '''Verify that the input data is a Dataset.
+
+        Parameters
+        ----------
+        data : xarray.Dataset
+            Data to be checked.
+
+        '''
+        assert_single_dataset(data, name)
+    
+    def _compute_sqrt_cos_lat_weights(self, data: Dataset, dim) -> Dataset:
+        return super()._compute_sqrt_cos_lat_weights(data, dim)
+    
+    def fit(
+            self,
+            data: Dataset,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable],
+            weights: Optional[Dataset]=None
+            ):
+        super().fit(data, sample_dims, feature_dims, weights)
+
+    def transform(self, data: Dataset) -> Dataset:
+        return super().transform(data)
+    
+    def fit_transform(
+            self,
+            data: Dataset,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims: Hashable | Sequence[Hashable],
+            weights: Optional[Dataset]=None
+        ) -> Dataset:
+        return super().fit_transform(data, sample_dims, feature_dims, weights)
+    
+    def inverse_transform(self, data: Dataset) -> Dataset:
+        return super().inverse_transform(data)
+
+
+class ListDataArrayScaler(_BaseScaler):
+    ''' Scale a list of xr.DataArray along sample dimensions.
 
     Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
     (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting),
@@ -176,8 +267,6 @@ class ListScaler(_BaseScaler):
 
     Parameters
     ----------
-    with_copy : bool, default=True
-        If True, a copy of the data is made before scaling.
     with_std : bool, default=True
         If True, the data is divided by the standard deviation.
     with_coslat : bool, default=False   
@@ -186,9 +275,20 @@ class ListScaler(_BaseScaler):
         If True, the data is multiplied by additional user-defined weights.
     
     '''
-    def __init__(self, with_copy=True, with_std=True, with_coslat=False, with_weights=False):
-        super().__init__(with_copy=with_copy, with_std=with_std, with_coslat=with_coslat, with_weights=with_weights)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.scalers = []
+
+    def _verify_input(self, data: DataArrayList, name: str):
+        '''Verify that the input data is a list of DataArrays.
+
+        Parameters
+        ----------
+        data : list of xarray.DataArray
+            Data to be checked.
+
+        '''
+        assert_list_dataarrays(data, name)
 
     def fit(
             self,
@@ -211,7 +311,7 @@ class ListScaler(_BaseScaler):
             List of weights to be applied to the data. Must have the same dimensions as the data.
 
         '''
-        assert_list_of_dataarrays(data, 'data')
+        self._verify_input(data, 'data')
 
         # Check input
         if not isinstance(feature_dims_list, list):
@@ -245,9 +345,9 @@ class ListScaler(_BaseScaler):
         
         for da, wghts, fdims in zip(data, self.weights, feature_dims):
 
-            # Create Scaler object for each data array
+            # Create SingleDataArrayScaler object for each data array
             params = self.get_params()
-            scaler = Scaler(**params)
+            scaler = SingleDataArrayScaler(**params)
             scaler.fit(da, sample_dims=sample_dims, feature_dims=fdims, weights=wghts)
             self.scalers.append(scaler)
 
@@ -265,14 +365,41 @@ class ListScaler(_BaseScaler):
             Scaled data.
 
         '''
-        assert_list_of_dataarrays(da_list, 'da_list')
+        self._verify_input(da_list, 'da_list')
 
         da_list_transformed = []
-        if self._params['with_copy']:
-            da_list = da_list[:]
         for scaler, da in zip(self.scalers, da_list):
             da_list_transformed.append(scaler.transform(da))
         return da_list_transformed
+    
+    def fit_transform(
+            self,
+            data: DataArrayList,
+            sample_dims: Hashable | Sequence[Hashable],
+            feature_dims_list: List[Hashable | Sequence[Hashable]],
+            weights=None
+        ) -> DataArrayList:
+        '''Fit the scaler to the data and scale it.
+
+        Parameters
+        ----------
+        data : list of xr.DataArray
+            Data to be scaled.
+        sample_dims : hashable or sequence of hashable
+            Dimensions along which the data is considered to be a sample.
+        feature_dims_list : list of hashable or list of sequence of hashable
+            List of dimensions along which the data is considered to be a feature.
+        weights : list of xr.DataArray, optional
+            List of weights to be applied to the data. Must have the same dimensions as the data.
+
+        Returns
+        -------
+        list of xarray.DataArray
+            Scaled data.
+
+        '''
+        self.fit(data, sample_dims, feature_dims_list, weights)
+        return self.transform(data)
     
     def inverse_transform(self, da_list: DataArrayList) -> DataArrayList:
         '''Unscale the data.
@@ -288,11 +415,9 @@ class ListScaler(_BaseScaler):
             Scaled data.
 
         '''
-        assert_list_of_dataarrays(da_list, 'da_list')
+        self._verify_input(da_list, 'da_list')
         
         da_list_transformed = []
-        if self._params['with_copy']:
-            da_list = da_list.copy()
         for scaler, da in zip(self.scalers, da_list):
             da_list_transformed.append(scaler.inverse_transform(da))
         return da_list_transformed

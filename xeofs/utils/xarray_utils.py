@@ -5,7 +5,47 @@ import xarray as xr
 from scipy.signal import hilbert    # type: ignore
 
 from .sanity_checks import ensure_tuple
-from .data_types import XarrayData, DataArray, Dataset
+from .data_types import XarrayData, DataArray, Dataset, SingleDataObject
+from .constants import VALID_LATITUDE_NAMES
+
+
+def compute_sqrt_cos_lat_weights(data: SingleDataObject, dim: Hashable | Sequence[Hashable]) -> SingleDataObject:
+        '''Compute the square root of cosine of latitude weights.
+
+        Parameters
+        ----------
+        data : xarray.DataArray or xarray.Dataset
+            Data to be scaled.
+        dim : sequence of hashable 
+            Dimensions along which the data is considered to be a feature.
+            
+        Returns
+        -------
+        xarray.DataArray or xarray.Dataset
+            Square root of cosine of latitude weights.
+
+        '''
+        dim = ensure_tuple(dim)
+
+        # Find latitude coordinate
+        is_lat_coord = np.isin(np.array(dim), VALID_LATITUDE_NAMES)
+
+        # Select latitude coordinate and compute coslat weights
+        lat_coord = np.array(dim)[is_lat_coord]
+        
+        if len(lat_coord) > 1:
+            raise ValueError(f'{lat_coord} are ambiguous latitude coordinates. Only ONE of the following is allowed for computing coslat weights: {VALID_LATITUDE_NAMES}')
+
+        if len(lat_coord) == 1:
+            latitudes = data.coords[lat_coord[0]]
+            weights = sqrt_cos_lat_weights(latitudes)
+            # Features that cannot be associated to a latitude receive a weight of 1
+            weights = weights.where(weights.notnull(), 1)
+        else:
+            raise ValueError('No latitude coordinate was found to compute coslat weights. Must be one of the following: {:}'.format(VALID_LATITUDE_NAMES))
+        weights.name = 'coslat_weights'
+        return weights
+
 
 def get_dims(
         data: DataArray | Dataset | List[DataArray],
@@ -64,7 +104,7 @@ def _get_feature_dims(data: XarrayData, sample_dims: Tuple[str]) -> Tuple[Hashab
     return feature_dims
 
 
-def sqrt_cos_lat_weights(data: DataArray | Dataset) -> DataArray | Dataset:
+def sqrt_cos_lat_weights(data: SingleDataObject) -> SingleDataObject:
     '''Compute the square root of the cosine of the latitude.
 
     Parameters:

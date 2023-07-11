@@ -2,7 +2,7 @@ from typing import Sequence, Hashable, Tuple, Any
 
 import xarray as xr
 
-def assert_dataarray(da, name):
+def assert_single_dataarray(da, name):
     """Check if the given object is a DataArray.
 
     Args:
@@ -15,7 +15,7 @@ def assert_dataarray(da, name):
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"{name} must be a DataArray")
     
-def assert_list_of_dataarrays(da_list, name):
+def assert_list_dataarrays(da_list, name):
     """Check if the given object is a list of DataArrays.
 
     Args:
@@ -28,9 +28,9 @@ def assert_list_of_dataarrays(da_list, name):
     if not isinstance(da_list, list):
         raise TypeError(f"{name} must be a list of DataArrays")
     for da in da_list:
-        assert_dataarray(da, name)
+        assert_single_dataarray(da, name)
 
-def assert_dataset(ds, name):
+def assert_single_dataset(ds, name):
     """Check if the given object is a Dataset.
 
     Args:

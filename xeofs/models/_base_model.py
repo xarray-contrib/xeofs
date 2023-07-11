@@ -7,8 +7,9 @@ import xarray as xr
 import scipy as sc
 from dask.diagnostics.progress import ProgressBar
 
-from ..preprocessing.scaler import Scaler, ListScaler
-from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
+from ..preprocessing.scaler_factory import ScalerFactory
+from ..preprocessing.stacker_factory import StackerFactory
+from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.xarray_utils import get_dims
 from .._version import __version__
@@ -57,26 +58,6 @@ class _BaseModel(ABC):
             'with_coslat': use_coslat,
             'with_weights': use_weights
         }
-    
-    @staticmethod
-    def _create_scaler(data: XarrayData | DataArrayList, **kwargs):
-        if isinstance(data, (xr.DataArray, xr.Dataset)):
-            return Scaler(**kwargs)
-        elif isinstance(data, list):
-            return ListScaler(**kwargs)
-        else:
-            raise ValueError(f'Cannot scale data of type: {type(data)}')
-    
-    @staticmethod
-    def _create_stacker(data: XarrayData | DataArrayList, **kwargs):
-        if isinstance(data, xr.DataArray):
-            return DataArrayStacker(**kwargs)
-        elif isinstance(data, list):
-            return DataArrayListStacker(**kwargs)
-        elif isinstance(data, xr.Dataset):
-            return DatasetStacker(**kwargs)
-        else:
-            raise ValueError(f'Cannot stack data of type: {type(data)}')
 
     def _preprocessing(self, data, dim, weights=None):
         '''Preprocess the data.
@@ -99,13 +80,13 @@ class _BaseModel(ABC):
         self.dims = {'sample': sample_dims, 'feature': feature_dims}
         
         # Scale the data
-        self.scaler = self._create_scaler(data, **self._scaling_params)
-        self.scaler.fit(data, sample_dims, feature_dims, weights)  # type: ignore
+        self.scaler = ScalerFactory.create_scaler(data, **self._scaling_params)
+        self.scaler.fit(data, sample_dims, feature_dims, weights)
         data = self.scaler.transform(data)
 
         # Stack the data
-        self.stacker = self._create_stacker(data)
-        self.data = self.stacker.fit_transform(data, sample_dims, feature_dims)  # type: ignore
+        self.stacker = StackerFactory.create_stacker(data)
+        self.data = self.stacker.fit_transform(data, sample_dims, feature_dims)
 
     @abstractmethod
     def fit(self, data, dim, weights=None):

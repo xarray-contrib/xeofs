@@ -106,13 +106,13 @@ class EOFBootstrapper(_BaseBootstrapper):
         try:
             indexes = [k for k in model.stacker.coords_out_['feature'].coords.keys() if k != 'feature']
             bst_components = bst_components.set_index(feature=indexes)
-        # DataArrayListStacker does not have dims but then we don't need to set the index
+        # ListDataArrayStacker does not have dims but then we don't need to set the index
         except ValueError:
             pass
         try:
             indexes = [k for k in model.stacker.coords_out_['sample'].coords.keys() if k != 'sample']
             bst_scores = bst_scores.set_index(sample=indexes)
-        # DataArrayListStacker does not have dims but then we don't need to set the index
+        # ListDataArrayStacker does not have dims but then we don't need to set the index
         except ValueError:
             pass
 
