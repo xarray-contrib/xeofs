@@ -14,8 +14,8 @@ def test_eof_initialization():
     # Assert parameters are correctly stored in the _params attribute
     assert eof._params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
 
-    # Assert correct values are stored in the _scaling_params attribute
-    assert eof._scaling_params == {'with_std': True, 'with_coslat': True, 'with_weights': False}
+    # Assert preprocessor has been initialized
+    assert hasattr(eof, 'preprocessor')
 
 
 @pytest.mark.parametrize('dim', [

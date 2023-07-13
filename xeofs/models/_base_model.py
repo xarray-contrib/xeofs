@@ -10,6 +10,7 @@ from dask.diagnostics.progress import ProgressBar
 from ..preprocessing.scaler_factory import ScalerFactory
 from ..preprocessing.stacker_factory import StackerFactory
 from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.xarray_utils import get_dims
 from .._version import __version__
@@ -52,41 +53,12 @@ class _BaseModel(ABC):
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 
-        # Some more parameters used for scaling
-        self._scaling_params = {
-            'with_std': standardize,
-            'with_coslat': use_coslat,
-            'with_weights': use_weights
-        }
-
-    def _preprocessing(self, data, dim, weights=None):
-        '''Preprocess the data.
-        
-        This will scale and stack the data.
-        
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
-            Input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the input data will be weighted by this array.
-        
-        '''
-        # Set sample and feature dimensions
-        sample_dims, feature_dims = get_dims(data, sample_dims=dim)
-        self.dims = {'sample': sample_dims, 'feature': feature_dims}
-        
-        # Scale the data
-        self.scaler = ScalerFactory.create_scaler(data, **self._scaling_params)
-        self.scaler.fit(data, sample_dims, feature_dims, weights)
-        data = self.scaler.transform(data)
-
-        # Stack the data
-        self.stacker = StackerFactory.create_stacker(data)
-        self.data = self.stacker.fit_transform(data, sample_dims, feature_dims)
+        # Initialize the Preprocessor to scale and stack the data
+        self.preprocessor = Preprocessor(
+            with_std=standardize,
+            with_coslat=use_coslat, 
+            with_weights=use_weights
+        )
 
     @abstractmethod
     def fit(self, data, dim, weights=None):
@@ -153,7 +125,7 @@ class _BaseModel(ABC):
             Components of the fitted model.
 
         '''
-        return self.stacker.inverse_transform_components(self._components)  #type: ignore
+        return self.preprocessor.inverse_transform_components(self._components)  #type: ignore
     
     def scores(self):
         '''Return the scores.
@@ -168,7 +140,7 @@ class _BaseModel(ABC):
             Scores of the fitted model.
 
         '''
-        return self.stacker.inverse_transform_scores(self._scores)  #type: ignore
+        return self.preprocessor.inverse_transform_scores(self._scores)  #type: ignore
 
     def get_params(self):
         return self._params

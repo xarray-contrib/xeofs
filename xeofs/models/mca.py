@@ -1,10 +1,12 @@
+from typing import Tuple
+
 import numpy as np
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import CrossDecomposer
-from ..utils.data_types import XarrayData, DataArrayList, DataArray, Dataset
+from ..utils.data_types import AnyDataObject, DataArrayList, DataArray, Dataset
 from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import hilbert_transform
 
@@ -30,7 +32,7 @@ class MCA(_BaseCrossModel):
         self.attrs.update({'model': 'Maximum Covariance Analysis'})
 
 
-    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
+    def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
         '''
         Fit the model.
 
@@ -49,7 +51,8 @@ class MCA(_BaseCrossModel):
             If specified, the right input data will be weighted by this array.
 
         '''
-        self._preprocessing(data1, data2, dim, weights1, weights2)
+        self.data1 = self.preprocessor1.fit_transform(data1, dim, weights1)
+        self.data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
 
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
         decomposer.fit(self.data1, self.data2)
@@ -103,20 +106,18 @@ class MCA(_BaseCrossModel):
 
         '''
         results = []
-        if 'data1' in kwargs:
+        if 'data1' in kwargs.keys():
             data1 = kwargs['data1']
-            data1 = self.scaler1.transform(data1)
-            data1 = self.stacker1.transform(data1) # type: ignore
+            data1 = self.preprocessor1.transform(data1)
             scores1 = xr.dot(data1, self._singular_vectors1) / self._norm1
-            scores1 = self.stacker1.inverse_transform_scores(scores1)
+            scores1 = self.preprocessor1.inverse_transform_scores(scores1)
             results.append(scores1)
 
-        if 'data2' in kwargs:
+        if 'data2' in kwargs.keys():
             data2 = kwargs['data2']
-            data2 = self.scaler2.transform(data2)
-            data2 = self.stacker2.transform(data2) # type: ignore
+            data2 = self.preprocessor2.transform(data2)
             scores2 = xr.dot(data2, self._singular_vectors2) / self._norm2
-            scores2 = self.stacker2.inverse_transform_scores(scores2)
+            scores2 = self.preprocessor2.inverse_transform_scores(scores2)
             results.append(scores2)
 
         return results
@@ -150,11 +151,8 @@ class MCA(_BaseCrossModel):
         Xrec1 = svecs1.dot(scores1.conj().T)
         Xrec2 = svecs2.dot(scores2.conj().T)
 
-        Xrec1 = self.stacker1.inverse_transform_data(Xrec1)
-        Xrec2 = self.stacker2.inverse_transform_data(Xrec2)
-
-        Xrec1 = self.scaler1.inverse_transform(Xrec1)  # type: ignore
-        Xrec2 = self.scaler2.inverse_transform(Xrec2)  # type: ignore
+        Xrec1 = self.preprocessor1.inverse_transform_data(Xrec1)
+        Xrec2 = self.preprocessor2.inverse_transform_data(Xrec2)
 
         return Xrec1, Xrec2
 
@@ -205,8 +203,8 @@ class MCA(_BaseCrossModel):
             Right components of the fitted model.
 
         '''
-        svecs1 = self.stacker1.inverse_transform_components(self._singular_vectors1)
-        svecs2 = self.stacker2.inverse_transform_components(self._singular_vectors2)
+        svecs1 = self.preprocessor1.inverse_transform_components(self._singular_vectors1)
+        svecs2 = self.preprocessor2.inverse_transform_components(self._singular_vectors2)
         return svecs1, svecs2
     
     def scores(self):
@@ -223,8 +221,8 @@ class MCA(_BaseCrossModel):
             Right scores.
 
         '''
-        scores1 = self.stacker1.inverse_transform_scores(self._scores1)
-        scores2 = self.stacker2.inverse_transform_scores(self._scores2)
+        scores1 = self.preprocessor1.inverse_transform_scores(self._scores1)
+        scores2 = self.preprocessor2.inverse_transform_scores(self._scores2)
         return scores1, scores2
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
@@ -276,11 +274,11 @@ class MCA(_BaseCrossModel):
         hom_pat1, pvals1 = pearson_correlation(self.data1, self._scores1, correction=correction, alpha=alpha)
         hom_pat2, pvals2 = pearson_correlation(self.data2, self._scores2, correction=correction, alpha=alpha)
 
-        hom_pat1 = self.stacker1.inverse_transform_components(hom_pat1)
-        hom_pat2 = self.stacker2.inverse_transform_components(hom_pat2)
+        hom_pat1 = self.preprocessor1.inverse_transform_components(hom_pat1)
+        hom_pat2 = self.preprocessor2.inverse_transform_components(hom_pat2)
 
-        pvals1 = self.stacker1.inverse_transform_components(pvals1)
-        pvals2 = self.stacker2.inverse_transform_components(pvals2)
+        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         hom_pat1.name = 'left_homogeneous_patterns'
         hom_pat2.name = 'right_homogeneous_patterns'
@@ -328,11 +326,11 @@ class MCA(_BaseCrossModel):
         patterns1, pvals1 = pearson_correlation(self.data1, self._scores2, correction=correction, alpha=alpha)
         patterns2, pvals2 = pearson_correlation(self.data2, self._scores1, correction=correction, alpha=alpha)
 
-        patterns1 = self.stacker1.inverse_transform_components(patterns1)
-        patterns2 = self.stacker2.inverse_transform_components(patterns2)
+        patterns1 = self.preprocessor1.inverse_transform_components(patterns1)
+        patterns2 = self.preprocessor2.inverse_transform_components(patterns2)
 
-        pvals1 = self.stacker1.inverse_transform_components(pvals1)
-        pvals2 = self.stacker2.inverse_transform_components(pvals2)
+        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         patterns1.name = 'left_heterogeneous_patterns'
         patterns2.name = 'right_heterogeneous_patterns'
@@ -446,7 +444,7 @@ class ComplexMCA(MCA):
         super().__init__(**kwargs)
         self._params.update({'padding': padding, 'decay_factor': decay_factor})
 
-    def fit(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList, dim, weights1=None, weights2=None):
+    def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
         '''Fit the model.
 
         Parameters:
@@ -465,7 +463,8 @@ class ComplexMCA(MCA):
 
         '''
 
-        self._preprocessing(data1, data2, dim, weights1, weights2)
+        self.data1 = self.preprocessor1.fit_transform(data1, dim, weights2)
+        self.data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
         
         # apply hilbert transform:
         padding = self._params['padding']
@@ -506,7 +505,7 @@ class ComplexMCA(MCA):
         # Assign analysis relevant meta data
         self._assign_meta_data()
 
-    def components_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the amplitude of the components.
 
         Returns
@@ -521,12 +520,12 @@ class ComplexMCA(MCA):
         comps1.name = 'singular_vector_amplitudes'
         comps2.name = 'singular_vector_amplitudes'
 
-        comps1 = self.stacker1.inverse_transform_components(comps1) # type: ignore
-        comps2 = self.stacker2.inverse_transform_components(comps2) # type: ignore
+        comps1 = self.preprocessor1.inverse_transform_components(comps1) # type: ignore
+        comps2 = self.preprocessor2.inverse_transform_components(comps2) # type: ignore
 
-        return comps1, comps2  # type: ignore
+        return (comps1, comps2)
 
-    def components_phase(self) -> DataArray | Dataset | DataArrayList:
+    def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the phase of the components.
 
         Returns
@@ -541,12 +540,12 @@ class ComplexMCA(MCA):
         comps1.name = 'singular_vector_phases'
         comps2.name = 'singular_vector_phases'
 
-        comps1 = self.stacker1.inverse_transform_components(comps1) # type: ignore
-        comps2 = self.stacker2.inverse_transform_components(comps2) # type: ignore
+        comps1 = self.preprocessor1.inverse_transform_components(comps1) # type: ignore
+        comps2 = self.preprocessor2.inverse_transform_components(comps2) # type: ignore
 
-        return comps1, comps2  # type: ignore
+        return (comps1, comps2)
     
-    def scores_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def scores_amplitude(self) -> Tuple[DataArray, DataArray]:
         '''Compute the amplitude of the scores.
 
         Returns
@@ -561,12 +560,12 @@ class ComplexMCA(MCA):
         scores1.name = 'score_amplitudes'
         scores2.name = 'score_amplitudes'
 
-        scores1 = self.stacker1.inverse_transform_scores(scores1) # type: ignore
-        scores2 = self.stacker2.inverse_transform_scores(scores2) # type: ignore
+        scores1 = self.preprocessor1.inverse_transform_scores(scores1) # type: ignore
+        scores2 = self.preprocessor2.inverse_transform_scores(scores2) # type: ignore
 
-        return scores1, scores2  # type: ignore
+        return (scores1, scores2)
     
-    def scores_phase(self) -> DataArray | Dataset | DataArrayList:
+    def scores_phase(self) -> Tuple[DataArray, DataArray]:
         '''Compute the phase of the scores.
 
         Returns
@@ -581,13 +580,13 @@ class ComplexMCA(MCA):
         scores1.name = 'score_phases'
         scores2.name = 'score_phases'
 
-        scores1 = self.stacker1.inverse_transform_scores(scores1) # type: ignore
-        scores2 = self.stacker2.inverse_transform_scores(scores2) # type: ignore
+        scores1 = self.preprocessor1.inverse_transform_scores(scores1) # type: ignore
+        scores2 = self.preprocessor2.inverse_transform_scores(scores2) # type: ignore
 
-        return scores1, scores2  # type: ignore
+        return (scores1, scores2)
 
     
-    def transform(self, data1: XarrayData | DataArrayList, data2: XarrayData | DataArrayList):
+    def transform(self, data1: AnyDataObject, data2: AnyDataObject):
         raise NotImplementedError('Complex MCA does not support transform method.')
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):

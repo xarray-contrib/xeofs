@@ -3,7 +3,7 @@ import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import XarrayData, DataArrayList
+from ..utils.data_types import DataArrayList, AnyDataObject, DataArray
 from ..utils.xarray_utils import total_variance
 from ..utils.xarray_utils import hilbert_transform
 
@@ -29,11 +29,11 @@ class EOF(_BaseModel):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'EOF analysis'})
 
-    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
+    def fit(self, data: AnyDataObject, dim, weights=None):
         
         n_modes = self._params['n_modes']
         
-        super()._preprocessing(data, dim, weights)
+        self.data = self.preprocessor.fit_transform(data, dim, weights)
 
         self._total_variance = total_variance(self.data)
 
@@ -52,7 +52,7 @@ class EOF(_BaseModel):
         # Assign analysis relevant meta data
         self._assign_meta_data()
 
-    def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
+    def transform(self, data: AnyDataObject) -> DataArray:
         '''Project new unseen data onto the components (EOFs/eigenvectors).
 
         Parameters:
@@ -67,18 +67,17 @@ class EOF(_BaseModel):
 
         '''
         # Preprocess the data
-        data = self.scaler.transform(data)  #type: ignore
-        data = self.stacker.transform(data)  #type: ignore
+        data = self.preprocessor.transform(data)
 
         # Project the data
         projections = xr.dot(data, self._components, dims='feature') / self._singular_values
         projections.name = 'scores'
 
         # Unstack the projections
-        projections = self.stacker.inverse_transform_scores(projections)
+        projections = self.preprocessor.inverse_transform_scores(projections)
         return projections
     
-    def inverse_transform(self, mode):
+    def inverse_transform(self, mode) -> AnyDataObject:
         '''Reconstruct the original data from transformed data.
 
         Parameters:
@@ -103,10 +102,8 @@ class EOF(_BaseModel):
         data = xr.dot(comps, scores)
         data.name = 'reconstructed_data'
 
-        # Unstack the data
-        data = self.stacker.inverse_transform_data(data)
-        # Unscale the data
-        data = self.scaler.inverse_transform(data)  # type: ignore
+        # Unstack and unscale the data
+        data = self.preprocessor.inverse_transform_data(data)
         return data
 
 
@@ -147,11 +144,11 @@ class ComplexEOF(EOF):
         self._name = 'Complex EOF analysis'    
         self._params.update({'padding': padding, 'decay_factor': decay_factor})
 
-    def fit(self, data: XarrayData | DataArrayList, dim, weights=None):
+    def fit(self, data: AnyDataObject, dim, weights=None):
         
         n_modes = self._params['n_modes']
         
-        super()._preprocessing(data, dim, weights)
+        self.data = self.preprocessor.fit_transform(data, dim, weights)
         
         # apply hilbert transform:
         padding = self._params['padding']
@@ -178,26 +175,26 @@ class ComplexEOF(EOF):
         # Assign analysis-relevant meta data to the results
         self._assign_meta_data()
 
-    def transform(self, data: XarrayData | DataArrayList):
+    def transform(self, data: AnyDataObject):
         raise NotImplementedError('ComplexEOF does not support transform method.')
 
-    def components_amplitude(self):
+    def components_amplitude(self) -> AnyDataObject:
         amplitudes = abs(self._components)
         amplitudes.name = 'components_amplitude'
-        return self.stacker.inverse_transform_components(amplitudes)
+        return self.preprocessor.inverse_transform_components(amplitudes)
     
-    def components_phase(self):
+    def components_phase(self) -> AnyDataObject:
         phases = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
         phases.name = 'components_phase'
-        return self.stacker.inverse_transform_components(phases)
+        return self.preprocessor.inverse_transform_components(phases)
 
-    def scores_amplitude(self):
+    def scores_amplitude(self) -> AnyDataObject:
         amplitudes = abs(self._scores)
         amplitudes.name = 'scores_amplitude'
-        return self.stacker.inverse_transform_scores(amplitudes)
+        return self.preprocessor.inverse_transform_scores(amplitudes)
     
-    def scores_phase(self):
+    def scores_phase(self) -> AnyDataObject:
         phases = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
         phases.name = 'scores_phase'
-        return self.stacker.inverse_transform_scores(phases)
+        return self.preprocessor.inverse_transform_scores(phases)
     

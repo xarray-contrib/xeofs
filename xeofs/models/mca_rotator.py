@@ -1,12 +1,12 @@
 import numpy as np
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
-from typing import List
+from typing import List, Tuple
 
 from ._base_rotator import _BaseRotator
 from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
-from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray
+from ..utils.data_types import DataArray, AnyDataObject
 from ..utils.statistics import pearson_correlation
 
 
@@ -162,7 +162,7 @@ class MCARotator(_BaseRotator):
         self._assign_meta_data()
 
 
-    def transform(self, **kwargs) -> XarrayData | DataArrayList:
+    def transform(self, **kwargs) -> AnyDataObject | Tuple[AnyDataObject, AnyDataObject]:
         '''Project new "unseen" data onto the rotated singular vectors.
 
         Parameters
@@ -188,15 +188,14 @@ class MCARotator(_BaseRotator):
 
         results = []
 
-        if 'data1' in kwargs:
+        if 'data1' in kwargs.keys():
 
             data1 = kwargs['data1']
             # Select the (non-rotated) singular vectors of the first dataset
             svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
-            data1 = self._model.scaler1.transform(data1)  #type: ignore
-            data1 = self._model.stacker1.transform(data1)  #type: ignore
+            data1 = self._model.preprocessor1.transform(data1)
             
             # Compute non-rotated scores by project the data onto non-rotated components
             projections1 = xr.dot(data1, svecs1) / expvar**0.5
@@ -208,20 +207,19 @@ class MCARotator(_BaseRotator):
             projections1 *= self._mode_signs
 
             # Unstack the projections
-            projections1 = self._model.stacker1.inverse_transform_scores(projections1)
+            projections1 = self._model.preprocessor1.inverse_transform_scores(projections1)
 
             results.append(projections1)
 
 
-        if 'data2' in kwargs:
+        if 'data2' in kwargs.keys():
 
             data2 = kwargs['data2']            
             # Select the (non-rotated) singular vectors of the second dataset
             svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
-            data2 = self._model.scaler2.transform(data2)  #type: ignore
-            data2 = self._model.stacker2.transform(data2)  #type: ignore
+            data2 = self._model.preprocessor2.transform(data2)
             
             # Compute non-rotated scores by project the data onto non-rotated components
             projections2 = xr.dot(data2, svecs2) / expvar**0.5
@@ -234,11 +232,13 @@ class MCARotator(_BaseRotator):
 
 
             # Unstack the projections
-            projections2 = self._model.stacker2.inverse_transform_scores(projections2)
+            projections2 = self._model.preprocessor2.inverse_transform_scores(projections2)
 
             results.append(projections2)
         
-        if len(results) == 1:
+        if len(results) == 0:
+            raise ValueError('either provide `data1` or `data2`')
+        elif len(results) == 1:
             return results[0]
         else:
             return results
@@ -269,13 +269,9 @@ class MCARotator(_BaseRotator):
         data1 = xr.dot(scores1, svecs1.conj(), dims='mode')
         data2 = xr.dot(scores2, svecs2.conj(), dims='mode')
 
-        # Unstack the data
-        data1 = self._model.stacker1.inverse_transform_data(data1)
-        data2 = self._model.stacker2.inverse_transform_data(data2)
-
-        # Rescale the data
-        data1 = self._model.scaler1.inverse_transform(data1)  # type: ignore
-        data2 = self._model.scaler2.inverse_transform(data2)  # type: ignore
+        # Unstack and rescale the data
+        data1 = self._model.preprocessor1.inverse_transform_data(data1)
+        data2 = self._model.preprocessor2.inverse_transform_data(data2)
 
         return data1, data2
     
@@ -333,7 +329,7 @@ class MCARotator(_BaseRotator):
         self._scores1.attrs.update(attrs)
         self._scores2.attrs.update(attrs)
 
-    def components(self) -> tuple[DataArray | Dataset | DataArrayList, DataArray | Dataset | DataArrayList]:
+    def components(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Return the rotated singular vectors.
 
         Returns
@@ -342,12 +338,12 @@ class MCARotator(_BaseRotator):
             Rotated singular vectors.
 
         '''
-        svecs1 = self._model.stacker1.inverse_transform_components(self._singular_vectors1)
-        svecs2 = self._model.stacker2.inverse_transform_components(self._singular_vectors2)
+        svecs1 = self._model.preprocessor1.inverse_transform_components(self._singular_vectors1)
+        svecs2 = self._model.preprocessor2.inverse_transform_components(self._singular_vectors2)
 
         return svecs1, svecs2
 
-    def scores(self):
+    def scores(self) -> Tuple[DataArray, DataArray]:
         '''Return the rotated scores.
 
         Returns
@@ -356,8 +352,8 @@ class MCARotator(_BaseRotator):
             Rotated scores.
 
         '''
-        scores1 = self._model.stacker1.inverse_transform_scores(self._scores1)
-        scores2 = self._model.stacker2.inverse_transform_scores(self._scores2)
+        scores1 = self._model.preprocessor1.inverse_transform_scores(self._scores1)
+        scores2 = self._model.preprocessor2.inverse_transform_scores(self._scores2)
 
         return scores1, scores2
     
@@ -411,11 +407,11 @@ class MCARotator(_BaseRotator):
         hom_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
         hom_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
 
-        hom_pats1 = self._model.stacker1.inverse_transform_components(hom_pats1)
-        hom_pats2 = self._model.stacker2.inverse_transform_components(hom_pats2)
+        hom_pats1 = self._model.preprocessor1.inverse_transform_components(hom_pats1)
+        hom_pats2 = self._model.preprocessor2.inverse_transform_components(hom_pats2)
 
-        pvals1 = self._model.stacker1.inverse_transform_components(pvals1)
-        pvals2 = self._model.stacker2.inverse_transform_components(pvals2)
+        pvals1 = self._model.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self._model.preprocessor2.inverse_transform_components(pvals2)
 
         hom_pats1.name = 'homogeneous_patterns'
         hom_pats2.name = 'homogeneous_patterns'
@@ -476,11 +472,11 @@ class MCARotator(_BaseRotator):
         het_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
         het_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
 
-        het_pats1 = self._model.stacker1.inverse_transform_components(het_pats1)
-        het_pats2 = self._model.stacker2.inverse_transform_components(het_pats2)
+        het_pats1 = self._model.preprocessor1.inverse_transform_components(het_pats1)
+        het_pats2 = self._model.preprocessor2.inverse_transform_components(het_pats2)
 
-        pvals1 = self._model.stacker1.inverse_transform_components(pvals1)
-        pvals2 = self._model.stacker2.inverse_transform_components(pvals2)
+        pvals1 = self._model.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self._model.preprocessor2.inverse_transform_components(pvals2)
 
         het_pats1.name = 'heterogeneous_patterns'
         het_pats2.name = 'heterogeneous_patterns'
@@ -521,10 +517,10 @@ class ComplexMCARotator(MCARotator):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Rotated Complex MCA'})
 
-    def transform(self, **kwargs) -> XarrayData | DataArrayList:
+    def transform(self, **kwargs):
         raise NotImplementedError('Complex MCA does not support transform.')
     
-    def components_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the amplitude of the components.
 
         Returns
@@ -539,12 +535,12 @@ class ComplexMCARotator(MCARotator):
         comps1.name = 'singular_vector_amplitudes'
         comps2.name = 'singular_vector_amplitudes'
 
-        comps1 = self._model.stacker1.inverse_transform_components(comps1)
-        comps2 = self._model.stacker2.inverse_transform_components(comps2)
+        comps1 = self._model.preprocessor1.inverse_transform_components(comps1)
+        comps2 = self._model.preprocessor2.inverse_transform_components(comps2)
 
-        return comps1, comps2  # type: ignore
+        return comps1, comps2
 
-    def components_phase(self) -> DataArray | Dataset | DataArrayList:
+    def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the phase of the components.
 
         Returns
@@ -559,12 +555,12 @@ class ComplexMCARotator(MCARotator):
         comps1.name = 'singular_vector_phases'
         comps2.name = 'singular_vector_phases'
 
-        comps1 = self._model.stacker1.inverse_transform_components(comps1)
-        comps2 = self._model.stacker2.inverse_transform_components(comps2)
+        comps1 = self._model.preprocessor1.inverse_transform_components(comps1)
+        comps2 = self._model.preprocessor2.inverse_transform_components(comps2)
 
-        return comps1, comps2  # type: ignore
+        return comps1, comps2
     
-    def scores_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def scores_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the amplitude of the scores.
 
         Returns
@@ -579,12 +575,12 @@ class ComplexMCARotator(MCARotator):
         scores1.name = 'score_amplitudes'
         scores2.name = 'score_amplitudes'
 
-        scores1 = self._model.stacker1.inverse_transform_scores(scores1)
-        scores2 = self._model.stacker2.inverse_transform_scores(scores2)
+        scores1 = self._model.preprocessor1.inverse_transform_scores(scores1)
+        scores2 = self._model.preprocessor2.inverse_transform_scores(scores2)
 
-        return scores1, scores2  # type: ignore
+        return scores1, scores2
     
-    def scores_phase(self) -> DataArray | Dataset | DataArrayList:
+    def scores_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the phase of the scores.
 
         Returns
@@ -599,7 +595,7 @@ class ComplexMCARotator(MCARotator):
         scores1.name = 'score_phases'
         scores2.name = 'score_phases'
 
-        scores1 = self._model.stacker1.inverse_transform_scores(scores1)
-        scores2 = self._model.stacker2.inverse_transform_scores(scores2)
+        scores1 = self._model.preprocessor1.inverse_transform_scores(scores1)
+        scores2 = self._model.preprocessor2.inverse_transform_scores(scores2)
 
-        return scores1, scores2  # type: ignore
+        return scores1, scores2

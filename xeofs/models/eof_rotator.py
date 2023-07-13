@@ -7,7 +7,7 @@ from ._base_rotator import _BaseRotator
 from .eof import EOF, ComplexEOF
 
 from ..utils.rotation import promax
-from ..utils.data_types import DataArray, Dataset, XarrayData, DataArrayList
+from ..utils.data_types import DataArray, AnyDataObject
 
 
 class EOFRotator(_BaseRotator):
@@ -95,18 +95,17 @@ class EOFRotator(_BaseRotator):
         # Assign analysis-relevant meta data
         self._assign_meta_data()
 
-    def transform(self, data: XarrayData | DataArrayList) -> XarrayData | DataArrayList:
+    def transform(self, data: AnyDataObject) -> DataArray:
 
         n_modes = self._params['n_modes']
         svals = self._model._singular_values.sel(mode=slice(1, self._params['n_modes']))
         components = self._model._components.sel(mode=slice(1, n_modes))
 
         # Preprocess the data
-        data = self._model.scaler.transform(data)  #type: ignore
-        data = self._model.stacker.transform(data)  #type: ignore
+        da: DataArray = self._model.preprocessor.transform(data)
 
         # Compute non-rotated scores by project the data onto non-rotated components
-        projections = xr.dot(data, components) / svals
+        projections = xr.dot(da, components) / svals
         projections.name = 'scores'
 
         # Rotate the scores
@@ -116,10 +115,10 @@ class EOFRotator(_BaseRotator):
         projections = projections.isel(mode=self._idx_expvar).assign_coords(mode=projections.mode)
 
         # Unstack the projections
-        projections = self._model.stacker.inverse_transform_scores(projections)
+        projections = self._model.preprocessor.inverse_transform_scores(projections)
         return projections      
     
-    def inverse_transform(self, mode: int | List[int] | slice = slice(None)):
+    def inverse_transform(self, mode: int | List[int] | slice = slice(None)) -> AnyDataObject:
         dof = self._model.data.shape[0] - 1  # type: ignore
 
         components = self._components
@@ -129,8 +128,7 @@ class EOFRotator(_BaseRotator):
         scores = scores.sel(mode=mode)
         Xrec = xr.dot(scores, components.conj(), dims='mode')
 
-        Xrec = self._model.stacker.inverse_transform_data(Xrec)
-        Xrec = self._model.scaler.inverse_transform(Xrec)  # type: ignore
+        Xrec = self._model.preprocessor.inverse_transform_data(Xrec)
         
         return Xrec
     
@@ -141,10 +139,10 @@ class EOFRotator(_BaseRotator):
         return self._explained_variance_ratio
     
     def components(self):
-        return self._model.stacker.inverse_transform_components(self._components)  #type: ignore
+        return self._model.preprocessor.inverse_transform_components(self._components)  #type: ignore
     
     def scores(self):
-        return self._model.stacker.inverse_transform_scores(self._scores)  #type: ignore
+        return self._model.preprocessor.inverse_transform_scores(self._scores)  #type: ignore
     
     def compute(self, verbose: bool = False):
         '''Compute and load the rotated solution.
@@ -214,10 +212,10 @@ class ComplexEOFRotator(EOFRotator):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Rotated Complex EOF analysis'})
 
-    def transform(self, data: XarrayData | DataArrayList):
+    def transform(self, data: AnyDataObject):
         raise NotImplementedError('Complex EOF does not support transform.')
 
-    def components_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def components_amplitude(self) -> AnyDataObject:
         '''Compute the amplitude of the components.
 
         Returns
@@ -228,10 +226,10 @@ class ComplexEOFRotator(EOFRotator):
         '''
         comps = abs(self._components)
         comps.name = 'amplitude'
-        comps = self._model.stacker.inverse_transform_components(comps)
+        comps = self._model.preprocessor.inverse_transform_components(comps)
         return comps
 
-    def components_phase(self) -> DataArray | Dataset | DataArrayList:
+    def components_phase(self) -> AnyDataObject:
         '''Compute the phase of the components.
 
         Returns
@@ -242,10 +240,10 @@ class ComplexEOFRotator(EOFRotator):
         '''
         comps = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
         comps.name = 'phase'
-        comps = self._model.stacker.inverse_transform_components(comps)
+        comps = self._model.preprocessor.inverse_transform_components(comps)
         return comps
     
-    def scores_amplitude(self) -> DataArray | Dataset | DataArrayList:
+    def scores_amplitude(self) -> AnyDataObject:
         '''Compute the amplitude of the scores.
 
         Returns
@@ -256,10 +254,10 @@ class ComplexEOFRotator(EOFRotator):
         '''
         scores = abs(self._scores)
         scores.name = 'amplitude'
-        scores = self._model.stacker.inverse_transform_scores(scores)
+        scores = self._model.preprocessor.inverse_transform_scores(scores)
         return scores
     
-    def scores_phase(self) -> DataArray | Dataset | DataArrayList:
+    def scores_phase(self) -> AnyDataObject:
         '''Compute the phase of the scores.
 
         Returns
@@ -270,5 +268,5 @@ class ComplexEOFRotator(EOFRotator):
         '''
         scores = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
         scores.name = 'phase'
-        scores = self._model.stacker.inverse_transform_scores(scores)
+        scores = self._model.preprocessor.inverse_transform_scores(scores)
         return scores

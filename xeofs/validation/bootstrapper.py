@@ -35,12 +35,12 @@ class _BaseBootstrapper(ABC):
     def components(self):
         '''Get bootstrapped components.'''
 
-        return self.model.stacker.inverse_transform_components(self._components)
+        return self.model.preprocessor.inverse_transform_components(self._components)
     
     def scores(self):
         '''Get bootstrapped scores.'''
 
-        return self.model.stacker.inverse_transform_scores(self._scores)
+        return self.model.preprocessor.inverse_transform_scores(self._scores)
 
 
 
@@ -98,19 +98,19 @@ class EOFBootstrapper(_BaseBootstrapper):
 
 
         # Re-assign original coordinates
-        bst_components = bst_components.assign_coords(feature=model.stacker.coords_out_['feature'])
-        bst_scores = bst_scores.assign_coords(sample=model.stacker.coords_out_['sample'])
+        bst_components = bst_components.assign_coords(feature=model.preprocessor.stacker.coords_out_['feature'])
+        bst_scores = bst_scores.assign_coords(sample=model.preprocessor.stacker.coords_out_['sample'])
 
         # NOTE: this is a bit of an ugly workaround to set the index of the DataArray. Will have to dig more 
         # into this to find a better solution
         try:
-            indexes = [k for k in model.stacker.coords_out_['feature'].coords.keys() if k != 'feature']
+            indexes = [k for k in model.preprocessor.stacker.coords_out_['feature'].coords.keys() if k != 'feature']
             bst_components = bst_components.set_index(feature=indexes)
         # ListDataArrayStacker does not have dims but then we don't need to set the index
         except ValueError:
             pass
         try:
-            indexes = [k for k in model.stacker.coords_out_['sample'].coords.keys() if k != 'sample']
+            indexes = [k for k in model.preprocessor.stacker.coords_out_['sample'].coords.keys() if k != 'sample']
             bst_scores = bst_scores.set_index(sample=indexes)
         # ListDataArrayStacker does not have dims but then we don't need to set the index
         except ValueError:
