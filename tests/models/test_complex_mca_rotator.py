@@ -37,8 +37,8 @@ def test_mcarotator_fit(mca_model):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
-    assert hasattr(mca_rotator, "_rotation_matrix")
-    assert hasattr(mca_rotator, "_idx_expvar")
+    assert hasattr(mca_rotator, 'model')
+    assert hasattr(mca_rotator, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -51,7 +51,7 @@ def test_mcarotator_transform(mca_model, mock_data_array):
     mca_rotator.fit(mca_model)
     
     with pytest.raises(NotImplementedError):
-        projections = mca_rotator.transform(data1=mock_data_array, data2=mock_data_array, mode=slice(1,3))
+        projections = mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
 
 
 @pytest.mark.parametrize('dim', [
@@ -74,10 +74,10 @@ def test_mcarotator_inverse_transform(mca_model):
     (('lat', 'lon')),
     (('lon', 'lat')),
 ])
-def test_covariance_fraction(mca_model, mock_data_array, dim):
+def test_squared_covariance(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    covariance_fraction = mca_model.covariance_fraction()
-    assert isinstance(covariance_fraction, xr.DataArray)
+    squared_covariance = mca_model.squared_covariance()
+    assert isinstance(squared_covariance, xr.DataArray)
 
 
 @pytest.mark.parametrize('dim', [
@@ -90,29 +90,101 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     squared_covariance_fraction = mca_model.squared_covariance_fraction()
     assert isinstance(squared_covariance_fraction, xr.DataArray)
 
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_components(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    comps1, comps2 = mca_rotator.components()
+    assert isinstance(comps1, xr.DataArray)
+    assert isinstance(comps2, xr.DataArray)
+    # assert that the components are complex valued
+    assert np.iscomplexobj(comps1)
+    assert np.iscomplexobj(comps2)
 
 
-# @pytest.mark.parametrize('dim', [
-#     (('time',)),
-#     (('lat', 'lon')),
-#     (('lon', 'lat')),
-# ])
-# def test_mcarotator_compute(mca_model_delayed):
-#     '''Test the compute method of the ComplexMCARotator class.'''
-#     pass
-    # NOTE: This test takes a long time to run though it should not. Running the same example
-    # in a separate file is much faster. I don't have a clue why this is the case but for the moment
-    # I will leave it as is but deactivate the test. 
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_scores(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    scores1, scores2 = mca_rotator.scores()
+    assert isinstance(scores1, xr.DataArray)
+    assert isinstance(scores2, xr.DataArray)
+    # assert that the scores are complex valued
+    assert np.iscomplexobj(scores1)
+    assert np.iscomplexobj(scores2)
     
-    # mca_rotator = MCARotator(n_modes=2, rtol=1e-5)
-    # mca_rotator.fit(mca_model_delayed)
-    
-    # mca_rotator.compute()
 
-    # assert isinstance(mca_rotator._explained_covariance, xr.DataArray)
-    # assert isinstance(mca_rotator._squared_covariance_fraction, xr.DataArray)
-    # assert isinstance(mca_rotator._singular_vectors1, xr.DataArray)
-    # assert isinstance(mca_rotator._singular_vectors2, xr.DataArray)
-    # assert isinstance(mca_rotator._rotation_matrix, xr.DataArray)
-    # assert isinstance(mca_rotator._scores1, xr.DataArray)
-    # assert isinstance(mca_rotator._scores2, xr.DataArray)
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_homogeneous_patterns(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    with pytest.raises(NotImplementedError):
+        _ = mca_rotator.homogeneous_patterns()
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    with pytest.raises(NotImplementedError):
+        _ = mca_rotator.heterogeneous_patterns()
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_crmca_components_amplitude(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    amps1, amps2 = mca_rotator.components_amplitude()
+
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_crmca_components_phase(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    amps1, amps2 = mca_rotator.components_phase()
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_crmca_scores_amplitude(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    amps1, amps2 = mca_rotator.scores_amplitude()
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_crmca_scores_phase(mca_model, mock_data_array, dim):
+    mca_rotator = ComplexMCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    amps1, amps2 = mca_rotator.scores_phase()
+

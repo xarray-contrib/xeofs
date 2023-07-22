@@ -1,16 +1,22 @@
+from datetime import datetime
 import numpy as np
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
 from typing import List
 
-from ._base_rotator import _BaseRotator
 from .eof import EOF, ComplexEOF
+from ..data_container.eof_rotator_data_container import EOFRotatorDataContainer, ComplexEOFRotatorDataContainer
 
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray, AnyDataObject
 
+from typing import TypeVar
+from .._version import __version__
 
-class EOFRotator(_BaseRotator):
+Model = TypeVar('Model', EOF, ComplexEOF)
+
+
+class EOFRotator(EOF):
     '''Rotate a solution obtained from ``xe.models.EOF``.
 
     Parameters
@@ -29,11 +35,38 @@ class EOFRotator(_BaseRotator):
 
     '''
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.attrs.update({'model': 'Rotated EOF analysis'})
+    def __init__(
+            self,
+            n_modes: int = 10,
+            power: int = 1,
+            max_iter: int = 1000,
+            rtol: float = 1e-8,
+        ):
+        # Define model parameters
+        self._params = {
+            'n_modes': n_modes,
+            'power': power,
+            'max_iter': max_iter,
+            'rtol': rtol,
+        }
+        
+        # Define analysis-relevant meta data
+        self.attrs = {'model': 'Rotated EOF analysis'}
+        self.attrs.update(self._params)
+        self.attrs.update({
+            'software': 'xeofs',
+            'version': __version__,
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
 
-    def fit(self, model: EOF | ComplexEOF):
+
+
+    @staticmethod
+    def _create_data_container(**kwargs) -> EOFRotatorDataContainer:
+        '''Create a data container for the rotated EOF analysis.'''
+        return EOFRotatorDataContainer(**kwargs)
+
+    def fit(self, model):
         '''Fit the model.
         
         Parameters
@@ -42,7 +75,8 @@ class EOFRotator(_BaseRotator):
             A EOF model solution.
             
         '''
-        self._model = model
+        self.model = model
+        self.preprocessor = model.preprocessor
 
         n_modes = self._params.get('n_modes')
         power = self._params.get('power')
@@ -50,12 +84,12 @@ class EOFRotator(_BaseRotator):
         rtol = self._params.get('rtol')
 
         # Select modes to rotate
-        components = self._model._components.sel(mode=slice(1, n_modes))
-        expvar = self._model._explained_variance.sel(mode=slice(1, n_modes))
+        components = model.data.components.sel(mode=slice(1, n_modes))
+        expvar = model.data.explained_variance.sel(mode=slice(1, n_modes))
 
         # Rotate loadings
         loadings = components * np.sqrt(expvar)
-        rot_loadings, rot_matrix, Phi =  xr.apply_ufunc(
+        rot_loadings, rot_matrix, phi_matrix =  xr.apply_ufunc(
             promax,
             loadings,
             power,
@@ -64,133 +98,110 @@ class EOFRotator(_BaseRotator):
             kwargs={'max_iter': max_iter, 'rtol': rtol},
             dask='allowed'
         )
-        self._rotation_matrix = rot_matrix
         
         # Reorder according to variance
         expvar = (abs(rot_loadings)**2).sum('feature')
-        # NOTE: For delayed objects, the index must be computed. .values will rensure that the index is computed
+        # NOTE: For delayed objects, the index must be computed.
         # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_sort = expvar.values.argsort()[::-1]
-        expvar = expvar.isel(mode=idx_sort).assign_coords(mode=expvar.mode)
-        rot_loadings = rot_loadings.isel(mode=idx_sort).assign_coords(mode=rot_loadings.mode)
-        self._idx_expvar = idx_sort
-
-        # Explained variance
-        self._explained_variance = expvar
-        self._explained_variance_ratio = expvar / self._model._total_variance
+        idx_sort = expvar.compute().argsort()[::-1]
+        idx_sort.coords.update(expvar.coords)
+        
+        expvar = expvar.isel(mode=idx_sort.values).assign_coords(mode=expvar.mode)
+        rot_loadings = rot_loadings.isel(mode=idx_sort.values).assign_coords(mode=rot_loadings.mode)
 
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
-        self._components = rot_components
 
         # Rotate scores
-        scores = self._model._scores.sel(mode=slice(1,n_modes))
-        R = self._get_rotation_matrix(inverse_transpose=True)
-        scores = xr.dot(scores, R, dims='mode1')
+        scores = model.data.scores.sel(mode=slice(1,n_modes))
+        rot_matrix_inv_trans = self._compute_rot_mat_inv_trans(rot_matrix)
+        scores = xr.dot(scores, rot_matrix_inv_trans, dims='mode1')
 
         # Reorder according to variance
-        scores = scores.isel(mode=idx_sort).assign_coords(mode=scores.mode)
-        self._scores = scores
+        scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
 
+        # Ensure consitent signs for deterministic output
+        idx_max_value = abs(rot_loadings).argmax('feature').compute()
+        modes_sign = xr.apply_ufunc(np.sign, rot_loadings.isel(feature=idx_max_value), dask='allowed')
+        # Drop all dimensions except 'mode' so that the index is clean
+        for dim, coords in modes_sign.coords.items():
+            if dim != 'mode':
+                modes_sign = modes_sign.drop(dim)
+        rot_components = rot_components * modes_sign
+        scores = scores * modes_sign
+
+        # Create the data container
+        self.data = self._create_data_container(
+            input_data=model.data.input_data,
+            components=rot_components,
+            scores=scores,
+            explained_variance=expvar,
+            total_variance=model.data.total_variance,
+            idx_modes_sorted=idx_sort,
+            rotation_matrix=rot_matrix,
+            phi_matrix=phi_matrix,
+            modes_sign=modes_sign,
+        )
         # Assign analysis-relevant meta data
-        self._assign_meta_data()
+        self.data.set_attrs(self.attrs)
+
 
     def transform(self, data: AnyDataObject) -> DataArray:
 
         n_modes = self._params['n_modes']
-        svals = self._model._singular_values.sel(mode=slice(1, self._params['n_modes']))
-        components = self._model._components.sel(mode=slice(1, n_modes))
+
+        svals = self.model.data.singular_values.sel(mode=slice(1, self._params['n_modes']))
+        # Select the (non-rotated) singular vectors of the first dataset
+        components = self.model.data.components.sel(mode=slice(1, n_modes))
 
         # Preprocess the data
-        da: DataArray = self._model.preprocessor.transform(data)
+        da: DataArray = self.preprocessor.transform(data)
 
         # Compute non-rotated scores by project the data onto non-rotated components
         projections = xr.dot(da, components) / svals
         projections.name = 'scores'
 
         # Rotate the scores
-        R = self._get_rotation_matrix(inverse_transpose=True)
+        R = self.data.rotation_matrix
+        R = self._compute_rot_mat_inv_trans(R)
         projections = xr.dot(projections, R, dims='mode1')
         # Reorder according to variance
-        projections = projections.isel(mode=self._idx_expvar).assign_coords(mode=projections.mode)
+        # this must be done in one line: i) select modes according to their variance, ii) replace coords with modes from 1 ... n
+        projections = projections.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections.mode)
 
+        # Adapt the sign of the scores
+        projections = projections * self.data.modes_sign
+        
         # Unstack the projections
-        projections = self._model.preprocessor.inverse_transform_scores(projections)
+        projections = self.preprocessor.inverse_transform_scores(projections)
         return projections      
     
-    def inverse_transform(self, mode: int | List[int] | slice = slice(None)) -> AnyDataObject:
-        dof = self._model.data.shape[0] - 1  # type: ignore
+    def _compute_rot_mat_inv_trans(self, rotation_matrix) -> xr.DataArray:
+        '''Compute the inverse transpose of the rotation matrix.
 
-        components = self._components
-        scores = self._scores * np.sqrt(self._explained_variance * dof)  # type: ignore
-
-        components = components.sel(mode=mode)  # type: ignore
-        scores = scores.sel(mode=mode)
-        Xrec = xr.dot(scores, components.conj(), dims='mode')
-
-        Xrec = self._model.preprocessor.inverse_transform_data(Xrec)
+        For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent 
+        to the rotation matrix itself. For oblique rotations (e.g., Promax), the simplification
+        does not hold.
         
-        return Xrec
-    
-    def explained_variance(self):
-        return self._explained_variance
-    
-    def explained_variance_ratio(self):
-        return self._explained_variance_ratio
-    
-    def components(self):
-        return self._model.preprocessor.inverse_transform_components(self._components)  #type: ignore
-    
-    def scores(self):
-        return self._model.preprocessor.inverse_transform_scores(self._scores)  #type: ignore
-    
-    def compute(self, verbose: bool = False):
-        '''Compute and load the rotated solution.
-        
-        Parameters
-        ----------
-        verbose : bool
-            If True, print information about the computation process.
-            
+        Returns
+        -------
+        rotation_matrix : xr.DataArray
+
         '''
-
-        self._model.compute(verbose=verbose)
-        if verbose:
-            with ProgressBar():
-                print('Computing ROTATED MODEL...')
-                print('-'*80)
-                print('Explained variance...')
-                self._explained_variance = self._explained_variance.compute()
-                print('Explained variance ratio...')
-                self._explained_variance_ratio = self._explained_variance_ratio.compute()
-                print('Components...')
-                self._components = self._components.compute()
-                print('Rotation matrix...')
-                self._rotation_matrix = self._rotation_matrix.compute()
-                print('Scores...')
-                self._scores = self._scores.compute()
-
-        else:
-            self._explained_variance = self._explained_variance.compute()
-            self._explained_variance_ratio = self._explained_variance_ratio.compute()
-            self._components = self._components.compute()
-            self._rotation_matrix = self._rotation_matrix.compute()
-            self._scores = self._scores.compute()
+        if self._params['power'] > 1:
+            # inverse matrix
+            rotation_matrix = xr.apply_ufunc(
+                np.linalg.pinv,
+                rotation_matrix,
+                input_core_dims=[['mode','mode1']],
+                output_core_dims=[['mode','mode1']]
+            )
+            # transpose matrix
+            rotation_matrix = rotation_matrix.conj().T
+        return rotation_matrix 
 
 
-    def _assign_meta_data(self):
-        '''Assign analysis-relevant meta data.'''
-        # Attributes of fitted model
-        attrs = self._model.attrs.copy()  # type: ignore
-        # Include meta data of the rotation
-        attrs.update(self.attrs)
-        self._explained_variance.attrs.update(attrs)  # type: ignore
-        self._explained_variance_ratio.attrs.update(attrs)  # type: ignore
-        self._components.attrs.update(attrs)  # type: ignore
-        self._scores.attrs.update(attrs)  # type: ignore
-
- 
-class ComplexEOFRotator(EOFRotator):
+class ComplexEOFRotator(EOFRotator, ComplexEOF):
     '''Rotate a solution obtained from ``xe.models.ComplexEOF``.
 
     Parameters
@@ -212,61 +223,16 @@ class ComplexEOFRotator(EOFRotator):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Rotated Complex EOF analysis'})
 
+    @staticmethod
+    def _create_data_container(**kwargs) -> ComplexEOFRotatorDataContainer:
+        '''Create a data container for the rotated solution.
+
+        '''
+        return ComplexEOFRotatorDataContainer(**kwargs)
+
     def transform(self, data: AnyDataObject):
-        raise NotImplementedError('Complex EOF does not support transform.')
-
-    def components_amplitude(self) -> AnyDataObject:
-        '''Compute the amplitude of the components.
-
-        Returns
-        -------
-        xr.DataArray
-            Amplitude of the components.
-
-        '''
-        comps = abs(self._components)
-        comps.name = 'amplitude'
-        comps = self._model.preprocessor.inverse_transform_components(comps)
-        return comps
-
-    def components_phase(self) -> AnyDataObject:
-        '''Compute the phase of the components.
-
-        Returns
-        -------
-        xr.DataArray
-            Phase of the components.
-
-        '''
-        comps = xr.apply_ufunc(np.angle, self._components, dask='allowed', keep_attrs=True)
-        comps.name = 'phase'
-        comps = self._model.preprocessor.inverse_transform_components(comps)
-        return comps
-    
-    def scores_amplitude(self) -> AnyDataObject:
-        '''Compute the amplitude of the scores.
-
-        Returns
-        -------
-        xr.DataArray
-            Amplitude of the scores.
-
-        '''
-        scores = abs(self._scores)
-        scores.name = 'amplitude'
-        scores = self._model.preprocessor.inverse_transform_scores(scores)
-        return scores
-    
-    def scores_phase(self) -> AnyDataObject:
-        '''Compute the phase of the scores.
-
-        Returns
-        -------
-        xr.DataArray
-            Phase of the scores.
-
-        '''
-        scores = xr.apply_ufunc(np.angle, self._scores, dask='allowed', keep_attrs=True)
-        scores.name = 'phase'
-        scores = self._model.preprocessor.inverse_transform_scores(scores)
-        return scores
+        # Here we make use of the Method Resolution Order (MRO) to call the
+        # transform method of the first class in the MRO after `EOFRotator` 
+        # that has a transform method. In this case it will be `ComplexEOF`,
+        # which will raise an error because it does not have a transform method.
+        super(EOFRotator, self).transform(data)

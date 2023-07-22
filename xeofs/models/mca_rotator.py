@@ -1,16 +1,16 @@
+from datetime import datetime
 import numpy as np
 import xarray as xr
-from dask.diagnostics.progress import ProgressBar
-from typing import List, Tuple
+from typing import List
 
-from ._base_rotator import _BaseRotator
 from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
-from ..utils.data_types import DataArray, AnyDataObject
-from ..utils.statistics import pearson_correlation
+from ..utils.data_types import DataArray
+from ..data_container.mca_rotator_data_container import MCARotatorDataContainer, ComplexMCARotatorDataContainer
+from .._version import __version__
 
 
-class MCARotator(_BaseRotator):
+class MCARotator(MCA):
     '''Rotate a solution obtained from ``xe.models.MCA``.
     
     Parameters
@@ -38,10 +38,62 @@ class MCARotator(_BaseRotator):
 
     '''
 
-    def __init__(self, squared_loadings: bool = False, **kwargs):
-        super().__init__(**kwargs)
-        self._params.update({'squared_loadings': squared_loadings})
-        self.attrs.update({'model': 'Rotated MCA'})
+    def __init__(
+            self,
+            n_modes: int = 10,
+            power: int = 1,
+            max_iter: int = 1000,
+            rtol: float = 1e-8,
+            squared_loadings: bool = False
+        ):
+        # Define model parameters
+        self._params = {
+            'n_modes': n_modes,
+            'power': power,
+            'max_iter': max_iter,
+            'rtol': rtol,
+            'squared_loadings': squared_loadings,
+        }
+        
+        # Define analysis-relevant meta data
+        self.attrs = {'model': 'Rotated MCA'}
+        self.attrs.update(self._params)
+        self.attrs.update({
+            'software': 'xeofs',
+            'version': __version__,
+            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+    def _compute_rot_mat_inv_trans(self, rotation_matrix) -> xr.DataArray:
+        '''Compute the inverse transpose of the rotation matrix.
+
+        For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent 
+        to the rotation matrix itself. For oblique rotations (e.g., Promax), the simplification
+        does not hold.
+        
+        Returns
+        -------
+        rotation_matrix : xr.DataArray
+
+        '''
+        if self._params['power'] > 1:
+            # inverse matrix
+            rotation_matrix = xr.apply_ufunc(
+                np.linalg.pinv,
+                rotation_matrix,
+                input_core_dims=[['mode','mode1']],
+                output_core_dims=[['mode','mode1']]
+            )
+            # transpose matrix
+            rotation_matrix = rotation_matrix.conj().T
+        return rotation_matrix 
+
+    @staticmethod
+    def _create_data_container(**kwargs) -> MCARotatorDataContainer:
+        '''Create a data container for the rotated solution.
+
+        '''
+        return MCARotatorDataContainer(**kwargs)  # type: ignore
 
     def fit(self, model: MCA | ComplexMCA):
         '''Fit the model.
@@ -52,13 +104,15 @@ class MCARotator(_BaseRotator):
             A MCA model solution.
             
         '''
-        self._model = model
+        self.model = model
+        self.preprocessor1 = model.preprocessor1
+        self.preprocessor2 = model.preprocessor2
         
-        n_modes = self._params.get('n_modes')
-        power = self._params.get('power')
-        max_iter = self._params.get('max_iter')
-        rtol = self._params.get('rtol')
-        use_squared_loadings = self._params.get('squared_loadings')
+        n_modes = self._params['n_modes']
+        power = self._params['power']
+        max_iter = self._params['max_iter']
+        rtol = self._params['rtol']
+        use_squared_loadings = self._params['squared_loadings']
 
 
         # Construct the combined vector of loadings
@@ -72,19 +126,22 @@ class MCARotator(_BaseRotator):
         # or weighted with the singular values ("squared loadings"), as opposed to the square root of the singular values.
         # In doing so, the squared covariance remains conserved under rotation, allowing for the estimation of the 
         # modes' importance. 
+        norm1 = self.model.data.norm1.sel(mode=slice(1, n_modes))
+        norm2 = self.model.data.norm2.sel(mode=slice(1, n_modes))
         if use_squared_loadings:
             # Squared loadings approach conserving squared covariance
-            scaling = self._model._singular_values.sel(mode=slice(1, n_modes))
+            scaling = norm1 * norm2
         else:
             # Cheng & Dunkerton approach conserving covariance
-            scaling = np.sqrt(self._model._singular_values.sel(mode=slice(1, n_modes)))
+            scaling = np.sqrt(norm1 * norm2)
 
-        svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_modes))
-        svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_modes))
-        loadings = xr.concat([svecs1, svecs2], dim='feature') * scaling
+
+        comps1 = self.model.data.components1.sel(mode=slice(1, n_modes))
+        comps2 = self.model.data.components2.sel(mode=slice(1, n_modes))
+        loadings = xr.concat([comps1, comps2], dim='feature') * scaling
 
         # Rotate loadings
-        rot_loadings, rot_matrix, Phi =  xr.apply_ufunc(
+        rot_loadings, rot_matrix, phi_matrix =  xr.apply_ufunc(
             promax,
             loadings,
             power,
@@ -93,48 +150,45 @@ class MCARotator(_BaseRotator):
             kwargs={'max_iter': max_iter, 'rtol': rtol},
             dask='allowed'
         )
-        self._rotation_matrix = rot_matrix
-
+        
         # Rotated (loaded) singular vectors
-        svecs1_rot = rot_loadings.isel(feature=slice(0, svecs1.coords['feature'].size))
-        svecs2_rot = rot_loadings.isel(feature=slice(svecs1.coords['feature'].size, None))
+        comps1_rot = rot_loadings.isel(feature=slice(0, comps1.coords['feature'].size))
+        comps2_rot = rot_loadings.isel(feature=slice(comps1.coords['feature'].size, None))
 
         # Normalization factor of singular vectors
-        norm1 = xr.apply_ufunc(np.linalg.norm, svecs1_rot, input_core_dims=[['feature']], output_core_dims=[[]], kwargs={'axis': -1}, dask='allowed')
-        norm2 = xr.apply_ufunc(np.linalg.norm, svecs2_rot, input_core_dims=[['feature']], output_core_dims=[[]], kwargs={'axis': -1}, dask='allowed')
+        norm1_rot = xr.apply_ufunc(np.linalg.norm, comps1_rot, input_core_dims=[['feature']], output_core_dims=[[]], kwargs={'axis': -1}, dask='allowed')
+        norm2_rot = xr.apply_ufunc(np.linalg.norm, comps2_rot, input_core_dims=[['feature']], output_core_dims=[[]], kwargs={'axis': -1}, dask='allowed')
 
         # Rotated (normalized) singular vectors
-        svecs1_rot = svecs1_rot / norm1
-        svecs2_rot = svecs2_rot / norm2
+        comps1_rot = comps1_rot / norm1_rot
+        comps2_rot = comps2_rot / norm2_rot
 
         # Remove the squaring introduced by the squared loadings approach
         if use_squared_loadings:
-            norm1 = norm1 ** 0.5
-            norm2 = norm2 ** 0.5
+            norm1_rot = norm1_rot ** 0.5
+            norm2_rot = norm2_rot ** 0.5
         
-        # Explained variance (= "singular values")
-        expvar = norm1 * norm2
+        # norm1 * norm2 = "singular values"
+        squared_covariance = (norm1_rot * norm2_rot)**2
 
-        # Reorder according to variance
-        # NOTE: For delayed objects, the index must be computed. .values will rensure that the index is computed
+        # Reorder according to squared covariance
+        # NOTE: For delayed objects, the index must be computed.
         # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_sort = expvar.values.argsort()[::-1]
-        self._idx_expvar = idx_sort
+        idx_modes_sorted = squared_covariance.compute().argsort()[::-1]
+        idx_modes_sorted.coords.update(squared_covariance.coords)
         
-        self._explained_covariance = expvar.isel(mode=idx_sort).assign_coords(mode=expvar.mode)
-        self._covariance_fraction = self._explained_covariance / self._model._total_covariance
-        self._squared_covariance_fraction = self._explained_covariance ** 2 / self._model._total_squared_covariance
+        squared_covariance = squared_covariance.isel(mode=idx_modes_sorted).assign_coords(mode=squared_covariance.mode)
 
-        self._norm1 = norm1.isel(mode=idx_sort).assign_coords(mode=norm1.mode)
-        self._norm2 = norm2.isel(mode=idx_sort).assign_coords(mode=norm2.mode)
+        norm1_rot = norm1_rot.isel(mode=idx_modes_sorted).assign_coords(mode=norm1_rot.mode)
+        norm2_rot = norm2_rot.isel(mode=idx_modes_sorted).assign_coords(mode=norm2_rot.mode)
         
-        self._singular_vectors1 = svecs1_rot.isel(mode=idx_sort).assign_coords(mode=svecs1_rot.mode)
-        self._singular_vectors2 = svecs2_rot.isel(mode=idx_sort).assign_coords(mode=svecs2_rot.mode)
+        comps_rot1 = comps1_rot.isel(mode=idx_modes_sorted).assign_coords(mode=comps1_rot.mode)
+        comps_rot2 = comps2_rot.isel(mode=idx_modes_sorted).assign_coords(mode=comps2_rot.mode)
 
-        # Rotate scores using rotation matrix
-        scores1 = self._model._scores1.sel(mode=slice(1,n_modes))
-        scores2 = self._model._scores2.sel(mode=slice(1,n_modes))
-        R = self._get_rotation_matrix(inverse_transpose=True)
+          # Rotate scores using rotation matrix
+        scores1 = self.model.data.scores1.sel(mode=slice(1,n_modes))
+        scores2 = self.model.data.scores2.sel(mode=slice(1,n_modes))
+        R = self._compute_rot_mat_inv_trans(rot_matrix)
 
         # The following renaming is necessary to ensure that the output dimension is `mode`
         scores1 = xr.dot(scores1, R, dims='mode')
@@ -145,43 +199,56 @@ class MCARotator(_BaseRotator):
         scores2 = scores2.rename({'mode1': 'mode'})
 
         # Reorder scores according to variance
-        scores1 = scores1.isel(mode=idx_sort).assign_coords(mode=scores1.mode)
-        scores2 = scores2.isel(mode=idx_sort).assign_coords(mode=scores2.mode)
+        scores1 = scores1.isel(mode=idx_modes_sorted).assign_coords(mode=scores1.mode)
+        scores2 = scores2.isel(mode=idx_modes_sorted).assign_coords(mode=scores2.mode)
         
-        self._scores1 = scores1
-        self._scores2 = scores2
 
         # Ensure consitent signs for deterministic output
         idx_max_value = abs(rot_loadings).argmax('feature').compute()
-        flip_signs = xr.apply_ufunc(np.sign, rot_loadings.isel(feature=idx_max_value), dask='allowed')
+        modes_sign = xr.apply_ufunc(np.sign, rot_loadings.isel(feature=idx_max_value), dask='allowed')
         # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in flip_signs.coords.items():
+        for dim, coords in modes_sign.coords.items():
             if dim != 'mode':
-                flip_signs = flip_signs.drop(dim)
-        self._singular_vectors1 *= flip_signs
-        self._singular_vectors2 *= flip_signs
-        self._scores1 *= flip_signs
-        self._scores2 *= flip_signs
+                modes_sign = modes_sign.drop(dim)
+        comps_rot1 = comps_rot1 * modes_sign
+        comps_rot2 = comps_rot2 * modes_sign
+        scores1 = scores2 * modes_sign
+        scores2 = scores2 * modes_sign
 
-        self._mode_signs = flip_signs
-
+        # Create data container
+        self.data = self._create_data_container(
+            input_data1=self.model.data.input_data1,
+            input_data2=self.model.data.input_data2,
+            components1=comps_rot1,
+            components2=comps_rot2,
+            scores1=scores1,
+            scores2=scores2,
+            squared_covariance=squared_covariance,
+            total_squared_covariance=self.model.data.total_squared_covariance,
+            idx_modes_sorted=idx_modes_sorted,
+            norm1=norm1_rot,
+            norm2=norm2_rot,
+            rotation_matrix=rot_matrix,
+            phi_matrix=phi_matrix,
+            modes_sign=modes_sign,
+        )
+        
         # Assign analysis-relevant meta data
-        self._assign_meta_data()
+        self.data.set_attrs(self.attrs)
 
-
-    def transform(self, **kwargs) -> AnyDataObject | Tuple[AnyDataObject, AnyDataObject]:
+    def transform(self, **kwargs) -> DataArray | List[DataArray]:
         '''Project new "unseen" data onto the rotated singular vectors.
 
         Parameters
         ----------
-        data1 : xr.DataArray | xr.Dataset | xr.DataArraylist
+        data1 : DataArray | Dataset | DataArraylist
             Data to be projected onto the rotated singular vectors of the first dataset.
-        data2 : xr.DataArray | xr.Dataset | xr.DataArraylist
+        data2 : DataArray | Dataset | DataArraylist
             Data to be projected onto the rotated singular vectors of the second dataset.
 
         Returns
         -------
-        xr.DataArray | xr.Dataset | xr.DataArraylist
+        DataArray | List[DataArray]
             Projected data.
         
         '''
@@ -190,8 +257,8 @@ class MCARotator(_BaseRotator):
             raise ValueError('No data provided. Please provide data1 and/or data2.')
     
         n_modes = self._params['n_modes']
-        expvar = self._explained_covariance.sel(mode=slice(1, self._params['n_modes']))
-        rot_matrix = self._get_rotation_matrix(inverse_transpose=True)
+        rot_matrix = self.data.rotation_matrix
+        rot_matrix = self._compute_rot_mat_inv_trans(rot_matrix)
 
         results = []
 
@@ -199,22 +266,23 @@ class MCARotator(_BaseRotator):
 
             data1 = kwargs['data1']
             # Select the (non-rotated) singular vectors of the first dataset
-            svecs1 = self._model._singular_vectors1.sel(mode=slice(1, n_modes))
+            comps1 = self.model.data.components1.sel(mode=slice(1, n_modes))
+            norm1 = self.data.norm1.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
-            data1 = self._model.preprocessor1.transform(data1)
+            data1 = self.preprocessor1.transform(data1)
             
-            # Compute non-rotated scores by project the data onto non-rotated components
-            projections1 = xr.dot(data1, svecs1) / expvar**0.5
+            # Compute non-rotated scores by projecting the data onto non-rotated components
+            projections1 = xr.dot(data1, comps1) / norm1
             # Rotate the scores
             projections1 = xr.dot(projections1, rot_matrix, dims='mode1')
             # Reorder according to variance
-            projections1 = projections1.isel(mode=self._idx_expvar).assign_coords(mode=projections1.mode)
-            # Determine the sign of the scores
-            projections1 *= self._mode_signs
+            projections1 = projections1.isel(mode=self.data.idx_modes_sorted).assign_coords(mode=projections1.mode)
+            # Adapt the sign of the scores
+            projections1 = projections1 * self.data.modes_sign
 
             # Unstack the projections
-            projections1 = self._model.preprocessor1.inverse_transform_scores(projections1)
+            projections1 = self.preprocessor1.inverse_transform_scores(projections1)
 
             results.append(projections1)
 
@@ -223,299 +291,36 @@ class MCARotator(_BaseRotator):
 
             data2 = kwargs['data2']            
             # Select the (non-rotated) singular vectors of the second dataset
-            svecs2 = self._model._singular_vectors2.sel(mode=slice(1, n_modes))
+            comps2 = self.model.data.components2.sel(mode=slice(1, n_modes))
+            norm2 = self.data.norm2.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
-            data2 = self._model.preprocessor2.transform(data2)
+            data2 = self.preprocessor2.transform(data2)
             
             # Compute non-rotated scores by project the data onto non-rotated components
-            projections2 = xr.dot(data2, svecs2) / expvar**0.5
+            projections2 = xr.dot(data2, comps2) / norm2
             # Rotate the scores
             projections2 = xr.dot(projections2, rot_matrix, dims='mode1')
             # Reorder according to variance
-            projections2 = projections2.isel(mode=self._idx_expvar).assign_coords(mode=projections2.mode)
+            projections2 = projections2.isel(mode=self.data.idx_modes_sorted).assign_coords(mode=projections2.mode)
             # Determine the sign of the scores
-            projections2 *= self._mode_signs
+            projections2 = projections2 * self.data.modes_sign
 
 
             # Unstack the projections
-            projections2 = self._model.preprocessor2.inverse_transform_scores(projections2)
+            projections2 = self.preprocessor2.inverse_transform_scores(projections2)
 
             results.append(projections2)
         
         if len(results) == 0:
-            raise ValueError('either provide `data1` or `data2`')
+            raise ValueError('provide at least one of [`data1`, `data2`]')
         elif len(results) == 1:
             return results[0]
         else:
             return results
 
-    def inverse_transform(self, mode: int | List[int] | slice = slice(None)):
-        '''Reconstruct the original data from the rotated singular vectors.
-        
-        Parameters
-        ----------
-        mode : int | list[int] | slice
-            Modes to be used for reconstruction.
-            
-        Returns
-        -------
-        xr.DataArray | xr.Dataset | xr.DataArraylist
-            Reconstructed data.
-            
-        '''
-        # Singular vectors
-        svecs1 = self._singular_vectors1.sel(mode=mode)
-        svecs2 = self._singular_vectors2.sel(mode=mode)
 
-        # Scores = projections
-        scores1 = self._scores1.sel(mode=mode)
-        scores2 = self._scores2.sel(mode=mode)
-
-        # Reconstruct the data
-        data1 = xr.dot(scores1, svecs1.conj(), dims='mode')
-        data2 = xr.dot(scores2, svecs2.conj(), dims='mode')
-
-        # Unstack and rescale the data
-        data1 = self._model.preprocessor1.inverse_transform_data(data1)
-        data2 = self._model.preprocessor2.inverse_transform_data(data2)
-
-        return data1, data2
-
-    def covariance_fraction(self) -> DataArray | Dataset | DataArrayList:
-        '''Return the covariance fraction (CF) of the rotated modes.
-
-        Returns
-        -------
-        xr.DataArray
-            Covariance fraction of the rotated modes.
-
-        '''
-        return self._covariance_fraction
-    
-    def squared_covariance_fraction(self) -> DataArray | Dataset | DataArrayList:
-        '''Return the squared covariance fraction (SCF) of the rotated modes.
-
-        Returns
-        -------
-        xr.DataArray
-            Squared covariance fraction of the rotated modes.
-
-        '''
-        return self._squared_covariance_fraction
-
-    def compute(self, verbose: bool = False):
-        '''Compute the rotated solution.
-        
-        Parameters
-        ----------
-        verbose : bool
-            If True, print information about the computation process.
-            
-        '''
-        
-        self._model.compute(verbose=verbose)
-        if verbose:
-            with ProgressBar():                
-                print('Computing ROTATED MODEL...')
-                print('-'*80)
-                print('Explainned variance...')
-                self._explained_covariance = self._explained_covariance.compute()
-                print('Squared covariance fraction...')
-                self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
-                print('Norms...')
-                self._norm1 = self._norm1.compute()
-                self._norm2 = self._norm2.compute()
-                print('Singular vectors...')
-                self._singular_vectors1 = self._singular_vectors1.compute()
-                self._singular_vectors2 = self._singular_vectors2.compute()
-                print('Rotation matrix...')
-                self._rotation_matrix = self._rotation_matrix.compute()
-                print('Scores...')
-                self._scores1 = self._scores1.compute()
-                self._scores2 = self._scores2.compute()
-        else:
-            self._explained_covariance = self._explained_covariance.compute()
-            self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
-            self._norm1 = self._norm1.compute()
-            self._norm2 = self._norm2.compute()
-            self._singular_vectors1 = self._singular_vectors1.compute()
-            self._singular_vectors2 = self._singular_vectors2.compute()
-            self._rotation_matrix = self._rotation_matrix.compute()
-            self._scores1 = self._scores1.compute()
-            self._scores2 = self._scores2.compute()
-
-    def _assign_meta_data(self):
-        '''Assign analysis-relevant meta data.'''
-        # Attributes of fitted model
-        attrs = self._model.attrs.copy()
-        # Include meta data of the rotation
-        attrs.update(self.attrs)
-        self._explained_covariance.attrs.update(attrs)
-        self._squared_covariance_fraction.attrs.update(attrs)
-        self._singular_vectors1.attrs.update(attrs)
-        self._singular_vectors2.attrs.update(attrs)
-        self._scores1.attrs.update(attrs)
-        self._scores2.attrs.update(attrs)
-
-    def components(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Return the rotated singular vectors.
-
-        Returns
-        -------
-        xr.DataArray | xr.Dataset | xr.DataArraylist
-            Rotated singular vectors.
-
-        '''
-        svecs1 = self._model.preprocessor1.inverse_transform_components(self._singular_vectors1)
-        svecs2 = self._model.preprocessor2.inverse_transform_components(self._singular_vectors2)
-
-        return svecs1, svecs2
-
-    def scores(self) -> Tuple[DataArray, DataArray]:
-        '''Return the rotated scores.
-
-        Returns
-        -------
-        xr.DataArray | xr.Dataset | xr.DataArraylist
-            Rotated scores.
-
-        '''
-        scores1 = self._model.preprocessor1.inverse_transform_scores(self._scores1)
-        scores2 = self._model.preprocessor2.inverse_transform_scores(self._scores2)
-
-        return scores1, scores2
-    
-    def homogeneous_patterns(self, correction='fdr_bh', alpha=.05):
-        '''Return the rotated homogeneous patterns.
-
-        The homogeneous patterns are the correlation coefficients between the 
-        input data and the scores.
-
-        More precisely, the homogeneous patterns `r_{hom}` are defined as
-
-        .. math::
-          r_{hom, x} = \\corr \\left(X, A_x \\right)
-        .. math::
-          r_{hom, y} = \\corr \\left(Y, A_y \\right)
-
-        where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
-        are the scores of the left and right field, respectively.
-
-        Parameters:
-        -------------
-        correction: str, default=None
-            Method to apply a multiple testing correction. If None, no correction
-            is applied.  Available methods are:
-            - bonferroni : one-step correction
-            - sidak : one-step correction
-            - holm-sidak : step down method using Sidak adjustments
-            - holm : step-down method using Bonferroni adjustments
-            - simes-hochberg : step-up method (independent)
-            - hommel : closed method based on Simes tests (non-negative)
-            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-            - fdr_by : Benjamini/Yekutieli (negative)
-            - fdr_tsbh : two stage fdr correction (non-negative)
-            - fdr_tsbky : two stage fdr correction (non-negative)
-        alpha: float, default=0.05
-            The desired family-wise error rate. Not used if `correction` is None.
-
-        Returns:
-        ----------
-        patterns1: DataArray | Dataset | List[DataArray]
-            Left homogenous patterns.
-        patterns2: DataArray | Dataset | List[DataArray]
-            Right homogenous patterns.
-        pvals1: DataArray | Dataset | List[DataArray]
-            Left p-values.
-        pvals2: DataArray | Dataset | List[DataArray]
-            Right p-values.
-
-        '''
-
-        hom_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
-        hom_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
-
-        hom_pats1 = self._model.preprocessor1.inverse_transform_components(hom_pats1)
-        hom_pats2 = self._model.preprocessor2.inverse_transform_components(hom_pats2)
-
-        pvals1 = self._model.preprocessor1.inverse_transform_components(pvals1)
-        pvals2 = self._model.preprocessor2.inverse_transform_components(pvals2)
-
-        hom_pats1.name = 'homogeneous_patterns'
-        hom_pats2.name = 'homogeneous_patterns'
-
-        pvals1.name = 'pvalues'
-        pvals2.name = 'pvalues'
-
-        return (hom_pats1, hom_pats2), (pvals1, pvals2)
-
-
-    def heterogeneous_patterns(self, correction='fdr_bh', alpha=.05):
-        '''Return the rotated heterogeneous patterns.
-
-        The heterogeneous patterns are the correlation coefficients between the 
-        input data and the scores.
-
-        More precisely, the heterogeneous patterns `r_{het}` are defined as
-
-        .. math::
-          r_{het, x} = \\corr \\left(X, A_x \\right)
-        .. math::
-          r_{het, y} = \\corr \\left(Y, A_y \\right)
-
-        where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
-        are the scores of the left and right field, respectively.
-
-        Parameters:
-        -------------
-        correction: str, default=None
-            Method to apply a multiple testing correction. If None, no correction
-            is applied.  Available methods are:
-            - bonferroni : one-step correction
-            - sidak : one-step correction
-            - holm-sidak : step down method using Sidak adjustments
-            - holm : step-down method using Bonferroni adjustments
-            - simes-hochberg : step-up method (independent)
-            - hommel : closed method based on Simes tests (non-negative)
-            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-            - fdr_by : Benjamini/Yekutieli (negative)
-            - fdr_tsbh : two stage fdr correction (non-negative)
-            - fdr_tsbky : two stage fdr correction (non-negative)
-        alpha: float, default=0.05
-            The desired family-wise error rate. Not used if `correction` is None.
-
-        Returns:
-        ----------
-        patterns1: DataArray | Dataset | List[DataArray]
-            Left heterogeneous patterns.
-        patterns2: DataArray | Dataset | List[DataArray]
-            Right heterogeneous patterns.
-        pvals1: DataArray | Dataset | List[DataArray]
-            Left p-values.
-        pvals2: DataArray | Dataset | List[DataArray]
-            Right p-values.
-
-        '''
-
-        het_pats1, pvals1 = pearson_correlation(self._model.data1, self._scores1, correction=correction, alpha=alpha)
-        het_pats2, pvals2 = pearson_correlation(self._model.data2, self._scores2, correction=correction, alpha=alpha)
-
-        het_pats1 = self._model.preprocessor1.inverse_transform_components(het_pats1)
-        het_pats2 = self._model.preprocessor2.inverse_transform_components(het_pats2)
-
-        pvals1 = self._model.preprocessor1.inverse_transform_components(pvals1)
-        pvals2 = self._model.preprocessor2.inverse_transform_components(pvals2)
-
-        het_pats1.name = 'heterogeneous_patterns'
-        het_pats2.name = 'heterogeneous_patterns'
-
-        pvals1.name = 'pvalues'
-        pvals2.name = 'pvalues'
-
-        return (het_pats1, het_pats2), (pvals1, pvals2)
-
-class ComplexMCARotator(MCARotator):
+class ComplexMCARotator(MCARotator, ComplexMCA):
     '''Rotate a solution obtained from ``xe.models.ComplexMCA``.
 
     Parameters
@@ -544,87 +349,24 @@ class ComplexMCARotator(MCARotator):
     '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.attrs.update({'model': 'Rotated Complex MCA'})
+        self.attrs.update({'model': 'Complex Rotated MCA'})
+
+    @staticmethod
+    def _create_data_container(**kwargs) -> ComplexMCARotatorDataContainer:
+        '''Create a data container for the rotated solution.
+
+        '''
+        return ComplexMCARotatorDataContainer(**kwargs)
 
     def transform(self, **kwargs):
-        raise NotImplementedError('Complex MCA does not support transform.')
+        # Here we make use of the Method Resolution Order (MRO) to call the
+        # transform method of the first class in the MRO after `MCARotator` 
+        # that has a transform method. In this case it will be `ComplexMCA`,
+        # which will raise an error because it does not have a transform method.
+        super(MCARotator, self).transform(**kwargs)
     
-    def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Compute the amplitude of the components.
+    def homogeneous_patterns(self, **kwargs):
+        super(MCARotator, self).homogeneous_patterns(**kwargs)
 
-        Returns
-        -------
-        xr.DataArray
-            Amplitude of the components.
-
-        '''
-        comps1 = abs(self._singular_vectors1)
-        comps2 = abs(self._singular_vectors2)
-
-        comps1.name = 'singular_vector_amplitudes'
-        comps2.name = 'singular_vector_amplitudes'
-
-        comps1 = self._model.preprocessor1.inverse_transform_components(comps1)
-        comps2 = self._model.preprocessor2.inverse_transform_components(comps2)
-
-        return comps1, comps2
-
-    def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Compute the phase of the components.
-
-        Returns
-        -------
-        xr.DataArray
-            Phase of the components.
-
-        '''
-        comps1 = xr.apply_ufunc(np.angle, self._singular_vectors1, keep_attrs=True)
-        comps2 = xr.apply_ufunc(np.angle, self._singular_vectors2, keep_attrs=True)
-
-        comps1.name = 'singular_vector_phases'
-        comps2.name = 'singular_vector_phases'
-
-        comps1 = self._model.preprocessor1.inverse_transform_components(comps1)
-        comps2 = self._model.preprocessor2.inverse_transform_components(comps2)
-
-        return comps1, comps2
-    
-    def scores_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Compute the amplitude of the scores.
-
-        Returns
-        -------
-        xr.DataArray
-            Amplitude of the scores.
-
-        '''
-        scores1 = abs(self._scores1)
-        scores2 = abs(self._scores2)
-
-        scores1.name = 'score_amplitudes'
-        scores2.name = 'score_amplitudes'
-
-        scores1 = self._model.preprocessor1.inverse_transform_scores(scores1)
-        scores2 = self._model.preprocessor2.inverse_transform_scores(scores2)
-
-        return scores1, scores2
-    
-    def scores_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Compute the phase of the scores.
-
-        Returns
-        -------
-        xr.DataArray
-            Phase of the scores.
-
-        '''
-        scores1 = xr.apply_ufunc(np.angle, self._scores1, keep_attrs=True)
-        scores2 = xr.apply_ufunc(np.angle, self._scores2, keep_attrs=True)
-
-        scores1.name = 'score_phases'
-        scores2.name = 'score_phases'
-
-        scores1 = self._model.preprocessor1.inverse_transform_scores(scores1)
-        scores2 = self._model.preprocessor2.inverse_transform_scores(scores2)
-
-        return scores1, scores2
+    def heterogeneous_patterns(self, **kwargs):
+        super(MCARotator, self).homogeneous_patterns(**kwargs)

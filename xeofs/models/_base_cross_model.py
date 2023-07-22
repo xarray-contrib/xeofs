@@ -43,6 +43,7 @@ class _BaseCrossModel(ABC):
         self.attrs.update(self._params)
         self.attrs.update({
             'software': 'xeofs',
+            'version': __version__,
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 

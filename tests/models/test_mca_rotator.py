@@ -37,8 +37,8 @@ def test_mcarotator_fit(mca_model):
     mca_rotator = MCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
-    assert hasattr(mca_rotator, "_rotation_matrix")
-    assert hasattr(mca_rotator, "_idx_expvar")
+    assert hasattr(mca_rotator, 'model')
+    assert hasattr(mca_rotator, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -75,9 +75,10 @@ def test_mcarotator_inverse_transform(mca_model):
     (('lat', 'lon')),
     (('lon', 'lat')),
 ])
-def test_covariance_fraction(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    covariance_fraction = mca_model.covariance_fraction()
+def test_squared_covariance(mca_model, mock_data_array, dim):
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    covariance_fraction = mca_rotator.squared_covariance()
     assert isinstance(covariance_fraction, xr.DataArray)
 
 
@@ -87,10 +88,62 @@ def test_covariance_fraction(mca_model, mock_data_array, dim):
     (('lon', 'lat')),
 ])
 def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    squared_covariance_fraction = mca_model.squared_covariance_fraction()
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    squared_covariance_fraction = mca_rotator.squared_covariance_fraction()
     assert isinstance(squared_covariance_fraction, xr.DataArray)
 
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_components(mca_model, mock_data_array, dim):
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    comps1, comps2 = mca_rotator.components()
+    assert isinstance(comps1, xr.DataArray)
+    assert isinstance(comps2, xr.DataArray)
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_scores(mca_model, mock_data_array, dim):
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    scores1, scores2 = mca_rotator.scores()
+    assert isinstance(scores1, xr.DataArray)
+    assert isinstance(scores2, xr.DataArray)
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_homogeneous_patterns(mca_model, mock_data_array, dim):
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    patterns, pvalues = mca_rotator.homogeneous_patterns()
+    assert isinstance(patterns[0], xr.DataArray)
+    assert isinstance(patterns[1], xr.DataArray)
+    assert isinstance(pvalues[0], xr.DataArray)
+    assert isinstance(pvalues[1], xr.DataArray)
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
+    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator.fit(mca_model)
+    patterns, pvalues = mca_rotator.heterogeneous_patterns()
+    assert isinstance(patterns[0], xr.DataArray)
+    assert isinstance(patterns[1], xr.DataArray)
+    assert isinstance(pvalues[0], xr.DataArray)
+    assert isinstance(pvalues[1], xr.DataArray)
 
 
 @pytest.mark.parametrize('dim', [
@@ -100,20 +153,32 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
 ])
 def test_mcarotator_compute(mca_model_delayed):
     '''Test the compute method of the MCARotator class.'''
-    pass
-    # NOTE: This test takes a long time to run though it should not. Running the same example
-    # in a separate file is much faster. I don't have a clue why this is the case but for the moment
-    # I will leave it as is but deactivate the test. 
     
-    # mca_rotator = MCARotator(n_modes=2, rtol=1e-5)
-    # mca_rotator.fit(mca_model_delayed)
+    mca_rotator = MCARotator(n_modes=2, rtol=1e-5)
+    mca_rotator.fit(mca_model_delayed)
     
-    # mca_rotator.compute()
+    assert isinstance(mca_rotator.data.squared_covariance.data, DaskArray), 'squared_covariance is not a delayed object'
+    assert isinstance(mca_rotator.data.components1.data, DaskArray), 'components1 is not a delayed object'
+    assert isinstance(mca_rotator.data.components2.data, DaskArray), 'components2 is not a delayed object'
+    assert isinstance(mca_rotator.data.scores1.data, DaskArray), 'scores1 is not a delayed object'
+    assert isinstance(mca_rotator.data.scores2.data, DaskArray), 'scores2 is not a delayed object'
+    assert isinstance(mca_rotator.data.rotation_matrix.data, DaskArray), 'rotation_matrix is not a delayed object'
+    assert isinstance(mca_rotator.data.phi_matrix.data, DaskArray), 'phi_matrix is not a delayed object'
+    assert isinstance(mca_rotator.data.norm1.data, DaskArray), 'norm1 is not a delayed object'
+    assert isinstance(mca_rotator.data.norm2.data, DaskArray), 'norm2 is not a delayed object'
+    assert isinstance(mca_rotator.data.modes_sign.data, DaskArray), 'modes_sign is not a delayed object'
+    
+    mca_rotator.compute()
 
-    # assert isinstance(mca_rotator._explained_covariance, xr.DataArray)
-    # assert isinstance(mca_rotator._squared_covariance_fraction, xr.DataArray)
-    # assert isinstance(mca_rotator._singular_vectors1, xr.DataArray)
-    # assert isinstance(mca_rotator._singular_vectors2, xr.DataArray)
-    # assert isinstance(mca_rotator._rotation_matrix, xr.DataArray)
-    # assert isinstance(mca_rotator._scores1, xr.DataArray)
-    # assert isinstance(mca_rotator._scores2, xr.DataArray)
+    assert isinstance(mca_rotator.data.squared_covariance.data, np.ndarray), 'squared_covariance is not computed'
+    assert isinstance(mca_rotator.data.total_squared_covariance.data, np.ndarray), 'total_squared_covariance is not computed'
+    assert isinstance(mca_rotator.data.components1.data, np.ndarray), 'components1 is not computed'
+    assert isinstance(mca_rotator.data.components2.data, np.ndarray), 'components2 is not computed'
+    assert isinstance(mca_rotator.data.scores1.data, np.ndarray), 'scores1 is not computed'
+    assert isinstance(mca_rotator.data.scores2.data, np.ndarray), 'scores2 is not computed'
+    assert isinstance(mca_rotator.data.rotation_matrix.data, np.ndarray), 'rotation_matrix is not computed'
+    assert isinstance(mca_rotator.data.phi_matrix.data, np.ndarray), 'phi_matrix is not computed'
+    assert isinstance(mca_rotator.data.norm1.data, np.ndarray), 'norm1 is not computed'
+    assert isinstance(mca_rotator.data.norm2.data, np.ndarray), 'norm2 is not computed'
+    assert isinstance(mca_rotator.data.modes_sign.data, np.ndarray), 'modes_sign is not computed'
+

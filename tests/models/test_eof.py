@@ -29,16 +29,9 @@ def test_eof_fit(dim, mock_data_array):
     eof = EOF()
     eof.fit(mock_data_array, dim)
 
-    # Assert that data has been preprocessed
-    assert isinstance(eof.data, xr.DataArray)
-
     # Assert the required attributes have been set
-    assert eof._total_variance is not None
-    assert eof._singular_values is not None
-    assert eof._explained_variance is not None
-    assert eof._explained_variance_ratio is not None
-    assert eof._components is not None
-    assert eof._scores is not None
+    assert hasattr(eof, 'preprocessor')
+    assert hasattr(eof, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -70,6 +63,8 @@ def test_eof_explained_variance(dim, mock_data_array):
     # Test explained_variance method
     explained_variance = eof.explained_variance()
     assert isinstance(explained_variance, xr.DataArray)
+    # Explained variance must be positive
+    assert (explained_variance > 0).all()
 
 
 @pytest.mark.parametrize('dim', [
@@ -85,6 +80,10 @@ def test_eof_explained_variance_ratio(dim, mock_data_array):
     # Test explained_variance_ratio method
     explained_variance_ratio = eof.explained_variance_ratio()
     assert isinstance(explained_variance_ratio, xr.DataArray)
+    # Explained variance ratio must be positive
+    assert (explained_variance_ratio > 0).all(), 'The explained variance ratio must be positive'
+    # The sum of the explained variance ratio must be <= 1
+    assert explained_variance_ratio.sum() <= 1 + 1e-5, 'The sum of the explained variance ratio must be <= 1'
 
 
 @pytest.mark.parametrize('dim', [
@@ -125,39 +124,6 @@ def test_eof_get_params():
     params = eof.get_params()
     assert isinstance(params, dict)
     assert params == {'n_modes': 5, 'standardize': True, 'use_coslat': True, 'use_weights': False}
-
-
-@pytest.mark.parametrize('dim', [
-    (('time',)),
-    (('lat', 'lon')),
-    (('lon', 'lat')),
-])
-def test_eof_compute(dim, mock_data_array):
-    '''Tests the compute method of the EOF class'''
-    
-    dask_mock_data_array = mock_data_array.chunk({'time': 1})
-    
-    eof = EOF()
-    eof.fit(dask_mock_data_array, dim)
-
-   # Assert that the attributes are indeed Dask arrays before computation
-    assert isinstance(eof._total_variance.data, da.Array)  #type: ignore
-    assert isinstance(eof._singular_values.data, da.Array)  #type: ignore
-    assert isinstance(eof._explained_variance.data, da.Array)  #type: ignore
-    assert isinstance(eof._explained_variance_ratio.data, da.Array)  #type: ignore
-    assert isinstance(eof._components.data, da.Array)  #type: ignore
-    assert isinstance(eof._scores.data, da.Array)  #type: ignore
-
-    # Test compute method
-    eof.compute()
-
-    # Assert the attributes are no longer Dask arrays after computation
-    assert not isinstance(eof._total_variance.data, da.Array)  #type: ignore
-    assert not isinstance(eof._singular_values.data, da.Array)  #type: ignore
-    assert not isinstance(eof._explained_variance.data, da.Array)  #type: ignore
-    assert not isinstance(eof._explained_variance_ratio.data, da.Array)  #type: ignore
-    assert not isinstance(eof._components.data, da.Array)  #type: ignore
-    assert not isinstance(eof._scores.data, da.Array)  #type: ignore
 
 
 @pytest.mark.parametrize('dim', [

@@ -201,6 +201,8 @@ def _np_sqrt_cos_lat_weights(data):
 def _np_total_variance(arr):
     '''Compute the total variance of the input data.
 
+    The input data is assumed to be centered.
+
     Parameters:
     ------------
     arr: np.ndarray
@@ -212,6 +214,8 @@ def _np_total_variance(arr):
         Total variance of the input data.
 
     '''
+    if not np.allclose(arr.mean(axis=0), 0):
+        raise ValueError('Input data is not centered.')
     C = (arr * arr.conj()).sum(axis=0) / (arr.shape[0] - 1)
     return C.sum().real
 

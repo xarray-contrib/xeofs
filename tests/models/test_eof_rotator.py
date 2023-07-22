@@ -4,6 +4,7 @@ import xarray as xr
 from dask.array import Array as DaskArray   # type: ignore
 
 from xeofs.models import EOF, ComplexEOF, EOFRotator, ComplexEOFRotator
+from xeofs.data_container.eof_rotator_data_container import EOFRotatorDataContainer, ComplexEOFRotatorDataContainer
 
 
 @pytest.fixture
@@ -50,13 +51,11 @@ def test_eof_rotator_fit(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
 
-    assert hasattr(eof_rotator, '_model')
-    assert hasattr(eof_rotator, '_rotation_matrix')
-    assert hasattr(eof_rotator, '_idx_expvar')
-    assert hasattr(eof_rotator, '_explained_variance')
-    assert hasattr(eof_rotator, '_explained_variance_ratio')
-    assert hasattr(eof_rotator, '_components')
-    assert hasattr(eof_rotator, '_scores')
+    assert hasattr(eof_rotator, 'model'), 'The attribute "model" should be populated after fitting.'
+    assert hasattr(eof_rotator, 'data'), 'The attribute "data" should be populated after fitting.'
+    assert type(eof_rotator.model) == EOF
+    assert type(eof_rotator.data) == EOFRotatorDataContainer
+
     
 
 @pytest.mark.parametrize('dim', [
@@ -80,7 +79,7 @@ def test_eof_rotator_transform(eof_model, mock_data_array):
 def test_eof_rotator_inverse_transform(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
-    Xrec = eof_rotator.inverse_transform()
+    Xrec = eof_rotator.inverse_transform(mode=1)
 
     assert isinstance(Xrec, xr.DataArray)
 
@@ -94,8 +93,16 @@ def test_eof_rotator_explained_variance(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     exp_var = eof_rotator.explained_variance()
+    exp_var_ref = eof_model.explained_variance().sel(mode=slice(1, 3))
 
     assert isinstance(exp_var, xr.DataArray)
+    # 3 modes should be returned
+    assert exp_var.size == 3
+    # The explained variance should be positive
+    assert (exp_var > 0).all()
+    # The sum of the explained variance should be the same
+    # before and after rotation
+    xr.testing.assert_allclose(exp_var.sum(), exp_var_ref.sum())
 
 
 @pytest.mark.parametrize('dim', [
@@ -107,8 +114,19 @@ def test_eof_rotator_explained_variance_ratio(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
     exp_var_ratio = eof_rotator.explained_variance_ratio()
+    exp_var_ratio_ref = eof_model.explained_variance_ratio().sel(mode=slice(1, 3))
 
     assert isinstance(exp_var_ratio, xr.DataArray)
+    # 3 modes should be returned
+    assert exp_var_ratio.size == 3
+    # The explained variance should be positive
+    assert (exp_var_ratio > 0).all()
+    # The total of the explained variance ratio should be <= 1
+    assert exp_var_ratio.sum() <= 1
+    # The sum of the explained variance should be the same
+    # before and after rotation
+    xr.testing.assert_allclose(exp_var_ratio.sum(), exp_var_ratio_ref.sum())
+
 
 
 @pytest.mark.parametrize('dim', [
@@ -147,20 +165,20 @@ def test_eof_rotator_compute(eof_model_delayed):
     eof_rotator.fit(eof_model_delayed)
     
     # before computation, the attributes should be dask arrays
-    assert isinstance(eof_rotator._explained_variance.data, DaskArray), "The attribute _explained_variance should be a dask array."
-    assert isinstance(eof_rotator._explained_variance_ratio.data, DaskArray)
-    assert isinstance(eof_rotator._components.data, DaskArray)
-    assert isinstance(eof_rotator._rotation_matrix.data, DaskArray)
-    assert isinstance(eof_rotator._scores.data, DaskArray)
+    assert isinstance(eof_rotator.data.explained_variance.data, DaskArray), 'The attribute _explained_variance should be a dask array.'
+    assert isinstance(eof_rotator.data.explained_variance_ratio.data, DaskArray), 'The attribute _explained_variance_ratio should be a dask array.'
+    assert isinstance(eof_rotator.data.components.data, DaskArray), 'The attribute _components should be a dask array.'
+    assert isinstance(eof_rotator.data.rotation_matrix.data, DaskArray), 'The attribute _rotation_matrix should be a dask array.'
+    assert isinstance(eof_rotator.data.scores.data, DaskArray), 'The attribute _scores should be a dask array.'
 
     eof_rotator.compute()
 
     # after computation, the attributes should be numpy ndarrays
-    assert isinstance(eof_rotator._explained_variance.data, np.ndarray)
-    assert isinstance(eof_rotator._explained_variance_ratio.data, np.ndarray)
-    assert isinstance(eof_rotator._components.data, np.ndarray)
-    assert isinstance(eof_rotator._rotation_matrix.data, np.ndarray)
-    assert isinstance(eof_rotator._scores.data, np.ndarray)
+    assert isinstance(eof_rotator.data.explained_variance.data, np.ndarray), 'The attribute _explained_variance should be a numpy ndarray.'
+    assert isinstance(eof_rotator.data.explained_variance_ratio.data, np.ndarray), 'The attribute _explained_variance_ratio should be a numpy ndarray.'
+    assert isinstance(eof_rotator.data.components.data, np.ndarray), 'The attribute _components should be a numpy ndarray.'
+    assert isinstance(eof_rotator.data.rotation_matrix.data, np.ndarray), 'The attribute _rotation_matrix should be a numpy ndarray.'
+    assert isinstance(eof_rotator.data.scores.data, np.ndarray), 'The attribute _scores should be a numpy ndarray.'
 
 
 def test_complex_eof_rotator_init():
@@ -182,13 +200,11 @@ def test_complex_eof_rotator_fit(ceof_model):
     ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
-    assert hasattr(ceof_rotator, '_model')
-    assert hasattr(ceof_rotator, '_rotation_matrix')
-    assert hasattr(ceof_rotator, '_idx_expvar')
-    assert hasattr(ceof_rotator, '_explained_variance')
-    assert hasattr(ceof_rotator, '_explained_variance_ratio')
-    assert hasattr(ceof_rotator, '_components')
-    assert hasattr(ceof_rotator, '_scores')
+    assert hasattr(ceof_rotator, 'model'), 'The attribute "model" should be populated after fitting.'
+    assert hasattr(ceof_rotator, 'data'), 'The attribute "data" should be populated after fitting.'
+    assert type(ceof_rotator.model) == ComplexEOF
+    assert type(ceof_rotator.data) == ComplexEOFRotatorDataContainer
+
 
 
 @pytest.mark.parametrize('dim', [
@@ -212,7 +228,7 @@ def test_complex_eof_rotator_transform_not_implemented(ceof_model, mock_data_arr
 def test_complex_eof_rotator_inverse_transform(ceof_model):
     ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
-    Xrec = ceof_rotator.inverse_transform()
+    Xrec = ceof_rotator.inverse_transform(mode=1)
 
     assert isinstance(Xrec, xr.DataArray)
 

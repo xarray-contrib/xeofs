@@ -77,14 +77,9 @@ class _BaseModel(ABC):
 
         '''
         # Here follows the implementation to fit the model
-        # Typically you want to start by calling self._preprocessing(data, dim, weights)
-        # ATTRIBUTES TO BE DEFINED:
-        self._total_variance = None
-        self._singular_values = None
-        self._explained_variance = None
-        self._explained_variance_ratio = None
-        self._components = None
-        self._scores = None
+        # Typically you want to start by calling the Preprocessor first:
+        # self.preprocessor.fit_transform(data, dim, weights)
+
 
     @abstractmethod
     def transform(self):
@@ -93,25 +88,6 @@ class _BaseModel(ABC):
     @abstractmethod
     def inverse_transform(self):
         raise NotImplementedError
-
-    def singular_values(self):
-        '''Return the singular values of the model.
-
-        Returns:
-        ----------
-        singular_values: DataArray
-            Singular values of the fitted model.
-
-        '''
-        return self._singular_values
-    
-    def explained_variance(self):
-        '''Return explained variance.'''
-        return self._explained_variance
-    
-    def explained_variance_ratio(self):
-        '''Return explained variance ratio.'''
-        return self._explained_variance_ratio
 
     def components(self):
         '''Return the components.
@@ -125,7 +101,8 @@ class _BaseModel(ABC):
             Components of the fitted model.
 
         '''
-        return self.preprocessor.inverse_transform_components(self._components)  #type: ignore
+        components = self.data.components
+        return self.preprocessor.inverse_transform_components(components)  #type: ignore
     
     def scores(self):
         '''Return the scores.
@@ -140,50 +117,16 @@ class _BaseModel(ABC):
             Scores of the fitted model.
 
         '''
-        return self.preprocessor.inverse_transform_scores(self._scores)  #type: ignore
+        scores = self.data.scores
+        return self.preprocessor.inverse_transform_scores(scores)  #type: ignore
 
     def get_params(self):
         return self._params
-
-    def compute(self, verbose: bool = False):
-        '''Computing the model will load and compute Dask arrays.
-        
-        Parameters:
-        -------------
-        verbose: bool, default=False
-            If True, print information about the computation process.
-            
-        '''
-
+    
+    def compute(self, verbose=False):
+        '''Compute the results.'''
         if verbose:
             with ProgressBar():
-                print('Computing STANDARD MODEL...')
-                print('-'*80)
-                print('Total variance...')
-                self._total_variance = self._total_variance.compute()  # type: ignore
-                print('Singular values...')
-                self._singular_values = self._singular_values.compute()   # type: ignore
-                print('Explained variance...')
-                self._explained_variance = self._explained_variance.compute()   # type: ignore
-                print('Explained variance ratio...')
-                self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
-                print('Components...')
-                self._components = self._components.compute()    # type: ignore
-                print('Scores...')
-                self._scores = self._scores.compute()    # type: ignore
+                self.data.compute() #type: ignore
         else:
-            self._total_variance = self._total_variance.compute()  # type: ignore
-            self._singular_values = self._singular_values.compute()   # type: ignore
-            self._explained_variance = self._explained_variance.compute()   # type: ignore
-            self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
-            self._components = self._components.compute()    # type: ignore
-            self._scores = self._scores.compute()    # type: ignore
-
-    def _assign_meta_data(self):
-        '''Set attributes to the model output.'''
-        self._total_variance.attrs.update(self.attrs)  # type: ignore
-        self._singular_values.attrs.update(self.attrs)  # type: ignore
-        self._explained_variance.attrs.update(self.attrs)  # type: ignore
-        self._explained_variance_ratio.attrs.update(self.attrs)  # type: ignore
-        self._components.attrs.update(self.attrs)  # type: ignore
-        self._scores.attrs.update(self.attrs)  # type: ignore
+            self.data.compute() #type: ignore

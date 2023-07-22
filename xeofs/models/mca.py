@@ -6,7 +6,8 @@ from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import CrossDecomposer
-from ..utils.data_types import AnyDataObject, DataArrayList, DataArray, Dataset
+from ..utils.data_types import AnyDataObject, DataArray
+from ..data_container.mca_data_container import MCADataContainer, ComplexMCADataContainer
 from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import hilbert_transform
 
@@ -29,7 +30,7 @@ class MCA(_BaseCrossModel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.attrs.update({'model': 'Maximum Covariance Analysis'})
+        self.attrs.update({'model': 'MCA'})
 
 
     def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
@@ -51,11 +52,11 @@ class MCA(_BaseCrossModel):
             If specified, the right input data will be weighted by this array.
 
         '''
-        self.data1 = self.preprocessor1.fit_transform(data1, dim, weights1)
-        self.data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
+        data1_processed: DataArray = self.preprocessor1.fit_transform(data1, dim, weights1)
+        data2_processed: DataArray = self.preprocessor2.fit_transform(data2, dim, weights2)
 
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
-        decomposer.fit(self.data1, self.data2)
+        decomposer.fit(data1_processed, data2_processed)
 
         # Note:
         # - explained variance is given by the singular values of the SVD;
@@ -63,30 +64,38 @@ class MCA(_BaseCrossModel):
         # Considering data X1 = X2, MCA is the same as PCA. In this case,
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
-        self._singular_values = decomposer.singular_values_
-        self._explained_covariance = decomposer.singular_values_  # actually covariance
-        self._total_covariance = decomposer.total_covariance_
-        self._total_squared_covariance = decomposer.total_squared_covariance_
-        self._squared_covariance_fraction = self._explained_covariance**2 / self._total_squared_covariance
-        self._singular_values_pca = np.sqrt(self._singular_values * (self.data1.shape[0] - 1))
-        self._singular_vectors1 = decomposer.singular_vectors1_
-        self._singular_vectors2 = decomposer.singular_vectors2_
-        self._norm1 = np.sqrt(self._singular_values)
-        self._norm2 = np.sqrt(self._singular_values)
+        singular_values = decomposer.singular_values_
+        squared_covariance = singular_values**2
+        total_squared_covariance = decomposer.total_squared_covariance_
+        # singular_values_pca = np.sqrt(singular_values * (data1.sample.size - 1))
+        singular_vectors1 = decomposer.singular_vectors1_
+        singular_vectors2 = decomposer.singular_vectors2_
+        norm1 = np.sqrt(singular_values)
+        norm2 = np.sqrt(singular_values)
 
-        self._explained_covariance.name = 'explained_covariance'
-        self._total_squared_covariance.name = 'total_squared_covariance'
-        self._squared_covariance_fraction.name = 'squared_covariance_fraction'
-        self._norm1.name = 'left_norm'
-        self._norm2.name = 'right_norm'
+        # Index of the sorted squared covariance
+        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
-        sqrt_expvar = np.sqrt(self._explained_covariance)
-        self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
-        self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
+        scores1 = xr.dot(data1_processed, singular_vectors1, dims='feature') / norm1
+        scores2 = xr.dot(data2_processed, singular_vectors2, dims='feature') / norm2
 
-        # Assign analysis relevant meta data
-        self._assign_meta_data()
+        self.data = MCADataContainer(
+            input_data1=data1_processed,
+            input_data2=data2_processed,
+            components1=singular_vectors1,
+            components2=singular_vectors2,
+            scores1=scores1,
+            scores2=scores2,
+            squared_covariance=squared_covariance,
+            total_squared_covariance=total_squared_covariance,
+            idx_modes_sorted=idx_sorted_modes,
+            norm1=norm1,
+            norm2=norm2,
+        )
+        # Assign analysis-relevant meta data
+        self.data.set_attrs(self.attrs)
 
     def transform(self, **kwargs):
         '''Project new unseen data onto the singular vectors.
@@ -108,16 +117,26 @@ class MCA(_BaseCrossModel):
         '''
         results = []
         if 'data1' in kwargs.keys():
+            # Preprocess input data
             data1 = kwargs['data1']
             data1 = self.preprocessor1.transform(data1)
-            scores1 = xr.dot(data1, self._singular_vectors1) / self._norm1
+            # Project data onto singular vectors
+            comps1 = self.data.components1
+            norm1 = self.data.norm1
+            scores1 = xr.dot(data1, comps1) / norm1
+            # Inverse transform scores
             scores1 = self.preprocessor1.inverse_transform_scores(scores1)
             results.append(scores1)
 
         if 'data2' in kwargs.keys():
+            # Preprocess input data
             data2 = kwargs['data2']
             data2 = self.preprocessor2.transform(data2)
-            scores2 = xr.dot(data2, self._singular_vectors2) / self._norm2
+            # Project data onto singular vectors
+            comps2 = self.data.components2
+            norm2 = self.data.norm2
+            scores2 = xr.dot(data2, comps2) / norm2
+            # Inverse transform scores
             scores2 = self.preprocessor2.inverse_transform_scores(scores2)
             results.append(scores2)
 
@@ -143,56 +162,33 @@ class MCA(_BaseCrossModel):
             Reconstructed data of right field.
 
         '''
-        svecs1 = self._singular_vectors1.sel(mode=mode)  # type: ignore
-        svecs2 = self._singular_vectors2.sel(mode=mode)  # type: ignore
+        # Singular vectors
+        comps1 = self.data.components1.sel(mode=mode)
+        comps2 = self.data.components2.sel(mode=mode)
 
-        scores1 = self._scores1.sel(mode=mode)  # type: ignore
-        scores2 = self._scores2.sel(mode=mode)  # type: ignore
+        # Scores = projections
+        scores1 = self.data.scores1.sel(mode=mode)
+        scores2 = self.data.scores2.sel(mode=mode)
 
-        Xrec1 = svecs1.dot(scores1.conj().T)
-        Xrec2 = svecs2.dot(scores2.conj().T)
+        # Reconstruct the data
+        data1 = xr.dot(scores1, comps1.conj(), dims='mode')
+        data2 = xr.dot(scores2, comps2.conj(), dims='mode')
 
-        Xrec1 = self.preprocessor1.inverse_transform_data(Xrec1)
-        Xrec2 = self.preprocessor2.inverse_transform_data(Xrec2)
+        # Unstack and rescale the data
+        data1 = self.preprocessor1.inverse_transform_data(data1)
+        data2 = self.preprocessor2.inverse_transform_data(data2)
 
-        return Xrec1, Xrec2
+        return data1, data2
 
-    def singular_values(self):
-        '''Get the singular values of the cross-covariance matrix.
+    def squared_covariance(self):
+        '''Get the squared covariance.
 
-        Returns:
-        ----------
-        singular_values: DataArray
-            Singular values of the fitted model.
-
-        '''
-        return self._singular_values
-    
-    def explained_covariance(self):
-        '''Get the explained covariance.
-
-        The explained covariance corresponds to the singular values of the covariance matrix. Each singular value 
-        represents the amount of variance explained by the corresponding mode in the data.
+        The squared covariance corresponds to the explained variance in PCA and is given by the 
+        squared singular values of the covariance matrix.
             
         '''
-        return self._explained_covariance
+        return self.data.squared_covariance
     
-    def covariance_fraction(self):
-        '''Get the covariance fraction (CF).
-        
-        The covariance fraction is the proportion of the total covariance explained by each mode `i`. It is computed
-        as follows:
-        
-        .. math::
-        CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
-
-        where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
-        
-        '''
-        cf = self._explained_covariance / self._total_covariance
-        cf.name = 'covariance_fraction'
-        return cf
-
     def squared_covariance_fraction(self):
         '''Calculate the squared covariance fraction (SCF).
 
@@ -205,7 +201,7 @@ class MCA(_BaseCrossModel):
         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
 
         '''
-        return self._squared_covariance_fraction
+        return self.data.squared_covariance_fraction
     
     def components(self):
         '''Return the singular vectors of the left and right field.
@@ -218,8 +214,11 @@ class MCA(_BaseCrossModel):
             Right components of the fitted model.
 
         '''
-        svecs1 = self.preprocessor1.inverse_transform_components(self._singular_vectors1)
-        svecs2 = self.preprocessor2.inverse_transform_components(self._singular_vectors2)
+        comps1 = self.data.components1
+        comps2 = self.data.components2
+
+        svecs1 = self.preprocessor1.inverse_transform_components(comps1)
+        svecs2 = self.preprocessor2.inverse_transform_components(comps2)
         return svecs1, svecs2
     
     def scores(self):
@@ -236,8 +235,11 @@ class MCA(_BaseCrossModel):
             Right scores.
 
         '''
-        scores1 = self.preprocessor1.inverse_transform_scores(self._scores1)
-        scores2 = self.preprocessor2.inverse_transform_scores(self._scores2)
+        scores1 = self.data.scores1
+        scores2 = self.data.scores2
+
+        scores1 = self.preprocessor1.inverse_transform_scores(scores1)
+        scores2 = self.preprocessor2.inverse_transform_scores(scores2)
         return scores1, scores2
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
@@ -286,8 +288,14 @@ class MCA(_BaseCrossModel):
             Right p-values.
 
         '''
-        hom_pat1, pvals1 = pearson_correlation(self.data1, self._scores1, correction=correction, alpha=alpha)
-        hom_pat2, pvals2 = pearson_correlation(self.data2, self._scores2, correction=correction, alpha=alpha)
+        input_data1 = self.data.input_data1
+        input_data2 = self.data.input_data2
+
+        scores1 = self.data.scores1
+        scores2 = self.data.scores2
+
+        hom_pat1, pvals1 = pearson_correlation(input_data1, scores1, correction=correction, alpha=alpha)
+        hom_pat2, pvals2 = pearson_correlation(input_data2, scores2, correction=correction, alpha=alpha)
 
         hom_pat1 = self.preprocessor1.inverse_transform_components(hom_pat1)
         hom_pat2 = self.preprocessor2.inverse_transform_components(hom_pat2)
@@ -298,8 +306,8 @@ class MCA(_BaseCrossModel):
         hom_pat1.name = 'left_homogeneous_patterns'
         hom_pat2.name = 'right_homogeneous_patterns'
 
-        pvals1.name = 'pvalues'
-        pvals2.name = 'pvalues'
+        pvals1.name = 'pvalues_of_left_homogeneous_patterns'
+        pvals2.name = 'pvalues_of_right_homogeneous_patterns'
 
         return (hom_pat1, hom_pat2), (pvals1, pvals2)
 
@@ -338,8 +346,14 @@ class MCA(_BaseCrossModel):
             The desired family-wise error rate. Not used if `correction` is None.
 
         '''
-        patterns1, pvals1 = pearson_correlation(self.data1, self._scores2, correction=correction, alpha=alpha)
-        patterns2, pvals2 = pearson_correlation(self.data2, self._scores1, correction=correction, alpha=alpha)
+        input_data1 = self.data.input_data1
+        input_data2 = self.data.input_data2
+
+        scores1 = self.data.scores1
+        scores2 = self.data.scores2
+
+        patterns1, pvals1 = pearson_correlation(input_data1, scores2, correction=correction, alpha=alpha)
+        patterns2, pvals2 = pearson_correlation(input_data2, scores1, correction=correction, alpha=alpha)
 
         patterns1 = self.preprocessor1.inverse_transform_components(patterns1)
         patterns2 = self.preprocessor2.inverse_transform_components(patterns2)
@@ -350,8 +364,8 @@ class MCA(_BaseCrossModel):
         patterns1.name = 'left_heterogeneous_patterns'
         patterns2.name = 'right_heterogeneous_patterns'
 
-        pvals1.name = 'pvalues'
-        pvals2.name = 'pvalues'
+        pvals1.name = 'pvalues_of_left_heterogeneous_patterns'
+        pvals2.name = 'pvalues_of_right_heterogeneous_patterns'
 
         return (patterns1, patterns2), (pvals1, pvals2)
 
@@ -364,53 +378,11 @@ class MCA(_BaseCrossModel):
             If True, print information about the computation process.
             
         '''
-
         if verbose:
             with ProgressBar():
-                print('Computing STANDARD MODEL...')
-                print('-'*80)
-                print('Singular values...')        
-                self._singular_values = self._singular_values.compute()
-                print('Explained variance...')
-                self._explained_covariance = self._explained_covariance.compute()
-                print('Squared total variance...')
-                self._total_squared_covariance = self._total_squared_covariance.compute()
-                print('Squared covariance fraction...')
-                self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
-                print('Singular vectors...')
-                self._singular_vectors1 = self._singular_vectors1.compute()
-                self._singular_vectors2 = self._singular_vectors2.compute()
-                print('Norms...')
-                self._norm1 = self._norm1.compute()
-                self._norm2 = self._norm2.compute()
-                print('Scores...')
-                self._scores1 = self._scores1.compute()
-                self._scores2 = self._scores2.compute()
-        
+                self.data.compute(verbose=verbose)
         else:
-            self._singular_values = self._singular_values.compute()
-            self._explained_covariance = self._explained_covariance.compute()
-            self._total_squared_covariance = self._total_squared_covariance.compute()
-            self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
-            self._singular_vectors1 = self._singular_vectors1.compute()
-            self._singular_vectors2 = self._singular_vectors2.compute()
-            self._norm1 = self._norm1.compute()
-            self._norm2 = self._norm2.compute()
-            self._scores1 = self._scores1.compute()
-            self._scores2 = self._scores2.compute()
-
-    def _assign_meta_data(self):
-        '''Assign analysis-relevant meta data.'''
-
-        self._singular_values.attrs.update(self.attrs)
-        self._explained_covariance.attrs.update(self.attrs)
-        self._total_squared_covariance.attrs.update(self.attrs)
-        self._squared_covariance_fraction.attrs.update(self.attrs)
-        self._singular_vectors1.attrs.update(self.attrs)
-        self._singular_vectors2.attrs.update(self.attrs)
-        self._scores1.attrs.update(self.attrs)
-        self._scores2.attrs.update(self.attrs)
-
+            self.data.compute(verbose=verbose)
 
 
 class ComplexMCA(MCA):
@@ -478,17 +450,17 @@ class ComplexMCA(MCA):
 
         '''
 
-        self.data1 = self.preprocessor1.fit_transform(data1, dim, weights2)
-        self.data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
+        data1_processed: DataArray = self.preprocessor1.fit_transform(data1, dim, weights2)
+        data2_processed: DataArray = self.preprocessor2.fit_transform(data2, dim, weights2)
         
         # apply hilbert transform:
         padding = self._params['padding']
         decay_factor = self._params['decay_factor']
-        self.data1 = hilbert_transform(self.data1, dim='sample', padding=padding, decay_factor=decay_factor)
-        self.data2 = hilbert_transform(self.data2, dim='sample', padding=padding, decay_factor=decay_factor)
+        data1_processed = hilbert_transform(data1_processed, dim='sample', padding=padding, decay_factor=decay_factor)
+        data2_processed = hilbert_transform(data2_processed, dim='sample', padding=padding, decay_factor=decay_factor)
         
         decomposer = CrossDecomposer(n_modes=self._params['n_modes'])
-        decomposer.fit(self.data1, self.data2)
+        decomposer.fit(data1_processed, data2_processed)
 
         # Note:
         # - explained variance is given by the singular values of the SVD;
@@ -496,30 +468,38 @@ class ComplexMCA(MCA):
         # Considering data X1 = X2, MCA is the same as PCA. In this case,
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
-        self._singular_values = decomposer.singular_values_
-        self._explained_covariance = decomposer.singular_values_  # actually covariance
-        self._total_covariance = decomposer.total_covariance_
-        self._total_squared_covariance = decomposer.total_squared_covariance_
-        self._squared_covariance_fraction = self._explained_covariance**2 / self._total_squared_covariance
-        self._singular_values_pca = np.sqrt(self._singular_values * (self.data1.shape[0] - 1))
-        self._singular_vectors1 = decomposer.singular_vectors1_
-        self._singular_vectors2 = decomposer.singular_vectors2_
-        self._norm1 = np.sqrt(self._singular_values)
-        self._norm2 = np.sqrt(self._singular_values)
+        singular_values = decomposer.singular_values_
+        squared_covariance = singular_values**2
+        total_squared_covariance = decomposer.total_squared_covariance_
+        # singular_values_pca = np.sqrt(singular_values * (data1_processed.shape[0] - 1))
+        singular_vectors1 = decomposer.singular_vectors1_
+        singular_vectors2 = decomposer.singular_vectors2_
+        norm1 = np.sqrt(singular_values)
+        norm2 = np.sqrt(singular_values)
 
-        self._explained_covariance.name = 'explained_variance'
-        self._total_squared_covariance.name = 'squared_total_variance'
-        self._squared_covariance_fraction.name = 'squared_covariance_fraction'
-        self._norm1.name = 'left_norm'
-        self._norm2.name = 'right_norm'
+        # Index of the sorted squared covariance
+        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
-        sqrt_expvar = np.sqrt(self._explained_covariance)
-        self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
-        self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
+        scores1 = xr.dot(data1_processed, singular_vectors1) / norm1
+        scores2 = xr.dot(data2_processed, singular_vectors2) / norm2
 
+        self.data = ComplexMCADataContainer(
+            input_data1=data1_processed,
+            input_data2=data2_processed,
+            components1=singular_vectors1,
+            components2=singular_vectors2,
+            scores1=scores1,
+            scores2=scores2,
+            squared_covariance=squared_covariance,
+            total_squared_covariance=total_squared_covariance,
+            idx_modes_sorted=idx_sorted_modes,
+            norm1=norm1,
+            norm2=norm2,
+        )
         # Assign analysis relevant meta data
-        self._assign_meta_data()
+        self.data.set_attrs(self.attrs)
 
     def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the amplitude of the components.
@@ -530,14 +510,11 @@ class ComplexMCA(MCA):
             Amplitude of the components.
 
         '''
-        comps1 = abs(self._singular_vectors1)
-        comps2 = abs(self._singular_vectors2)
+        comps1 = self.data.components_amplitude1
+        comps2 = self.data.components_amplitude2
 
-        comps1.name = 'singular_vector_amplitudes'
-        comps2.name = 'singular_vector_amplitudes'
-
-        comps1 = self.preprocessor1.inverse_transform_components(comps1) # type: ignore
-        comps2 = self.preprocessor2.inverse_transform_components(comps2) # type: ignore
+        comps1 = self.preprocessor1.inverse_transform_components(comps1)
+        comps2 = self.preprocessor2.inverse_transform_components(comps2)
 
         return (comps1, comps2)
 
@@ -550,14 +527,11 @@ class ComplexMCA(MCA):
             Phase of the components.
 
         '''
-        comps1 = xr.apply_ufunc(np.angle, self._singular_vectors1, keep_attrs=True)
-        comps2 = xr.apply_ufunc(np.angle, self._singular_vectors2, keep_attrs=True)
+        comps1 = self.data.components_phase1
+        comps2 = self.data.components_phase2
 
-        comps1.name = 'singular_vector_phases'
-        comps2.name = 'singular_vector_phases'
-
-        comps1 = self.preprocessor1.inverse_transform_components(comps1) # type: ignore
-        comps2 = self.preprocessor2.inverse_transform_components(comps2) # type: ignore
+        comps1 = self.preprocessor1.inverse_transform_components(comps1)
+        comps2 = self.preprocessor2.inverse_transform_components(comps2)
 
         return (comps1, comps2)
     
@@ -570,15 +544,11 @@ class ComplexMCA(MCA):
             Amplitude of the scores.
 
         '''
-        scores1 = abs(self._scores1)
-        scores2 = abs(self._scores2)
+        scores1 = self.data.scores_amplitude1
+        scores2 = self.data.scores_amplitude2
 
-        scores1.name = 'score_amplitudes'
-        scores2.name = 'score_amplitudes'
-
-        scores1 = self.preprocessor1.inverse_transform_scores(scores1) # type: ignore
-        scores2 = self.preprocessor2.inverse_transform_scores(scores2) # type: ignore
-
+        scores1 = self.preprocessor1.inverse_transform_scores(scores1)
+        scores2 = self.preprocessor2.inverse_transform_scores(scores2)
         return (scores1, scores2)
     
     def scores_phase(self) -> Tuple[DataArray, DataArray]:
@@ -590,14 +560,11 @@ class ComplexMCA(MCA):
             Phase of the scores.
 
         '''
-        scores1 = xr.apply_ufunc(np.angle, self._scores1, keep_attrs=True)
-        scores2 = xr.apply_ufunc(np.angle, self._scores2, keep_attrs=True)
+        scores1 = self.data.scores_phase1
+        scores2 = self.data.scores_phase2
 
-        scores1.name = 'score_phases'
-        scores2.name = 'score_phases'
-
-        scores1 = self.preprocessor1.inverse_transform_scores(scores1) # type: ignore
-        scores2 = self.preprocessor2.inverse_transform_scores(scores2) # type: ignore
+        scores1 = self.preprocessor1.inverse_transform_scores(scores1)
+        scores2 = self.preprocessor2.inverse_transform_scores(scores2)
 
         return (scores1, scores2)
 
