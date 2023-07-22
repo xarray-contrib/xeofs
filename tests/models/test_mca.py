@@ -23,8 +23,8 @@ def test_mca_initialization():
 def test_mca_fit(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     assert mca_model._singular_values is not None
-    assert mca_model._explained_variance is not None
-    assert mca_model._squared_total_variance is not None
+    assert mca_model._explained_covariance is not None
+    assert mca_model._total_squared_covariance is not None
     assert mca_model._singular_vectors1 is not None
     assert mca_model._singular_vectors2 is not None
     assert mca_model._norm1 is not None
@@ -114,9 +114,20 @@ def test_singular_values(mca_model, mock_data_array, dim):
 ])  
 def test_explained_variance(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    explained_variance = mca_model.explained_variance()
-    assert isinstance(explained_variance, xr.DataArray)
+    explained_covariance = mca_model.explained_covariance()
+    assert isinstance(explained_covariance, xr.DataArray)
 
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_covariance_fraction(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
+    covariance_fraction = mca_model.covariance_fraction()
+    assert isinstance(covariance_fraction, xr.DataArray)
+    
 
 @pytest.mark.parametrize('dim', [
     (('time',)),
@@ -189,10 +200,10 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_compute(mca_model, mock_dask_data_array, dim):
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
     assert isinstance(mca_model._singular_values.data, DaskArray)
-    assert isinstance(mca_model._explained_variance.data, DaskArray)
+    assert isinstance(mca_model._explained_covariance.data, DaskArray)
     mca_model.compute()
     assert isinstance(mca_model._singular_values.data, np.ndarray)
-    assert isinstance(mca_model._explained_variance.data, np.ndarray)
+    assert isinstance(mca_model._explained_covariance.data, np.ndarray)
 
 
 

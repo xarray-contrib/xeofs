@@ -148,8 +148,9 @@ class CrossDecomposer(Decomposer):
         # Assuming that X1 and X2 are centered
         cov_matrix = xr.dot(X1.conj(), X2, dims='sample') / (X1.sample.size - 1)
 
-        # Compute squared total variance
-        self.squared_total_variance_ = (cov_matrix**2).sum().compute()
+        # Compute (squared) total variance
+        self.total_covariance_ = (abs(cov_matrix)).sum().compute()
+        self.total_squared_covariance_ = (abs(cov_matrix)**2).sum().compute()
 
         is_dask = True if isinstance(cov_matrix.data, DaskArray) else False
         is_complex = True if np.iscomplexobj(cov_matrix.data) else False
