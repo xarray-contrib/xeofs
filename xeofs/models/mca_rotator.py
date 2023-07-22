@@ -134,8 +134,14 @@ class MCARotator(_BaseRotator):
         scores1 = self._model._scores1.sel(mode=slice(1,n_modes))
         scores2 = self._model._scores2.sel(mode=slice(1,n_modes))
         R = self._get_rotation_matrix(inverse_transpose=True)
-        scores1 = xr.dot(scores1, R, dims='mode1')
-        scores2 = xr.dot(scores2, R, dims='mode1')
+
+        # The following renaming is necessary to ensure that the output dimension is `mode`
+        scores1 = xr.dot(scores1, R, dims='mode')
+        scores2 = xr.dot(scores2, R, dims='mode')
+        scores1 = scores1.assign_coords({'mode1': np.arange(1, n_modes + 1)})
+        scores2 = scores2.assign_coords({'mode1': np.arange(1, n_modes + 1)})
+        scores1 = scores1.rename({'mode1': 'mode'})
+        scores2 = scores2.rename({'mode1': 'mode'})
 
         # Reorder scores according to variance
         scores1 = scores1.isel(mode=idx_sort).assign_coords(mode=scores1.mode)
