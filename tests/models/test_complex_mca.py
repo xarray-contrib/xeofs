@@ -23,12 +23,35 @@ def test_complex_mca_initialization():
 def test_complex_mca_fit(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     assert mca_model._singular_values is not None
-    assert mca_model._explained_variance is not None
-    assert mca_model._squared_total_variance is not None
+    assert mca_model._explained_covariance is not None
+    assert mca_model._total_squared_covariance is not None
     assert mca_model._singular_vectors1 is not None
     assert mca_model._singular_vectors2 is not None
     assert mca_model._norm1 is not None
     assert mca_model._norm2 is not None
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_covariance_fraction(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
+    covariance_fraction = mca_model.covariance_fraction()
+    assert isinstance(covariance_fraction, xr.DataArray)
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
+    squared_covariance_fraction = mca_model.squared_covariance_fraction()
+    assert isinstance(squared_covariance_fraction, xr.DataArray)
+
 
 
 @pytest.mark.parametrize('dim', [

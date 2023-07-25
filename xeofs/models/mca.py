@@ -64,23 +64,24 @@ class MCA(_BaseCrossModel):
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
         self._singular_values = decomposer.singular_values_
-        self._explained_variance = decomposer.singular_values_  # actually covariance
-        self._squared_total_variance = decomposer.squared_total_variance_
-        self._squared_covariance_fraction = self._explained_variance**2 / self._squared_total_variance
+        self._explained_covariance = decomposer.singular_values_  # actually covariance
+        self._total_covariance = decomposer.total_covariance_
+        self._total_squared_covariance = decomposer.total_squared_covariance_
+        self._squared_covariance_fraction = self._explained_covariance**2 / self._total_squared_covariance
         self._singular_values_pca = np.sqrt(self._singular_values * (self.data1.shape[0] - 1))
         self._singular_vectors1 = decomposer.singular_vectors1_
         self._singular_vectors2 = decomposer.singular_vectors2_
         self._norm1 = np.sqrt(self._singular_values)
         self._norm2 = np.sqrt(self._singular_values)
 
-        self._explained_variance.name = 'explained_variance'
-        self._squared_total_variance.name = 'squared_total_variance'
+        self._explained_covariance.name = 'explained_covariance'
+        self._total_squared_covariance.name = 'total_squared_covariance'
         self._squared_covariance_fraction.name = 'squared_covariance_fraction'
         self._norm1.name = 'left_norm'
         self._norm2.name = 'right_norm'
 
         # Project the data onto the singular vectors
-        sqrt_expvar = np.sqrt(self._explained_variance)
+        sqrt_expvar = np.sqrt(self._explained_covariance)
         self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
         self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
 
@@ -167,27 +168,41 @@ class MCA(_BaseCrossModel):
         '''
         return self._singular_values
     
-    def explained_variance(self):
+    def explained_covariance(self):
         '''Get the explained covariance.
 
         The explained covariance corresponds to the singular values of the covariance matrix. Each singular value 
         represents the amount of variance explained by the corresponding mode in the data.
             
         '''
-        return self._explained_variance
+        return self._explained_covariance
     
+    def covariance_fraction(self):
+        '''Get the covariance fraction (CF).
+        
+        The covariance fraction is the proportion of the total covariance explained by each mode `i`. It is computed
+        as follows:
+        
+        .. math::
+        CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
+
+        where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
+        
+        '''
+        cf = self._explained_covariance / self._total_covariance
+        cf.name = 'covariance_fraction'
+        return cf
+
     def squared_covariance_fraction(self):
         '''Calculate the squared covariance fraction (SCF).
 
-        The SCF is a measure of the proportion of the total covariance that is explained by each mode `i`. It is computed 
+        The SCF is a measure of the proportion of the total squared covariance that is explained by each mode `i`. It is computed 
         as follows:
 
         .. math::
         SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{m} \\sigma_i^2}
 
         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
-
-        The SCF is the analogue of the explained variance ratio in PCA.
 
         '''
         return self._squared_covariance_fraction
@@ -357,9 +372,9 @@ class MCA(_BaseCrossModel):
                 print('Singular values...')        
                 self._singular_values = self._singular_values.compute()
                 print('Explained variance...')
-                self._explained_variance = self._explained_variance.compute()
+                self._explained_covariance = self._explained_covariance.compute()
                 print('Squared total variance...')
-                self._squared_total_variance = self._squared_total_variance.compute()
+                self._total_squared_covariance = self._total_squared_covariance.compute()
                 print('Squared covariance fraction...')
                 self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
                 print('Singular vectors...')
@@ -374,8 +389,8 @@ class MCA(_BaseCrossModel):
         
         else:
             self._singular_values = self._singular_values.compute()
-            self._explained_variance = self._explained_variance.compute()
-            self._squared_total_variance = self._squared_total_variance.compute()
+            self._explained_covariance = self._explained_covariance.compute()
+            self._total_squared_covariance = self._total_squared_covariance.compute()
             self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
             self._singular_vectors1 = self._singular_vectors1.compute()
             self._singular_vectors2 = self._singular_vectors2.compute()
@@ -388,8 +403,8 @@ class MCA(_BaseCrossModel):
         '''Assign analysis-relevant meta data.'''
 
         self._singular_values.attrs.update(self.attrs)
-        self._explained_variance.attrs.update(self.attrs)
-        self._squared_total_variance.attrs.update(self.attrs)
+        self._explained_covariance.attrs.update(self.attrs)
+        self._total_squared_covariance.attrs.update(self.attrs)
         self._squared_covariance_fraction.attrs.update(self.attrs)
         self._singular_vectors1.attrs.update(self.attrs)
         self._singular_vectors2.attrs.update(self.attrs)
@@ -482,23 +497,24 @@ class ComplexMCA(MCA):
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
         self._singular_values = decomposer.singular_values_
-        self._explained_variance = decomposer.singular_values_  # actually covariance
-        self._squared_total_variance = decomposer.squared_total_variance_
-        self._squared_covariance_fraction = self._explained_variance**2 / self._squared_total_variance
+        self._explained_covariance = decomposer.singular_values_  # actually covariance
+        self._total_covariance = decomposer.total_covariance_
+        self._total_squared_covariance = decomposer.total_squared_covariance_
+        self._squared_covariance_fraction = self._explained_covariance**2 / self._total_squared_covariance
         self._singular_values_pca = np.sqrt(self._singular_values * (self.data1.shape[0] - 1))
         self._singular_vectors1 = decomposer.singular_vectors1_
         self._singular_vectors2 = decomposer.singular_vectors2_
         self._norm1 = np.sqrt(self._singular_values)
         self._norm2 = np.sqrt(self._singular_values)
 
-        self._explained_variance.name = 'explained_variance'
-        self._squared_total_variance.name = 'squared_total_variance'
+        self._explained_covariance.name = 'explained_variance'
+        self._total_squared_covariance.name = 'squared_total_variance'
         self._squared_covariance_fraction.name = 'squared_covariance_fraction'
         self._norm1.name = 'left_norm'
         self._norm2.name = 'right_norm'
 
         # Project the data onto the singular vectors
-        sqrt_expvar = np.sqrt(self._explained_variance)
+        sqrt_expvar = np.sqrt(self._explained_covariance)
         self._scores1 = xr.dot(self.data1, self._singular_vectors1) / sqrt_expvar
         self._scores2 = xr.dot(self.data2, self._singular_vectors2) / sqrt_expvar
 

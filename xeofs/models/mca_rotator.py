@@ -121,8 +121,9 @@ class MCARotator(_BaseRotator):
         idx_sort = expvar.values.argsort()[::-1]
         self._idx_expvar = idx_sort
         
-        self._explained_variance = expvar.isel(mode=idx_sort).assign_coords(mode=expvar.mode)
-        self._squared_covariance_fraction = self._explained_variance ** 2 / self._model._squared_total_variance
+        self._explained_covariance = expvar.isel(mode=idx_sort).assign_coords(mode=expvar.mode)
+        self._covariance_fraction = self._explained_covariance / self._model._total_covariance
+        self._squared_covariance_fraction = self._explained_covariance ** 2 / self._model._total_squared_covariance
 
         self._norm1 = norm1.isel(mode=idx_sort).assign_coords(mode=norm1.mode)
         self._norm2 = norm2.isel(mode=idx_sort).assign_coords(mode=norm2.mode)
@@ -134,8 +135,14 @@ class MCARotator(_BaseRotator):
         scores1 = self._model._scores1.sel(mode=slice(1,n_modes))
         scores2 = self._model._scores2.sel(mode=slice(1,n_modes))
         R = self._get_rotation_matrix(inverse_transpose=True)
-        scores1 = xr.dot(scores1, R, dims='mode1')
-        scores2 = xr.dot(scores2, R, dims='mode1')
+
+        # The following renaming is necessary to ensure that the output dimension is `mode`
+        scores1 = xr.dot(scores1, R, dims='mode')
+        scores2 = xr.dot(scores2, R, dims='mode')
+        scores1 = scores1.assign_coords({'mode1': np.arange(1, n_modes + 1)})
+        scores2 = scores2.assign_coords({'mode1': np.arange(1, n_modes + 1)})
+        scores1 = scores1.rename({'mode1': 'mode'})
+        scores2 = scores2.rename({'mode1': 'mode'})
 
         # Reorder scores according to variance
         scores1 = scores1.isel(mode=idx_sort).assign_coords(mode=scores1.mode)
@@ -183,7 +190,7 @@ class MCARotator(_BaseRotator):
             raise ValueError('No data provided. Please provide data1 and/or data2.')
     
         n_modes = self._params['n_modes']
-        expvar = self._explained_variance.sel(mode=slice(1, self._params['n_modes']))
+        expvar = self._explained_covariance.sel(mode=slice(1, self._params['n_modes']))
         rot_matrix = self._get_rotation_matrix(inverse_transpose=True)
 
         results = []
@@ -274,7 +281,29 @@ class MCARotator(_BaseRotator):
         data2 = self._model.preprocessor2.inverse_transform_data(data2)
 
         return data1, data2
+
+    def covariance_fraction(self) -> DataArray | Dataset | DataArrayList:
+        '''Return the covariance fraction (CF) of the rotated modes.
+
+        Returns
+        -------
+        xr.DataArray
+            Covariance fraction of the rotated modes.
+
+        '''
+        return self._covariance_fraction
     
+    def squared_covariance_fraction(self) -> DataArray | Dataset | DataArrayList:
+        '''Return the squared covariance fraction (SCF) of the rotated modes.
+
+        Returns
+        -------
+        xr.DataArray
+            Squared covariance fraction of the rotated modes.
+
+        '''
+        return self._squared_covariance_fraction
+
     def compute(self, verbose: bool = False):
         '''Compute the rotated solution.
         
@@ -291,7 +320,7 @@ class MCARotator(_BaseRotator):
                 print('Computing ROTATED MODEL...')
                 print('-'*80)
                 print('Explainned variance...')
-                self._explained_variance = self._explained_variance.compute()
+                self._explained_covariance = self._explained_covariance.compute()
                 print('Squared covariance fraction...')
                 self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
                 print('Norms...')
@@ -306,7 +335,7 @@ class MCARotator(_BaseRotator):
                 self._scores1 = self._scores1.compute()
                 self._scores2 = self._scores2.compute()
         else:
-            self._explained_variance = self._explained_variance.compute()
+            self._explained_covariance = self._explained_covariance.compute()
             self._squared_covariance_fraction = self._squared_covariance_fraction.compute()
             self._norm1 = self._norm1.compute()
             self._norm2 = self._norm2.compute()
@@ -322,7 +351,7 @@ class MCARotator(_BaseRotator):
         attrs = self._model.attrs.copy()
         # Include meta data of the rotation
         attrs.update(self.attrs)
-        self._explained_variance.attrs.update(attrs)
+        self._explained_covariance.attrs.update(attrs)
         self._squared_covariance_fraction.attrs.update(attrs)
         self._singular_vectors1.attrs.update(attrs)
         self._singular_vectors2.attrs.update(attrs)

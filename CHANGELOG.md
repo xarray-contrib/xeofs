@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.3 (2023-07-10)
+
+### Fix
+
+* Dummy patch to fix package versioning ([#53](https://github.com/nicrie/xeofs/issues/53)) ([`89d128d`](https://github.com/nicrie/xeofs/commit/89d128d9f3e1bea43242c8521e7f3d43716160cd))
+
 ## v1.0.2 (2023-07-10)
 
 ### Feature
