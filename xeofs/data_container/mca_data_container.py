@@ -4,7 +4,6 @@ from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model_data_container import _BaseCrossModelDataContainer
 from ..utils.data_types import DataArray
-from ..utils.xarray_utils import total_variance as compute_total_variance
 from ..utils.statistics import pearson_correlation
 
 

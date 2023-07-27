@@ -4,7 +4,6 @@ from dask.diagnostics.progress import ProgressBar
 
 from ._base_model_data_container import _BaseModelDataContainer
 from ..utils.data_types import DataArray
-from ..utils.xarray_utils import total_variance as compute_total_variance
 
 
 class EOFDataContainer(_BaseModelDataContainer):

@@ -8,7 +8,6 @@ from dask.diagnostics.progress import ProgressBar
 from .eof_data_container import EOFDataContainer, ComplexEOFDataContainer
 from ..utils.data_types import DataArray
 from ..models.eof import EOF, ComplexEOF
-from ..utils.xarray_utils import total_variance as compute_total_variance
 
 Model = TypeVar('Model', EOF, ComplexEOF)
 

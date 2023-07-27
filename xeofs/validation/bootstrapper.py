@@ -6,9 +6,7 @@ import numpy as np
 import xarray as xr
 from tqdm import trange
 
-from ..models import EOF, ComplexEOF
-from ..utils.statistics import pearson_correlation
-from ..utils.xarray_utils import total_variance as compute_total_variance
+from ..models import EOF
 from ..data_container.eof_bootstrapper_data_container import EOFBootstrapperDataContainer
 from .._version import __version__
 
@@ -66,7 +64,7 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         n_features = input_data.feature.size
 
         # Replace sample and feature dimensions with indices to avoid conflicts with model implementation
-        # input_data = input_data.drop_vars(['sample', 'feature'])
+        input_data = input_data.drop_vars(['sample', 'feature'])
         # use assign_coords instead of update to create a copy of the data, so that
         # we don't modify the original data
         input_data = input_data.assign_coords(sample=range(n_samples), feature=range(n_features))
