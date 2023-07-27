@@ -37,7 +37,7 @@ class EOF(_BaseModel):
         input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data)
+        total_variance = compute_total_variance(input_data, dim='sample')
 
         # Decompose the data
         decomposer = Decomposer(n_modes=n_modes)
@@ -190,7 +190,7 @@ class ComplexEOF(EOF):
         )
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data)
+        total_variance = compute_total_variance(input_data, dim='sample')
         
         # Decompose the complex data
         decomposer = Decomposer(n_modes=n_modes)

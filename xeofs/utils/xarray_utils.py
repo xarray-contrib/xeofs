@@ -126,13 +126,16 @@ def sqrt_cos_lat_weights(data: SingleDataObject) -> SingleDataObject:
     )
 
 
-def total_variance(data: DataArray) -> DataArray:
+def total_variance(data: DataArray, dim) -> DataArray:
     '''Compute the total variance of the input data.
     
     Parameters:
     ------------
     data: DataArray
         Input data.
+    
+    dim: str
+        Dimension along which to compute the total variance.
 
     Returns:
     ---------
@@ -140,17 +143,7 @@ def total_variance(data: DataArray) -> DataArray:
         Total variance of the input data.
 
     '''
-    tot_var = xr.apply_ufunc(
-        _np_total_variance,
-        data,
-        input_core_dims=[['sample', 'feature']],
-        output_core_dims=[[]],
-        vectorize=False,
-        dask='allowed',
-        output_dtypes=[float],
-    )
-    tot_var.name = 'total_variance'
-    return tot_var
+    return data.var(dim, ddof=1).sum()
 
 def hilbert_transform(data: DataArray, dim, padding='exp', decay_factor=.2) -> DataArray:
     '''Hilbert transform with optional padding to mitigate spectral leakage.
@@ -197,27 +190,6 @@ def _np_sqrt_cos_lat_weights(data):
 
     '''
     return np.sqrt(np.cos(np.deg2rad(data))).clip(0, 1)
-
-def _np_total_variance(arr):
-    '''Compute the total variance of the input data.
-
-    The input data is assumed to be centered.
-
-    Parameters:
-    ------------
-    arr: np.ndarray
-        Input data.
-    
-    Returns:
-    ---------
-    tot_var: float
-        Total variance of the input data.
-
-    '''
-    if not np.allclose(arr.mean(axis=0), 0):
-        raise ValueError('Input data is not centered.')
-    C = (arr * arr.conj()).sum(axis=0) / (arr.shape[0] - 1)
-    return C.sum().real
 
 
 def _hilbert_transform_with_padding(y, padding='exp', decay_factor=.2):
