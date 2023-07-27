@@ -21,7 +21,6 @@
       ~ComplexMCA.components_amplitude
       ~ComplexMCA.components_phase
       ~ComplexMCA.compute
-      ~ComplexMCA.explained_variance
       ~ComplexMCA.fit
       ~ComplexMCA.get_params
       ~ComplexMCA.heterogeneous_patterns
@@ -30,7 +29,7 @@
       ~ComplexMCA.scores
       ~ComplexMCA.scores_amplitude
       ~ComplexMCA.scores_phase
-      ~ComplexMCA.singular_values
+      ~ComplexMCA.squared_covariance
       ~ComplexMCA.squared_covariance_fraction
       ~ComplexMCA.transform
    
