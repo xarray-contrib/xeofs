@@ -40,7 +40,7 @@ scores = model.scores()
 n_boot = 50
 
 bs = EOFBootstrapper(n_bootstraps=n_boot)
-bs.bootstrap(model)
+bs.fit(model)
 bs_expvar = bs.explained_variance()
 ci_expvar = bs_expvar.quantile([0.025, 0.975], 'n')  # 95% confidence intervals
 
