@@ -79,10 +79,12 @@ class MCARotator(MCA):
         if self._params['power'] > 1:
             # inverse matrix
             rotation_matrix = xr.apply_ufunc(
-                np.linalg.pinv,
+                np.linalg.inv,
                 rotation_matrix,
                 input_core_dims=[['mode','mode1']],
-                output_core_dims=[['mode','mode1']]
+                output_core_dims=[['mode1','mode']],
+                vectorize=False,
+                dask='allowed'
             )
             # transpose matrix
             rotation_matrix = rotation_matrix.conj().T
@@ -150,6 +152,8 @@ class MCARotator(MCA):
             kwargs={'max_iter': max_iter, 'rtol': rtol},
             dask='allowed'
         )
+        rot_matrix = rot_matrix.assign_coords({'mode': np.arange(1, n_modes+1), 'mode1': np.arange(1, n_modes+1)})
+        phi_matrix = phi_matrix.assign_coords({'mode': np.arange(1, n_modes+1), 'mode1': np.arange(1, n_modes+1)})
         
         # Rotated (loaded) singular vectors
         comps1_rot = rot_loadings.isel(feature=slice(0, comps1.coords['feature'].size))
@@ -185,16 +189,16 @@ class MCARotator(MCA):
         comps_rot1 = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=comps1_rot.mode)
         comps_rot2 = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=comps2_rot.mode)
 
-          # Rotate scores using rotation matrix
+        # Rotate scores using rotation matrix
         scores1 = self.model.data.scores1.sel(mode=slice(1,n_modes))
         scores2 = self.model.data.scores2.sel(mode=slice(1,n_modes))
+
         R = self._compute_rot_mat_inv_trans(rot_matrix)
 
-        # The following renaming is necessary to ensure that the output dimension is `mode`
         scores1 = xr.dot(scores1, R, dims='mode')
         scores2 = xr.dot(scores2, R, dims='mode')
-        scores1 = scores1.assign_coords({'mode1': np.arange(1, n_modes + 1)})
-        scores2 = scores2.assign_coords({'mode1': np.arange(1, n_modes + 1)})
+        scores1 = scores1.assign_coords({'mode1': np.arange(1, n_modes+1)})
+        scores2 = scores2.assign_coords({'mode1': np.arange(1, n_modes+1)})
         scores1 = scores1.rename({'mode1': 'mode'})
         scores2 = scores2.rename({'mode1': 'mode'})
 
@@ -212,7 +216,7 @@ class MCARotator(MCA):
                 modes_sign = modes_sign.drop(dim)
         comps_rot1 = comps_rot1 * modes_sign
         comps_rot2 = comps_rot2 * modes_sign
-        scores1 = scores2 * modes_sign
+        scores1 = scores1 * modes_sign
         scores2 = scores2 * modes_sign
 
         # Create data container
@@ -267,7 +271,7 @@ class MCARotator(MCA):
             data1 = kwargs['data1']
             # Select the (non-rotated) singular vectors of the first dataset
             comps1 = self.model.data.components1.sel(mode=slice(1, n_modes))
-            norm1 = self.data.norm1.sel(mode=slice(1, n_modes))
+            norm1 = self.model.data.norm1.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
             data1 = self.preprocessor1.transform(data1)
@@ -275,7 +279,9 @@ class MCARotator(MCA):
             # Compute non-rotated scores by projecting the data onto non-rotated components
             projections1 = xr.dot(data1, comps1) / norm1
             # Rotate the scores
-            projections1 = xr.dot(projections1, rot_matrix, dims='mode1')
+            projections1 = xr.dot(projections1, rot_matrix, dims='mode')
+            projections1 = projections1.assign_coords({'mode1': np.arange(1, n_modes+1)})
+            projections1 = projections1.rename({'mode1': 'mode'})
             # Reorder according to variance
             projections1 = projections1.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections1.mode)
             # Adapt the sign of the scores
@@ -292,7 +298,7 @@ class MCARotator(MCA):
             data2 = kwargs['data2']            
             # Select the (non-rotated) singular vectors of the second dataset
             comps2 = self.model.data.components2.sel(mode=slice(1, n_modes))
-            norm2 = self.data.norm2.sel(mode=slice(1, n_modes))
+            norm2 = self.model.data.norm2.sel(mode=slice(1, n_modes))
             
             # Preprocess the data
             data2 = self.preprocessor2.transform(data2)
@@ -300,7 +306,9 @@ class MCARotator(MCA):
             # Compute non-rotated scores by project the data onto non-rotated components
             projections2 = xr.dot(data2, comps2) / norm2
             # Rotate the scores
-            projections2 = xr.dot(projections2, rot_matrix, dims='mode1')
+            projections2 = xr.dot(projections2, rot_matrix, dims='mode')
+            projections2 = projections2.assign_coords({'mode1': np.arange(1, n_modes+1)})
+            projections2 = projections2.rename({'mode1': 'mode'})
             # Reorder according to variance
             projections2 = projections2.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections2.mode)
             # Determine the sign of the scores

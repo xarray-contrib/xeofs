@@ -115,7 +115,8 @@ class EOFRotator(EOF):
         # Rotate scores
         scores = model.data.scores.sel(mode=slice(1,n_modes))
         rot_matrix_inv_trans = self._compute_rot_mat_inv_trans(rot_matrix)
-        scores = xr.dot(scores, rot_matrix_inv_trans, dims='mode1')
+        scores = scores.rename({'mode':'mode1'})
+        scores = xr.dot(scores, rot_matrix_inv_trans, dims='mode1') 
 
         # Reorder according to variance
         scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
@@ -164,6 +165,7 @@ class EOFRotator(EOF):
         # Rotate the scores
         R = self.data.rotation_matrix
         R = self._compute_rot_mat_inv_trans(R)
+        projections = projections.rename({'mode':'mode1'})
         projections = xr.dot(projections, R, dims='mode1')
         # Reorder according to variance
         # this must be done in one line: i) select modes according to their variance, ii) replace coords with modes from 1 ... n
