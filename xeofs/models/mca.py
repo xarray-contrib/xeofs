@@ -170,9 +170,13 @@ class MCA(_BaseCrossModel):
         scores1 = self.data.scores1.sel(mode=mode)
         scores2 = self.data.scores2.sel(mode=mode)
 
+        # Norms
+        norm1 = self.data.norm1.sel(mode=mode)
+        norm2 = self.data.norm2.sel(mode=mode)
+
         # Reconstruct the data
-        data1 = xr.dot(scores1, comps1.conj(), dims='mode')
-        data2 = xr.dot(scores2, comps2.conj(), dims='mode')
+        data1 = xr.dot(scores1, comps1.conj() * norm1, dims='mode')
+        data2 = xr.dot(scores2, comps2.conj() * norm2, dims='mode')
 
         # Unstack and rescale the data
         data1 = self.preprocessor1.inverse_transform_data(data1)
