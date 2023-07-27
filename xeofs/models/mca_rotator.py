@@ -177,13 +177,13 @@ class MCARotator(MCA):
         idx_modes_sorted = squared_covariance.compute().argsort()[::-1]
         idx_modes_sorted.coords.update(squared_covariance.coords)
         
-        squared_covariance = squared_covariance.isel(mode=idx_modes_sorted).assign_coords(mode=squared_covariance.mode)
+        squared_covariance = squared_covariance.isel(mode=idx_modes_sorted.values).assign_coords(mode=squared_covariance.mode)
 
-        norm1_rot = norm1_rot.isel(mode=idx_modes_sorted).assign_coords(mode=norm1_rot.mode)
-        norm2_rot = norm2_rot.isel(mode=idx_modes_sorted).assign_coords(mode=norm2_rot.mode)
+        norm1_rot = norm1_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=norm1_rot.mode)
+        norm2_rot = norm2_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=norm2_rot.mode)
         
-        comps_rot1 = comps1_rot.isel(mode=idx_modes_sorted).assign_coords(mode=comps1_rot.mode)
-        comps_rot2 = comps2_rot.isel(mode=idx_modes_sorted).assign_coords(mode=comps2_rot.mode)
+        comps_rot1 = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=comps1_rot.mode)
+        comps_rot2 = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(mode=comps2_rot.mode)
 
           # Rotate scores using rotation matrix
         scores1 = self.model.data.scores1.sel(mode=slice(1,n_modes))
@@ -199,8 +199,8 @@ class MCARotator(MCA):
         scores2 = scores2.rename({'mode1': 'mode'})
 
         # Reorder scores according to variance
-        scores1 = scores1.isel(mode=idx_modes_sorted).assign_coords(mode=scores1.mode)
-        scores2 = scores2.isel(mode=idx_modes_sorted).assign_coords(mode=scores2.mode)
+        scores1 = scores1.isel(mode=idx_modes_sorted.values).assign_coords(mode=scores1.mode)
+        scores2 = scores2.isel(mode=idx_modes_sorted.values).assign_coords(mode=scores2.mode)
         
 
         # Ensure consitent signs for deterministic output
@@ -277,7 +277,7 @@ class MCARotator(MCA):
             # Rotate the scores
             projections1 = xr.dot(projections1, rot_matrix, dims='mode1')
             # Reorder according to variance
-            projections1 = projections1.isel(mode=self.data.idx_modes_sorted).assign_coords(mode=projections1.mode)
+            projections1 = projections1.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections1.mode)
             # Adapt the sign of the scores
             projections1 = projections1 * self.data.modes_sign
 
@@ -302,7 +302,7 @@ class MCARotator(MCA):
             # Rotate the scores
             projections2 = xr.dot(projections2, rot_matrix, dims='mode1')
             # Reorder according to variance
-            projections2 = projections2.isel(mode=self.data.idx_modes_sorted).assign_coords(mode=projections2.mode)
+            projections2 = projections2.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections2.mode)
             # Determine the sign of the scores
             projections2 = projections2 * self.data.modes_sign
 
