@@ -24,10 +24,12 @@
       ~ComplexEOFRotator.explained_variance
       ~ComplexEOFRotator.explained_variance_ratio
       ~ComplexEOFRotator.fit
+      ~ComplexEOFRotator.get_params
       ~ComplexEOFRotator.inverse_transform
       ~ComplexEOFRotator.scores
       ~ComplexEOFRotator.scores_amplitude
       ~ComplexEOFRotator.scores_phase
+      ~ComplexEOFRotator.singular_values
       ~ComplexEOFRotator.transform
    
    

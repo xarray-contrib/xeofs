@@ -24,12 +24,8 @@ def test_ComplexEOF_fit(mock_data_array, dim):
     ceof.fit(mock_data_array, dim)
 
     # Check that the fit method has properly populated the attributes
-    assert ceof._total_variance is not None
-    assert ceof._singular_values is not None
-    assert ceof._explained_variance is not None
-    assert ceof._explained_variance_ratio is not None
-    assert ceof._components is not None
-    assert ceof._scores is not None
+    assert hasattr(ceof, 'preprocessor')
+    assert hasattr(ceof, 'data')
 
 
 @pytest.mark.parametrize('dim', [

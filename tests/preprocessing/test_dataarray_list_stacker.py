@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.preprocessing.stacker import DataArrayListStacker
+from xeofs.preprocessing.stacker import ListDataArrayStacker
 
 
 @pytest.mark.parametrize('dim_sample, dim_feature', [
@@ -13,10 +13,10 @@ from xeofs.preprocessing.stacker import DataArrayListStacker
     ])
 def test_data_array_list_stacker_fit_transform(dim_sample, dim_feature, mock_data_array_list):
     """
-    Test that DataArrayListStacker correctly stacks a list of DataArrays and 
+    Test that ListDataArrayStacker correctly stacks a list of DataArrays and 
     fit_transform returns DataArray with 'sample' and 'feature' dimensions.
     """
-    stacker = DataArrayListStacker()
+    stacker = ListDataArrayStacker()
     feature_dims_list = [dim_feature]*len(mock_data_array_list)  # Assume that all DataArrays have the same feature dimensions
     stacked_data = stacker.fit_transform(mock_data_array_list, dim_sample, feature_dims_list)
     
@@ -56,7 +56,7 @@ def test_data_array_list_stacker_fit_transform(dim_sample, dim_feature, mock_dat
     ])
 def test_data_array_list_stacker_unstack_data(dim_sample, dim_feature, mock_data_array_list):
     '''Test if the inverse transformed DataArrays are identical to the original DataArrays.'''
-    stacker_list = DataArrayListStacker()
+    stacker_list = ListDataArrayStacker()
     feature_dims_list = [dim_feature]*len(mock_data_array_list)  # Assume that all DataArrays have the same feature dimensions
     stacked = stacker_list.fit_transform(mock_data_array_list, dim_sample, feature_dims_list)  #type: ignore
     unstacked = stacker_list.inverse_transform_data(stacked)
@@ -73,7 +73,7 @@ def test_data_array_list_stacker_unstack_data(dim_sample, dim_feature, mock_data
     ])
 def test_data_array_list_stacker_unstack_components(dim_sample, dim_feature, mock_data_array_list):
     '''Test if the inverse transformed components are identical to the original components.'''
-    stacker_list = DataArrayListStacker()
+    stacker_list = ListDataArrayStacker()
     feature_dims_list = [dim_feature]*len(mock_data_array_list)
     stacked = stacker_list.fit_transform(mock_data_array_list, dim_sample, feature_dims_list)
     

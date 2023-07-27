@@ -7,8 +7,10 @@ import xarray as xr
 import scipy as sc
 from dask.diagnostics.progress import ProgressBar
 
-from ..preprocessing.scaler import Scaler, ListScaler
-from ..preprocessing.stacker import DataArrayStacker, DataArrayListStacker, DatasetStacker
+from ..preprocessing.scaler_factory import ScalerFactory
+from ..preprocessing.stacker_factory import StackerFactory
+from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
 from ..utils.xarray_utils import get_dims
 from .._version import __version__
@@ -51,61 +53,12 @@ class _BaseModel(ABC):
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 
-        # Some more parameters used for scaling
-        self._scaling_params = {
-            'with_std': standardize,
-            'with_coslat': use_coslat,
-            'with_weights': use_weights
-        }
-    
-    @staticmethod
-    def _create_scaler(data: XarrayData | DataArrayList, **kwargs):
-        if isinstance(data, (xr.DataArray, xr.Dataset)):
-            return Scaler(**kwargs)
-        elif isinstance(data, list):
-            return ListScaler(**kwargs)
-        else:
-            raise ValueError(f'Cannot scale data of type: {type(data)}')
-    
-    @staticmethod
-    def _create_stacker(data: XarrayData | DataArrayList, **kwargs):
-        if isinstance(data, xr.DataArray):
-            return DataArrayStacker(**kwargs)
-        elif isinstance(data, list):
-            return DataArrayListStacker(**kwargs)
-        elif isinstance(data, xr.Dataset):
-            return DatasetStacker(**kwargs)
-        else:
-            raise ValueError(f'Cannot stack data of type: {type(data)}')
-
-    def _preprocessing(self, data, dim, weights=None):
-        '''Preprocess the data.
-        
-        This will scale and stack the data.
-        
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
-            Input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the input data will be weighted by this array.
-        
-        '''
-        # Set sample and feature dimensions
-        sample_dims, feature_dims = get_dims(data, sample_dims=dim)
-        self.dims = {'sample': sample_dims, 'feature': feature_dims}
-        
-        # Scale the data
-        self.scaler = self._create_scaler(data, **self._scaling_params)
-        self.scaler.fit(data, sample_dims, feature_dims, weights)  # type: ignore
-        data = self.scaler.transform(data)
-
-        # Stack the data
-        self.stacker = self._create_stacker(data)
-        self.data = self.stacker.fit_transform(data, sample_dims, feature_dims)  # type: ignore
+        # Initialize the Preprocessor to scale and stack the data
+        self.preprocessor = Preprocessor(
+            with_std=standardize,
+            with_coslat=use_coslat, 
+            with_weights=use_weights
+        )
 
     @abstractmethod
     def fit(self, data, dim, weights=None):
@@ -124,14 +77,9 @@ class _BaseModel(ABC):
 
         '''
         # Here follows the implementation to fit the model
-        # Typically you want to start by calling self._preprocessing(data, dim, weights)
-        # ATTRIBUTES TO BE DEFINED:
-        self._total_variance = None
-        self._singular_values = None
-        self._explained_variance = None
-        self._explained_variance_ratio = None
-        self._components = None
-        self._scores = None
+        # Typically you want to start by calling the Preprocessor first:
+        # self.preprocessor.fit_transform(data, dim, weights)
+
 
     @abstractmethod
     def transform(self):
@@ -140,25 +88,6 @@ class _BaseModel(ABC):
     @abstractmethod
     def inverse_transform(self):
         raise NotImplementedError
-
-    def singular_values(self):
-        '''Return the singular values of the model.
-
-        Returns:
-        ----------
-        singular_values: DataArray
-            Singular values of the fitted model.
-
-        '''
-        return self._singular_values
-    
-    def explained_variance(self):
-        '''Return explained variance.'''
-        return self._explained_variance
-    
-    def explained_variance_ratio(self):
-        '''Return explained variance ratio.'''
-        return self._explained_variance_ratio
 
     def components(self):
         '''Return the components.
@@ -172,7 +101,8 @@ class _BaseModel(ABC):
             Components of the fitted model.
 
         '''
-        return self.stacker.inverse_transform_components(self._components)  #type: ignore
+        components = self.data.components
+        return self.preprocessor.inverse_transform_components(components)  #type: ignore
     
     def scores(self):
         '''Return the scores.
@@ -187,50 +117,16 @@ class _BaseModel(ABC):
             Scores of the fitted model.
 
         '''
-        return self.stacker.inverse_transform_scores(self._scores)  #type: ignore
+        scores = self.data.scores
+        return self.preprocessor.inverse_transform_scores(scores)  #type: ignore
 
     def get_params(self):
         return self._params
-
-    def compute(self, verbose: bool = False):
-        '''Computing the model will load and compute Dask arrays.
-        
-        Parameters:
-        -------------
-        verbose: bool, default=False
-            If True, print information about the computation process.
-            
-        '''
-
+    
+    def compute(self, verbose=False):
+        '''Compute the results.'''
         if verbose:
             with ProgressBar():
-                print('Computing STANDARD MODEL...')
-                print('-'*80)
-                print('Total variance...')
-                self._total_variance = self._total_variance.compute()  # type: ignore
-                print('Singular values...')
-                self._singular_values = self._singular_values.compute()   # type: ignore
-                print('Explained variance...')
-                self._explained_variance = self._explained_variance.compute()   # type: ignore
-                print('Explained variance ratio...')
-                self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
-                print('Components...')
-                self._components = self._components.compute()    # type: ignore
-                print('Scores...')
-                self._scores = self._scores.compute()    # type: ignore
+                self.data.compute() #type: ignore
         else:
-            self._total_variance = self._total_variance.compute()  # type: ignore
-            self._singular_values = self._singular_values.compute()   # type: ignore
-            self._explained_variance = self._explained_variance.compute()   # type: ignore
-            self._explained_variance_ratio = self._explained_variance_ratio.compute()   # type: ignore
-            self._components = self._components.compute()    # type: ignore
-            self._scores = self._scores.compute()    # type: ignore
-
-    def _assign_meta_data(self):
-        '''Set attributes to the model output.'''
-        self._total_variance.attrs.update(self.attrs)  # type: ignore
-        self._singular_values.attrs.update(self.attrs)  # type: ignore
-        self._explained_variance.attrs.update(self.attrs)  # type: ignore
-        self._explained_variance_ratio.attrs.update(self.attrs)  # type: ignore
-        self._components.attrs.update(self.attrs)  # type: ignore
-        self._scores.attrs.update(self.attrs)  # type: ignore
+            self.data.compute() #type: ignore

@@ -22,13 +22,9 @@ def test_mca_initialization():
 ])
 def test_mca_fit(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    assert mca_model._singular_values is not None
-    assert mca_model._explained_covariance is not None
-    assert mca_model._total_squared_covariance is not None
-    assert mca_model._singular_vectors1 is not None
-    assert mca_model._singular_vectors2 is not None
-    assert mca_model._norm1 is not None
-    assert mca_model._norm2 is not None
+    assert hasattr(mca_model, 'preprocessor1')
+    assert hasattr(mca_model, 'preprocessor2')
+    assert hasattr(mca_model, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -58,7 +54,9 @@ def test_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
 ])
 def test_mca_fit_with_dataset(mca_model, mock_dataset, dim):
     mca_model.fit(mock_dataset, mock_dataset, dim)
-    assert mca_model._singular_values is not None
+    assert hasattr(mca_model, 'preprocessor1')
+    assert hasattr(mca_model, 'preprocessor2')
+    assert hasattr(mca_model, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -68,7 +66,9 @@ def test_mca_fit_with_dataset(mca_model, mock_dataset, dim):
 ])
 def test_mca_fit_with_dataarray_list(mca_model, mock_data_array_list, dim):
     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
-    assert mca_model._singular_values is not None
+    assert hasattr(mca_model, 'preprocessor1')
+    assert hasattr(mca_model, 'preprocessor2')
+    assert hasattr(mca_model, 'data')
 
 
 @pytest.mark.parametrize('dim', [
@@ -100,34 +100,12 @@ def test_inverse_transform(mca_model, mock_data_array, dim):
     (('time',)),
     (('lat', 'lon')),
     (('lon', 'lat')),
-])   
-def test_singular_values(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    singular_values = mca_model.singular_values()
-    assert isinstance(singular_values, xr.DataArray)
-
-
-@pytest.mark.parametrize('dim', [
-    (('time',)),
-    (('lat', 'lon')),
-    (('lon', 'lat')),
 ])  
-def test_explained_variance(mca_model, mock_data_array, dim):
+def test_squared_covariance(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    explained_covariance = mca_model.explained_covariance()
-    assert isinstance(explained_covariance, xr.DataArray)
+    squared_covariance = mca_model.squared_covariance()
+    assert isinstance(squared_covariance, xr.DataArray)
 
-
-@pytest.mark.parametrize('dim', [
-    (('time',)),
-    (('lat', 'lon')),
-    (('lon', 'lat')),
-])
-def test_covariance_fraction(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    covariance_fraction = mca_model.covariance_fraction()
-    assert isinstance(covariance_fraction, xr.DataArray)
-    
 
 @pytest.mark.parametrize('dim', [
     (('time',)),
@@ -136,8 +114,9 @@ def test_covariance_fraction(mca_model, mock_data_array, dim):
 ])
 def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    squared_covariance_fraction = mca_model.squared_covariance_fraction()
-    assert isinstance(squared_covariance_fraction, xr.DataArray)
+    scf = mca_model.squared_covariance_fraction()
+    assert isinstance(scf, xr.DataArray)
+    assert scf.sum('mode') <= 1.00001, 'Squared covariance fraction is greater than 1'
 
 
 @pytest.mark.parametrize('dim', [
@@ -199,11 +178,20 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 ])
 def test_compute(mca_model, mock_dask_data_array, dim):
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
-    assert isinstance(mca_model._singular_values.data, DaskArray)
-    assert isinstance(mca_model._explained_covariance.data, DaskArray)
+
+    assert isinstance(mca_model.data.squared_covariance.data, DaskArray)
+    assert isinstance(mca_model.data.components1.data, DaskArray)
+    assert isinstance(mca_model.data.components2.data, DaskArray)
+    assert isinstance(mca_model.data.scores1.data, DaskArray)
+    assert isinstance(mca_model.data.scores2.data, DaskArray)
+
     mca_model.compute()
-    assert isinstance(mca_model._singular_values.data, np.ndarray)
-    assert isinstance(mca_model._explained_covariance.data, np.ndarray)
+
+    assert isinstance(mca_model.data.squared_covariance.data, np.ndarray)
+    assert isinstance(mca_model.data.components1.data, np.ndarray)
+    assert isinstance(mca_model.data.components2.data, np.ndarray)
+    assert isinstance(mca_model.data.scores1.data, np.ndarray)
+    assert isinstance(mca_model.data.scores2.data, np.ndarray)
 
 
 
