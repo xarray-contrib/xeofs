@@ -117,6 +117,9 @@ class EOF(_BaseModel):
         reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = 'reconstructed_data'
 
+        # Enforce real output
+        reconstructed_data = reconstructed_data.real
+
         # Unstack and unscale the data
         reconstructed_data = self.preprocessor.inverse_transform_data(reconstructed_data)
         return reconstructed_data

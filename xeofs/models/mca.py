@@ -178,6 +178,10 @@ class MCA(_BaseCrossModel):
         data1 = xr.dot(scores1, comps1.conj() * norm1, dims='mode')
         data2 = xr.dot(scores2, comps2.conj() * norm2, dims='mode')
 
+        # Enforce real output
+        data1 = data1.real
+        data2 = data2.real
+        
         # Unstack and rescale the data
         data1 = self.preprocessor1.inverse_transform_data(data1)
         data2 = self.preprocessor2.inverse_transform_data(data2)
