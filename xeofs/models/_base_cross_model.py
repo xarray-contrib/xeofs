@@ -29,7 +29,7 @@ class _BaseCrossModel(ABC):
         Whether to use weights.
 
     '''
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
+    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False):
         # Define model parameters
         self._params = {
             'n_modes': n_modes,
