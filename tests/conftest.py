@@ -12,13 +12,15 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 @pytest.fixture
 def mock_data_array():
     rng = np.random.default_rng(7)
+    noise = rng.normal(5, 3, size=(25, 5, 4))
+    signal = 2*np.sin(np.linspace(0, 2*np.pi, 25))[:, None, None]
     return xr.DataArray(
-            rng.normal(5, 3, size=(7, 4, 3)),
+            signal + noise,
             dims=('time', 'lat', 'lon'),
             coords={
-                'time': xr.date_range('2001', '2007', freq='YS'),
-                'lat': [30.0, 40.0, 50.0, 60.0],
-                'lon': [-10.0, 0.0, 10.0]
+                'time': xr.date_range('2001', '2025', freq='YS'),
+                'lat': [20.0, 30.0, 40.0, 50.0, 60.0],
+                'lon': [-10.0, 0.0, 10.0, 20.0]
             },
             name='t2m',
             attrs=dict(description='mock_data')

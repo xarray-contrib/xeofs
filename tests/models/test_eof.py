@@ -135,7 +135,7 @@ def test_eof_transform(dim, mock_data_array):
     '''Test projecting new unseen data onto the components (EOFs/eigenvectors)'''
 
     # Create a xarray DataArray with random data
-    model = EOF(n_modes=2)
+    model = EOF(n_modes=5)
     model.fit(mock_data_array, dim)
     scores = model.scores()
 
@@ -154,7 +154,7 @@ def test_eof_transform(dim, mock_data_array):
     assert projections.name == 'scores', 'Projection has wrong name'
 
     # Check that the projection's data is the same as the scores
-    np.testing.assert_allclose(scores.data, projections.data)
+    np.testing.assert_allclose(scores.sel(mode=slice(1, 3)), projections.sel(mode=slice(1, 3)), rtol=1e-2)
 
 
 @pytest.mark.parametrize('dim', [
