@@ -37,11 +37,19 @@ class EOFRotatorDataContainer(EOFDataContainer):
             idx_modes_sorted=idx_modes_sorted,
         )
         
-        self._verify_dims(rotation_matrix, ('mode', 'mode1'))
+        self._verify_dims(rotation_matrix, ('mode_m', 'mode_n'))
+        rotation_matrix = rotation_matrix.assign_coords(
+            mode_m=np.arange(1, rotation_matrix.mode_m.size+1),
+            mode_n=np.arange(1, rotation_matrix.mode_n.size+1),
+        )
         self._rotation_matrix = rotation_matrix
         self._rotation_matrix.name = 'rotation_matrix'
 
-        self._verify_dims(phi_matrix, ('mode', 'mode1'))
+        self._verify_dims(phi_matrix, ('mode_m', 'mode_n'))
+        phi_matrix = phi_matrix.assign_coords(
+            mode_m=np.arange(1, phi_matrix.mode_m.size+1),
+            mode_n=np.arange(1, phi_matrix.mode_n.size+1),
+        )
         self._phi_matrix = phi_matrix
         self._phi_matrix.name = 'phi_matrix'
 

@@ -94,9 +94,18 @@ class EOFRotator(EOF):
             loadings,
             power,
             input_core_dims=[['feature', 'mode'], []],
-            output_core_dims=[['feature', 'mode'], ['mode', 'mode1'], ['mode', 'mode1']],
+            output_core_dims=[['feature', 'mode'], ['mode_m', 'mode_n'], ['mode_m', 'mode_n']],
             kwargs={'max_iter': max_iter, 'rtol': rtol},
             dask='allowed'
+        )
+        # Assign coordinates to the rotation/correlation matrices
+        rot_matrix = rot_matrix.assign_coords(
+            mode_m=np.arange(1, rot_matrix.mode_m.size+1),
+            mode_n=np.arange(1, rot_matrix.mode_n.size+1),
+        )
+        phi_matrix = phi_matrix.assign_coords(
+            mode_m=np.arange(1, phi_matrix.mode_m.size+1),
+            mode_n=np.arange(1, phi_matrix.mode_n.size+1),
         )
         
         # Reorder according to variance
@@ -114,9 +123,11 @@ class EOFRotator(EOF):
 
         # Rotate scores
         scores = model.data.scores.sel(mode=slice(1,n_modes))
-        rot_matrix_inv_trans = self._compute_rot_mat_inv_trans(rot_matrix)
-        scores = scores.rename({'mode':'mode1'})
-        scores = xr.dot(scores, rot_matrix_inv_trans, dims='mode1') 
+        RinvT = self._compute_rot_mat_inv_trans(rot_matrix, input_dims=('mode_m', 'mode_n'))
+        # Rename dimension mode to ensure that dot product has dimensions (sample x mode) as output
+        scores = scores.rename({'mode':'mode_m'})
+        RinvT = RinvT.rename({'mode_n':'mode'})
+        scores = xr.dot(scores, RinvT, dims='mode_m') 
 
         # Reorder according to variance
         scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
@@ -164,9 +175,10 @@ class EOFRotator(EOF):
 
         # Rotate the scores
         R = self.data.rotation_matrix
-        R = self._compute_rot_mat_inv_trans(R)
-        projections = projections.rename({'mode':'mode1'})
-        projections = xr.dot(projections, R, dims='mode1')
+        RinvT = self._compute_rot_mat_inv_trans(R, input_dims=('mode_m', 'mode_n'))
+        projections = projections.rename({'mode':'mode_m'})
+        RinvT = RinvT.rename({'mode_n':'mode'})
+        projections = xr.dot(projections, RinvT, dims='mode_m')
         # Reorder according to variance
         # this must be done in one line: i) select modes according to their variance, ii) replace coords with modes from 1 ... n
         projections = projections.isel(mode=self.data.idx_modes_sorted.values).assign_coords(mode=projections.mode)
@@ -178,7 +190,7 @@ class EOFRotator(EOF):
         projections = self.preprocessor.inverse_transform_scores(projections)
         return projections      
     
-    def _compute_rot_mat_inv_trans(self, rotation_matrix) -> xr.DataArray:
+    def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
         '''Compute the inverse transpose of the rotation matrix.
 
         For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent 
@@ -193,13 +205,15 @@ class EOFRotator(EOF):
         if self._params['power'] > 1:
             # inverse matrix
             rotation_matrix = xr.apply_ufunc(
-                np.linalg.pinv,
+                np.linalg.inv,
                 rotation_matrix,
-                input_core_dims=[['mode','mode1']],
-                output_core_dims=[['mode','mode1']]
+                input_core_dims=[(input_dims)],
+                output_core_dims=[(input_dims[::-1])],
+                vectorize=False,
+                dask='allowed',
             )
             # transpose matrix
-            rotation_matrix = rotation_matrix.conj().T
+            rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix 
 
 
