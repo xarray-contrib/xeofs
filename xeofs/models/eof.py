@@ -114,7 +114,7 @@ class EOF(_BaseModel):
         svals = self.data.singular_values.sel(mode=mode)
         comps = self.data.components.sel(mode=mode)
         scores = self.data.scores.sel(mode=mode) * svals
-        reconstructed_data = xr.dot(comps, scores)
+        reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = 'reconstructed_data'
 
         # Unstack and unscale the data
