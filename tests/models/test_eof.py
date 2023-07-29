@@ -98,7 +98,48 @@ def test_eof_components(dim, mock_data_array):
 
     # Test components method
     components = eof.components()
-    assert isinstance(components, xr.DataArray)
+    feature_dims = tuple(set(mock_data_array.dims) - set(dim))
+    assert isinstance(components, xr.DataArray), 'Components is not a DataArray'
+    assert set(components.dims) == set(('mode',) + feature_dims), 'Components does not have the right feature dimensions'
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_components_dataset(dim, mock_dataset):
+    '''Tests the components method of the EOF class'''
+    eof = EOF()
+    eof.fit(mock_dataset, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = tuple(set(mock_dataset.dims) - set(dim))
+    assert isinstance(components, xr.Dataset), 'Components is not a Dataset'
+    assert set(components.data_vars) == set(mock_dataset.data_vars), 'Components does not have the same data variables as the input Dataset'
+    assert set(components.dims) == set(('mode',) + feature_dims), 'Components does not have the right feature dimensions'
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_components_dataarray_list(dim, mock_data_array_list):
+    '''Tests the components method of the EOF class'''
+    eof = EOF()
+    eof.fit(mock_data_array_list, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = [tuple(set(data.dims) - set(dim)) for data in mock_data_array_list]
+    assert isinstance(components, list), 'Components is not a list'
+    assert len(components) == len(mock_data_array_list), 'Components does not have the same length as the input list'
+    assert isinstance(components[0], xr.DataArray), 'Components is not a list of DataArrays'
+    for comp, feat_dims in zip(components, feature_dims):
+        assert set(comp.dims) == set(('mode',) + feat_dims), 'Components does not have the right feature dimensions'
+
 
 
 @pytest.mark.parametrize('dim', [
@@ -113,7 +154,40 @@ def test_eof_scores(dim, mock_data_array):
 
     # Test scores method
     scores = eof.scores()
+    assert isinstance(scores, xr.DataArray), 'Scores is not a DataArray'
+    assert set(scores.dims) == set((dim + ('mode',))), 'Scores does not have the right dimensions'
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_scores_dataset(dim, mock_dataset):
+    '''Tests the scores method of the EOF class'''
+    eof = EOF()
+    eof.fit(mock_dataset, dim)
+
+    # Test scores method
+    scores = eof.scores()
     assert isinstance(scores, xr.DataArray)
+    assert set(scores.dims) == set((dim + ('mode',))), 'Scores does not have the right dimensions'
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_eof_scores_dataarray_list(dim, mock_data_array_list):
+    '''Tests the scores method of the EOF class'''
+    eof = EOF()
+    eof.fit(mock_data_array_list, dim)
+
+    # Test scores method
+    scores = eof.scores()
+    assert isinstance(scores, xr.DataArray)
+    assert set(scores.dims) == set((dim + ('mode',))), 'Scores does not have the right dimensions'
+
 
 
 def test_eof_get_params():
