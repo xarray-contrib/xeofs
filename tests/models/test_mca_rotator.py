@@ -98,6 +98,33 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     (('lat', 'lon')),
     (('lon', 'lat')),
 ])
+def test_singular_values(mca_model):
+    mca_rotator = MCARotator(n_modes=4)
+    mca_rotator.fit(mca_model)
+    n_modes = mca_rotator.get_params()['n_modes']
+    svals = mca_rotator.singular_values()
+    assert isinstance(svals, xr.DataArray)
+    assert svals.size == n_modes
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_covariance_fraction(mca_model):
+    mca_rotator = MCARotator(n_modes=4)
+    mca_rotator.fit(mca_model)
+    cf = mca_rotator.covariance_fraction()
+    assert isinstance(cf, xr.DataArray)
+    assert cf.sum('mode') <= 1.00001, 'Covariance fraction is greater than 1'
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
 def test_components(mca_model, mock_data_array, dim):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)

@@ -111,8 +111,8 @@ def sample_squared_covariance():
     return xr.DataArray(np.random.rand(10), dims=('mode',))
 
 @pytest.fixture
-def sample_total_squared_covariance():
-    return xr.DataArray(np.random.rand(1), dims=('mode',))
+def sample_total_squared_covariance(sample_squared_covariance):
+    return sample_squared_covariance.sum('mode')
 
 @pytest.fixture
 def sample_rotation_matrix():

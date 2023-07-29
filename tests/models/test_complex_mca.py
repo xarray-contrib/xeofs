@@ -52,6 +52,30 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     assert (squared_covariance_fraction.sum('mode') <= 1)
 
 
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_singular_values(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
+    n_modes = mca_model.get_params()['n_modes']
+    svals = mca_model.singular_values()
+    assert isinstance(svals, xr.DataArray)
+    assert svals.size == n_modes
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_covariance_fraction(mca_model, mock_data_array, dim):
+    mca_model.fit(mock_data_array, mock_data_array, dim)
+    cf = mca_model.covariance_fraction()
+    assert isinstance(cf, xr.DataArray)
+    assert cf.sum('mode') <= 1.00001, 'Covariance fraction is greater than 1'
+
 
 @pytest.mark.parametrize('dim', [
     (('time',)),

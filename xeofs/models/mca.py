@@ -214,6 +214,47 @@ class MCA(_BaseCrossModel):
         '''
         return self.data.squared_covariance_fraction
     
+    def singular_values(self):
+        '''Get the singular values of the cross-covariance matrix.
+
+        '''
+        return self.data.singular_values
+
+    def covariance_fraction(self):
+        '''Get the covariance fraction (CF).
+
+        Cheng and Dunkerton (1995) define the CF as follows:
+
+        .. math::
+        CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
+
+        where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
+
+        In this implementation the sum of singular values is estimated from the first `n` modes, therefore one should aim to
+        retain as many modes as possible to get a good estimate of the covariance fraction.
+
+        Note
+        ----
+        It is important to differentiate the CF from the squared covariance fraction (SCF). While the SCF is an invariant quantity in MCA, the CF is not.
+        Therefore, the SCF is used to assess the relative importance of each mode. Cheng and Dunkerton (1995) [1]_ introduced the CF in the context of
+        Varimax-rotated MCA to compare the relative importance of each mode before and after rotation. In the special case of both data fields in MCA being identical,
+        the CF is equivalent to the explained variance ratio in EOF analysis.
+
+        References
+        ----------
+        .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
+
+
+        '''
+        # Check how sensitive the CF is to the number of modes
+        svals = self.data.singular_values
+        cf = svals[0] / svals.cumsum()
+        change_per_mode = cf.shift({'mode': 1}) - cf
+        change_in_cf_in_last_mode = change_per_mode.isel(mode=-1)
+        if change_in_cf_in_last_mode > 0.001:
+            print(f'Warning: CF is sensitive to the number of modes retained. Please increase `n_modes` for a better estimate.')
+        return self.data.covariance_fraction
+
     def components(self):
         '''Return the singular vectors of the left and right field.
         

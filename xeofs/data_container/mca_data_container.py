@@ -100,6 +100,39 @@ class MCADataContainer(_BaseCrossModelDataContainer):
         idx_modes_sorted = super()._sanity_check(self._idx_modes_sorted)
         return idx_modes_sorted
     
+    @property
+    def singular_values(self) -> DataArray:
+        '''Get the singular values.'''
+        singular_values = xr.apply_ufunc(np.sqrt, self.squared_covariance, dask='allowed', vectorize=False, keep_attrs=True)
+        singular_values.name = 'singular_values'
+        return singular_values
+    
+    @property
+    def total_covariance(self) -> DataArray:
+        '''Get the total covariance.
+        
+        This measure follows the defintion of Cheng and Dunkerton (1995).
+        Note that this measure is not an invariant in MCA.
+        
+        '''
+        tot_cov = self.singular_values.sum()
+        tot_cov.attrs.update(self.singular_values.attrs)
+        tot_cov.name = 'total_covariance'
+        return tot_cov
+    
+    @property
+    def covariance_fraction(self) -> DataArray:
+        '''Get the covariance fraction (CF).
+        
+        This measure follows the defintion of Cheng and Dunkerton (1995).
+        Note that this measure is not an invariant in MCA.
+        
+        '''
+        cov_frac = self.singular_values / self.total_covariance
+        cov_frac.attrs.update(self.singular_values.attrs)
+        cov_frac.name = 'covariance_fraction'
+        return cov_frac
+
     def compute(self, verbose=False):
         super().compute(verbose)
 

@@ -59,6 +59,12 @@ def test_mca_data_container_no_data():
     with pytest.raises(ValueError):
         data_container.total_squared_covariance
     with pytest.raises(ValueError):
+        data_container.squared_covariance_fraction
+    with pytest.raises(ValueError):
+        data_container.singular_values
+    with pytest.raises(ValueError):
+        data_container.covariance_fraction
+    with pytest.raises(ValueError):
         data_container.idx_modes_sorted
     with pytest.raises(ValueError):
         data_container.norm1
@@ -82,5 +88,9 @@ def test_mca_data_container_set_attrs(sample_input_data, sample_components, samp
     assert data_container.scores2.attrs['test'] == 1
     assert data_container.squared_covariance.attrs['test'] == 1
     assert data_container.total_squared_covariance.attrs['test'] == 1
+    assert data_container.squared_covariance_fraction.attrs['test'] == 1
+    assert data_container.singular_values.attrs['test'] == 1
+    assert data_container.total_covariance.attrs['test'] == 1
+    assert data_container.covariance_fraction.attrs['test'] == 1
     assert data_container.norm1.attrs['test'] == 1
     assert data_container.norm2.attrs['test'] == 1
