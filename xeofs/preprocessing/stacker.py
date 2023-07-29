@@ -557,5 +557,6 @@ class ListDataArrayStacker(_BaseStacker):
     
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
         ''' Reshape the 2D data (sample x mode) back into its original shape.'''
-        return data.unstack()
+        return self.stackers[0].inverse_transform_scores(data)
+        
             
