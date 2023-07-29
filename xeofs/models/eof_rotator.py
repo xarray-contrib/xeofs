@@ -59,12 +59,8 @@ class EOFRotator(EOF):
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 
-
-
-    @staticmethod
-    def _create_data_container(**kwargs) -> EOFRotatorDataContainer:
-        '''Create a data container for the rotated EOF analysis.'''
-        return EOFRotatorDataContainer(**kwargs)
+        # Initialize the DataContainer to store the results
+        self.data: EOFRotatorDataContainer = EOFRotatorDataContainer()
 
     def fit(self, model):
         '''Fit the model.
@@ -143,7 +139,7 @@ class EOFRotator(EOF):
         scores = scores * modes_sign
 
         # Create the data container
-        self.data = self._create_data_container(
+        self.data.set_data(
             input_data=model.data.input_data,
             components=rot_components,
             scores=scores,
@@ -190,7 +186,7 @@ class EOFRotator(EOF):
         projections = self.preprocessor.inverse_transform_scores(projections)
         return projections      
     
-    def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
+    def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> DataArray:
         '''Compute the inverse transpose of the rotation matrix.
 
         For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent 
@@ -238,13 +234,9 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Rotated Complex EOF analysis'})
-
-    @staticmethod
-    def _create_data_container(**kwargs) -> ComplexEOFRotatorDataContainer:
-        '''Create a data container for the rotated solution.
-
-        '''
-        return ComplexEOFRotatorDataContainer(**kwargs)
+    
+        # Initialize the DataContainer to store the results
+        self.data: ComplexEOFRotatorDataContainer = ComplexEOFRotatorDataContainer()
 
     def transform(self, data: AnyDataObject):
         # Here we make use of the Method Resolution Order (MRO) to call the

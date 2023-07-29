@@ -1,18 +1,10 @@
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
-
-import numpy as np
-import xarray as xr
-import scipy as sc
 from dask.diagnostics.progress import ProgressBar
 
-from ..preprocessing.scaler_factory import ScalerFactory
-from ..preprocessing.stacker_factory import StackerFactory
-from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
 from ..preprocessing.preprocessor import Preprocessor
-from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
-from ..utils.xarray_utils import get_dims
+from ..data_container import _BaseModelDataContainer
 from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
@@ -59,6 +51,9 @@ class _BaseModel(ABC):
             with_coslat=use_coslat, 
             with_weights=use_weights
         )
+        # Initialize the data container only to avoid type errors
+        # The actual data container will be initialized in respective subclasses
+        self.data: _BaseModelDataContainer = _BaseModelDataContainer()
 
     @abstractmethod
     def fit(self, data, dim, weights=None):
@@ -79,7 +74,7 @@ class _BaseModel(ABC):
         # Here follows the implementation to fit the model
         # Typically you want to start by calling the Preprocessor first:
         # self.preprocessor.fit_transform(data, dim, weights)
-
+        raise NotImplementedError
 
     @abstractmethod
     def transform(self):
@@ -90,43 +85,28 @@ class _BaseModel(ABC):
         raise NotImplementedError
 
     def components(self):
-        '''Return the components.
-        
-        The components in EOF anaylsis are the eigenvectors of the covariance matrix
-        (or correlation) matrix. Other names include the principal components or EOFs.
-
-        Returns:
-        ----------
-        components: DataArray | Dataset | List[DataArray]
-            Components of the fitted model.
-
-        '''
-        components = self.data.components
-        return self.preprocessor.inverse_transform_components(components)  #type: ignore
+        '''Get the components.'''
+        return self.data.components
     
     def scores(self):
-        '''Return the scores.
+        '''Get the scores.'''
+        return self.data.scores
+
+    def compute(self, verbose=False):
+        '''Compute and load delayed model results.
         
-        The scores in EOF anaylsis are the projection of the data matrix onto the 
-        eigenvectors of the covariance matrix (or correlation) matrix. 
-        Other names include the principal component (PC) scores or just PCs.
-
-        Returns:
+        Parameters
         ----------
-        components: DataArray | Dataset | List[DataArray]
-            Scores of the fitted model.
-
+        verbose : bool
+            Whether or not to provide additional information about the computing progress.
+            
         '''
-        scores = self.data.scores
-        return self.preprocessor.inverse_transform_scores(scores)  #type: ignore
+        if verbose:
+            with ProgressBar():
+                self.data.compute()
+        else:
+            self.data.compute()
 
     def get_params(self):
         return self._params
     
-    def compute(self, verbose=False):
-        '''Compute the results.'''
-        if verbose:
-            with ProgressBar():
-                self.data.compute() #type: ignore
-        else:
-            self.data.compute() #type: ignore

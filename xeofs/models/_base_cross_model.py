@@ -1,17 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-import numpy as np
-import xarray as xr
-import dask.array as da
+from dask.diagnostics.progress import ProgressBar
 
-from ..preprocessing.scaler_factory import ScalerFactory
-from ..preprocessing.stacker_factory import StackerFactory
 from ..preprocessing.preprocessor import Preprocessor
-from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
-from ..utils.xarray_utils import get_dims
-from ..utils.data_types import XarrayData, DataArrayList
+from ..data_container import _BaseCrossModelDataContainer
 from .._version import __version__
+
 
 class _BaseCrossModel(ABC):
     '''
@@ -58,6 +53,9 @@ class _BaseCrossModel(ABC):
             with_coslat=use_coslat,
             with_weights=use_weights,
         )
+        # Initialize the data container only to avoid type errors
+        # The actual data container will be initialized in respective subclasses
+        self.data: _BaseCrossModelDataContainer = _BaseCrossModelDataContainer()
 
     @abstractmethod
     def fit(self, data1, data2, dim, weights1=None, weights2=None):
@@ -80,9 +78,9 @@ class _BaseCrossModel(ABC):
 
         '''
         # Here follows the implementation to fit the model
-        # Typically you want to start by calling self._preprocessing(data1, data2, dim, weights)
-        # ATTRIBUTES TO BE DEFINED:
-
+        # Typically you want to start by calling
+        # self.preprocessor1.fit_transform(data1, dim, weights)
+        # self.preprocessor2.fit_transform(data2, dim, weights)
         raise NotImplementedError
     
     @abstractmethod
@@ -92,11 +90,23 @@ class _BaseCrossModel(ABC):
     @abstractmethod
     def inverse_transform(self, mode):
         raise NotImplementedError
+    
+    def components(self):
+        '''Get the components.'''
+        return self.data.components1, self.data.components2
+    
+    def scores(self):
+        '''Get the scores.'''
+        return self.data.scores1, self.data.scores2
+
+    def compute(self, verbose=False):
+        '''Compute the results.'''
+        if verbose:
+            with ProgressBar():
+                self.data.compute()
+        else:
+            self.data.compute()
 
     def get_params(self):
         return self._params
     
-    @abstractmethod
-    def compute(self):
-        '''Computing the model will load and compute Dask arrays.'''
-        raise NotImplementedError

@@ -1,17 +1,26 @@
+from typing import Optional
+
 import numpy as np
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model_data_container import _BaseCrossModelDataContainer
 from ..utils.data_types import DataArray
-from ..utils.statistics import pearson_correlation
 
 
 class MCADataContainer(_BaseCrossModelDataContainer):
-    '''Container that holds the related to an MCA model.
+    '''Container to store the results of a MCA.
      
     '''
-    def __init__(
+    def __init__(self):
+        super().__init__()
+        self._squared_covariance: Optional[DataArray] = None
+        self._total_squared_covariance: Optional[DataArray] = None
+        self._idx_modes_sorted: Optional[DataArray] = None
+        self._norm1: Optional[DataArray] = None
+        self._norm2: Optional[DataArray] = None
+
+    def set_data(
             self, 
             input_data1: DataArray,
             input_data2: DataArray,
@@ -25,7 +34,7 @@ class MCADataContainer(_BaseCrossModelDataContainer):
             norm1: DataArray,
             norm2: DataArray,
         ):
-        super().__init__(
+        super().set_data(
             input_data1=input_data1,
             input_data2=input_data2,
             components1=components1,
@@ -54,144 +63,128 @@ class MCADataContainer(_BaseCrossModelDataContainer):
         self._norm2.name = 'right_norm'
     
     @property
-    def total_squared_covariance(self):
+    def total_squared_covariance(self) -> DataArray:
         '''Get the total squared covariance.'''
-        return self._total_squared_covariance
+        tsc = super()._sanity_check(self._total_squared_covariance)
+        return tsc
 
     @property
-    def squared_covariance(self):
+    def squared_covariance(self) -> DataArray:
         '''Get the squared covariance.'''
-        return self._squared_covariance
+        sc = super()._sanity_check(self._squared_covariance)
+        return sc
 
     @property
-    def squared_covariance_fraction(self):
+    def squared_covariance_fraction(self) -> DataArray:
         '''Get the squared covariance fraction (SCF).'''
         scf = self.squared_covariance / self.total_squared_covariance
-        scf.attrs.update(self._squared_covariance.attrs)
+        scf.attrs.update(self.squared_covariance.attrs)
         scf.name = 'squared_covariance_fraction'
         return scf
 
     @property
-    def norm1(self):
+    def norm1(self) -> DataArray:
         '''Get the norm of the left scores.'''
-        return self._norm1
+        norm1 = super()._sanity_check(self._norm1)
+        return norm1
     
     @property
-    def norm2(self):
+    def norm2(self) -> DataArray:
         '''Get the norm of the right scores.'''
-        return self._norm2
+        norm2 = super()._sanity_check(self._norm2)
+        return norm2
     
     @property
-    def idx_modes_sorted(self):
+    def idx_modes_sorted(self) -> DataArray:
         '''Get the indices of the modes sorted by the squared covariance.'''
-        return self._idx_modes_sorted
+        idx_modes_sorted = super()._sanity_check(self._idx_modes_sorted)
+        return idx_modes_sorted
     
-    def get_homogeneous_patterns(self, alpha=0.05, correction=None):
-        '''Get the homogeneous patterns.'''
-        hom_pat1, pvals1 = pearson_correlation(self.input_data1, self.scores1, alpha=alpha, correction=correction)
-        hom_pat2, pvals2 = pearson_correlation(self.input_data2, self.scores2, alpha=alpha, correction=correction)
-
-        hom_pat1.name = 'left_homogeneous_pattern'
-        hom_pat2.name = 'right_homogeneous_pattern'
-        pvals1.name = 'left_homogeneous_pattern_pvalues'
-        pvals2.name = 'right_homogeneous_pattern_pvalues'
-        return (hom_pat1, hom_pat2), (pvals1, pvals2)
-    
-    def get_heterogeneous_patterns(self, alpha=0.05, correction=None):
-        '''Get the heterogeneous patterns.'''
-        het_pat1, pvals1 = pearson_correlation(self.input_data1, self.scores2, alpha=alpha, correction=correction)
-        het_pat2, pvals2 = pearson_correlation(self.input_data2, self.scores1, alpha=alpha, correction=correction)
-
-        het_pat1.name = 'left_heterogeneous_pattern'
-        het_pat2.name = 'right_heterogeneous_pattern'
-        pvals1.name = 'left_heterogeneous_pattern_pvalues'
-        pvals2.name = 'right_heterogeneous_pattern_pvalues'
-        return (het_pat1, het_pat2), (pvals1, pvals2)
-
     def compute(self, verbose=False):
         super().compute(verbose)
+
         if verbose:
             with ProgressBar():
-                self._total_squared_covariance = self._total_squared_covariance.compute()
-                self._squared_covariance = self._squared_covariance.compute()
-                self._norm1 = self._norm1.compute()
-                self._norm2 = self._norm2.compute()
+                self._total_squared_covariance = self.total_squared_covariance.compute()
+                self._squared_covariance = self.squared_covariance.compute()
+                self._norm1 = self.norm1.compute()
+                self._norm2 = self.norm2.compute()
         else:
-            self._total_squared_covariance = self._total_squared_covariance.compute()
-            self._squared_covariance = self._squared_covariance.compute()
-            self._norm1 = self._norm1.compute()
-            self._norm2 = self._norm2.compute()
+            self._total_squared_covariance = self.total_squared_covariance.compute()
+            self._squared_covariance = self.squared_covariance.compute()
+            self._norm1 = self.norm1.compute()
+            self._norm2 = self.norm2.compute()
 
     def set_attrs(self, attrs: dict):
         super().set_attrs(attrs)
-        self._total_squared_covariance.attrs.update(attrs)
-        self._squared_covariance.attrs.update(attrs)
-        self._norm1.attrs.update(attrs)
-        self._norm2.attrs.update(attrs)
+
+        total_squared_covariance = super()._sanity_check(self._total_squared_covariance)
+        squared_covariance = super()._sanity_check(self._squared_covariance)
+        norm1 = super()._sanity_check(self._norm1)
+        norm2 = super()._sanity_check(self._norm2)
+
+        total_squared_covariance.attrs.update(attrs)
+        squared_covariance.attrs.update(attrs)
+        norm1.attrs.update(attrs)
+        norm2.attrs.update(attrs)
 
 
 class ComplexMCADataContainer(MCADataContainer):
     '''Container that holds the data related to a Complex MCA model.
      
     '''
-    def get_homogeneous_patterns(self, alpha=0.05, correction=None):
-        raise NotImplementedError('Not defined.')
-    
-    def get_heterogeneous_patterns(self, alpha=0.05, correction=None):
-        raise NotImplementedError('Not defined.')
-    
     @property
-    def components_amplitude1(self):
+    def components_amplitude1(self) -> DataArray:
         '''Get the component amplitudes of the left field.'''
-        comp_amps1 = abs(self._components1)
+        comp_amps1 = abs(self.components1)
         comp_amps1.name = 'left_components_amplitude'
         return comp_amps1
     
     @property
-    def components_amplitude2(self):
+    def components_amplitude2(self) -> DataArray:
         '''Get the component amplitudes of the right field.'''
-        comp_amps2 = abs(self._components2)
+        comp_amps2 = abs(self.components2)
         comp_amps2.name = 'right_components_amplitude'
         return comp_amps2
     
     @property
-    def components_phase1(self):
+    def components_phase1(self) -> DataArray:
         '''Get the component phases of the left field.'''
-        comp_phs1 = xr.apply_ufunc(np.angle, self._components1, keep_attrs=True)
+        comp_phs1 = xr.apply_ufunc(np.angle, self.components1, keep_attrs=True)
         comp_phs1.name = 'left_components_phase'
         return comp_phs1
     
     @property
-    def components_phase2(self):
+    def components_phase2(self) -> DataArray:
         '''Get the component phases of the right field.'''
         comp_phs2 = xr.apply_ufunc(np.angle, self._components2, keep_attrs=True)
         comp_phs2.name = 'right_components_phase'
         return comp_phs2
     
     @property
-    def scores_amplitude1(self):
+    def scores_amplitude1(self) -> DataArray:
         '''Get the scores amplitudes of the left field.'''
-        scores_amps1 = abs(self._scores1)
+        scores_amps1 = abs(self.scores1)
         scores_amps1.name = 'left_scores_amplitude'
         return scores_amps1
     
     @property
-    def scores_amplitude2(self):
+    def scores_amplitude2(self) -> DataArray:
         '''Get the scores amplitudes of the right field.'''
-        scores_amps2 = abs(self._scores2)
+        scores_amps2 = abs(self.scores2)
         scores_amps2.name = 'right_scores_amplitude'
         return scores_amps2
     
     @property
-    def scores_phase1(self):
+    def scores_phase1(self) -> DataArray:
         '''Get the scores phases of the left field.'''
-        scores_phs1 = xr.apply_ufunc(np.angle, self._scores1, keep_attrs=True)
+        scores_phs1 = xr.apply_ufunc(np.angle, self.scores1, keep_attrs=True)
         scores_phs1.name = 'left_scores_phase'
         return scores_phs1
     
     @property
-    def scores_phase2(self):
+    def scores_phase2(self) -> DataArray:
         '''Get the scores phases of the right field.'''
-        scores_phs2 = xr.apply_ufunc(np.angle, self._scores2, keep_attrs=True)
+        scores_phs2 = xr.apply_ufunc(np.angle, self.scores2, keep_attrs=True)
         scores_phs2.name = 'right_scores_phase'
         return scores_phs2

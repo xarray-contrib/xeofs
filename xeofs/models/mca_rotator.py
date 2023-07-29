@@ -64,6 +64,9 @@ class MCARotator(MCA):
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
 
+        # Initialize the DataContainer to hold the rotated solution
+        self.data: MCARotatorDataContainer = MCARotatorDataContainer()
+
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
         '''Compute the inverse transpose of the rotation matrix.
 
@@ -89,13 +92,6 @@ class MCARotator(MCA):
             # transpose matrix
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix 
-
-    @staticmethod
-    def _create_data_container(**kwargs) -> MCARotatorDataContainer:
-        '''Create a data container for the rotated solution.
-
-        '''
-        return MCARotatorDataContainer(**kwargs)  # type: ignore
 
     def fit(self, model: MCA | ComplexMCA):
         '''Fit the model.
@@ -226,7 +222,7 @@ class MCARotator(MCA):
         scores2_rot = scores2_rot * modes_sign
 
         # Create data container
-        self.data = self._create_data_container(
+        self.data.set_data(
             input_data1=self.model.data.input_data1,
             input_data2=self.model.data.input_data2,
             components1=comps1_rot,
@@ -364,12 +360,8 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Complex Rotated MCA'})
 
-    @staticmethod
-    def _create_data_container(**kwargs) -> ComplexMCARotatorDataContainer:
-        '''Create a data container for the rotated solution.
-
-        '''
-        return ComplexMCARotatorDataContainer(**kwargs)
+        # Initialize the DataContainer to hold the rotated solution
+        self.data: ComplexMCARotatorDataContainer = ComplexMCARotatorDataContainer()
 
     def transform(self, **kwargs):
         # Here we make use of the Method Resolution Order (MRO) to call the

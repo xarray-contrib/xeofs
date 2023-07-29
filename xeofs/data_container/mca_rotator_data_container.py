@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
@@ -12,8 +14,14 @@ class MCARotatorDataContainer(MCADataContainer):
     '''Container that holds the data related to a rotated MCA model.
      
     '''
+    def __init__(self):
+        super().__init__()
+        self._rotation_matrix: Optional[DataArray] = None
+        self._phi_matrix: Optional[DataArray] = None
+        self._modes_sign: Optional[DataArray] = None
 
-    def __init__(
+
+    def set_data(
             self,
             input_data1: DataArray,
             input_data2: DataArray,
@@ -30,7 +38,7 @@ class MCARotatorDataContainer(MCADataContainer):
             rotation_matrix: DataArray,
             phi_matrix: DataArray,
         ):
-        super().__init__(
+        super().set_data(
             input_data1=input_data1,
             input_data2=input_data2,
             components1=components1,
@@ -45,18 +53,10 @@ class MCARotatorDataContainer(MCADataContainer):
         )
 
         self._verify_dims(rotation_matrix, ('mode_m', 'mode_n'))
-        rotation_matrix = rotation_matrix.assign_coords(
-            mode_m=np.arange(1, rotation_matrix.mode_m.size+1),
-            mode_n=np.arange(1, rotation_matrix.mode_n.size+1),
-        )
         self._rotation_matrix = rotation_matrix
         self._rotation_matrix.name = 'rotation_matrix'
 
         self._verify_dims(phi_matrix, ('mode_m', 'mode_n'))
-        phi_matrix = phi_matrix.assign_coords(
-            mode_m=np.arange(1, phi_matrix.mode_m.size+1),
-            mode_n=np.arange(1, phi_matrix.mode_n.size+1),
-        )
         self._phi_matrix = phi_matrix
         self._phi_matrix.name = 'phi_matrix'
 
@@ -66,19 +66,22 @@ class MCARotatorDataContainer(MCADataContainer):
 
 
     @property
-    def rotation_matrix(self):
+    def rotation_matrix(self) -> DataArray:
         '''Get the rotation matrix.'''
-        return self._rotation_matrix
+        rotation_matrix = super()._sanity_check(self._rotation_matrix)
+        return rotation_matrix
     
     @property
-    def phi_matrix(self):
+    def phi_matrix(self) -> DataArray:
         '''Get the phi matrix.'''
-        return self._phi_matrix
+        phi_matrix = super()._sanity_check(self._phi_matrix)
+        return phi_matrix
     
     @property
-    def modes_sign(self):
+    def modes_sign(self) -> DataArray:
         '''Get the mode signs.'''
-        return self._modes_sign
+        modes_sign = super()._sanity_check(self._modes_sign)
+        return modes_sign
     
     def compute(self, verbose: bool = False):
         '''Compute the rotated MCA model.
@@ -88,13 +91,13 @@ class MCARotatorDataContainer(MCADataContainer):
 
         if verbose:
             with ProgressBar():            
-                self._rotation_matrix = self._rotation_matrix.compute()
-                self._phi_matrix = self._phi_matrix.compute()
-                self._modes_sign = self._modes_sign.compute()
+                self._rotation_matrix = self.rotation_matrix.compute()
+                self._phi_matrix = self.phi_matrix.compute()
+                self._modes_sign = self.modes_sign.compute()
         else:
-            self._rotation_matrix = self._rotation_matrix.compute()
-            self._phi_matrix = self._phi_matrix.compute()
-            self._modes_sign = self._modes_sign.compute()
+            self._rotation_matrix = self.rotation_matrix.compute()
+            self._phi_matrix = self.phi_matrix.compute()
+            self._modes_sign = self.modes_sign.compute()
     
     def set_attrs(self, attrs: dict):
         '''Set the attributes of the data container.
@@ -102,17 +105,23 @@ class MCARotatorDataContainer(MCADataContainer):
         '''
         super().set_attrs(attrs)
 
-        self._rotation_matrix.attrs.update(attrs)
-        self._phi_matrix.attrs.update(attrs)
-        self._modes_sign.attrs.update(attrs)
+        rotation_matrix = super()._sanity_check(self._rotation_matrix)
+        phi_matrix = super()._sanity_check(self._phi_matrix)
+        modes_sign = super()._sanity_check(self._modes_sign)
+
+        rotation_matrix.attrs.update(attrs)
+        phi_matrix.attrs.update(attrs)
+        modes_sign.attrs.update(attrs)
 
 
 class ComplexMCARotatorDataContainer(MCARotatorDataContainer, ComplexMCADataContainer):
     '''Container that holds the data related to a rotated complex MCA model.
      
     '''
+    def __init__(self):
+        super(ComplexMCARotatorDataContainer, self).__init__()
 
-    def __init__(
+    def set_data(
             self,
             input_data1: DataArray,
             input_data2: DataArray,
@@ -129,7 +138,7 @@ class ComplexMCARotatorDataContainer(MCARotatorDataContainer, ComplexMCADataCont
             rotation_matrix: DataArray,
             phi_matrix: DataArray,
         ):
-        super().__init__(
+        super().set_data(
             input_data1=input_data1,
             input_data2=input_data2,
             components1=components1,

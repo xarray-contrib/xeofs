@@ -32,6 +32,8 @@ class MCA(_BaseCrossModel):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'MCA'})
 
+        # Initialize the DataContainer to store the results
+        self.data: MCADataContainer = MCADataContainer()
 
     def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
         '''
@@ -65,11 +67,12 @@ class MCA(_BaseCrossModel):
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
         singular_values = decomposer.singular_values_
-        squared_covariance = singular_values**2
-        total_squared_covariance = decomposer.total_squared_covariance_
-        # singular_values_pca = np.sqrt(singular_values * (data1.sample.size - 1))
         singular_vectors1 = decomposer.singular_vectors1_
         singular_vectors2 = decomposer.singular_vectors2_
+
+        squared_covariance = singular_values**2
+        total_squared_covariance = decomposer.total_squared_covariance_
+
         norm1 = np.sqrt(singular_values)
         norm2 = np.sqrt(singular_values)
 
@@ -81,7 +84,7 @@ class MCA(_BaseCrossModel):
         scores1 = xr.dot(data1_processed, singular_vectors1, dims='feature') / norm1
         scores2 = xr.dot(data2_processed, singular_vectors2, dims='feature') / norm2
 
-        self.data = MCADataContainer(
+        self.data.set_data(
             input_data1=data1_processed,
             input_data2=data2_processed,
             components1=singular_vectors1,
@@ -377,20 +380,6 @@ class MCA(_BaseCrossModel):
 
         return (patterns1, patterns2), (pvals1, pvals2)
 
-    def compute(self, verbose: bool = False):
-        '''Computing the model will compute and load all DaskArrays.
-        
-        Parameters:
-        -------------
-        verbose: bool, default=False
-            If True, print information about the computation process.
-            
-        '''
-        if verbose:
-            with ProgressBar():
-                self.data.compute(verbose=verbose)
-        else:
-            self.data.compute(verbose=verbose)
 
 
 class ComplexMCA(MCA):
@@ -437,7 +426,11 @@ class ComplexMCA(MCA):
 
     def __init__(self, padding='exp', decay_factor=.2, **kwargs):
         super().__init__(**kwargs)
+        self.attrs.update({'model': 'Complex MCA'})
         self._params.update({'padding': padding, 'decay_factor': decay_factor})
+
+        # Initialize the DataContainer to store the results
+        self.data: ComplexMCADataContainer = ComplexMCADataContainer()
 
     def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
         '''Fit the model.
@@ -477,11 +470,12 @@ class ComplexMCA(MCA):
         # singular_values_pca is equivalent to the singular values obtained
         # when performing PCA of X1 or X2.
         singular_values = decomposer.singular_values_
-        squared_covariance = singular_values**2
-        total_squared_covariance = decomposer.total_squared_covariance_
-        # singular_values_pca = np.sqrt(singular_values * (data1_processed.shape[0] - 1))
         singular_vectors1 = decomposer.singular_vectors1_
         singular_vectors2 = decomposer.singular_vectors2_
+        
+        squared_covariance = singular_values**2
+        total_squared_covariance = decomposer.total_squared_covariance_
+        
         norm1 = np.sqrt(singular_values)
         norm2 = np.sqrt(singular_values)
 
@@ -493,7 +487,7 @@ class ComplexMCA(MCA):
         scores1 = xr.dot(data1_processed, singular_vectors1) / norm1
         scores2 = xr.dot(data2_processed, singular_vectors2) / norm2
 
-        self.data = ComplexMCADataContainer(
+        self.data.set_data(
             input_data1=data1_processed,
             input_data2=data2_processed,
             components1=singular_vectors1,
