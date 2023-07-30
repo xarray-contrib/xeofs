@@ -14,9 +14,11 @@ from ..utils.xarray_utils import hilbert_transform
 
 class MCA(_BaseCrossModel):
     '''Maximum Covariance Analyis (MCA).
+
+    MCA is a statistical method that finds patterns of maximum covariance between two datasets.
     
-    Parameters:
-    -------------
+    Parameters
+    ----------
     n_modes: int, default=10
         Number of modes to calculate.
     standardize: bool, default=False
@@ -26,8 +28,23 @@ class MCA(_BaseCrossModel):
     use_weights: bool, default=False
         Whether to use additional weights.
 
-    '''
+    Notes
+    -----
+    MCA is similar to Principal Component Analysis (PCA) and Canonical Correlation Analysis (CCA), 
+    but while PCA finds modes of maximum variance and CCA finds modes of maximum correlation, 
+    MCA finds modes of maximum covariance. See [1]_ [2]_ for more details.
 
+    References
+    ----------
+    .. [1] Bretherton, C., Smith, C., Wallace, J., 1992. An intercomparison of methods for finding coupled patterns in climate data. Journal of climate 5, 541–560.
+    .. [2] Cherry, S., 1996. Singular value decomposition analysis and canonical correlation analysis. Journal of Climate 9, 2003–2009.
+
+    Examples
+    --------
+    >>> model = MCA(n_modes=5, standardize=True)
+    >>> model.fit(data1, data2) 
+    
+    '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'MCA'})
@@ -36,24 +53,6 @@ class MCA(_BaseCrossModel):
         self.data: MCADataContainer = MCADataContainer()
 
     def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
-        '''
-        Fit the model.
-
-        Parameters:
-        -------------
-        data1: xr.DataArray or list of xarray.DataArray
-            Left input data.
-        data2: xr.DataArray or list of xarray.DataArray
-            Right input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions 
-            will be treated as feature dimensions.
-        weights1: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the left input data will be weighted by this array.
-        weights2: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the right input data will be weighted by this array.
-
-        '''
         data1_processed: DataArray = self.preprocessor1.fit_transform(data1, dim, weights1)
         data2_processed: DataArray = self.preprocessor2.fit_transform(data2, dim, weights2)
 
@@ -103,15 +102,15 @@ class MCA(_BaseCrossModel):
     def transform(self, **kwargs):
         '''Project new unseen data onto the singular vectors.
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         data1: xr.DataArray or list of xarray.DataArray
             Left input data. Must be provided if `data2` is not provided.
         data2: xr.DataArray or list of xarray.DataArray
             Right input data. Must be provided if `data1` is not provided.
 
-        Returns:
-        ----------
+        Returns
+        -------
         scores1: DataArray | Dataset | List[DataArray]
             Left scores.
         scores2: DataArray | Dataset | List[DataArray]
@@ -148,8 +147,8 @@ class MCA(_BaseCrossModel):
     def inverse_transform(self, mode):
         '''Reconstruct the original data from transformed data.
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         mode: scalars, slices or array of tick labels.
             The mode(s) used to reconstruct the data. If a scalar is given,
             the data will be reconstructed using the given mode. If a slice
@@ -157,8 +156,8 @@ class MCA(_BaseCrossModel):
             given slice. If a array is given, the data will be reconstructed
             using the modes in the given array.
 
-        Returns:
-        ----------
+        Returns
+        -------
         Xrec1: DataArray | Dataset | List[DataArray]
             Reconstructed data of left field.
         Xrec2: DataArray | Dataset | List[DataArray]
@@ -258,41 +257,31 @@ class MCA(_BaseCrossModel):
     def components(self):
         '''Return the singular vectors of the left and right field.
         
-        Returns:
-        ----------
+        Returns
+        -------
         components1: DataArray | Dataset | List[DataArray]
             Left components of the fitted model.
         components2: DataArray | Dataset | List[DataArray]
             Right components of the fitted model.
 
         '''
-        comps1 = self.data.components1
-        comps2 = self.data.components2
-
-        svecs1 = self.preprocessor1.inverse_transform_components(comps1)
-        svecs2 = self.preprocessor2.inverse_transform_components(comps2)
-        return svecs1, svecs2
+        return super().components()
     
     def scores(self):
         '''Return the scores of the left and right field.
 
-        The scores in MCA are the projection of the data matrix onto the
-        singular vectors of the cross-covariance matrix.
+        The scores in MCA are the projection of the left and right field onto the
+        left and right singular vector of the cross-covariance matrix.
         
-        Returns:
-        ----------
-        scores1: DataArray | Dataset | List[DataArray]
+        Returns
+        -------
+        scores1: DataArray
             Left scores.
-        scores2: DataArray | Dataset | List[DataArray]
+        scores2: DataArray
             Right scores.
 
         '''
-        scores1 = self.data.scores1
-        scores2 = self.data.scores2
-
-        scores1 = self.preprocessor1.inverse_transform_scores(scores1)
-        scores2 = self.preprocessor2.inverse_transform_scores(scores2)
-        return scores1, scores2
+        return super().scores()
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
         '''Return the homogeneous patterns of the left and right field.
@@ -303,15 +292,15 @@ class MCA(_BaseCrossModel):
         More precisely, the homogeneous patterns `r_{hom}` are defined as
 
         .. math::
-          r_{hom, x} = \\corr \\left(X, A_x \\right)
+          r_{hom, x} = corr \\left(X, A_x \\right)
         .. math::
-          r_{hom, y} = \\corr \\left(Y, A_y \\right)
+          r_{hom, y} = corr \\left(Y, A_y \\right)
 
         where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
         are the scores of the left and right field, respectively.
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         correction: str, default=None
             Method to apply a multiple testing correction. If None, no correction
             is applied.  Available methods are:
@@ -328,8 +317,8 @@ class MCA(_BaseCrossModel):
         alpha: float, default=0.05
             The desired family-wise error rate. Not used if `correction` is None.
 
-        Returns:
-        ----------
+        Returns
+        -------
         patterns1: DataArray | Dataset | List[DataArray]
             Left homogenous patterns.
         patterns2: DataArray | Dataset | List[DataArray]
@@ -372,15 +361,15 @@ class MCA(_BaseCrossModel):
         More precisely, the heterogeneous patterns `r_{het}` are defined as
         
         .. math::
-          r_{het, x} = \\corr \\left(X, A_y \\right)
+          r_{het, x} = corr \\left(X, A_y \\right)
         .. math::
-          r_{het, y} = \\corr \\left(Y, A_x \\right)
+          r_{het, y} = corr \\left(Y, A_x \\right)
         
         where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
         are the scores of the left and right field, respectively.
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         correction: str, default=None
             Method to apply a multiple testing correction. If None, no correction
             is applied.  Available methods are: 
@@ -426,12 +415,16 @@ class MCA(_BaseCrossModel):
 class ComplexMCA(MCA):
     '''Complex Maximum Covariance Analysis (MCA). 
 
-    This class inherits from the MCA class and overloads its methods to implement a version of MCA 
-    that uses complex numbers (i.e., applies the Hilbert transform) to capture phase relationships 
-    in the input datasets.
+    Complex MCA, also referred to as Analytical SVD (ASVD) by Shane et al. (2017)[1]_, 
+    enhances traditional MCA by accommodating both amplitude and phase information. 
+    It achieves this by utilizing the Hilbert transform to preprocess the data, 
+    thus allowing for a more comprehensive analysis in the subsequent MCA computation.
 
-    Parameters:
-    -------------
+    An optional padding with exponentially decaying values can be applied prior to
+    the Hilbert transform in order to mitigate the impact of spectral leakage.
+
+    Parameters
+    ----------
     n_modes: int, default=10
         Number of modes to calculate.
     standardize: bool, default=False
@@ -440,31 +433,39 @@ class ComplexMCA(MCA):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use additional weights.
-    padding: str, default='exp'or None
-        Padding method to use for the Hilbert transform. Currently, only exponential padding is supported.
-    decay_factor: float, default=0.2
-        Decay factor for the exponential padding. Only used if `padding` is set to 'exp'.
+    padding : str, optional
+        Specifies the method used for padding the data prior to applying the Hilbert
+        transform. This can help to mitigate the effect of spectral leakage. 
+        Currently, only 'exp' for exponential padding is supported. Default is 'exp'.
+    decay_factor : float, optional
+        Specifies the decay factor used in the exponential padding. This parameter
+        is only used if padding='exp'. The recommended value typically ranges between 0.05 to 0.2 
+        but ultimately depends on the variability in the data. 
+        A smaller value (e.g. 0.05) is recommended for
+        data with high variability, while a larger value (e.g. 0.2) is recommended
+        for data with low variability. Default is 0.2.
 
+    Notes
+    -----
+    Complex MCA extends MCA to complex-valued data that contain both magnitude and phase information. 
+    The Hilbert transform is used to transform real-valued data to complex-valued data, from which both 
+    amplitude and phase can be extracted.
 
-    Attributes
+    Similar to MCA, Complex MCA is used in climate science to identify coupled patterns of variability 
+    between two different climate variables. But unlike MCA, Complex MCA can identify coupled patterns 
+    that involve phase shifts.
+
+    References
     ----------
-    No additional attributes to the MCA base class.
+    [1]_: Elipot, S., Frajka-Williams, E., Hughes, C.W., Olhede, S., Lankhorst, M., 2017. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054. https://doi.org/10.1175/JCLI-D-16-0664.1
 
-    Methods
-    -------
-    fit(data1, data2, dim, weights1=None, weights2=None):
-        Fit the model to two datasets.
+    
+    Examples
+    --------
+    >>> model = ComplexMCA(n_modes=5, standardize=True)
+    >>> model.fit(data1, data2)
 
-    transform(data1, data2):
-        Not implemented in the ComplexMCA class.
-
-    homogeneous_patterns(correction=None, alpha=0.05):
-        Not implemented in the ComplexMCA class.
-
-    heterogeneous_patterns(correction=None, alpha=0.05):
-        Not implemented in the ComplexMCA class.
     '''
-
     def __init__(self, padding='exp', decay_factor=.2, **kwargs):
         super().__init__(**kwargs)
         self.attrs.update({'model': 'Complex MCA'})
@@ -476,8 +477,8 @@ class ComplexMCA(MCA):
     def fit(self, data1: AnyDataObject, data2: AnyDataObject, dim, weights1=None, weights2=None):
         '''Fit the model.
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         data1: xr.DataArray or list of xarray.DataArray
             Left input data.
         data2: xr.DataArray or list of xarray.DataArray
@@ -547,10 +548,20 @@ class ComplexMCA(MCA):
     def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the amplitude of the components.
 
+        The amplitude of the components are defined as
+
+        .. math::
+            A_ij = |C_ij|
+
+        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
+        :math:`|\\cdot|` denotes the absolute value.
+
         Returns
         -------
-        xr.DataArray
-            Amplitude of the components.
+        AnyDataObject
+            Amplitude of the left components.
+        AnyDataObject
+            Amplitude of the left components.
 
         '''
         comps1 = self.data.components_amplitude1
@@ -564,10 +575,20 @@ class ComplexMCA(MCA):
     def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Compute the phase of the components.
 
+        The phase of the components are defined as
+
+        .. math::
+            \\phi_{ij} = \\arg(C_{ij})
+
+        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
+        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
+
         Returns
         -------
-        xr.DataArray
-            Phase of the components.
+        AnyDataObject
+            Phase of the left components.
+        AnyDataObject
+            Phase of the right components.
 
         '''
         comps1 = self.data.components_phase1
@@ -581,10 +602,20 @@ class ComplexMCA(MCA):
     def scores_amplitude(self) -> Tuple[DataArray, DataArray]:
         '''Compute the amplitude of the scores.
 
+        The amplitude of the scores are defined as
+
+        .. math::
+            A_ij = |S_ij|
+
+        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
+        :math:`|\\cdot|` denotes the absolute value.
+
         Returns
         -------
-        xr.DataArray
-            Amplitude of the scores.
+        DataArray
+            Amplitude of the left scores.
+        DataArray
+            Amplitude of the right scores.
 
         '''
         scores1 = self.data.scores_amplitude1
@@ -597,10 +628,20 @@ class ComplexMCA(MCA):
     def scores_phase(self) -> Tuple[DataArray, DataArray]:
         '''Compute the phase of the scores.
 
+        The phase of the scores are defined as
+        
+        .. math::
+            \\phi_{ij} = \\arg(S_{ij})
+
+        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
+        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
+
         Returns
         -------
-        xr.DataArray
-            Phase of the scores.
+        DataArray
+            Phase of the left scores.
+        DataArray
+            Phase of the right scores.
 
         '''
         scores1 = self.data.scores_phase1

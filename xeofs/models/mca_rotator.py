@@ -12,29 +12,43 @@ from .._version import __version__
 
 class MCARotator(MCA):
     '''Rotate a solution obtained from ``xe.models.MCA``.
+
+    Rotated MCA [1]_ is an extension of the standard MCA that applies an additional rotation 
+    to the computed modes to maximize the variance explained individually by each mode. 
+    This rotation method enhances interpretability by distributing the explained variance more 
+    evenly among the modes, making it easier to discern patterns within the data.
     
     Parameters
     ----------
-    n_modes : int
-        Number of modes to be rotated.
-    power : int
-        Defines the power of Promax rotation. Choosing ``power=1`` equals
-        a Varimax solution (the default is 1).
-    max_iter : int
-        Number of maximal iterations for obtaining the rotation matrix
-        (the default is 1000).
-    rtol : float
-        Relative tolerance to be achieved for early stopping the iteration
-        process (the default is 1e-8).
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results 
+        in a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the 
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and 
+        terminate the iterative process.
     squared_loadings : bool, default=False
-        Determines the method of constructing the combined vectors of loadings. If set to True, the combined 
-        vectors are loaded with the singular values ("squared loadings"), conserving the squared covariance 
-        under rotation. This allows for estimation of mode importance after rotation. If set to False, 
-        follows the Cheng & Dunkerton method [1]_ of loading with the square root of singular values.
-    
+        Specify the method for constructing the combined vectors of loadings. If True, 
+        the combined vectors are loaded with the singular values (termed "squared loadings"), 
+        conserving the squared covariance under rotation. This allows estimation of mode importance 
+        after rotation. If False, the combined vectors are loaded with the square root of the 
+        singular values, following the method described by Cheng & Dunkerton [1]_.
+        
     References
     ----------
     .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
+
+    Examples
+    --------
+    >>> model = MCA(n_modes=5)
+    >>> model.fit(da1, da2, dim='time')
+    >>> rotator = MCARotator(n_modes=5, power=2)
+    >>> rotator.fit(model)
+    >>> rotator.components()
 
     '''
 
@@ -332,28 +346,45 @@ class MCARotator(MCA):
 class ComplexMCARotator(MCARotator, ComplexMCA):
     '''Rotate a solution obtained from ``xe.models.ComplexMCA``.
 
+    Complex Rotated MCA extends the MCA by incorporating both amplitude and phase information 
+    using a Hilbert transform prior to performing the MCA and subsequent Varimax or Promax rotation. 
+    This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation 
+    of complex relationships within the data, particularly useful when analyzing oscillatory data.
+
     Parameters
     ----------
-    n_modes : int
-        Number of modes to be rotated.
-    power : int
-        Defines the power of Promax rotation. Choosing ``power=1`` equals
-        a Varimax solution (the default is 1).
-    max_iter : int
-        Number of maximal iterations for obtaining the rotation matrix
-        (the default is 1000).
-    rtol : float
-        Relative tolerance to be achieved for early stopping the iteration
-        process (the default is 1e-8).
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results 
+        in a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the 
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and 
+        terminate the iterative process.
     squared_loadings : bool, default=False
-        Determines the method of constructing the combined vectors of loadings. If set to True, the combined 
-        vectors are loaded with the singular values ("squared loadings"), conserving the squared covariance 
-        under rotation. This allows for estimation of mode importance after rotation. If set to False, 
-        follows the Cheng & Dunkerton method [1]_ of loading with the square root of singular values.
-
+        Specify the method for constructing the combined vectors of loadings. If True, 
+        the combined vectors are loaded with the singular values (termed "squared loadings"), 
+        conserving the squared covariance under rotation. This allows estimation of mode importance 
+        after rotation. If False, the combined vectors are loaded with the square root of the 
+        singular values, following the method described by Cheng & Dunkerton [1]_.
+        
     References
     ----------
     .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
+    .. [2] Elipot, S., Frajka-Williams, E., Hughes, C.W., Olhede, S., Lankhorst, M., 2017. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054. https://doi.org/10.1175/JCLI-D-16-0664.1
+    .. [3] Rieger, N., Corral, Á., Olmedo, E., Turiel, A., 2021. Lagged Teleconnections of Climate Variables Identified via Complex Rotated Maximum Covariance Analysis. Journal of Climate 34, 9861–9878. https://doi.org/10.1175/JCLI-D-21-0244.1
+
+    
+    Examples
+    --------
+    >>> model = ComplexMCA(n_modes=5)
+    >>> model.fit(da1, da2, dim='time')
+    >>> rotator = ComplexMCARotator(n_modes=5, power=2)
+    >>> rotator.fit(model)
+    >>> rotator.components()
 
     '''
     def __init__(self, **kwargs):

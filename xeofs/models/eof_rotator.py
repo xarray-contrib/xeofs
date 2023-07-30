@@ -19,21 +19,40 @@ Model = TypeVar('Model', EOF, ComplexEOF)
 class EOFRotator(EOF):
     '''Rotate a solution obtained from ``xe.models.EOF``.
 
+    Rotated EOF analysis (e.g. [1]_) is a variation of standard EOF analysis, which uses a rotation technique 
+    (Varimax or Promax) on the extracted modes to maximize the variance explained by 
+    individual modes. This rotation spreads the explained variance more evenly among 
+    the modes, making them easier to interpret by minimizing the number of significant 
+    loadings on each mode. 
+
     Parameters
     ----------
-    n_modes : int
-        Number of modes to be rotated.
-    power : int
-        Defines the power of Promax rotation. Choosing ``power=1`` equals
-        a Varimax solution (the default is 1).
-    max_iter : int
-        Number of maximal iterations for obtaining the rotation matrix
-        (the default is 1000).
-    rtol : float
-        Relative tolerance to be achieved for early stopping the iteration
-        process (the default is 1e-8).
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results 
+        in a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the 
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and 
+        terminate the iterative process.
+
+    References
+    ----------
+    .. [1] Richman, M.B., 1986. Rotation of principal components. Journal of Climatology 6, 293–335. https://doi.org/10.1002/joc.3370060305
+
+    Examples
+    --------
+    >>> model = xe.models.EOF(n_modes=10)
+    >>> model.fit(data)
+    >>> rotator = xe.models.EOFRotator(n_modes=10)
+    >>> rotator.fit(model)
+    >>> rotator.components()
 
     '''
+
 
     def __init__(
             self,
@@ -63,14 +82,6 @@ class EOFRotator(EOF):
         self.data: EOFRotatorDataContainer = EOFRotatorDataContainer()
 
     def fit(self, model):
-        '''Fit the model.
-        
-        Parameters
-        ----------
-        model : xe.models.EOF
-            A EOF model solution.
-            
-        '''
         self.model = model
         self.preprocessor = model.preprocessor
 
@@ -216,19 +227,39 @@ class EOFRotator(EOF):
 class ComplexEOFRotator(EOFRotator, ComplexEOF):
     '''Rotate a solution obtained from ``xe.models.ComplexEOF``.
 
+    Complex Rotated EOF analysis ([1]_, [2]_]) extends the EOF analysis by incorporating both amplitude and phase information 
+    using a Hilbert transform prior to performing the MCA and subsequent Varimax or Promax rotation. 
+    This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation 
+    of complex relationships within the data, particularly useful when analyzing oscillatory data.
+
     Parameters
     ----------
-    n_modes : int
-        Number of modes to be rotated.
-    power : int
-        Defines the power of Promax rotation. Choosing ``power=1`` equals
-        a Varimax solution (the default is 1).
-    max_iter : int
-        Number of maximal iterations for obtaining the rotation matrix
-        (the default is 1000).
-    rtol : float
-        Relative tolerance to be achieved for early stopping the iteration
-        process (the default is 1e-8).
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results 
+        in a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the 
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and 
+        terminate the iterative process.
+
+    References
+    ----------
+    .. [1] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
+    .. [2] Richman, M.B., 1986. Rotation of principal components. Journal of Climatology 6, 293–335. https://doi.org/10.1002/joc.3370060305
+    .. [3] Bloomfield, P., Davis, J.M., 1994. Orthogonal rotation of complex principal components. International Journal of Climatology 14, 759–775. https://doi.org/10.1002/joc.3370140706
+
+    Examples
+    --------
+    >>> model = xe.models.ComplexEOF(n_modes=10)
+    >>> model.fit(data)
+    >>> rotator = xe.models.ComplexEOFRotator(n_modes=10)
+    >>> rotator.fit(model)
+    >>> rotator.components()
+        
 
     '''
     def __init__(self, **kwargs):

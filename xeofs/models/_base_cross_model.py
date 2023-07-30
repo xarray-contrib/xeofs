@@ -1,3 +1,4 @@
+from typing import Tuple, Hashable, Sequence, Dict, Any, Optional
 from abc import ABC, abstractmethod
 from datetime import datetime
 
@@ -5,6 +6,7 @@ from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import _BaseCrossModelDataContainer
+from ..utils.data_types import AnyDataObject, DataArray
 from .._version import __version__
 
 
@@ -58,23 +60,30 @@ class _BaseCrossModel(ABC):
         self.data: _BaseCrossModelDataContainer = _BaseCrossModelDataContainer()
 
     @abstractmethod
-    def fit(self, data1, data2, dim, weights1=None, weights2=None):
+    def fit(
+        self, 
+        data1: AnyDataObject,
+        data2: AnyDataObject,
+        dim: Hashable | Sequence[Hashable],
+        weights1: Optional[AnyDataObject]=None,
+        weights2: Optional[AnyDataObject]=None
+    ):
         '''
         Abstract method to fit the model.
 
-        Parameters:
-        -------------
-        data1: xr.DataArray or list of xarray.DataArray
+        Parameters
+        ----------
+        data1: DataArray | Dataset | list of DataArray
             Left input data.
-        data2: xr.DataArray or list of xarray.DataArray
+        data2: DataArray | Dataset | list of DataArray
             Right input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions 
+        dim: Hashable | Sequence[Hashable]
+            Define the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
-        weights1: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the left input data will be weighted by this array.
-        weights2: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the right input data will be weighted by this array.
+        weights1: Optional[AnyDataObject]
+            Weights to be applied to the left input data.
+        weights2: Optional[AnyDataObject]=None
+            Weights to be applied to the right input data.
 
         '''
         # Here follows the implementation to fit the model
@@ -84,22 +93,32 @@ class _BaseCrossModel(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def transform(self, data1, data2):
+    def transform(self, data1: Optional[AnyDataObject], data2: Optional[AnyDataObject]) -> Tuple[DataArray, DataArray]:
         raise NotImplementedError
     
     @abstractmethod
-    def inverse_transform(self, mode):
+    def inverse_transform(self, mode) -> Tuple[AnyDataObject, AnyDataObject]:
         raise NotImplementedError
     
-    def components(self):
+    def components(self) -> Tuple[AnyDataObject, AnyDataObject]:
         '''Get the components.'''
-        return self.data.components1, self.data.components2
-    
-    def scores(self):
-        '''Get the scores.'''
-        return self.data.scores1, self.data.scores2
+        comps1 = self.data.components1
+        comps2 = self.data.components2
 
-    def compute(self, verbose=False):
+        components1: AnyDataObject = self.preprocessor1.inverse_transform_components(comps1)
+        components2: AnyDataObject = self.preprocessor2.inverse_transform_components(comps2)
+        return components1, components2
+    
+    def scores(self) -> Tuple[DataArray, DataArray]:
+        '''Get the scores.'''
+        scores1 = self.data.scores1
+        scores2 = self.data.scores2
+
+        scores1: DataArray = self.preprocessor1.inverse_transform_scores(scores1)
+        scores2: DataArray = self.preprocessor2.inverse_transform_scores(scores2)
+        return scores1, scores2
+
+    def compute(self, verbose:bool=False):
         '''Compute the results.'''
         if verbose:
             with ProgressBar():
@@ -107,6 +126,7 @@ class _BaseCrossModel(ABC):
         else:
             self.data.compute()
 
-    def get_params(self):
+    def get_params(self) -> Dict:
+        '''Get the model parameters.'''
         return self._params
     

@@ -19,12 +19,14 @@
       ~MCA.__init__
       ~MCA.components
       ~MCA.compute
+      ~MCA.covariance_fraction
       ~MCA.fit
       ~MCA.get_params
       ~MCA.heterogeneous_patterns
       ~MCA.homogeneous_patterns
       ~MCA.inverse_transform
       ~MCA.scores
+      ~MCA.singular_values
       ~MCA.squared_covariance
       ~MCA.squared_covariance_fraction
       ~MCA.transform
