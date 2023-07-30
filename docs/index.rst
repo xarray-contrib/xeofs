@@ -8,6 +8,7 @@
 #############################################################
 Advanced EOF Analysis in Python
 #############################################################
+|
 ``xeofs`` is a toolbox designed to handle multi-dimensional EOF analysis and related methods
 for Earth system sciences, leveraging the power of packages like ``xarray`` for 
 labeled, multi-dimensional analysis and 
@@ -24,13 +25,13 @@ thereby enhancing their application in the broader scientific community.
       :link-type: doc
 
 
-      Get an idea of what xeofs is all about.
+      Get an idea of what `xeofs` is all about.
 
-    .. grid-item-card::  Getting started
-      :link: getting_started
+    .. grid-item-card::  Quickstart
+      :link: quickstart
       :link-type: doc
 
-      Learn how to use xeofs.
+      Jump straight into your first example.
 
 
 .. grid:: 2
@@ -61,6 +62,7 @@ thereby enhancing their application in the broader scientific community.
 
    overview
    installation
-   getting_started
+   quickstart
+   models
    auto_examples/index
    api

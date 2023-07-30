@@ -3,21 +3,20 @@
 
 .. _sphx_glr_auto_examples_1eof_sg_execution_times:
 
-
 Computation times
 =================
-**00:40.990** total execution time for **auto_examples_1eof** files:
+**00:17.020** total execution time for **auto_examples_1eof** files:
 
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py` (``plot_rotated_eof.py``)           | 00:17.504 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py` (``plot_rotated_eof.py``)           | 00:17.020 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py` (``plot_mreof.py``)                       | 00:06.262 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py` (``plot_eof-smode.py``)               | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py` (``plot_eof-smode.py``)               | 00:05.117 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py` (``plot_eof-tmode.py``)               | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py` (``plot_weighted-eof.py``)         | 00:04.978 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py` (``plot_mreof.py``)                       | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py` (``plot_eof-tmode.py``)               | 00:04.957 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py` (``plot_multivariate-eof.py``) | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py` (``plot_multivariate-eof.py``) | 00:02.172 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py` (``plot_weighted-eof.py``)         | 00:00.000 | 0.0 MB |
 +--------------------------------------------------------------------------------------------+-----------+--------+

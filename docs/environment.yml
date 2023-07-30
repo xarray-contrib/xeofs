@@ -14,7 +14,9 @@ dependencies:
   - yaml
   - matplotlib
   - seaborn
+  - cartopy
   - ipython
+  - ipywidgets
   - pip:
     - pydata-sphinx-theme
     - sphinx-gallery
