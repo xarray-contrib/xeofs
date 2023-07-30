@@ -110,7 +110,7 @@ html_context = {
 # documentation.
 #
 html_theme_options = {
-    "show_nav_level": 2,
+    "show_nav_level": 1,
     "icon_links": [
         {
             # Label for this link

@@ -31,7 +31,6 @@ nbsphinx = "^0"
 sphinx-copybutton = "^0"
 pydata-sphinx-theme = "^0"
 cartopy = "^0"
-ipywidgets = "^8"
 
 
 [build-system]

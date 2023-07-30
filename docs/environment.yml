@@ -16,7 +16,6 @@ dependencies:
   - seaborn
   - cartopy
   - ipython
-  - ipywidgets
   - pip:
     - pydata-sphinx-theme
     - sphinx-gallery
