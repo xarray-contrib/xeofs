@@ -14,7 +14,7 @@ sphinx:
 #   - pdf
 
 # Optionally set the version of Python and requirements required to build your docs
-conda:
+mamba:
   environment: docs/environment.yml
 
 # python:
