@@ -195,7 +195,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'xeofs', 'xeofs Documentation',
-     author, 'xeofs', 'One line description of project.',
+     author, 'xeofs', 'Comprehensive EOF analysis in Python.',
      'Miscellaneous'),
 ]
 
