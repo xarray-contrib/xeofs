@@ -23,7 +23,7 @@ class _BaseBootstrapper(ABC):
         }
 
         # Define analysis-relevant meta data
-        self.attrs: Dict[str, Any] = {'model': 'BaseModel'}
+        self.attrs: Dict[str, Any] = {'model': 'BaseBootstrapper'}
         self.attrs.update(self._params)
         self.attrs.update({
             'software': 'xeofs',
@@ -51,6 +51,10 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             n_bootstraps=n_bootstraps,
             seed=seed
         )
+        self.attrs.update({'model': 'Bootstrapped EOF analysis'})
+
+        # Initialize the DataContainer to store the results
+        self.data: EOFBootstrapperDataContainer = EOFBootstrapperDataContainer()
     
     def fit(self, model : EOF):
         '''Bootstrap a given model.'''
@@ -143,7 +147,7 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         bst_scores = bst_scores * signs
         
 
-        self.data = EOFBootstrapperDataContainer(
+        self.data.set_data(
             input_data=self.model.data.input_data,
             components=bst_components,
             scores=bst_scores,
@@ -151,6 +155,8 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             total_variance=bst_total_variance,
             idx_modes_sorted=bst_idx_modes_sorted,
         )
+        # Assign the same attributes as the original model
+        self.data.set_attrs(self.attrs)
 
 
 

@@ -34,13 +34,6 @@ sns.set_context('paper')
 
 sst = xr.tutorial.open_dataset('ersstv5')['sst']
 
-# There are some grid points with have constant values only.
-# Standardization of these time series cannot work since
-# the standard deviation is zero.
-# Remove these grid points prior to the analysis:
-# minimum_std_dev = 1e-5
-# valid_x = sst.stack(x=['lat', 'lon']).std('time') > minimum_std_dev
-# sst = sst.stack(x=['lat', 'lon']).sel(x=valid_x).unstack()
 
 #%%
 # Perform the actual analysis

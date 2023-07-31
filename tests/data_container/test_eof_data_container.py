@@ -7,121 +7,107 @@ from dask.array import Array as DaskArray  # type: ignore
 from xeofs.data_container.eof_data_container import EOFDataContainer
 
 
-@pytest.fixture
-def components():
-    return xr.DataArray(
-        np.random.rand(10, 10),
-        dims=('feature', 'mode'),
-        coords={'feature': np.arange(10), 'mode': np.arange(10)},
-        name='components',
-    )
+def test_init():
+    '''Test the initialization of the EOFDataContainer.'''
+    container = EOFDataContainer()
+    assert container._input_data is None
+    assert container._components is None
+    assert container._scores is None
+    assert container._explained_variance is None
+    assert container._total_variance is None
+    assert container._idx_modes_sorted is None
 
-@pytest.fixture
-def scores():
-    return xr.DataArray(
-        np.random.rand(100, 10),
-        dims=('sample', 'mode'),
-        coords={'sample': np.arange(100), 'mode': np.arange(10)},
-        name='scores',
+def test_set_data(sample_input_data, sample_components, sample_scores, sample_exp_var):
+    '''Test the set_data() method.'''
+    total_variance = sample_exp_var.sum()
+    idx_modes_sorted = sample_exp_var.argsort()[::-1]
+    container = EOFDataContainer()
+    container.set_data(
+        sample_input_data,
+        sample_components,
+        sample_scores,
+        sample_exp_var,
+        total_variance,
+        idx_modes_sorted,
     )
-
-@pytest.fixture
-def explained_variance():
-    return xr.DataArray(
-        np.random.rand(10),
-        dims=('mode',),
-        coords={'mode': np.arange(10)},
-        name='explained_variance'
-    )
-
-def test_eof_results_init(mock_data_array, components, scores, explained_variance):
-    data = mock_data_array.stack(sample=('time',), feature=('lat', 'lon'))
-    data = data - data.mean('sample')
-    total_variance = explained_variance.sum()
-    idx_modes_sorted = explained_variance.argsort()[::-1]
-    results = EOFDataContainer(
-        input_data=data,
-        components=components,
-        scores=scores,
-        explained_variance=explained_variance,
+    total_variance = sample_exp_var.sum()
+    idx_modes_sorted = sample_exp_var.argsort()[::-1]
+    container.set_data(
+        input_data=sample_input_data,
+        components=sample_components,
+        scores=sample_scores,
+        explained_variance=sample_exp_var,
         total_variance=total_variance,
         idx_modes_sorted=idx_modes_sorted
     )
-    assert results.input_data is data
-    assert results.components is components
-    assert results.scores is scores
-    assert results.explained_variance is explained_variance
-    assert results.total_variance is total_variance
-    assert results.idx_modes_sorted is idx_modes_sorted
+    assert container._input_data is sample_input_data
+    assert container._components is sample_components
+    assert container._scores is sample_scores
+    assert container._explained_variance is sample_exp_var
+    assert container._total_variance is total_variance
+    assert container._idx_modes_sorted is idx_modes_sorted
+
+def test_no_data():
+    '''Test the data accessors without data.'''
+    container = EOFDataContainer()
+    with pytest.raises(ValueError):
+        container.input_data
+    with pytest.raises(ValueError):
+        container.components
+    with pytest.raises(ValueError):
+        container.scores
+    with pytest.raises(ValueError):
+        container.explained_variance
+    with pytest.raises(ValueError):
+        container.total_variance
+    with pytest.raises(ValueError):
+        container.idx_modes_sorted
+    with pytest.raises(ValueError):
+        container.set_attrs({'test': 1})
+    with pytest.raises(ValueError):
+        container.compute()
+
+def test_set_attrs(sample_input_data, sample_components, sample_scores, sample_exp_var):
+    '''Test the set_attrs() method.'''
+    total_variance = sample_exp_var.chunk({'mode': 2}).sum()
+    idx_modes_sorted = sample_exp_var.argsort()[::-1]
+    container = EOFDataContainer()
+    container.set_data(sample_input_data, sample_components, sample_scores, sample_exp_var, total_variance, idx_modes_sorted)
+    container.set_attrs({'test': 1})
+    assert container.components.attrs['test'] == 1
+    assert container.scores.attrs['test'] == 1
+    assert container.explained_variance.attrs['test'] == 1
+    assert container.explained_variance_ratio.attrs['test'] == 1
+    assert container.singular_values.attrs['test'] == 1
+    assert container.total_variance.attrs['test'] == 1
+    assert container.idx_modes_sorted.attrs['test'] == 1
 
 
-def test_eof_results_init_invalid(mock_data_array, components, scores, explained_variance):
-    data = mock_data_array.stack(sample=('time',), feature=('lat', 'lon'))
-    data = data - data.mean('sample')
-    total_variance = explained_variance.sum()
-    idx_modes_sorted = explained_variance.argsort()[::-1]
-    with pytest.raises(ValueError):
-        EOFDataContainer(
-            input_data=data.rename({'feature': 'lon'}),
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted
-        )
-    with pytest.raises(ValueError):
-        EOFDataContainer(
-            input_data=data,
-            components=components.rename({'feature': 'lon'}),
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted
-        )
-    with pytest.raises(ValueError):
-        EOFDataContainer(
-            input_data=data,
-            components=components,
-            scores=scores.rename({'sample': 'date'}),
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted
-        )
-    with pytest.raises(ValueError):
-        EOFDataContainer(
-            input_data=data,
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance.rename({'mode': 'number'}),
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted
-        )
-    
-def test_eof_results_compute(mock_dask_data_array, components, scores, explained_variance):
+def test_compute(sample_input_data, sample_components, sample_scores, sample_exp_var):
     '''Check that dask arrays are computed correctly.'''
-    data = mock_dask_data_array.stack(sample=('time',), feature=('lat', 'lon'))
-    data = data - data.mean('sample')
-    total_variance = explained_variance.chunk({'mode':2}).sum()
-    idx_modes_sorted = explained_variance.argsort()[::-1]
-    results = EOFDataContainer(
-        input_data=data.chunk({'sample': 2}),
-        components=components.chunk({'feature': 2}),
-        scores=scores.chunk({'sample': 2}),
-        explained_variance=explained_variance.chunk({'mode': 2}),
-        total_variance=total_variance,
-        idx_modes_sorted=idx_modes_sorted
+    total_variance = sample_exp_var.chunk({'mode': 2}).sum()
+    idx_modes_sorted = sample_exp_var.argsort()[::-1]
+    container = EOFDataContainer()
+    container.set_data(
+        sample_input_data.chunk({'sample': 2}),
+        sample_components.chunk({'feature': 2}),
+        sample_scores.chunk({'sample': 2}),
+        sample_exp_var.chunk({'mode': 2}),
+        total_variance,
+        idx_modes_sorted
     )
-    # Check that the components and scores are dask arrays
-    assert isinstance(results.input_data.data, DaskArray)
-    assert isinstance(results.components.data, DaskArray)
-    assert isinstance(results.scores.data, DaskArray)
-    assert isinstance(results.explained_variance.data, DaskArray)
-    assert isinstance(results.total_variance.data, DaskArray)
+    # The components and scores are dask arrays
+    assert isinstance(container.input_data.data, DaskArray)
+    assert isinstance(container.components.data, DaskArray)
+    assert isinstance(container.scores.data, DaskArray)
+    assert isinstance(container.explained_variance.data, DaskArray)
+    assert isinstance(container.total_variance.data, DaskArray)
 
-    # Check that the components and scores are computed correctly
-    results.compute()
-    assert isinstance(results.input_data.data, DaskArray), 'input_data should still be a dask array'
-    assert isinstance(results.components.data, np.ndarray)
-    assert isinstance(results.scores.data, np.ndarray)
-    assert isinstance(results.explained_variance.data, np.ndarray)
-    assert isinstance(results.total_variance.data, np.ndarray)
+    container.compute()
+
+    # The components and scores are computed correctly
+    assert isinstance(container.input_data.data, DaskArray), 'input_data should still be a dask array'
+    assert isinstance(container.components.data, np.ndarray)
+    assert isinstance(container.scores.data, np.ndarray)
+    assert isinstance(container.explained_variance.data, np.ndarray)
+    assert isinstance(container.total_variance.data, np.ndarray)

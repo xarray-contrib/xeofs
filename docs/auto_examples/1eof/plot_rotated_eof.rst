@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        :ref:`Go to the end <sphx_glr_download_auto_examples_1eof_plot_rotated_eof.py>`
+        Click :ref:`here <sphx_glr_download_auto_examples_1eof_plot_rotated_eof.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -40,7 +40,7 @@ without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
 
 We'll start by loading the necessary packages and data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-45
+.. GENERATED FROM PYTHON SOURCE LINES 24-38
 
 .. code-block:: default
 
@@ -57,13 +57,6 @@ We'll start by loading the necessary packages and data:
 
     sst = xr.tutorial.open_dataset('ersstv5')['sst']
 
-    # There are some grid points with have constant values only.
-    # Standardization of these time series cannot work since
-    # the standard deviation is zero.
-    # Remove these grid points prior to the analysis:
-    # minimum_std_dev = 1e-5
-    # valid_x = sst.stack(x=['lat', 'lon']).std('time') > minimum_std_dev
-    # sst = sst.stack(x=['lat', 'lon']).sel(x=valid_x).unstack()
 
 
 
@@ -72,11 +65,11 @@ We'll start by loading the necessary packages and data:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-47
+.. GENERATED FROM PYTHON SOURCE LINES 39-40
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-67
+.. GENERATED FROM PYTHON SOURCE LINES 40-60
 
 .. code-block:: default
 
@@ -107,7 +100,7 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-73
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Create figure showing the first 6 modes for all 3 cases. While the first mode
 is very similar in all three cases the subsequent modes of the standard
@@ -115,7 +108,7 @@ solution exhibit dipole and tripole-like patterns. Under Varimax and Promax
 rotation, these structures completely disappear suggesting that these patterns
 were mere artifacts due to the orthogonality.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-103
+.. GENERATED FROM PYTHON SOURCE LINES 66-96
 
 .. code-block:: default
 
@@ -164,25 +157,28 @@ were mere artifacts due to the orthogonality.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  17.504 seconds)
+   **Total running time of the script:** ( 0 minutes  17.020 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_rotated_eof.py:
 
-.. only:: html
 
-  .. container:: sphx-glr-footer sphx-glr-footer-example
+.. only :: html
+
+ .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
 
 
 
+  .. container:: sphx-glr-download sphx-glr-download-python
 
-    .. container:: sphx-glr-download sphx-glr-download-python
+     :download:`Download Python source code: plot_rotated_eof.py <plot_rotated_eof.py>`
 
-      :download:`Download Python source code: plot_rotated_eof.py <plot_rotated_eof.py>`
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
+  .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+     :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
 
 
 .. only:: html

@@ -21,6 +21,7 @@
       ~ComplexMCARotator.components_amplitude
       ~ComplexMCARotator.components_phase
       ~ComplexMCARotator.compute
+      ~ComplexMCARotator.covariance_fraction
       ~ComplexMCARotator.fit
       ~ComplexMCARotator.get_params
       ~ComplexMCARotator.heterogeneous_patterns
@@ -29,6 +30,7 @@
       ~ComplexMCARotator.scores
       ~ComplexMCARotator.scores_amplitude
       ~ComplexMCARotator.scores_phase
+      ~ComplexMCARotator.singular_values
       ~ComplexMCARotator.squared_covariance
       ~ComplexMCARotator.squared_covariance_fraction
       ~ComplexMCARotator.transform

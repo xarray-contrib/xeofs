@@ -1,18 +1,12 @@
 import warnings
+from typing import Optional, Sequence, Hashable, Dict, Any
 from abc import ABC, abstractmethod
 from datetime import datetime
-
-import numpy as np
-import xarray as xr
-import scipy as sc
 from dask.diagnostics.progress import ProgressBar
 
-from ..preprocessing.scaler_factory import ScalerFactory
-from ..preprocessing.stacker_factory import StackerFactory
-from ..preprocessing.stacker import SingleDataArrayStacker, ListDataArrayStacker, SingleDatasetStacker
 from ..preprocessing.preprocessor import Preprocessor
-from ..utils.data_types import DataArray, DataArrayList, Dataset, XarrayData
-from ..utils.xarray_utils import get_dims
+from ..data_container import _BaseModelDataContainer
+from ..utils.data_types import AnyDataObject, DataArray
 from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
@@ -23,8 +17,8 @@ class _BaseModel(ABC):
     '''
     Abstract base class for EOF model. 
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     n_modes: int, default=10
         Number of modes to calculate.
     standardize: bool, default=False
@@ -35,7 +29,7 @@ class _BaseModel(ABC):
         Whether to use weights.
 
     '''
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False, **kwargs):
+    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False):
         # Define model parameters
         self._params = {
             'n_modes': n_modes,
@@ -59,74 +53,70 @@ class _BaseModel(ABC):
             with_coslat=use_coslat, 
             with_weights=use_weights
         )
+        # Initialize the data container only to avoid type errors
+        # The actual data container will be initialized in respective subclasses
+        self.data: _BaseModelDataContainer = _BaseModelDataContainer()
 
     @abstractmethod
-    def fit(self, data, dim, weights=None):
+    def fit(
+            self,
+            data: AnyDataObject,
+            dim: Sequence[Hashable] | Hashable,
+            weights: Optional[AnyDataObject]=None
+        ):
         '''
-        Abstract method to fit the model.
+        Fit the model to the input data.
 
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
+        Parameters
+        ----------
+        data: DataArray | Dataset | List[DataArray]
             Input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions 
+        dim: Sequence[Hashable] | Hashable
+            Specify the sample dimensions. The remaining dimensions 
             will be treated as feature dimensions.
-        weights: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the input data will be weighted by this array.
+        weights: Optional[DataArray | Dataset | List[DataArray]]
+            Weighting factors for the input data.
 
         '''
         # Here follows the implementation to fit the model
         # Typically you want to start by calling the Preprocessor first:
         # self.preprocessor.fit_transform(data, dim, weights)
-
+        raise NotImplementedError
 
     @abstractmethod
     def transform(self):
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(self):
+    def inverse_transform(self, mode):
         raise NotImplementedError
 
-    def components(self):
-        '''Return the components.
-        
-        The components in EOF anaylsis are the eigenvectors of the covariance matrix
-        (or correlation) matrix. Other names include the principal components or EOFs.
-
-        Returns:
-        ----------
-        components: DataArray | Dataset | List[DataArray]
-            Components of the fitted model.
-
-        '''
+    def components(self) -> AnyDataObject:
+        '''Get the components.'''
         components = self.data.components
-        return self.preprocessor.inverse_transform_components(components)  #type: ignore
+        return self.preprocessor.inverse_transform_components(components)
     
-    def scores(self):
-        '''Return the scores.
-        
-        The scores in EOF anaylsis are the projection of the data matrix onto the 
-        eigenvectors of the covariance matrix (or correlation) matrix. 
-        Other names include the principal component (PC) scores or just PCs.
-
-        Returns:
-        ----------
-        components: DataArray | Dataset | List[DataArray]
-            Scores of the fitted model.
-
-        '''
+    def scores(self) -> DataArray:
+        '''Get the scores.'''
         scores = self.data.scores
-        return self.preprocessor.inverse_transform_scores(scores)  #type: ignore
+        return self.preprocessor.inverse_transform_scores(scores)
 
-    def get_params(self):
-        return self._params
-    
-    def compute(self, verbose=False):
-        '''Compute the results.'''
+    def compute(self, verbose:bool=False):
+        '''Compute and load delayed model results.
+        
+        Parameters
+        ----------
+        verbose : bool
+            Whether or not to provide additional information about the computing progress.
+            
+        '''
         if verbose:
             with ProgressBar():
-                self.data.compute() #type: ignore
+                self.data.compute()
         else:
-            self.data.compute() #type: ignore
+            self.data.compute()
+
+    def get_params(self) -> Dict[str, Any]:
+        '''Get the model parameters.'''
+        return self._params
+    

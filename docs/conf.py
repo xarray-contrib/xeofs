@@ -110,7 +110,7 @@ html_context = {
 # documentation.
 #
 html_theme_options = {
-    "show_nav_level": 2,
+    "show_nav_level": 1,
     "icon_links": [
         {
             # Label for this link
@@ -195,7 +195,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'xeofs', 'xeofs Documentation',
-     author, 'xeofs', 'One line description of project.',
+     author, 'xeofs', 'Comprehensive EOF analysis in Python.',
      'Miscellaneous'),
 ]
 

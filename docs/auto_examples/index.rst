@@ -110,27 +110,6 @@ Examples
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Weighted EOF analysis (in S-mode) maximises the temporal variance considering each gridpoint wi...">
-
-.. only:: html
-
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
-     :alt: Weighted EOF analysis
-
-     :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_weighted-eof
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting ...">
 
 .. only:: html
@@ -149,6 +128,27 @@ Examples
    :hidden:
 
    /auto_examples/1eof/plot_rotated_eof
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Weighted EOF analysis (in S-mode) maximises the temporal variance considering each gridpoint wi...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
+     :alt: Weighted EOF analysis
+
+     :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/1eof/plot_weighted-eof
 .. raw:: html
 
     <div class="sphx-glr-clear"></div>

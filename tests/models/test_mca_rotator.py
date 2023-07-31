@@ -20,8 +20,8 @@ def mca_model_delayed(mock_dask_data_array, dim):
 
 
 def test_mcarotator_init():
-    mca_rotator = MCARotator(n_modes=2)
-    assert mca_rotator._params['n_modes'] == 2
+    mca_rotator = MCARotator(n_modes=4)
+    assert mca_rotator._params['n_modes'] == 4
     assert mca_rotator._params['power'] == 1
     assert mca_rotator._params['max_iter'] == 1000
     assert mca_rotator._params['rtol'] == 1e-8
@@ -34,7 +34,7 @@ def test_mcarotator_init():
     (('lon', 'lat')),
 ])
 def test_mcarotator_fit(mca_model):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
     assert hasattr(mca_rotator, 'model')
@@ -47,7 +47,7 @@ def test_mcarotator_fit(mca_model):
     (('lon', 'lat')),
 ])
 def test_mcarotator_transform(mca_model, mock_data_array):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     
     projections = mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
@@ -61,7 +61,7 @@ def test_mcarotator_transform(mca_model, mock_data_array):
     (('lon', 'lat')),
 ])
 def test_mcarotator_inverse_transform(mca_model):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     
     reconstructed_data = mca_rotator.inverse_transform(mode=slice(1,3))
@@ -76,7 +76,7 @@ def test_mcarotator_inverse_transform(mca_model):
     (('lon', 'lat')),
 ])
 def test_squared_covariance(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     covariance_fraction = mca_rotator.squared_covariance()
     assert isinstance(covariance_fraction, xr.DataArray)
@@ -88,7 +88,7 @@ def test_squared_covariance(mca_model, mock_data_array, dim):
     (('lon', 'lat')),
 ])
 def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     squared_covariance_fraction = mca_rotator.squared_covariance_fraction()
     assert isinstance(squared_covariance_fraction, xr.DataArray)
@@ -98,8 +98,35 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     (('lat', 'lon')),
     (('lon', 'lat')),
 ])
+def test_singular_values(mca_model):
+    mca_rotator = MCARotator(n_modes=4)
+    mca_rotator.fit(mca_model)
+    n_modes = mca_rotator.get_params()['n_modes']
+    svals = mca_rotator.singular_values()
+    assert isinstance(svals, xr.DataArray)
+    assert svals.size == n_modes
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
+def test_covariance_fraction(mca_model):
+    mca_rotator = MCARotator(n_modes=4)
+    mca_rotator.fit(mca_model)
+    cf = mca_rotator.covariance_fraction()
+    assert isinstance(cf, xr.DataArray)
+    assert cf.sum('mode') <= 1.00001, 'Covariance fraction is greater than 1'
+
+
+@pytest.mark.parametrize('dim', [
+    (('time',)),
+    (('lat', 'lon')),
+    (('lon', 'lat')),
+])
 def test_components(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     comps1, comps2 = mca_rotator.components()
     assert isinstance(comps1, xr.DataArray)
@@ -111,7 +138,7 @@ def test_components(mca_model, mock_data_array, dim):
     (('lon', 'lat')),
 ])
 def test_scores(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     scores1, scores2 = mca_rotator.scores()
     assert isinstance(scores1, xr.DataArray)
@@ -123,7 +150,7 @@ def test_scores(mca_model, mock_data_array, dim):
     (('lon', 'lat')),
 ])
 def test_homogeneous_patterns(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     patterns, pvalues = mca_rotator.homogeneous_patterns()
     assert isinstance(patterns[0], xr.DataArray)
@@ -137,7 +164,7 @@ def test_homogeneous_patterns(mca_model, mock_data_array, dim):
     (('lon', 'lat')),
 ])
 def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=2)
+    mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
     patterns, pvalues = mca_rotator.heterogeneous_patterns()
     assert isinstance(patterns[0], xr.DataArray)
@@ -154,7 +181,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_mcarotator_compute(mca_model_delayed):
     '''Test the compute method of the MCARotator class.'''
     
-    mca_rotator = MCARotator(n_modes=2, rtol=1e-5)
+    mca_rotator = MCARotator(n_modes=4, rtol=1e-5)
     mca_rotator.fit(mca_model_delayed)
     
     assert isinstance(mca_rotator.data.squared_covariance.data, DaskArray), 'squared_covariance is not a delayed object'

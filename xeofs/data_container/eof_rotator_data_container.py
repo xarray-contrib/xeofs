@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar
+from typing import TypeVar, Optional
 
 import numpy as np
 import xarray as xr
@@ -7,16 +7,19 @@ from dask.diagnostics.progress import ProgressBar
 
 from .eof_data_container import EOFDataContainer, ComplexEOFDataContainer
 from ..utils.data_types import DataArray
-from ..models.eof import EOF, ComplexEOF
-
-Model = TypeVar('Model', EOF, ComplexEOF)
 
 
 class EOFRotatorDataContainer(EOFDataContainer):
-    '''Container for rotated EOF model data.
+    '''Container to store the results of a rotated EOF analysis.
      
     '''
-    def __init__(
+    def __init__(self):
+        super().__init__()
+        self._rotation_matrix: Optional[DataArray] = None
+        self._phi_matrix: Optional[DataArray] = None
+        self._modes_sign: Optional[DataArray] = None
+
+    def set_data(
             self, 
             input_data: DataArray,
             components: DataArray,
@@ -28,7 +31,7 @@ class EOFRotatorDataContainer(EOFDataContainer):
             rotation_matrix: DataArray,
             phi_matrix: DataArray,
         ):
-        super().__init__(
+        super().set_data(
             input_data=input_data,
             components=components,
             scores=scores,
@@ -37,11 +40,11 @@ class EOFRotatorDataContainer(EOFDataContainer):
             idx_modes_sorted=idx_modes_sorted,
         )
         
-        self._verify_dims(rotation_matrix, ('mode', 'mode1'))
+        self._verify_dims(rotation_matrix, ('mode_m', 'mode_n'))
         self._rotation_matrix = rotation_matrix
         self._rotation_matrix.name = 'rotation_matrix'
 
-        self._verify_dims(phi_matrix, ('mode', 'mode1'))
+        self._verify_dims(phi_matrix, ('mode_m', 'mode_n'))
         self._phi_matrix = phi_matrix
         self._phi_matrix.name = 'phi_matrix'
 
@@ -53,52 +56,50 @@ class EOFRotatorDataContainer(EOFDataContainer):
     @property
     def rotation_matrix(self) -> DataArray:
         '''Get the rotation matrix.'''
-        return self._rotation_matrix
+        rotation_matrix = super()._sanity_check(self._rotation_matrix)
+        return rotation_matrix
     
     @property
     def phi_matrix(self) -> DataArray:
         '''Get the phi matrix.'''
-        return self._phi_matrix
+        phi_matrix = super()._sanity_check(self._phi_matrix)
+        return phi_matrix
     
     @property
     def modes_sign(self) -> DataArray:
         '''Get the modes sign.'''
-        return self._modes_sign
+        modes_sign = super()._sanity_check(self._modes_sign)
+        return modes_sign
 
     def compute(self, verbose:bool=False):
-        '''Compute and load delayed dask objects into memory.
-        
-        Parameters
-        ----------
-        verbose : bool
-            Whether or not to provide additional information about the computing progress.
-        '''
-        # Compute rotated solution
         super().compute(verbose)
+
         if verbose:
             with ProgressBar():
-                self._rotation_matrix = self._rotation_matrix.compute()
-                self._phi_matrix = self._phi_matrix.compute()
-                self._modes_sign = self._modes_sign.compute()
+                self._rotation_matrix = self.rotation_matrix.compute()
+                self._phi_matrix = self.phi_matrix.compute()
+                self._modes_sign = self.modes_sign.compute()
         else:
-            self._rotation_matrix = self._rotation_matrix.compute()
-            self._phi_matrix = self._phi_matrix.compute()
-            self._modes_sign = self._modes_sign.compute()
+            self._rotation_matrix = self.rotation_matrix.compute()
+            self._phi_matrix = self.phi_matrix.compute()
+            self._modes_sign = self.modes_sign.compute()
 
     def set_attrs(self, attrs: dict):
         super().set_attrs(attrs)
-        self._rotation_matrix.attrs.update(attrs)
-        self._phi_matrix.attrs.update(attrs)
-        self._modes_sign.attrs.update(attrs)
+        self.rotation_matrix.attrs.update(attrs)
+        self.phi_matrix.attrs.update(attrs)
+        self.modes_sign.attrs.update(attrs)
 
 
 
 class ComplexEOFRotatorDataContainer(EOFRotatorDataContainer, ComplexEOFDataContainer):
-    '''Container for rotated EOF model data.
+    '''Container to store the results of a complex rotated EOF analysis.
      
     '''
+    def __init__(self):
+        super(ComplexEOFRotatorDataContainer, self).__init__()
 
-    def __init__(
+    def set_data(
             self, 
             input_data: DataArray,
             components: DataArray,
@@ -110,7 +111,7 @@ class ComplexEOFRotatorDataContainer(EOFRotatorDataContainer, ComplexEOFDataCont
             phi_matrix: DataArray,
             modes_sign: DataArray,
         ):
-        super().__init__(
+        super().set_data(
             input_data=input_data,
             components=components,
             scores=scores,

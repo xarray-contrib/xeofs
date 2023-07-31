@@ -21,7 +21,15 @@ analysis and similar techniques, it's possible to speed up the analysis by autom
 taking care of dimension labels. While numerous Python packages exist for EOF analysis 
 in ``xarray``, none fulfilled all personal needs, leading to the creation of ``xeofs``. 
 
-Benefits
+
+Supported Models
+================
+
+As a toolbox, ``xeofs`` aims at harboring a battery of methods related to decomposition. Currently 
+available methods can be found in the :doc:`models` model section.
+
+
+Key Features
 ==================
 
 There are numerous advantages of using ``xeofs``, including:
@@ -33,7 +41,32 @@ There are numerous advantages of using ``xeofs``, including:
 - **Modular Code Structure**: Easily incorporate new EOF variants with the package's modular design.
 
 
-Comparison with other packages
+Flexible Data Formats
+====================================
+
+``xeofs`` is designed to work seamlessly with a variety of data structures, thereby accommodating a wide range of use cases and applications.
+Specifically, it accepts three types of input: 
+
+- ``xr.DataArray``
+- ``xr.Dataset``
+- a list of ``xr.DataArray``
+
+This flexibility enables you to fully leverage the powerful data structures provided by ``xarray``, making your analyses more streamlined and unconstrained. 
+
+
+Handling Missing Values
+====================================
+
+``xeofs`` provides intelligent handling of missing values (``NaN``) in your data. 
+
+While isolated ``NaNs``, i.e., sporadic missing values within your data grid, 
+are not considered valid input, ``xeofs`` is designed to handle full-dimensional ``NaNs`` gracefully. 
+
+A full-dimensional ``NaN`` occurs when an entire grid point 
+(for instance, a longitude-latitude point) contains ``NaNs`` across all time steps. A typical scenario would be an ocean cell in land-only data. 
+In such instances, ``xeofs`` treats the full-dimensional ``NaNs`` appropriately without disrupting your EOF analysis. 
+
+Comparison With Other Packages
 ====================================
 
 ``xeofs`` joins a collection of Python packages designed for EOF analysis, each with their unique sets of features. `eofs`_, developed by Andrew Dawson, supports fundamental functionalities such as Dask compatibility for handling large datasets and multivariate EOF analysis.
@@ -126,42 +159,3 @@ Additionally, ``xeofs`` offers a simple interface for bootstrapping, useful for 
 .. _`sklearn docs on PCA`: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
 
-
-
-Supported methods
-==================
-
-The supported methods in ``xeofs`` include:
-
-- **EOF** analysis
-- Maximum Covariance Analysis (**MCA**)
-- Multivariate EOF analysis
-- **Complex variants** such as Complex EOF analysis and Complex MCA
-- **Varimax/Promax**-rotated solutions for better interpretability
-- any combination of the above methods
-
-
-Flexible data formats
-====================================
-
-``xeofs`` is designed to work seamlessly with a variety of data structures, thereby accommodating a wide range of use cases and applications.
-Specifically, it accepts three types of input: 
-
-- ``xr.DataArray``
-- ``xr.Dataset``
-- a list of ``xr.DataArray``
-
-This flexibility enables you to fully leverage the powerful data structures provided by ``xarray``, making your analyses more streamlined and unconstrained. 
-
-
-Handling missing values
-====================================
-
-``xeofs`` provides intelligent handling of missing values (``NaN``) in your data. 
-
-While isolated ``NaNs``, i.e., sporadic missing values within your data grid, 
-are not considered valid input, ``xeofs`` is designed to handle full-dimensional ``NaNs`` gracefully. 
-
-A full-dimensional ``NaN`` occurs when an entire grid point 
-(for instance, a longitude-latitude point) contains ``NaNs`` across all time steps. A typical scenario would be an ocean cell in land-only data. 
-In such instances, ``xeofs`` treats the full-dimensional ``NaNs`` appropriately without disrupting your EOF analysis. 
