@@ -7,23 +7,18 @@ from xeofs.data_container.eof_rotator_data_container import EOFRotatorDataContai
 
 
 def test_rotator_init():
-    """Test the initialization of the EOFRotatorDataContainer."""
+    '''Test the initialization of the EOFRotatorDataContainer.'''
     container = EOFRotatorDataContainer()
     assert container._rotation_matrix is None
     assert container._phi_matrix is None
     assert container._modes_sign is None
 
-
 def test_rotator_set_data(
-    sample_input_data,
-    sample_components,
-    sample_scores,
-    sample_exp_var,
-    sample_rotation_matrix,
-    sample_phi_matrix,
-    sample_modes_sign,
-):
-    """Test the set_data() method of EOFRotatorDataContainer."""
+        sample_input_data, sample_components, sample_scores,
+        sample_exp_var, sample_rotation_matrix, sample_phi_matrix,
+        sample_modes_sign
+    ):
+    '''Test the set_data() method of EOFRotatorDataContainer.'''
     total_variance = sample_exp_var.sum()
     idx_modes_sorted = sample_exp_var.argsort()[::-1]
     container = EOFRotatorDataContainer()
@@ -48,9 +43,8 @@ def test_rotator_set_data(
     assert container._rotation_matrix is sample_rotation_matrix
     assert container._phi_matrix is sample_phi_matrix
 
-
 def test_rotator_no_data():
-    """Test the data accessors without data for EOFRotatorDataContainer."""
+    '''Test the data accessors without data for EOFRotatorDataContainer.'''
     container = EOFRotatorDataContainer()
     with pytest.raises(ValueError):
         container.input_data
@@ -71,6 +65,6 @@ def test_rotator_no_data():
     with pytest.raises(ValueError):
         container.phi_matrix
     with pytest.raises(ValueError):
-        container.set_attrs({"test": 1})
+        container.set_attrs({'test': 1})
     with pytest.raises(ValueError):
         container.compute()

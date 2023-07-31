@@ -4,7 +4,7 @@
   :alt: xeofs logo
 
 
-|badge_build_status| |badge_docs_status| |badge_version_pypi| |badge_conda_version| |badge_downloads| |badge_coverage| |badge_license| |badge_zenodo|
+|badge_build_status| |badge_docs_status| |badge_black| |badge_coverage| |badge_version_pypi| |badge_conda_version| |badge_downloads_pip| |badge_license| |badge_zenodo|
 
 .. |badge_version_pypi| image:: https://img.shields.io/pypi/v/xeofs
    :alt: PyPI
@@ -13,22 +13,20 @@
 .. |badge_docs_status| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge_downloads_pypi| image:: https://img.shields.io/pypi/dm/xeofs
-    :alt: PyPI - Downloads
+.. |badge_black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
 .. |badge_coverage| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
 .. |badge_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
    :target: https://doi.org/10.5281/zenodo.6323012
    :alt: DOI - Zenodo
 .. |badge_license| image:: https://img.shields.io/pypi/l/xeofs
-  :alt: License
+   :alt: License
 .. |badge_conda_version| image:: https://img.shields.io/conda/vn/conda-forge/xeofs
    :alt: Conda (channel only)
-.. |badge_downloads_conda| image:: https://img.shields.io/conda/dn/conda-forge/xeofs
-   :alt: Conda downloads
-.. |badge_downloads| image:: https://static.pepy.tech/personalized-badge/xeofs?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads
-   :target: https://pepy.tech/project/xeofs
-   :alt: Total downloads
+.. |badge_downloads_pip| image:: https://img.shields.io/pypi/dw/xeofs
+   :alt: PyPI - Downloads
+
 
 
 
