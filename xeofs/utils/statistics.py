@@ -6,11 +6,12 @@ from statsmodels.stats.multitest import multipletests as statsmodels_multipletes
 
 from .constants import MULTIPLE_TESTS
 
+
 def pearson_correlation(data1, data2, correction=None, alpha=0.05):
     """Compute Pearson correlation between two xarray objects.
-     
+
     Additionally, compute two-sided p-values and adjust them for multiple testing.
-     
+
     Parameters
     ----------
     data1 : xr.DataArray
@@ -32,7 +33,7 @@ def pearson_correlation(data1, data2, correction=None, alpha=0.05):
             - fdr_tsbky : two stage fdr correction (non-negative)
     alpha : float
         The desired family-wise error rate.
-        
+
     Returns
     -------
     corr : xr.DataArray
@@ -44,14 +45,16 @@ def pearson_correlation(data1, data2, correction=None, alpha=0.05):
     n_samples = data1.shape[0]
 
     # Compute Pearson correlation coefficients
-    corr = (data1 * data2).mean('sample') / data1.std('sample') / data2.std('sample')
-    
+    corr = (data1 * data2).mean("sample") / data1.std("sample") / data2.std("sample")
+
     # Compute two-sided p-values
-    pvals = _compute_pvalues(corr, n_samples, dims=['feature'])
-    
+    pvals = _compute_pvalues(corr, n_samples, dims=["feature"])
+
     if correction is not None:
         # Adjust p-values for multiple testing
-        rejected, pvals = _multipletests(pvals, dim='feature', alpha=alpha, method=correction)
+        rejected, pvals = _multipletests(
+            pvals, dim="feature", alpha=alpha, method=correction
+        )
         return corr, pvals
 
     else:
@@ -59,19 +62,20 @@ def pearson_correlation(data1, data2, correction=None, alpha=0.05):
 
 
 def _compute_pvalues(pearsonr, n_samples: int, dims) -> xr.DataArray:
-        # Compute two-sided p-values
-        # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
-        a = n_samples / 2 - 1
-        dist = sc.stats.beta(a, a, loc=-1, scale=2)  # type: ignore
-        pvals = 2 * xr.apply_ufunc(
-            dist.cdf,
-            -abs(pearsonr),
-            input_core_dims=[dims],
-            output_core_dims=[dims],
-            dask='allowed',
-            vectorize=False
-        )
-        return pvals
+    # Compute two-sided p-values
+    # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
+    a = n_samples / 2 - 1
+    dist = sc.stats.beta(a, a, loc=-1, scale=2)  # type: ignore
+    pvals = 2 * xr.apply_ufunc(
+        dist.cdf,
+        -abs(pearsonr),
+        input_core_dims=[dims],
+        output_core_dims=[dims],
+        dask="allowed",
+        vectorize=False,
+    )
+    return pvals
+
 
 def _multipletests(p, dim, alpha=0.05, method=None, **multipletests_kwargs):
     """Apply statsmodels.stats.multitest.multipletests for 2-dimensional
@@ -120,8 +124,7 @@ def _multipletests(p, dim, alpha=0.05, method=None, **multipletests_kwargs):
         p,
         input_core_dims=[[dim]],
         output_core_dims=[[dim], [dim], [], []],
-        dask='allowed',
+        dask="allowed",
         vectorize=True,
     )
     return rej, pvals_corr
-

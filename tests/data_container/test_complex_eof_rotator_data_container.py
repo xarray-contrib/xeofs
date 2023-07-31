@@ -3,18 +3,29 @@ import numpy as np
 import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 
-from xeofs.data_container.eof_rotator_data_container import ComplexEOFRotatorDataContainer
+from xeofs.data_container.eof_rotator_data_container import (
+    ComplexEOFRotatorDataContainer,
+)
 
 
 def test_complex_rotator_init():
-    '''Test the initialization of the ComplexEOFRotatorDataContainer.'''
+    """Test the initialization of the ComplexEOFRotatorDataContainer."""
     container = ComplexEOFRotatorDataContainer()
     assert container._rotation_matrix is None
     assert container._phi_matrix is None
     assert container._modes_sign is None
 
-def test_complex_rotator_set_data(sample_input_data, sample_components, sample_scores, sample_exp_var, sample_rotation_matrix, sample_phi_matrix, sample_modes_sign):
-    '''Test the set_data() method of ComplexEOFRotatorDataContainer.'''
+
+def test_complex_rotator_set_data(
+    sample_input_data,
+    sample_components,
+    sample_scores,
+    sample_exp_var,
+    sample_rotation_matrix,
+    sample_phi_matrix,
+    sample_modes_sign,
+):
+    """Test the set_data() method of ComplexEOFRotatorDataContainer."""
     total_variance = sample_exp_var.sum()
     idx_modes_sorted = sample_exp_var.argsort()[::-1]
     container = ComplexEOFRotatorDataContainer()

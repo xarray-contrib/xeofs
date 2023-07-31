@@ -11,8 +11,8 @@ from .._version import __version__
 
 
 class _BaseCrossModel(ABC):
-    '''
-    Abstract base class for cross-decomposition models. 
+    """
+    Abstract base class for cross-decomposition models.
 
     Parameters:
     -------------
@@ -25,24 +25,29 @@ class _BaseCrossModel(ABC):
     use_weights: bool, default=False
         Whether to use weights.
 
-    '''
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False):
+    """
+
+    def __init__(
+        self, n_modes=10, standardize=False, use_coslat=False, use_weights=False
+    ):
         # Define model parameters
         self._params = {
-            'n_modes': n_modes,
-            'standardize': standardize,
-            'use_coslat': use_coslat,
-            'use_weights': use_weights
+            "n_modes": n_modes,
+            "standardize": standardize,
+            "use_coslat": use_coslat,
+            "use_weights": use_weights,
         }
 
         # Define analysis-relevant meta data
-        self.attrs = {'model': 'BaseCrossModel'}
+        self.attrs = {"model": "BaseCrossModel"}
         self.attrs.update(self._params)
-        self.attrs.update({
-            'software': 'xeofs',
-            'version': __version__,
-            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        self.attrs.update(
+            {
+                "software": "xeofs",
+                "version": __version__,
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
         # Initialize preprocessors to scale and stack left (1) and right (2) data
         self.preprocessor1 = Preprocessor(
@@ -61,14 +66,14 @@ class _BaseCrossModel(ABC):
 
     @abstractmethod
     def fit(
-        self, 
+        self,
         data1: AnyDataObject,
         data2: AnyDataObject,
         dim: Hashable | Sequence[Hashable],
-        weights1: Optional[AnyDataObject]=None,
-        weights2: Optional[AnyDataObject]=None
+        weights1: Optional[AnyDataObject] = None,
+        weights2: Optional[AnyDataObject] = None,
     ):
-        '''
+        """
         Abstract method to fit the model.
 
         Parameters
@@ -78,39 +83,45 @@ class _BaseCrossModel(ABC):
         data2: DataArray | Dataset | list of DataArray
             Right input data.
         dim: Hashable | Sequence[Hashable]
-            Define the sample dimensions. The remaining dimensions 
+            Define the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
         weights1: Optional[AnyDataObject]
             Weights to be applied to the left input data.
         weights2: Optional[AnyDataObject]=None
             Weights to be applied to the right input data.
 
-        '''
+        """
         # Here follows the implementation to fit the model
         # Typically you want to start by calling
         # self.preprocessor1.fit_transform(data1, dim, weights)
         # self.preprocessor2.fit_transform(data2, dim, weights)
         raise NotImplementedError
-    
+
     @abstractmethod
-    def transform(self, data1: Optional[AnyDataObject], data2: Optional[AnyDataObject]) -> Tuple[DataArray, DataArray]:
+    def transform(
+        self, data1: Optional[AnyDataObject], data2: Optional[AnyDataObject]
+    ) -> Tuple[DataArray, DataArray]:
         raise NotImplementedError
-    
+
     @abstractmethod
     def inverse_transform(self, mode) -> Tuple[AnyDataObject, AnyDataObject]:
         raise NotImplementedError
-    
+
     def components(self) -> Tuple[AnyDataObject, AnyDataObject]:
-        '''Get the components.'''
+        """Get the components."""
         comps1 = self.data.components1
         comps2 = self.data.components2
 
-        components1: AnyDataObject = self.preprocessor1.inverse_transform_components(comps1)
-        components2: AnyDataObject = self.preprocessor2.inverse_transform_components(comps2)
+        components1: AnyDataObject = self.preprocessor1.inverse_transform_components(
+            comps1
+        )
+        components2: AnyDataObject = self.preprocessor2.inverse_transform_components(
+            comps2
+        )
         return components1, components2
-    
+
     def scores(self) -> Tuple[DataArray, DataArray]:
-        '''Get the scores.'''
+        """Get the scores."""
         scores1 = self.data.scores1
         scores2 = self.data.scores2
 
@@ -118,8 +129,8 @@ class _BaseCrossModel(ABC):
         scores2: DataArray = self.preprocessor2.inverse_transform_scores(scores2)
         return scores1, scores2
 
-    def compute(self, verbose:bool=False):
-        '''Compute the results.'''
+    def compute(self, verbose: bool = False):
+        """Compute the results."""
         if verbose:
             with ProgressBar():
                 self.data.compute()
@@ -127,6 +138,5 @@ class _BaseCrossModel(ABC):
             self.data.compute()
 
     def get_params(self) -> Dict:
-        '''Get the model parameters.'''
+        """Get the model parameters."""
         return self._params
-    

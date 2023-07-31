@@ -14,8 +14,8 @@ warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*"
 
 
 class _BaseModel(ABC):
-    '''
-    Abstract base class for EOF model. 
+    """
+    Abstract base class for EOF model.
 
     Parameters
     ----------
@@ -28,30 +28,33 @@ class _BaseModel(ABC):
     use_weights: bool, default=False
         Whether to use weights.
 
-    '''
-    def __init__(self, n_modes=10, standardize=False, use_coslat=False, use_weights=False):
+    """
+
+    def __init__(
+        self, n_modes=10, standardize=False, use_coslat=False, use_weights=False
+    ):
         # Define model parameters
         self._params = {
-            'n_modes': n_modes,
-            'standardize': standardize,
-            'use_coslat': use_coslat,
-            'use_weights': use_weights
+            "n_modes": n_modes,
+            "standardize": standardize,
+            "use_coslat": use_coslat,
+            "use_weights": use_weights,
         }
 
         # Define analysis-relevant meta data
-        self.attrs = {'model': 'BaseModel'}
+        self.attrs = {"model": "BaseModel"}
         self.attrs.update(self._params)
-        self.attrs.update({
-            'software': 'xeofs',
-            'version': __version__,
-            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        self.attrs.update(
+            {
+                "software": "xeofs",
+                "version": __version__,
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
         # Initialize the Preprocessor to scale and stack the data
         self.preprocessor = Preprocessor(
-            with_std=standardize,
-            with_coslat=use_coslat, 
-            with_weights=use_weights
+            with_std=standardize, with_coslat=use_coslat, with_weights=use_weights
         )
         # Initialize the data container only to avoid type errors
         # The actual data container will be initialized in respective subclasses
@@ -59,12 +62,12 @@ class _BaseModel(ABC):
 
     @abstractmethod
     def fit(
-            self,
-            data: AnyDataObject,
-            dim: Sequence[Hashable] | Hashable,
-            weights: Optional[AnyDataObject]=None
-        ):
-        '''
+        self,
+        data: AnyDataObject,
+        dim: Sequence[Hashable] | Hashable,
+        weights: Optional[AnyDataObject] = None,
+    ):
+        """
         Fit the model to the input data.
 
         Parameters
@@ -72,12 +75,12 @@ class _BaseModel(ABC):
         data: DataArray | Dataset | List[DataArray]
             Input data.
         dim: Sequence[Hashable] | Hashable
-            Specify the sample dimensions. The remaining dimensions 
+            Specify the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
         weights: Optional[DataArray | Dataset | List[DataArray]]
             Weighting factors for the input data.
 
-        '''
+        """
         # Here follows the implementation to fit the model
         # Typically you want to start by calling the Preprocessor first:
         # self.preprocessor.fit_transform(data, dim, weights)
@@ -92,24 +95,24 @@ class _BaseModel(ABC):
         raise NotImplementedError
 
     def components(self) -> AnyDataObject:
-        '''Get the components.'''
+        """Get the components."""
         components = self.data.components
         return self.preprocessor.inverse_transform_components(components)
-    
+
     def scores(self) -> DataArray:
-        '''Get the scores.'''
+        """Get the scores."""
         scores = self.data.scores
         return self.preprocessor.inverse_transform_scores(scores)
 
-    def compute(self, verbose:bool=False):
-        '''Compute and load delayed model results.
-        
+    def compute(self, verbose: bool = False):
+        """Compute and load delayed model results.
+
         Parameters
         ----------
         verbose : bool
             Whether or not to provide additional information about the computing progress.
-            
-        '''
+
+        """
         if verbose:
             with ProgressBar():
                 self.data.compute()
@@ -117,6 +120,5 @@ class _BaseModel(ABC):
             self.data.compute()
 
     def get_params(self) -> Dict[str, Any]:
-        '''Get the model parameters.'''
+        """Get the model parameters."""
         return self._params
-    
