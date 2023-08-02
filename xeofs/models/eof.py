@@ -23,6 +23,8 @@ class EOF(_BaseModel):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use weights.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to be passed to the SVD solver.
 
     Examples
     --------
@@ -33,13 +35,19 @@ class EOF(_BaseModel):
     """
 
     def __init__(
-        self, n_modes=10, standardize=False, use_coslat=False, use_weights=False
+        self,
+        n_modes=10,
+        standardize=False,
+        use_coslat=False,
+        use_weights=False,
+        solver_kwargs={},
     ):
         super().__init__(
             n_modes=n_modes,
             standardize=standardize,
             use_coslat=use_coslat,
             use_weights=use_weights,
+            solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "EOF analysis"})
 
@@ -56,7 +64,7 @@ class EOF(_BaseModel):
         # Decompose the data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(n_modes=n_modes)
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
         decomposer.fit(input_data)
 
         singular_values = decomposer.singular_values_
@@ -256,6 +264,8 @@ class ComplexEOF(EOF):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
+    solver_kwargs : dict, optional
+        Additional keyword arguments to be passed to the SVD solver.
 
     References
     ----------
@@ -294,7 +304,7 @@ class ComplexEOF(EOF):
         # Decompose the complex data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(n_modes=n_modes)
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
         decomposer.fit(input_data)
 
         singular_values = decomposer.singular_values_

@@ -214,10 +214,10 @@ def test_mca_components(dim, use_coslat, mock_data_array):
     K1 = V1.T @ V1
     K2 = V2.T @ V2
     assert np.allclose(
-        K1, np.eye(K1.shape[0]), atol=1e-5
+        K1, np.eye(K1.shape[0]), rtol=1e-8
     ), "Left components are not orthogonal"
     assert np.allclose(
-        K2, np.eye(K2.shape[0]), atol=1e-5
+        K2, np.eye(K2.shape[0]), rtol=1e-8
     ), "Right components are not orthogonal"
 
 
@@ -321,10 +321,10 @@ def test_rmca_components(dim, use_coslat, power, squared_loadings, mock_data_arr
     K1 = V1.conj().T @ V1
     K2 = V2.conj().T @ V2
     assert np.allclose(
-        np.diag(K1), np.ones(K1.shape[0]), atol=5.0e-2
+        np.diag(K1), np.ones(K1.shape[0]), rtol=1e-5
     ), "Components are not normalized"
     assert np.allclose(
-        np.diag(K2), np.ones(K2.shape[0]), atol=5.0e-2
+        np.diag(K2), np.ones(K2.shape[0]), rtol=1e-5
     ), "Components are not normalized"
     # Assert that off-diagonals are not zero
     assert not np.allclose(K1, np.eye(K1.shape[0])), "Rotated components are orthogonal"
@@ -398,10 +398,10 @@ def test_crmca_components(dim, use_coslat, power, squared_loadings, mock_data_ar
     K1 = V1.conj().T @ V1
     K2 = V2.conj().T @ V2
     assert np.allclose(
-        np.diag(K1), np.ones(K1.shape[0]), atol=1.0e-1
+        np.diag(K1), np.ones(K1.shape[0]), rtol=1e-5
     ), "Components are not normalized"
     assert np.allclose(
-        np.diag(K2), np.ones(K2.shape[0]), atol=1.0e-1
+        np.diag(K2), np.ones(K2.shape[0]), rtol=1e-5
     ), "Components are not normalized"
     # Assert that off-diagonals are not zero
     assert not np.allclose(K1, np.eye(K1.shape[0])), "Rotated components are orthogonal"
@@ -498,15 +498,23 @@ def test_ceof_transform(dim, use_coslat, mock_data_array):
 )
 def test_reof_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
-    model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = EOF(
+        n_modes=5,
+        standardize=True,
+        use_coslat=use_coslat,
+        solver_kwargs={"random_state": 0},
+    )
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
     scores = rot.scores()
     pseudo_scores = rot.transform(mock_data_array)
-    assert np.allclose(
-        scores, pseudo_scores, atol=1e-3
-    ), "Transformed data does not match the scores"
+    np.testing.assert_allclose(
+        scores,
+        pseudo_scores,
+        rtol=5e-3,
+        err_msg="Transformed data does not match the scores",
+    )
 
 
 # Complex Rotated EOF

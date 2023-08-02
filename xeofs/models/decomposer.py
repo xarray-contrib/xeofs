@@ -24,48 +24,37 @@ class Decomposer:
 
     """
 
-    def __init__(self, n_modes=100, n_iter=5, random_state=None, verbose=False):
-        self.params = {
-            "n_modes": n_modes,
-            "n_iter": n_iter,
-            "random_state": random_state,
-            "verbose": verbose,
-        }
+    def __init__(self, n_modes=100, **kwargs):
+        self.n_modes = n_modes
+        self.solver_kwargs = kwargs
 
     def fit(self, X):
-        svd_kwargs = {}
-
         is_dask = True if isinstance(X.data, DaskArray) else False
         is_complex = True if np.iscomplexobj(X.data) else False
 
         if (not is_complex) and (not is_dask):
-            svd_kwargs.update(
-                {
-                    "n_components": self.params["n_modes"],
-                    "random_state": self.params["random_state"],
-                }
-            )
+            self.solver_kwargs.update({"n_components": self.n_modes})
 
             U, s, VT = xr.apply_ufunc(
                 svd,
                 X,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["sample", "feature"]],
                 output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
             )
 
         elif is_complex and (not is_dask):
             # Scipy sparse version
-            svd_kwargs.update(
+            self.solver_kwargs.update(
                 {
+                    "k": self.n_modes,
                     "solver": "lobpcg",
-                    "k": self.params["n_modes"],
                 }
             )
             U, s, VT = xr.apply_ufunc(
                 complex_svd,
                 X,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["sample", "feature"]],
                 output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
             )
@@ -75,11 +64,11 @@ class Decomposer:
             VT = VT[idx_sort, :]
 
         elif (not is_complex) and is_dask:
-            svd_kwargs.update({"k": self.params["n_modes"]})
+            self.solver_kwargs.update({"k": self.n_modes})
             U, s, VT = xr.apply_ufunc(
                 dask_svd,
                 X,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["sample", "feature"]],
                 output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
                 dask="allowed",
@@ -164,35 +153,29 @@ class CrossDecomposer(Decomposer):
         is_dask = True if isinstance(cov_matrix.data, DaskArray) else False
         is_complex = True if np.iscomplexobj(cov_matrix.data) else False
 
-        svd_kwargs = {}
         if (not is_complex) and (not is_dask):
-            svd_kwargs.update(
-                {
-                    "n_components": self.params["n_modes"],
-                    "random_state": self.params["random_state"],
-                }
-            )
+            self.solver_kwargs.update({"n_components": self.n_modes})
 
             U, s, VT = xr.apply_ufunc(
                 svd,
                 cov_matrix,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["feature1", "feature2"]],
                 output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
             )
 
         elif (is_complex) and (not is_dask):
             # Scipy sparse version
-            svd_kwargs.update(
+            self.solver_kwargs.update(
                 {
+                    "k": self.n_modes,
                     "solver": "lobpcg",
-                    "k": self.params["n_modes"],
                 }
             )
             U, s, VT = xr.apply_ufunc(
                 complex_svd,
                 cov_matrix,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["feature1", "feature2"]],
                 output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
             )
@@ -202,11 +185,11 @@ class CrossDecomposer(Decomposer):
             VT = VT[idx_sort, :]
 
         elif (not is_complex) and (is_dask):
-            svd_kwargs.update({"k": self.params["n_modes"]})
+            self.solver_kwargs.update({"k": self.n_modes})
             U, s, VT = xr.apply_ufunc(
                 dask_svd,
                 cov_matrix,
-                kwargs=svd_kwargs,
+                kwargs=self.solver_kwargs,
                 input_core_dims=[["feature1", "feature2"]],
                 output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
                 dask="allowed",

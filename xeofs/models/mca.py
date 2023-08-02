@@ -30,6 +30,8 @@ class MCA(_BaseCrossModel):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use additional weights.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments passed to the SVD solver.
 
     Notes
     -----
@@ -49,8 +51,8 @@ class MCA(_BaseCrossModel):
 
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, solver_kwargs={}, **kwargs):
+        super().__init__(solver_kwargs=solver_kwargs, **kwargs)
         self.attrs.update({"model": "MCA"})
 
         # Initialize the DataContainer to store the results
@@ -71,7 +73,9 @@ class MCA(_BaseCrossModel):
             data2, dim, weights2
         )
 
-        decomposer = CrossDecomposer(n_modes=self._params["n_modes"])
+        decomposer = CrossDecomposer(
+            n_modes=self._params["n_modes"], **self._solver_kwargs
+        )
         decomposer.fit(data1_processed, data2_processed)
 
         # Note:
@@ -466,6 +470,8 @@ class ComplexMCA(MCA):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments passed to the SVD solver.
 
     Notes
     -----
@@ -540,7 +546,9 @@ class ComplexMCA(MCA):
             data2_processed, dim="sample", padding=padding, decay_factor=decay_factor
         )
 
-        decomposer = CrossDecomposer(n_modes=self._params["n_modes"])
+        decomposer = CrossDecomposer(
+            n_modes=self._params["n_modes"], **self._solver_kwargs
+        )
         decomposer.fit(data1_processed, data2_processed)
 
         # Note:

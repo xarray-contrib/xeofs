@@ -28,7 +28,12 @@ class _BaseCrossModel(ABC):
     """
 
     def __init__(
-        self, n_modes=10, standardize=False, use_coslat=False, use_weights=False
+        self,
+        n_modes=10,
+        standardize=False,
+        use_coslat=False,
+        use_weights=False,
+        solver_kwargs={},
     ):
         # Define model parameters
         self._params = {
@@ -37,6 +42,7 @@ class _BaseCrossModel(ABC):
             "use_coslat": use_coslat,
             "use_weights": use_weights,
         }
+        self._solver_kwargs = solver_kwargs
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseCrossModel"}
