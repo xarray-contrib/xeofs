@@ -4,30 +4,54 @@
   :alt: xeofs logo
 
 
-|badge_build_status| |badge_docs_status| |badge_black| |badge_coverage| |badge_version_pypi| |badge_conda_version| |badge_downloads_pip| |badge_license| |badge_zenodo|
++----------------------------+-----------------------------------------------------+
+| Versions                   | |pypi| |conda|                                      |
++----------------------------+-----------------------------------------------------+
+| Build & Testing            | |build| |coverage|                                  |
++----------------------------+-----------------------------------------------------+
+| Code Quality               | |black|                                             |
++----------------------------+-----------------------------------------------------+
+| Documentation              | |docs|                                              |
++----------------------------+-----------------------------------------------------+
+| Citation & Licensing       | |zenodo| |license|                                  |
++----------------------------+-----------------------------------------------------+
+| User Engagement            | |downloads|                                         |
++----------------------------+-----------------------------------------------------+
 
-.. |badge_version_pypi| image:: https://img.shields.io/pypi/v/xeofs
-   :alt: PyPI
-.. |badge_build_status| image:: https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/CI.yml?branch=main
-   :alt: GitHub Workflow Status (event)
-.. |badge_docs_status| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
+.. |pypi| image:: https://img.shields.io/pypi/v/xeofs
+   :target: https://pypi.org/project/xeofs/
+   :alt: Python Package Index (PyPI)
+
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/xeofs
+   :target: https://anaconda.org/conda-forge/xeofs
+   :alt: Conda-forge Version
+
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/CI.yml?branch=main
+   :target: https://github.com/nicrie/xeofs/actions
+   :alt: Build Status
+
+.. |docs| image:: https://readthedocs.org/projects/xeofs/badge/?version=latest
    :target: https://xeofs.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |badge_black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
-.. |badge_coverage| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
+   :alt: Black Code Style
+
+.. |coverage| image:: https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7
     :target: https://codecov.io/gh/nicrie/xeofs
-.. |badge_zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
+    :alt: Test Coverage
+
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
    :target: https://doi.org/10.5281/zenodo.6323012
    :alt: DOI - Zenodo
-.. |badge_license| image:: https://img.shields.io/pypi/l/xeofs
+
+.. |license| image:: https://img.shields.io/pypi/l/xeofs
+   :target: https://github.com/nicrie/xeofs/blob/main/LICENSE
    :alt: License
-.. |badge_conda_version| image:: https://img.shields.io/conda/vn/conda-forge/xeofs
-   :alt: Conda (channel only)
-.. |badge_downloads_pip| image:: https://img.shields.io/pypi/dw/xeofs
+
+.. |downloads| image:: https://img.shields.io/pypi/dw/xeofs
    :alt: PyPI - Downloads
-
-
 
 
 
@@ -162,7 +186,7 @@ When utilizing ``xeofs``, kindly remember to cite the original creators of the m
    @software{rieger_xeofs_2023,
      title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
      url = {https://github.com/nicrie/xeofs}
-     version = {1.0.0},
+     version = {1.x.y},
      author = {Rieger, Niclas},
      date = {2023},
      doi = {10.5281/zenodo.6323011}
