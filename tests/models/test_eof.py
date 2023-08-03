@@ -7,7 +7,7 @@ from numpy.testing import assert_allclose
 from xeofs.models.eof import EOF
 
 
-def test_eof_initialization():
+def test_init():
     """Tests the initialization of the EOF class"""
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
@@ -31,7 +31,7 @@ def test_eof_initialization():
         (("lon", "lat")),
     ],
 )
-def test_eof_fit(dim, mock_data_array):
+def test_fit(dim, mock_data_array):
     """Tests the fit method of the EOF class"""
 
     eof = EOF()
@@ -50,7 +50,7 @@ def test_eof_fit(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_singular_values(dim, mock_data_array):
+def test_singular_values(dim, mock_data_array):
     """Tests the singular_values method of the EOF class"""
 
     eof = EOF()
@@ -69,7 +69,7 @@ def test_eof_singular_values(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_explained_variance(dim, mock_data_array):
+def test_explained_variance(dim, mock_data_array):
     """Tests the explained_variance method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array, dim)
@@ -89,7 +89,7 @@ def test_eof_explained_variance(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_explained_variance_ratio(dim, mock_data_array):
+def test_explained_variance_ratio(dim, mock_data_array):
     """Tests the explained_variance_ratio method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array, dim)
@@ -115,7 +115,7 @@ def test_eof_explained_variance_ratio(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_components(dim, mock_data_array):
+def test_components(dim, mock_data_array):
     """Tests the components method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array, dim)
@@ -137,7 +137,7 @@ def test_eof_components(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_components_dataset(dim, mock_dataset):
+def test_components_dataset(dim, mock_dataset):
     """Tests the components method of the EOF class"""
     eof = EOF()
     eof.fit(mock_dataset, dim)
@@ -162,7 +162,7 @@ def test_eof_components_dataset(dim, mock_dataset):
         (("lon", "lat")),
     ],
 )
-def test_eof_components_dataarray_list(dim, mock_data_array_list):
+def test_components_dataarray_list(dim, mock_data_array_list):
     """Tests the components method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array_list, dim)
@@ -191,7 +191,7 @@ def test_eof_components_dataarray_list(dim, mock_data_array_list):
         (("lon", "lat")),
     ],
 )
-def test_eof_scores(dim, mock_data_array):
+def test_scores(dim, mock_data_array):
     """Tests the scores method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array, dim)
@@ -212,7 +212,7 @@ def test_eof_scores(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_scores_dataset(dim, mock_dataset):
+def test_scores_dataset(dim, mock_dataset):
     """Tests the scores method of the EOF class"""
     eof = EOF()
     eof.fit(mock_dataset, dim)
@@ -233,7 +233,7 @@ def test_eof_scores_dataset(dim, mock_dataset):
         (("lon", "lat")),
     ],
 )
-def test_eof_scores_dataarray_list(dim, mock_data_array_list):
+def test_scores_dataarray_list(dim, mock_data_array_list):
     """Tests the scores method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array_list, dim)
@@ -246,7 +246,7 @@ def test_eof_scores_dataarray_list(dim, mock_data_array_list):
     ), "Scores does not have the right dimensions"
 
 
-def test_eof_get_params():
+def test_get_params():
     """Tests the get_params method of the EOF class"""
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
@@ -269,7 +269,7 @@ def test_eof_get_params():
         (("lon", "lat")),
     ],
 )
-def test_eof_transform(dim, mock_data_array):
+def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
 
     # Create a xarray DataArray with random data
@@ -305,7 +305,7 @@ def test_eof_transform(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_eof_inverse_transform(dim, mock_data_array):
+def test_inverse_transform(dim, mock_data_array):
     """Test inverse_transform method in EOF class."""
 
     # instantiate the EOF class with necessary parameters

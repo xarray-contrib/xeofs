@@ -21,7 +21,7 @@ def mca_model_delayed(mock_dask_data_array, dim):
     return mca
 
 
-def test_mcarotator_init():
+def test_init():
     mca_rotator = MCARotator(n_modes=4)
     assert mca_rotator._params["n_modes"] == 4
     assert mca_rotator._params["power"] == 1
@@ -38,7 +38,7 @@ def test_mcarotator_init():
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_fit(mca_model):
+def test_fit(mca_model):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
@@ -54,7 +54,7 @@ def test_mcarotator_fit(mca_model):
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_transform(mca_model, mock_data_array):
+def test_transform(mca_model, mock_data_array):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
@@ -71,7 +71,7 @@ def test_mcarotator_transform(mca_model, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_inverse_transform(mca_model):
+def test_inverse_transform(mca_model):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
@@ -220,7 +220,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_compute(mca_model_delayed):
+def test_compute(mca_model_delayed):
     """Test the compute method of the MCARotator class."""
 
     mca_rotator = MCARotator(n_modes=4, rtol=1e-5)

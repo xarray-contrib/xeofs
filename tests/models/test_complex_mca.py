@@ -12,7 +12,7 @@ def mca_model():
     return ComplexMCA(n_modes=3)
 
 
-def test_complex_mca_initialization():
+def test_initialization():
     mca = ComplexMCA(n_modes=1)
     assert mca is not None
 
@@ -25,7 +25,7 @@ def test_complex_mca_initialization():
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_fit(mca_model, mock_data_array, dim):
+def test_fit(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")
@@ -102,7 +102,7 @@ def test_covariance_fraction(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_components(mca_model, mock_data_array, dim):
+def test_components(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     components = mca_model.components()
     assert isinstance(components, tuple), "components is not a tuple"
@@ -119,7 +119,7 @@ def test_complex_mca_components(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_scores(mca_model, mock_data_array, dim):
+def test_scores(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     scores = mca_model.scores()
     assert isinstance(scores, tuple), "scores is not a tuple"
@@ -136,7 +136,7 @@ def test_complex_mca_scores(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_components_amplitude(mca_model, mock_data_array, dim):
+def test_components_amplitude(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     components = mca_model.components_amplitude()
     assert isinstance(components, tuple), "components is not a tuple"
@@ -153,7 +153,7 @@ def test_complex_mca_components_amplitude(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_components_phase(mca_model, mock_data_array, dim):
+def test_components_phase(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     components = mca_model.components_phase()
     assert isinstance(components, tuple), "components is not a tuple"
@@ -170,7 +170,7 @@ def test_complex_mca_components_phase(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_scores_amplitude(mca_model, mock_data_array, dim):
+def test_scores_amplitude(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     scores = mca_model.scores_amplitude()
     assert isinstance(scores, tuple), "scores is not a tuple"
@@ -187,7 +187,7 @@ def test_complex_mca_scores_amplitude(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_scores_phase(mca_model, mock_data_array, dim):
+def test_scores_phase(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     scores = mca_model.scores_phase()
     assert isinstance(scores, tuple), "scores is not a tuple"
@@ -204,7 +204,7 @@ def test_complex_mca_scores_phase(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_fit_empty_data(dim):
+def test_fit_empty_data(dim):
     mca = ComplexMCA()
     with pytest.raises(ValueError):
         mca.fit(xr.DataArray(), xr.DataArray(), dim)
@@ -216,7 +216,7 @@ def test_complex_mca_fit_empty_data(dim):
         (("invalid_dim")),
     ],
 )
-def test_complex_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
+def test_fit_invalid_dims(mca_model, mock_data_array, dim):
     with pytest.raises(ValueError):
         mca_model.fit(mock_data_array, mock_data_array, dim)
 
@@ -229,18 +229,18 @@ def test_complex_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_transform_not_implemented(mca_model, mock_data_array, dim):
+def test_transform_not_implemented(mca_model, mock_data_array, dim):
     with pytest.raises(NotImplementedError):
         mca_model.transform(mock_data_array, mock_data_array)
 
 
-def test_complex_mca_homogeneous_patterns_not_implemented():
+def test_homogeneous_patterns_not_implemented():
     mca = ComplexMCA()
     with pytest.raises(NotImplementedError):
         mca.homogeneous_patterns()
 
 
-def test_complex_mca_heterogeneous_patterns_not_implemented():
+def test_heterogeneous_patterns_not_implemented():
     mca = ComplexMCA()
     with pytest.raises(NotImplementedError):
         mca.heterogeneous_patterns()
@@ -254,7 +254,7 @@ def test_complex_mca_heterogeneous_patterns_not_implemented():
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_fit_with_dataset(mca_model, mock_dataset, dim):
+def test_fit_with_dataset(mca_model, mock_dataset, dim):
     mca_model.fit(mock_dataset, mock_dataset, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")
@@ -269,7 +269,7 @@ def test_complex_mca_fit_with_dataset(mca_model, mock_dataset, dim):
         (("lon", "lat")),
     ],
 )
-def test_complex_mca_fit_with_dataarraylist(mca_model, mock_data_array_list, dim):
+def test_fit_with_dataarraylist(mca_model, mock_data_array_list, dim):
     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")

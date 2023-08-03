@@ -21,7 +21,7 @@ def mca_model_delayed(mock_dask_data_array, dim):
     return mca
 
 
-def test_mcarotator_init():
+def test_init():
     mca_rotator = ComplexMCARotator(n_modes=2)
     assert mca_rotator._params["n_modes"] == 2
     assert mca_rotator._params["power"] == 1
@@ -38,7 +38,7 @@ def test_mcarotator_init():
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_fit(mca_model):
+def test_fit(mca_model):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
@@ -54,7 +54,7 @@ def test_mcarotator_fit(mca_model):
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_transform(mca_model, mock_data_array):
+def test_transform(mca_model, mock_data_array):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
@@ -72,7 +72,7 @@ def test_mcarotator_transform(mca_model, mock_data_array):
         (("lon", "lat")),
     ],
 )
-def test_mcarotator_inverse_transform(mca_model):
+def test_inverse_transform(mca_model):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
@@ -219,7 +219,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_crmca_components_amplitude(mca_model, mock_data_array, dim):
+def test_components_amplitude(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     amps1, amps2 = mca_rotator.components_amplitude()
@@ -233,7 +233,7 @@ def test_crmca_components_amplitude(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_crmca_components_phase(mca_model, mock_data_array, dim):
+def test_components_phase(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     amps1, amps2 = mca_rotator.components_phase()
@@ -247,7 +247,7 @@ def test_crmca_components_phase(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_crmca_scores_amplitude(mca_model, mock_data_array, dim):
+def test_scores_amplitude(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     amps1, amps2 = mca_rotator.scores_amplitude()
@@ -261,7 +261,7 @@ def test_crmca_scores_amplitude(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_crmca_scores_phase(mca_model, mock_data_array, dim):
+def test_scores_phase(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     amps1, amps2 = mca_rotator.scores_phase()

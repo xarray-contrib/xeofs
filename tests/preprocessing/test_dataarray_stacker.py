@@ -14,7 +14,7 @@ from xeofs.preprocessing.stacker import SingleDataArrayStacker
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_stacker_fit_transform(
+def test_fit_transform(
     dim_sample,
     dim_feature,
     mock_data_array,
@@ -66,7 +66,7 @@ def test_data_array_stacker_fit_transform(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_stacker_transform(mock_data_array, dim_sample, dim_feature):
+def test_transform(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
     stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
@@ -92,9 +92,7 @@ def test_data_array_stacker_transform(mock_data_array, dim_sample, dim_feature):
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_stacker_inverse_transform_data(
-    mock_data_array, dim_sample, dim_feature
-):
+def test_inverse_transform_data(mock_data_array, dim_sample, dim_feature):
     # Test inverse transform
     stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
@@ -116,9 +114,7 @@ def test_data_array_stacker_inverse_transform_data(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_stacker_inverse_transform_components(
-    mock_data_array, dim_sample, dim_feature
-):
+def test_inverse_transform_components(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
     stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
@@ -149,9 +145,7 @@ def test_data_array_stacker_inverse_transform_components(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_stacker_inverse_transform_scores(
-    mock_data_array, dim_sample, dim_feature
-):
+def test_inverse_transform_scores(mock_data_array, dim_sample, dim_feature):
     # Test basic functionality
     stacker = SingleDataArrayStacker()
     stacker.fit_transform(mock_data_array, dim_sample, dim_feature)

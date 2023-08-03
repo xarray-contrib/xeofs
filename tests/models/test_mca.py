@@ -12,7 +12,7 @@ def mca_model():
     return MCA()
 
 
-def test_mca_initialization():
+def test_initialization():
     mca = MCA()
     assert mca is not None
 
@@ -25,7 +25,7 @@ def test_mca_initialization():
         (("lon", "lat")),
     ],
 )
-def test_mca_fit(mca_model, mock_data_array, dim):
+def test_fit(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")
@@ -40,7 +40,7 @@ def test_mca_fit(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_mca_fit_empty_data(mca_model, dim):
+def test_fit_empty_data(mca_model, dim):
     with pytest.raises(ValueError):
         mca_model.fit(xr.DataArray(), xr.DataArray(), dim)
 
@@ -53,7 +53,7 @@ def test_mca_fit_empty_data(mca_model, dim):
         (("lon", "lat")),
     ],
 )
-def test_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
+def test_fit_invalid_dims(mca_model, mock_data_array, dim):
     with pytest.raises(ValueError):
         mca_model.fit(
             mock_data_array, mock_data_array, dim=("invalid_dim1", "invalid_dim2")
@@ -68,7 +68,7 @@ def test_mca_fit_invalid_dims(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_mca_fit_with_dataset(mca_model, mock_dataset, dim):
+def test_fit_with_dataset(mca_model, mock_dataset, dim):
     mca_model.fit(mock_dataset, mock_dataset, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")
@@ -83,7 +83,7 @@ def test_mca_fit_with_dataset(mca_model, mock_dataset, dim):
         (("lon", "lat")),
     ],
 )
-def test_mca_fit_with_dataarray_list(mca_model, mock_data_array_list, dim):
+def test_fit_with_dataarray_list(mca_model, mock_data_array_list, dim):
     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")

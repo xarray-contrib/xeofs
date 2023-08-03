@@ -3,12 +3,10 @@ import xarray as xr
 import numpy as np
 
 from xeofs.data_container.mca_rotator_data_container import MCARotatorDataContainer
-from .test_mca_data_container import (
-    test_mca_data_container_init,
-    test_mca_data_container_set_data,
-    test_mca_data_container_no_data,
-    test_mca_data_container_set_attrs,
-)
+from .test_mca_data_container import test_init as test_mca_init
+from .test_mca_data_container import test_set_data as test_mca_set_data
+from .test_mca_data_container import test_no_data as test_mca_no_data
+from .test_mca_data_container import test_set_attrs as test_mca_set_attrs
 
 """
 The idea here is to reuse tests from MCADataContainer in MCARotatorDataContainer 
@@ -19,16 +17,16 @@ we'll know it's due to the new functionality and not something inherited.
 """
 
 
-def test_mca_rotator_data_container_init():
+def test_init():
     """Test the initialization of the MCARotatorDataContainer."""
     data_container = MCARotatorDataContainer()
-    test_mca_data_container_init()  # Re-use the test from MCADataContainer.
+    test_mca_init()  # Re-use the test from MCADataContainer.
     assert data_container._rotation_matrix is None
     assert data_container._phi_matrix is None
     assert data_container._modes_sign is None
 
 
-def test_mca_rotator_data_container_set_data(
+def test_set_data(
     sample_input_data,
     sample_components,
     sample_scores,
@@ -59,7 +57,7 @@ def test_mca_rotator_data_container_set_data(
         sample_phi_matrix,
     )
 
-    test_mca_data_container_set_data(
+    test_mca_set_data(
         sample_input_data,
         sample_components,
         sample_scores,
@@ -73,10 +71,10 @@ def test_mca_rotator_data_container_set_data(
     assert data_container._modes_sign is sample_modes_sign
 
 
-def test_mca_rotator_data_container_no_data():
+def test_no_data():
     """Test the data accessors without data in MCARotatorDataContainer."""
     data_container = MCARotatorDataContainer()
-    test_mca_data_container_no_data()  # Re-use the test from MCADataContainer.
+    test_mca_no_data()  # Re-use the test from MCADataContainer.
     with pytest.raises(ValueError):
         data_container.rotation_matrix
     with pytest.raises(ValueError):
@@ -85,7 +83,7 @@ def test_mca_rotator_data_container_no_data():
         data_container.modes_sign
 
 
-def test_mca_rotator_data_container_set_attrs(
+def test_set_attrs(
     sample_input_data,
     sample_components,
     sample_scores,
@@ -117,7 +115,7 @@ def test_mca_rotator_data_container_set_attrs(
     )
     data_container.set_attrs({"test": 1})
 
-    test_mca_data_container_set_attrs(
+    test_mca_set_attrs(
         sample_input_data,
         sample_components,
         sample_scores,

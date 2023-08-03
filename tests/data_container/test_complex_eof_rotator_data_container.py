@@ -8,7 +8,7 @@ from xeofs.data_container.eof_rotator_data_container import (
 )
 
 
-def test_complex_rotator_init():
+def test_init():
     """Test the initialization of the ComplexEOFRotatorDataContainer."""
     container = ComplexEOFRotatorDataContainer()
     assert container._rotation_matrix is None
@@ -16,7 +16,7 @@ def test_complex_rotator_init():
     assert container._modes_sign is None
 
 
-def test_complex_rotator_set_data(
+def test_set_data(
     sample_input_data,
     sample_components,
     sample_scores,

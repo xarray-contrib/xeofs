@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_fit(mock_data_array, dim):
+def test_fit(mock_data_array, dim):
     """Test fitting a ComplexEOF model"""
     # Create a xarray DataArray with random data
     ceof = ComplexEOF(n_modes=2)
@@ -38,7 +38,7 @@ def test_ComplexEOF_fit(mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_components_amplitude(mock_data_array, dim):
+def test_components_amplitude(mock_data_array, dim):
     """Test computation of components amplitude in ComplexEOF model"""
     ceof = ComplexEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
@@ -56,7 +56,7 @@ def test_ComplexEOF_components_amplitude(mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_components_phase(mock_data_array, dim):
+def test_components_phase(mock_data_array, dim):
     """Test computation of components phase in ComplexEOF model"""
     ceof = ComplexEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
@@ -74,7 +74,7 @@ def test_ComplexEOF_components_phase(mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_scores_amplitude(mock_data_array, dim):
+def test_scores_amplitude(mock_data_array, dim):
     """Test computation of scores amplitude in ComplexEOF model"""
     ceof = ComplexEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
@@ -92,7 +92,7 @@ def test_ComplexEOF_scores_amplitude(mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_scores_phase(mock_data_array, dim):
+def test_scores_phase(mock_data_array, dim):
     """Test computation of scores phase in ComplexEOF model"""
     ceof = ComplexEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
@@ -110,7 +110,7 @@ def test_ComplexEOF_scores_phase(mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_ComplexEOF_compute(mock_dask_data_array, dim):
+def test_compute(mock_dask_data_array, dim):
     """Test computation of all attributes in ComplexEOF model"""
     ceof = ComplexEOF(n_modes=2)
     with pytest.raises(NotImplementedError):

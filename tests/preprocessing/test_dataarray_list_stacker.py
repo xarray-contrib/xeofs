@@ -14,9 +14,7 @@ from xeofs.preprocessing.stacker import ListDataArrayStacker
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_list_stacker_fit_transform(
-    dim_sample, dim_feature, mock_data_array_list
-):
+def test_fit_transform(dim_sample, dim_feature, mock_data_array_list):
     """
     Test that ListDataArrayStacker correctly stacks a list of DataArrays and
     fit_transform returns DataArray with 'sample' and 'feature' dimensions.
@@ -78,9 +76,7 @@ def test_data_array_list_stacker_fit_transform(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_list_stacker_unstack_data(
-    dim_sample, dim_feature, mock_data_array_list
-):
+def test_unstack_data(dim_sample, dim_feature, mock_data_array_list):
     """Test if the inverse transformed DataArrays are identical to the original DataArrays."""
     stacker_list = ListDataArrayStacker()
     feature_dims_list = [dim_feature] * len(
@@ -102,9 +98,7 @@ def test_data_array_list_stacker_unstack_data(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_data_array_list_stacker_unstack_components(
-    dim_sample, dim_feature, mock_data_array_list
-):
+def test_unstack_components(dim_sample, dim_feature, mock_data_array_list):
     """Test if the inverse transformed components are identical to the original components."""
     stacker_list = ListDataArrayStacker()
     feature_dims_list = [dim_feature] * len(mock_data_array_list)

@@ -5,7 +5,7 @@ import numpy as np
 from xeofs.data_container.mca_data_container import MCADataContainer
 
 
-def test_mca_data_container_init():
+def test_init():
     """Test the initialization of the MCADataContainer."""
     data_container = MCADataContainer()
     assert data_container._input_data1 is None
@@ -21,7 +21,7 @@ def test_mca_data_container_init():
     assert data_container._norm2 is None
 
 
-def test_mca_data_container_set_data(
+def test_set_data(
     sample_input_data,
     sample_components,
     sample_scores,
@@ -59,7 +59,7 @@ def test_mca_data_container_set_data(
     assert data_container._norm2 is sample_norm
 
 
-def test_mca_data_container_no_data():
+def test_no_data():
     """Test the data accessors without data in MCADataContainer."""
     data_container = MCADataContainer()
     with pytest.raises(ValueError):
@@ -96,7 +96,7 @@ def test_mca_data_container_no_data():
         data_container.compute()
 
 
-def test_mca_data_container_set_attrs(
+def test_set_attrs(
     sample_input_data,
     sample_components,
     sample_scores,

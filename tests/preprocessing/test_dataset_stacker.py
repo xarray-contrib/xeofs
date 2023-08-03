@@ -14,7 +14,7 @@ from xeofs.preprocessing.stacker import SingleDatasetStacker
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_fit_transform(mock_dataset, dim_sample, dim_feature):
+def test_fit_transform(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
@@ -38,7 +38,7 @@ def test_DatasetStacker_fit_transform(mock_dataset, dim_sample, dim_feature):
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_transform(mock_dataset, dim_sample, dim_feature):
+def test_transform(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
@@ -61,7 +61,7 @@ def test_DatasetStacker_transform(mock_dataset, dim_sample, dim_feature):
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_inverse_transform_data(mock_dataset, dim_sample, dim_feature):
+def test_inverse_transform_data(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
@@ -81,9 +81,7 @@ def test_DatasetStacker_inverse_transform_data(mock_dataset, dim_sample, dim_fea
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_inverse_transform_components(
-    mock_dataset, dim_sample, dim_feature
-):
+def test_inverse_transform_components(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
@@ -113,7 +111,7 @@ def test_DatasetStacker_inverse_transform_components(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_inverse_transform_scores(mock_dataset, dim_sample, dim_feature):
+def test_inverse_transform_scores(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     stacked = stacker.fit_transform(mock_dataset, dim_sample, dim_feature)
 
@@ -145,15 +143,13 @@ def test_DatasetStacker_inverse_transform_scores(mock_dataset, dim_sample, dim_f
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_fit_transform_raises_on_invalid_dims(
-    mock_dataset, dim_sample, dim_feature
-):
+def test_fit_transform_raises_on_invalid_dims(mock_dataset, dim_sample, dim_feature):
     stacker = SingleDatasetStacker()
     with pytest.raises(ValueError):
         stacker.fit_transform(mock_dataset, ("invalid_dim",), dim_feature)
 
 
-def test_DatasetStacker_fit_transform_raises_on_isolated_nans(
+def test_fit_transform_raises_on_isolated_nans(
     mock_data_array_isolated_nans,
 ):
     stacker = SingleDatasetStacker()
@@ -171,7 +167,7 @@ def test_DatasetStacker_fit_transform_raises_on_isolated_nans(
         (("lon", "lat"), ("time",)),
     ],
 )
-def test_DatasetStacker_fit_transform_passes_on_full_dimensional_nans(
+def test_fit_transform_passes_on_full_dimensional_nans(
     mock_data_array_full_dimensional_nans, dim_sample, dim_feature
 ):
     stacker = SingleDatasetStacker()

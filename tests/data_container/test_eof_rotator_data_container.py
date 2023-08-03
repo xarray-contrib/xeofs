@@ -6,7 +6,7 @@ from dask.array import Array as DaskArray  # type: ignore
 from xeofs.data_container.eof_rotator_data_container import EOFRotatorDataContainer
 
 
-def test_rotator_init():
+def test_init():
     """Test the initialization of the EOFRotatorDataContainer."""
     container = EOFRotatorDataContainer()
     assert container._rotation_matrix is None
@@ -14,7 +14,7 @@ def test_rotator_init():
     assert container._modes_sign is None
 
 
-def test_rotator_set_data(
+def test_set_data(
     sample_input_data,
     sample_components,
     sample_scores,
@@ -49,7 +49,7 @@ def test_rotator_set_data(
     assert container._phi_matrix is sample_phi_matrix
 
 
-def test_rotator_no_data():
+def test_no_data():
     """Test the data accessors without data for EOFRotatorDataContainer."""
     container = EOFRotatorDataContainer()
     with pytest.raises(ValueError):
