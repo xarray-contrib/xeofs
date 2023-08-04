@@ -10,6 +10,7 @@ from ..models import EOF
 from ..data_container.eof_bootstrapper_data_container import (
     EOFBootstrapperDataContainer,
 )
+from ..utils.data_types import DataArray
 from .._version import __version__
 
 
@@ -58,45 +59,32 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         self.model = model
         self.preprocessor = model.preprocessor
 
-        # NOTE: not sure if we actually need a copy of the data because we reassign the dimensions
         input_data = model.data.input_data
         n_samples = input_data.sample.size
-        n_features = input_data.feature.size
-
-        # Replace sample and feature dimensions with indices to avoid conflicts with model implementation
-        input_data = input_data.drop_vars(["sample", "feature"])
-        # use assign_coords instead of update to create a copy of the data, so that
-        # we don't modify the original data
-        input_data = input_data.assign_coords(
-            sample=range(n_samples), feature=range(n_features)
-        )
-        input_data = input_data.rename(
-            {"sample": "sample_bst", "feature": "feature_bst"}
-        )
 
         model_params = model.get_params()
-        n_modes = model_params.get("n_modes")
-        n_bootstraps = self._params["n_bootstraps"]
+        n_modes: int = model_params["n_modes"]
+        n_bootstraps: int = self._params["n_bootstraps"]
 
         # Set seed for reproducibility
         rng = np.random.default_rng(self._params["seed"])
 
         # Bootstrap the model
-        bst_expvar = []
-        bst_total_variance = []
-        bst_components = []
-        bst_scores = []
-        bst_idx_modes_sorted = []
+        bst_expvar = []  # type: ignore
+        bst_total_variance = []  # type: ignore
+        bst_components = []  # type: ignore
+        bst_scores = []  # type: ignore
+        bst_idx_modes_sorted = []  # type: ignore
         for i in trange(n_bootstraps):
             # Sample with replacement
             idx_rnd = rng.choice(n_samples, n_samples, replace=True)
-            bst_data = input_data.isel(sample_bst=idx_rnd)
+            bst_data = input_data.isel(sample=idx_rnd)
             # Perform EOF analysis with the subsampled data
             # No scaling because we use the pre-scaled data from the model
             bst_model = EOF(
                 n_modes=n_modes, standardize=False, use_coslat=False, use_weights=False
             )
-            bst_model.fit(bst_data, dim="sample_bst")
+            bst_model.fit(bst_data, dim="sample")
             # Save results
             expvar = bst_model.data.explained_variance
             totvar = bst_model.data.total_variance
@@ -109,56 +97,20 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             bst_components.append(components)
             bst_scores.append(scores)
 
-        bst_expvar = xr.concat(bst_expvar, dim="n").assign_coords(
-            n=np.arange(1, n_bootstraps + 1)
-        )
-        bst_total_variance = xr.concat(bst_total_variance, dim="n").assign_coords(
-            n=np.arange(1, n_bootstraps + 1)
-        )
-        bst_idx_modes_sorted = xr.concat(bst_idx_modes_sorted, dim="n").assign_coords(
-            n=np.arange(1, n_bootstraps + 1)
-        )
-        bst_components = xr.concat(bst_components, dim="n").assign_coords(
-            n=np.arange(1, n_bootstraps + 1)
-        )
-        bst_scores = xr.concat(bst_scores, dim="n").assign_coords(
-            n=np.arange(1, n_bootstraps + 1)
-        )
+        # Concatenate the bootstrap results along a new dimension
+        bst_expvar: DataArray = xr.concat(bst_expvar, dim="n")
+        bst_total_variance: DataArray = xr.concat(bst_total_variance, dim="n")
+        bst_idx_modes_sorted: DataArray = xr.concat(bst_idx_modes_sorted, dim="n")
+        bst_components: DataArray = xr.concat(bst_components, dim="n")
+        bst_scores: DataArray = xr.concat(bst_scores, dim="n")
 
-        # Rename dimensions only for scores, because `transform` returned the "unstacked" version with "sample_bst" dimension
-        # bst_components = bst_components.rename({'feature_bst': 'feature'})
-        bst_scores = bst_scores.rename({"sample_bst": "sample"})
-
-        # Re-assign original coordinates
-        bst_components = bst_components.assign_coords(
-            feature=self.preprocessor.stacker.coords_out_["feature"]
-        )
-        bst_scores = bst_scores.assign_coords(
-            sample=self.preprocessor.stacker.coords_out_["sample"]
-        )
-
-        # NOTE: this is a bit of an ugly workaround to set the index of the DataArray. Will have to dig more
-        # into this to find a better solution
-        try:
-            indexes = [
-                k
-                for k in self.preprocessor.stacker.coords_out_["feature"].coords.keys()
-                if k != "feature"
-            ]
-            bst_components = bst_components.set_index(feature=indexes)
-        # ListDataArrayStacker does not have dims but then we don't need to set the index
-        except ValueError:
-            pass
-        try:
-            indexes = [
-                k
-                for k in self.preprocessor.stacker.coords_out_["sample"].coords.keys()
-                if k != "sample"
-            ]
-            bst_scores = bst_scores.set_index(sample=indexes)
-        # ListDataArrayStacker does not have dims but then we don't need to set the index
-        except ValueError:
-            pass
+        # Assign the bootstrap dimension coordinates
+        coords_n = np.arange(1, n_bootstraps + 1)
+        bst_expvar = bst_expvar.assign_coords(n=coords_n)
+        bst_total_variance = bst_total_variance.assign_coords(n=coords_n)
+        bst_idx_modes_sorted = bst_idx_modes_sorted.assign_coords(n=coords_n)
+        bst_components = bst_components.assign_coords(n=coords_n)
+        bst_scores = bst_scores.assign_coords(n=coords_n)
 
         # Fix sign of individual components determined by correlation coefficients
         # for a given mode with all the individual bootstrap members
