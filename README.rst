@@ -26,7 +26,7 @@
    :target: https://anaconda.org/conda-forge/xeofs
    :alt: Conda-forge Version
 
-.. |build| image:: https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/CI.yml?branch=main
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/ci.yml?branch=main
    :target: https://github.com/nicrie/xeofs/actions
    :alt: Build Status
 
