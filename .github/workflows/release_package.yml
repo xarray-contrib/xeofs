@@ -1,0 +1,26 @@
+name: Release Package After Merge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+
+jobs:
+  Release_Package:
+    runs-on: ubuntu-latest
+    concurrency: release
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Execute Semantic Release
+        uses: python-semantic-release/python-semantic-release@v7.34.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository_username: __token__
+          repository_password: ${{ secrets.PYPI_TOKEN }}

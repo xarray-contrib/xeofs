@@ -12,9 +12,8 @@ from ..utils.rotation import promax
 from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray
 
 
-
 class RotatorFactory:
-    '''Factory class for creating rotators.
+    """Factory class for creating rotators.
 
     Parameters
     ----------
@@ -29,25 +28,28 @@ class RotatorFactory:
     rtol : float
         Relative tolerance to be achieved for early stopping the iteration
         process (the default is 1e-8).
-    
-    '''
+
+    """
+
     def __init__(self, **kwargs):
         self.params = kwargs
         self._valid_types = (EOF, ComplexEOF, MCA, ComplexMCA)
 
-    def create_rotator(self, model: EOF | ComplexEOF | MCA | ComplexMCA) -> EOFRotator | ComplexEOFRotator | MCARotator | ComplexMCARotator:
-        '''Create a rotator for the given model.
-        
+    def create_rotator(
+        self, model: EOF | ComplexEOF | MCA | ComplexMCA
+    ) -> EOFRotator | ComplexEOFRotator | MCARotator | ComplexMCARotator:
+        """Create a rotator for the given model.
+
         Parameters
         ----------
         model : xeofs model
             Model to be rotated.
-        
+
         Returns
         -------
         xeofs Rotator
             Rotator for the given model.
-        '''
+        """
         # We need to check the type of the model instead of isinstance because
         # of inheritance.
         if type(model) == EOF:
@@ -59,5 +61,5 @@ class RotatorFactory:
         elif type(model) == ComplexMCA:
             return ComplexMCARotator(**self.params)
         else:
-            err_msg = f'Invalid model type. Valid types are {self._valid_types}.'
+            err_msg = f"Invalid model type. Valid types are {self._valid_types}."
             raise TypeError(err_msg)

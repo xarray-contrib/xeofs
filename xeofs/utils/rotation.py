@@ -1,4 +1,4 @@
-''' Implementation of VARIMAX and PROMAX rotation. '''
+""" Implementation of VARIMAX and PROMAX rotation. """
 
 # =============================================================================
 # Imports
@@ -9,13 +9,8 @@ import numpy as np
 # =============================================================================
 # VARIMAX
 # =============================================================================
-def varimax(
-    X : np.ndarray,
-    gamma : float = 1,
-    max_iter : int = 1000,
-    rtol : float = 1e-8
-):
-    '''
+def varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float = 1e-8):
+    """
     Perform (orthogonal) Varimax rotation.
 
     This implementation also works for complex numbers.
@@ -41,12 +36,12 @@ def varimax(
     R : array-like
         Rotation matrix of shape ``(n_rot x n_rot)``
 
-    '''
+    """
     X = X.copy()
     n_samples, n_modes = X.shape
 
     if n_modes < 2:
-        err_msg = 'Cannot rotate {:} modes (columns), but must be 2 or more.'
+        err_msg = "Cannot rotate {:} modes (columns), but must be 2 or more."
         err_msg = err_msg.format(n_modes)
         raise ValueError(err_msg)
 
@@ -59,10 +54,10 @@ def varimax(
 
     # Add a stabilizer to avoid zero communalities
     eps = 1e-9
-    X = (1. / (h + eps))[:, np.newaxis] * X
+    X = (1.0 / (h + eps))[:, np.newaxis] * X
 
     # Seek for rotation matrix based on varimax criteria
-    delta = 0.
+    delta = 0.0
     converged = False
     for i in range(max_iter):
         delta_old = delta
@@ -81,8 +76,8 @@ def varimax(
             converged = True
             break
 
-    if(not converged):
-        raise RuntimeError('Rotation process did not converge.')
+    if not converged:
+        raise RuntimeError("Rotation process did not converge.")
 
     # De-normalize
     X = h[:, np.newaxis] * X
@@ -95,13 +90,8 @@ def varimax(
 # =============================================================================
 # PROMAX
 # =============================================================================
-def promax(
-    X : np.ndarray,
-    power : int = 1,
-    max_iter : int = 1000,
-    rtol : float = 1e-8
-):
-    '''
+def promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+    """
     Perform (oblique) Promax rotation.
 
     This implementation also works for complex numbers.
@@ -133,7 +123,7 @@ def promax(
         of modes. For Varimax solution (``power=1``), the correlation matrix
         is diagonal i.e. the modes are uncorrelated.
 
-    '''
+    """
     X = X.copy()
 
     # Perform varimax rotation
@@ -143,13 +133,13 @@ def promax(
     h = np.sqrt(np.sum(X * X.conj(), axis=1))
     # Add a stabilizer to avoid zero communalities
     eps = 1e-9
-    X = (1. / (h + eps))[:, np.newaxis] * X
+    X = (1.0 / (h + eps))[:, np.newaxis] * X
 
     # Max-normalisation of columns
     Xnorm = X / np.max(abs(X), axis=0)
 
     # "Procustes" equation
-    P = Xnorm * np.abs(Xnorm)**(power - 1)
+    P = Xnorm * np.abs(Xnorm) ** (power - 1)
 
     # Fit linear regression model of "Procrustes" equation
     # see Richman 1986 for derivation

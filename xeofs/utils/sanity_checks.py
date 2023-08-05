@@ -2,6 +2,7 @@ from typing import Sequence, Hashable, Tuple, Any
 
 import xarray as xr
 
+
 def assert_single_dataarray(da, name):
     """Check if the given object is a DataArray.
 
@@ -14,7 +15,8 @@ def assert_single_dataarray(da, name):
     """
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"{name} must be a DataArray")
-    
+
+
 def assert_list_dataarrays(da_list, name):
     """Check if the given object is a list of DataArrays.
 
@@ -30,6 +32,7 @@ def assert_list_dataarrays(da_list, name):
     for da in da_list:
         assert_single_dataarray(da, name)
 
+
 def assert_single_dataset(ds, name):
     """Check if the given object is a Dataset.
 
@@ -43,13 +46,14 @@ def assert_single_dataset(ds, name):
     if not isinstance(ds, xr.Dataset):
         raise TypeError(f"{name} must be a Dataset")
 
+
 def assert_dataarray_or_dataset(da, name):
     """Check if the given object is a DataArray or Dataset.
-    
+
     Args:
         da (DataArray|Dataset): The object to check.
         name (str): The name of the object.
-    
+
     Raises:
         TypeError: If the object is not a DataArray or Dataset.
     """
@@ -63,7 +67,9 @@ def ensure_tuple(arg: Any) -> Tuple[str]:
         raise TypeError(f"Invalid input type: {type(arg).__name__}")
 
     # Check for invalid sequence elements
-    if isinstance(arg, (tuple, list)) and not all(isinstance(item, str) for item in arg):
+    if isinstance(arg, (tuple, list)) and not all(
+        isinstance(item, str) for item in arg
+    ):
         raise TypeError("Invalid sequence element type. All elements should be strings")
 
     if isinstance(arg, tuple):
