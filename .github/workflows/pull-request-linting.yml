@@ -5,20 +5,18 @@
 # Aim: ensure that PR title matches the concentional commits spec
 # More info: https://github.com/marketplace/actions/semantic-pull-request
 
-name: "Lint PR"
+name: "Pull Request Linting"
 
 on:
   pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
+    types: [opened, edited, synchronize]
 
 jobs:
-  main:
-    name: Validate PR title
+  PR_Validation:
+    name: Validate Pull Request Title
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v5
+      - name: Run Semantic Pull Request Linting
+        uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
