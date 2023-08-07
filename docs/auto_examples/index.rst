@@ -1,9 +1,5 @@
 :orphan:
 
-
-
-.. _sphx_glr_auto_examples:
-
 ==================
 Examples
 ==================
@@ -11,13 +7,15 @@ Examples
 .. note:: More examples will follow soon.
 
 
+
 .. raw:: html
 
-    <div class="sphx-glr-clear"></div>
+    <div class="sphx-glr-thumbnails">
 
 
+.. raw:: html
 
-.. _sphx_glr_auto_examples_1eof:
+    </div>
 
 1 | EOF analysis
 ==================
@@ -26,24 +24,25 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbnails">
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in T-mode maximises the spatial variance.">
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
-     :alt: EOF analysis (T-mode)
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">EOF analysis (T-mode)</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_eof-tmode
 
 .. raw:: html
 
@@ -51,20 +50,16 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-smode_thumb.png
-     :alt: EOF analysis (S-mode)
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-smode_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">EOF analysis (S-mode)</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_eof-smode
 
 .. raw:: html
 
@@ -72,20 +67,16 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
-     :alt: Multivariate EOF analysis
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">Multivariate EOF analysis</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_multivariate-eof
 
 .. raw:: html
 
@@ -93,20 +84,16 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_mreof_thumb.png
-     :alt: Varimax-rotated Multivariate EOF analysis
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_mreof_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">Varimax-rotated Multivariate EOF analysis</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_mreof
 
 .. raw:: html
 
@@ -114,20 +101,16 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
-     :alt: Rotated EOF analysis
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">Rotated EOF analysis</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_rotated_eof
 
 .. raw:: html
 
@@ -135,27 +118,20 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
-     :alt: Weighted EOF analysis
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
+  :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Weighted EOF analysis</div>
+    </div>
+
 
 .. raw:: html
 
     </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/1eof/plot_weighted-eof
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_2mca:
 
 2 | MCA
 ========================
@@ -164,24 +140,25 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbnails">
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
 
 .. only:: html
 
- .. figure:: /auto_examples/2mca/images/thumb/sphx_glr_plot_mca_thumb.png
-     :alt: Maximum Covariance Analysis
+  .. image:: /auto_examples/2mca/images/thumb/sphx_glr_plot_mca_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_2mca_plot_mca.py`
+  :ref:`sphx_glr_auto_examples_2mca_plot_mca.py`
 
 .. raw:: html
 
+      <div class="sphx-glr-thumbnail-title">Maximum Covariance Analysis</div>
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/2mca/plot_mca
 
 .. raw:: html
 
@@ -189,30 +166,28 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/2mca/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
-     :alt: Rotated Maximum Covariance Analysis
+  .. image:: /auto_examples/2mca/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_2mca_plot_rotated_mca.py`
+  :ref:`sphx_glr_auto_examples_2mca_plot_rotated_mca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Rotated Maximum Covariance Analysis</div>
+    </div>
+
 
 .. raw:: html
 
     </div>
 
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/2mca/plot_rotated_mca
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
-
-
-
-.. _sphx_glr_auto_examples_3validation:
-
 3 | Validation
 ===============
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
 
 
 .. raw:: html
@@ -221,10 +196,16 @@ Examples
 
 .. only:: html
 
- .. figure:: /auto_examples/3validation/images/thumb/sphx_glr_plot_bootstrap_thumb.png
-     :alt: Significance testing of EOF analysis via bootstrap
+  .. image:: /auto_examples/3validation/images/thumb/sphx_glr_plot_bootstrap_thumb.png
+    :alt:
 
-     :ref:`sphx_glr_auto_examples_3validation_plot_bootstrap.py`
+  :ref:`sphx_glr_auto_examples_3validation_plot_bootstrap.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Significance testing of EOF analysis via bootstrap</div>
+    </div>
+
 
 .. raw:: html
 
@@ -233,29 +214,25 @@ Examples
 
 .. toctree::
    :hidden:
-
-   /auto_examples/3validation/plot_bootstrap
-.. raw:: html
-
-    <div class="sphx-glr-clear"></div>
+   :includehidden:
 
 
-
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-gallery
+   /auto_examples/1eof/index.rst
+   /auto_examples/2mca/index.rst
+   /auto_examples/3validation/index.rst
 
 
-  .. container:: sphx-glr-download sphx-glr-download-python
+.. only:: html
 
-    :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
+  .. container:: sphx-glr-footer sphx-glr-footer-gallery
 
+    .. container:: sphx-glr-download sphx-glr-download-python
 
+      :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-    :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
+      :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
 
 
 .. only:: html

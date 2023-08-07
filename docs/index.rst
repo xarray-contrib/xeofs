@@ -36,17 +36,17 @@ thereby enhancing their application in the broader scientific community.
 
 .. grid:: 2
 
+    .. grid-item-card::  Methods
+      :link: models
+      :link-type: doc
+
+      Check what methods are available.
+
     .. grid-item-card::  Examples
       :link: auto_examples/index
       :link-type: doc
 
       Follow along with some examples. 
-
-    .. grid-item-card::  API
-      :link: api
-      :link-type: doc
-
-      Explore the API.
 
 
 

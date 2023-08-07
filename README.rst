@@ -58,17 +58,16 @@
 Overview
 ---------------------
 
-``xeofs`` is a Python package designed for Empirical Orthogonal Function (EOF) analysis, also known as Principal Component Analysis (PCA), 
-and related variants. The package stands out due to its capacity 
-to handle multi-dimensional Earth observation data, thereby optimizing the speed and efficiency of EOF analysis. 
-Here are the key strengths of ``xeofs``:
+``xeofs`` is a Python toolbox designed for methods like **Empirical Orthogonal Function (EOF) analysis**, also known as Principal Component Analysis (PCA), 
+and **related variants**. The package stands out due to its capacity 
+to handle multi-dimensional Earth observation data. 
 
-The benefits of using ``xeofs`` include:
+Here are the key strengths of ``xeofs``:
 
 - **Multi-dimensional Analysis**: Execute labeled EOF analysis with the extensive features of ``xarray``.
 - **Scalability**: Handle large datasets effectively with ``dask``.
 - **Speed**: Enjoy quick EOF analysis using ``scipy``'s randomized SVD.
-- **Variety of Methods**: Perform diverse variants of EOF analysis, including complex and rotated version, along with related techniques such as Maximum Covariance Analysis (MCA).
+- **Variety of Methods**: Perform diverse variants of EOF analysis, including **complex and rotated EOF analysis**, along with related techniques such as **Maximum Covariance Analysis (MCA)**.
 - **Model Validation**: Validate models through bootstrapping.
 - **Modular Code Structure**: Incorporate new EOF variants with ease due to the package's modular structure.
 - **Flexible Data Formats**: Accepts a variety of ``xarray`` input types (``DataArray``, ``Dataset``, list of ``DataArray``).
@@ -87,43 +86,66 @@ To install the package, use either of the following commands:
 
 .. code-block:: bash
 
-   pip install xeofs
+   conda install -c conda-forge xeofs
 
 or 
 
 .. code-block:: bash
 
-   conda install -c conda-forge xeofs
-
+   pip install xeofs
 
 Quickstart
 ----------
 
 In order to get started with ``xeofs``, follow these simple steps:
 
-1. **Import the package**
+**Import the package**
 
-   .. code-block:: python
+.. code-block:: python
 
-      import xeofs as xe
+   import xeofs as xe
 
-2. **Instantiate the model**
+**EOF analysis**
 
-   Select the type of analysis you want to perform (in this case, EOF analysis) and set the parameters. For example, if you want to analyze the first 10 modes, you would use the following code:
+.. code-block:: python
 
-   .. code-block:: python
+   model = xe.models.EOF(n_modes=10)
+   model.fit(data, dim="time")
+   comps = model.components()  # EOFs (spatial patterns)
+   scores = model.scores()  # PCs (temporal patterns)
 
-      model = xe.models.EOF(n_modes=10)
+**Varimax-rotated EOF analysis**
 
-3. **Fit the model to your data**
+.. code-block:: python
 
-   Fit the model to your data by specifying the dimensions along which the analysis should be performed. Replace 'your_data' and 'your_dimension' with your specific data and dimension:
+   rotator = xe.models.EOFRotator(n_modes=10)
+   rotator.fit(model)
+   rot_comps = rotator.components()  # Rotated EOFs (spatial patterns)
+   rot_scores = rotator.scores()  # Rotated PCs (temporal patterns)
 
-   .. code-block:: python
+**MCA**
 
-      model.fit(your_data, dim=your_dimension)
+.. code-block:: python
 
-Congratulations! You have performed your first analysis with ``xeofs``. To further explore the capabilities of ``xeofs``, check the documentation_ and examples_.
+   model = xe.models.MCA(n_modes=10)
+   model.fit(data1, data2, dim="time")
+   comps1, comps2 = model.components()  # Singular vectors (spatial patterns)
+   scores1, scores2 = model.scores()  # Expansion coefficients (temporal patterns)
+
+**Varimax-rotated MCA**
+
+.. code-block:: python
+
+   rotator = xe.models.MCARotator(n_modes=10)
+   rotator.fit(model)
+   rot_comps = rotator.components()  # Rotated singular vectors (spatial patterns)
+   rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)
+
+
+To further explore the capabilities of ``xeofs``, check the available documentation_ and examples_.
+For a full list of currently available methods, see the methods_ section.
+
+.. _methods: https://xeofs.readthedocs.io/en/latest/models.html
 
 
 
