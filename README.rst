@@ -110,7 +110,7 @@ In order to get started with ``xeofs``, follow these simple steps:
 .. code-block:: python
 
    model = xe.models.EOF(n_modes=10)
-   model.fit(data, dim='time')
+   model.fit(data, dim="time")
    comps = model.components()  # EOFs (spatial patterns)
    scores = model.scores()  # PCs (temporal patterns)
 
@@ -128,7 +128,7 @@ In order to get started with ``xeofs``, follow these simple steps:
 .. code-block:: python
 
    model = xe.models.MCA(n_modes=10)
-   model.fit(data1, data2, dim='time)
+   model.fit(data1, data2, dim="time")
    comps1, comps2 = model.components()  # Singular vectors (spatial patterns)
    scores1, scores2 = model.scores()  # Expansion coefficients (temporal patterns)
 
