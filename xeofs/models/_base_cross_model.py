@@ -4,6 +4,7 @@ from datetime import datetime
 
 from dask.diagnostics.progress import ProgressBar
 
+from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import _BaseCrossModelDataContainer
 from ..utils.data_types import AnyDataObject, DataArray
@@ -24,6 +25,12 @@ class _BaseCrossModel(ABC):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use weights.
+    n_pca_modes: int, default=None
+        Number of PCA modes to calculate.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to pass to the solver.
 
     """
 
@@ -33,6 +40,8 @@ class _BaseCrossModel(ABC):
         standardize=False,
         use_coslat=False,
         use_weights=False,
+        n_pca_modes=None,
+        solver="auto",
         solver_kwargs={},
     ):
         # Define model parameters
@@ -41,6 +50,8 @@ class _BaseCrossModel(ABC):
             "standardize": standardize,
             "use_coslat": use_coslat,
             "use_weights": use_weights,
+            "n_pca_modes": n_pca_modes,
+            "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
 
@@ -69,6 +80,10 @@ class _BaseCrossModel(ABC):
         # Initialize the data container only to avoid type errors
         # The actual data container will be initialized in respective subclasses
         self.data: _BaseCrossModelDataContainer = _BaseCrossModelDataContainer()
+
+        # Initialize PCA objects
+        self.pca1 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
+        self.pca2 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
 
     @abstractmethod
     def fit(
