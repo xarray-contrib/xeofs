@@ -20,7 +20,8 @@ def create_ds(dim_sample, dim_feature, seed=None):
 # Valid input
 # =============================================================================
 valid_input_dims = [
-    (("year", "month"), ("lon", "lat")),
+    # This SHOULD work but currently doesn't, potentially due to a bug in xarray (https://github.com/pydata/xarray/discussions/8063)
+    # (("year", "month"), ("lon", "lat")),
     (("year",), ("lat", "lon")),
     (("year", "month"), ("lon",)),
     (("year",), ("lon",)),
