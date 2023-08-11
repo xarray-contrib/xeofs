@@ -17,6 +17,7 @@ def test_init():
         "standardize": True,
         "use_coslat": True,
         "use_weights": False,
+        "solver": "auto",
     }
 
     # Assert preprocessor has been initialized
@@ -258,6 +259,7 @@ def test_get_params():
         "standardize": True,
         "use_coslat": True,
         "use_weights": False,
+        "solver": "auto",
     }
 
 
@@ -273,7 +275,7 @@ def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
 
     # Create a xarray DataArray with random data
-    model = EOF(n_modes=5, solver_kwargs={"random_state": 0})
+    model = EOF(n_modes=5, solver="full")
     model.fit(mock_data_array, dim)
     scores = model.scores()
 
