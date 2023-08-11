@@ -40,25 +40,97 @@ def test_init(decomposer):
     assert decomposer.solver_kwargs["random_state"] == 42
 
 
-def test_fit(decomposer, mock_data_array):
+def test_fit_full(mock_data_array):
+    decomposer = Decomposer(n_modes=2, solver="full")
     decomposer.fit(mock_data_array)
-    assert "scores_" in decomposer.__dict__
-    assert "singular_values_" in decomposer.__dict__
-    assert "components_" in decomposer.__dict__
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
 
 
-def test_fit_dask(mock_dask_data_array):
+def test_fit_full_matrices(mock_data_array):
+    decomposer = Decomposer(n_modes=2, solver="full", full_matrices=False)
+    decomposer.fit(mock_data_array)
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+
+def test_fit_randomized(mock_data_array):
+    decomposer = Decomposer(n_modes=2, solver="randomized", random_state=42)
+    decomposer.fit(mock_data_array)
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+
+def test_fit_dask_full(mock_dask_data_array):
     # The Dask SVD solver has no parameter 'random_state' but 'seed' instead,
     # so let's create a new decomposer for this case
-    decomposer = Decomposer(n_modes=2, seed=42)
+    decomposer = Decomposer(n_modes=2, solver="full")
     decomposer.fit(mock_dask_data_array)
-    assert "scores_" in decomposer.__dict__
-    assert "singular_values_" in decomposer.__dict__
-    assert "components_" in decomposer.__dict__
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check if the Dask SVD solver has been used
+    assert isinstance(decomposer.U_.data, DaskArray)
+    assert isinstance(decomposer.s_.data, DaskArray)
+    assert isinstance(decomposer.V_.data, DaskArray)
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
 
 
-def test_fit_complex(decomposer, mock_complex_data_array):
+def test_fit_dask_randomized(mock_dask_data_array):
+    # The Dask SVD solver has no parameter 'random_state' but 'seed' instead,
+    # so let's create a new decomposer for this case
+    decomposer = Decomposer(n_modes=2, solver="randomized", seed=42)
+    decomposer.fit(mock_dask_data_array)
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check if the Dask SVD solver has been used
+    assert isinstance(decomposer.U_.data, DaskArray)
+    assert isinstance(decomposer.s_.data, DaskArray)
+    assert isinstance(decomposer.V_.data, DaskArray)
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+
+def test_fit_complex(mock_complex_data_array):
+    decomposer = Decomposer(n_modes=2, solver="randomized", random_state=42)
     decomposer.fit(mock_complex_data_array)
-    assert "scores_" in decomposer.__dict__
-    assert "singular_values_" in decomposer.__dict__
-    assert "components_" in decomposer.__dict__
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+    # Check that U and V are complex
+    assert np.iscomplexobj(decomposer.U_.data)
+    assert np.iscomplexobj(decomposer.V_.data)
