@@ -24,8 +24,9 @@ class _BaseStacker(ABC):
 
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, sample_name: str = "sample", feature_name: str = "feature"):
+        self.sample_name = sample_name
+        self.feature_name = feature_name
 
     def fit(
         self,

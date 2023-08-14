@@ -1,7 +1,6 @@
 from typing import Optional, Sequence, Hashable, List
 
-from .scaler_factory import ScalerFactory
-from .stacker_factory import StackerFactory
+from .factory import StackerFactory, ScalerFactory, MultiIndexConverterFactory
 from ..utils.xarray_utils import get_dims
 from ..utils.data_types import AnyDataObject, DataArray
 
@@ -26,7 +25,17 @@ class Preprocessor:
 
     """
 
-    def __init__(self, with_std=True, with_coslat=False, with_weights=False):
+    def __init__(
+        self,
+        sample_name="sample",
+        feature_name="feature",
+        with_std=True,
+        with_coslat=False,
+        with_weights=False,
+    ):
+        self.sample_name = sample_name
+        self.feature_name = feature_name
+
         # Define model parameters
         self._params = {
             "with_std": with_std,
@@ -68,14 +77,22 @@ class Preprocessor:
         """
         # Set sample and feature dimensions
         sample_dims, feature_dims = get_dims(data, sample_dims=dim)
-        self.dims = {"sample": sample_dims, "feature": feature_dims}
+        self.dims = {self.sample_name: sample_dims, self.feature_name: feature_dims}
 
         # Scale the data
         self.scaler = ScalerFactory.create_scaler(data, **self._params)
         data = self.scaler.fit_transform(data, sample_dims, feature_dims, weights)
 
+        # Convert MultiIndex to single index
+        self.converter = MultiIndexConverterFactory.create_converter(data)
+        data = self.converter.fit_transform(data)  # type: ignore
+
         # Stack the data
-        self.stacker = StackerFactory.create_stacker(data)
+        stacker_kwargs = {
+            "sample_name": self.sample_name,
+            "feature_name": self.feature_name,
+        }
+        self.stacker = StackerFactory.create_stacker(data, **stacker_kwargs)
         return self.stacker.fit_transform(data, sample_dims, feature_dims)
 
     def transform(self, data: AnyDataObject) -> DataArray:
@@ -93,6 +110,7 @@ class Preprocessor:
 
         """
         data = self.scaler.transform(data)
+        data = self.converter.transform(data)  # type: ignore
         return self.stacker.transform(data)
 
     def inverse_transform_data(self, data: DataArray) -> AnyDataObject:
@@ -110,6 +128,7 @@ class Preprocessor:
 
         """
         data = self.stacker.inverse_transform_data(data)
+        data = self.converter.inverse_transform(data)  # type: ignore
         return self.scaler.inverse_transform(data)
 
     def inverse_transform_components(self, data: DataArray) -> AnyDataObject:
@@ -126,7 +145,8 @@ class Preprocessor:
             The inverse transformed components.
 
         """
-        return self.stacker.inverse_transform_components(data)
+        data = self.stacker.inverse_transform_components(data)
+        return self.converter.inverse_transform_components(data)  # type: ignore
 
     def inverse_transform_scores(self, data: DataArray) -> AnyDataObject:
         """Inverse transform the scores.
@@ -142,4 +162,5 @@ class Preprocessor:
             The inverse transformed scores.
 
         """
-        return self.stacker.inverse_transform_scores(data)
+        data = self.stacker.inverse_transform_scores(data)
+        return self.converter.inverse_transform_scores(data)  # type: ignore

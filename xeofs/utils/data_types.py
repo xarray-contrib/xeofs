@@ -6,9 +6,8 @@ DataArray: TypeAlias = xr.DataArray
 Dataset: TypeAlias = xr.Dataset
 DataArrayList: TypeAlias = List[DataArray]
 SingleDataObject = TypeVar("SingleDataObject", DataArray, Dataset)
+XArrayData = TypeVar("XArrayData", DataArray, Dataset)
 AnyDataObject = TypeVar("AnyDataObject", DataArray, Dataset, DataArrayList)
-
-XarrayData: TypeAlias = DataArray | Dataset
 # Model dimensions are always 2-dimensional: sample and feature
 Dims: TypeAlias = Tuple[str]
 DimsList: TypeAlias = List[Dims]

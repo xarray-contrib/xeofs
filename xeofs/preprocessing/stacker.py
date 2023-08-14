@@ -18,13 +18,12 @@ from ..utils.sanity_checks import ensure_tuple
 
 
 class SingleDataStacker(_BaseStacker):
-    def __init__(self):
-        super().__init__()
-
     def _validate_matching_dimensions(self, data: SingleDataObject):
         """Verify that the dimensions of the data are consistent with the dimensions used to fit the stacker."""
         # Test whether sample and feature dimensions are present in data array
-        expected_dims = set(self.dims_out_["sample"] + self.dims_out_["feature"])
+        expected_sample_dims = set(self.dims_out_[self.sample_name])
+        expected_feature_dims = set(self.dims_out_[self.feature_name])
+        expected_dims = expected_sample_dims | expected_feature_dims
         given_dims = set(data.dims)
         if not (expected_dims == given_dims):
             raise ValueError(
@@ -140,23 +139,25 @@ class SingleDataStacker(_BaseStacker):
             )
 
         # Set in/out dimensions
+        sample_name = self.sample_name
+        feature_name = self.feature_name
         self.dims_in_ = data.dims
-        self.dims_out_ = {"sample": sample_dims, "feature": feature_dims}
+        self.dims_out_ = {sample_name: sample_dims, feature_name: feature_dims}
 
         # Set in/out coordinates
         self.coords_in_ = {dim: data.coords[dim] for dim in data.dims}
 
         # Stack data
         da: DataArray = self._stack(
-            data, self.dims_out_["sample"], self.dims_out_["feature"]
+            data, self.dims_out_[sample_name], self.dims_out_[feature_name]
         )
         # Remove NaN samples/features
-        da = da.dropna("feature", how="all")
-        da = da.dropna("sample", how="all")
+        da = da.dropna(feature_name, how="all")
+        da = da.dropna(sample_name, how="all")
 
         self.coords_out_ = {
-            "sample": da.coords["sample"],
-            "feature": da.coords["feature"],
+            sample_name: da.coords[sample_name],
+            feature_name: da.coords[feature_name],
         }
 
         # Ensure that no NaNs are present in the data
@@ -204,10 +205,10 @@ class SingleDataStacker(_BaseStacker):
 
         # Stack data and remove NaN features
         da: DataArray = self._stack(
-            data, self.dims_out_["sample"], self.dims_out_["feature"]
+            data, self.dims_out_[self.sample_name], self.dims_out_[self.feature_name]
         )
-        da = da.dropna("feature", how="all")
-        da = da.dropna("sample", how="all")
+        da = da.dropna(self.feature_name, how="all")
+        da = da.dropna(self.sample_name, how="all")
 
         # Ensure that no NaNs are present in the data
         if da.isnull().any():
@@ -233,8 +234,7 @@ class SingleDataArrayStacker(SingleDataStacker):
 
     """
 
-    @staticmethod
-    def _validate_dimensions(sample_dims: Tuple[str], feature_dims: Tuple[str]):
+    def _validate_dimensions(self, sample_dims: Tuple[str], feature_dims: Tuple[str]):
         """Verify the dimensions are correctly specified.
         For example, valid input dimensions (sample, feature) are:
 
@@ -245,35 +245,37 @@ class SingleDataArrayStacker(SingleDataStacker):
             (("sample",), ("feature",)), <-- special case only valid for DataArrays
 
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
 
         # Check for `sample` and `feature` special cases
-        if sample_dims == ("sample",) and feature_dims != ("feature",):
+        if sample_dims == (sample_name,) and feature_dims != (feature_name,):
             err_msg = """Due to the internal logic of this package, 
             when using the 'sample' dimension in sample_dims, it should only be 
             paired with the 'feature' dimension in feature_dims. Please rename or remove 
             other dimensions."""
             raise ValueError(err_msg)
 
-        if feature_dims == ("feature",) and sample_dims != ("sample",):
+        if feature_dims == (feature_name,) and sample_dims != (sample_name,):
             err_msg = """Invalid combination: 'feature' dimension in feature_dims should only 
             be paired with 'sample' dimension in sample_dims."""
             raise ValueError(err_msg)
 
-        if "sample" in sample_dims and len(sample_dims) > 1:
+        if sample_name in sample_dims and len(sample_dims) > 1:
             err_msg = """Invalid combination: 'sample' dimension should not be combined with other
             dimensions in sample_dims."""
             raise ValueError(err_msg)
 
-        if "feature" in feature_dims and len(feature_dims) > 1:
+        if feature_name in feature_dims and len(feature_dims) > 1:
             err_msg = """Invalid combination: 'feature' dimension should not be combined with other
             dimensions in feature_dims."""
             raise ValueError(err_msg)
 
-        if "sample" in feature_dims:
+        if sample_name in feature_dims:
             err_msg = """Invalid combination: 'sample' dimension should not appear in feature_dims."""
             raise ValueError(err_msg)
 
-        if "feature" in sample_dims:
+        if feature_name in sample_dims:
             err_msg = """Invalid combination: 'feature' dimension should not appear in sample_dims."""
             raise ValueError(err_msg)
 
@@ -294,6 +296,9 @@ class SingleDataArrayStacker(SingleDataStacker):
         data_stacked : DataArray
             The reshaped 2d-data.
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         self._validate_dimensions(sample_dims, feature_dims)
         # 3 cases:
         # 1. uni-dimensional with correct feature/sample name ==> do nothing
@@ -303,28 +308,28 @@ class SingleDataArrayStacker(SingleDataStacker):
         # - FEATURE -
         if len(feature_dims) == 1:
             # Case 1
-            if feature_dims[0] == "feature":
+            if feature_dims[0] == feature_name:
                 pass
             # Case 2
             else:
-                data = data.rename({feature_dims[0]: "feature"})
+                data = data.rename({feature_dims[0]: feature_name})
         # Case 3
         else:
-            data = data.stack(feature=feature_dims)
+            data = data.stack({feature_name: feature_dims})
 
         # - SAMPLE -
         if len(sample_dims) == 1:
             # Case 1
-            if sample_dims[0] == "sample":
+            if sample_dims[0] == sample_name:
                 pass
             # Case 2
             else:
-                data = data.rename({sample_dims[0]: "sample"})
+                data = data.rename({sample_dims[0]: sample_name})
         # Case 3
         else:
-            data = data.stack(sample=sample_dims)
+            data = data.stack({sample_name: sample_dims})
 
-        return data.transpose("sample", "feature")
+        return data.transpose(sample_name, feature_name)
 
     def _unstack(self, data: DataArray) -> DataArray:
         """Unstack `sample` and `feature` dimension of an DataArray to its original dimensions.
@@ -339,22 +344,24 @@ class SingleDataArrayStacker(SingleDataStacker):
         data_unstacked : DataArray
             The unstacked data.
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
         # pass if feature/sample dimensions do not exist in data
-        if "feature" in data.dims:
+        if feature_name in data.dims:
             # If sample dimensions is one dimensional, rename is sufficient, otherwise unstack
-            if len(self.dims_out_["feature"]) == 1:
-                if self.dims_out_["feature"][0] != "feature":
-                    data = data.rename({"feature": self.dims_out_["feature"][0]})
+            if len(self.dims_out_[feature_name]) == 1:
+                if self.dims_out_[feature_name][0] != feature_name:
+                    data = data.rename({feature_name: self.dims_out_[feature_name][0]})
             else:
-                data = data.unstack("feature")
+                data = data.unstack(feature_name)
 
-        if "sample" in data.dims:
+        if sample_name in data.dims:
             # If sample dimensions is one dimensional, rename is sufficient, otherwise unstack
-            if len(self.dims_out_["sample"]) == 1:
-                if self.dims_out_["sample"][0] != "sample":
-                    data = data.rename({"sample": self.dims_out_["sample"][0]})
+            if len(self.dims_out_[sample_name]) == 1:
+                if self.dims_out_[sample_name][0] != sample_name:
+                    data = data.rename({sample_name: self.dims_out_[sample_name][0]})
             else:
-                data = data.unstack("sample")
+                data = data.unstack(sample_name)
 
         # Reorder dimensions to original order
         data = self._reorder_dims(data)
@@ -381,8 +388,8 @@ class SingleDataArrayStacker(SingleDataStacker):
         data = self._unstack(data)
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        data = self._reindex_dim(data, "feature")
-        data = self._reindex_dim(data, "sample")
+        data = self._reindex_dim(data, self.feature_name)
+        data = self._reindex_dim(data, self.sample_name)
 
         return data
 
@@ -392,7 +399,7 @@ class SingleDataArrayStacker(SingleDataStacker):
         data = self._unstack(data)
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        data = self._reindex_dim(data, "feature")
+        data = self._reindex_dim(data, self.feature_name)
 
         return data
 
@@ -418,8 +425,7 @@ class SingleDatasetStacker(SingleDataStacker):
 
     """
 
-    @staticmethod
-    def _validate_dimensions(sample_dims: Tuple[str], feature_dims: Tuple[str]):
+    def _validate_dimensions(self, sample_dims: Tuple[str], feature_dims: Tuple[str]):
         """Verify the dimensions are correctly specified.
 
         For example, valid input dimensions (sample, feature) are:
@@ -434,15 +440,14 @@ class SingleDatasetStacker(SingleDataStacker):
             any combination that contains 'sample' and/or 'feature' dimension
 
         """
-        if "sample" in sample_dims or "sample" in feature_dims:
-            err_msg = (
-                "The dimension 'sample' is reserved for internal used. Please rename."
-            )
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
+        if sample_name in sample_dims or sample_name in feature_dims:
+            err_msg = f"The dimension {sample_name} is reserved for internal used. Please rename."
             raise ValueError(err_msg)
-        if "feature" in sample_dims or "feature" in feature_dims:
-            err_msg = (
-                "The dimension 'feature' is reserved for internal used. Please rename."
-            )
+        if feature_name in sample_dims or feature_name in feature_dims:
+            err_msg = f"The dimension {feature_name} is reserved for internal used. Please rename."
             raise ValueError(err_msg)
 
     def _stack(self, data: Dataset, sample_dims, feature_dims) -> DataArray:
@@ -462,6 +467,9 @@ class SingleDatasetStacker(SingleDataStacker):
         data_stacked : DataArray | Dataset
             The reshaped 2d-data.
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         self._validate_dimensions(sample_dims, feature_dims)
         # 2 cases:
         # 1. uni-dimensional with name different from feature/sample ==> rename
@@ -470,34 +478,38 @@ class SingleDatasetStacker(SingleDataStacker):
         # - FEATURE -
         # Convert Dataset -> DataArray, stacking all non-sample dimensions to feature dimension, including data variables
         # Case 1 & 2
-        da = data.to_stacked_array(new_dim="feature", sample_dims=sample_dims)
+        da = data.to_stacked_array(new_dim=feature_name, sample_dims=sample_dims)
 
         # Rename if sample dimensions is one dimensional, otherwise stack
         # Case 1
         if len(sample_dims) == 1:
-            da = da.rename({sample_dims[0]: "sample"})
+            da = da.rename({sample_dims[0]: sample_name})
         # Case 2
         else:
-            da = da.stack(sample=sample_dims)
+            da = da.stack({sample_name: sample_dims})
 
-        return da.transpose("sample", "feature")
+        return da.transpose(sample_name, feature_name)
 
     def _unstack_data(self, data: DataArray) -> Dataset:
         """Unstack `sample` and `feature` dimension of an DataArray to its original dimensions."""
-        if len(self.dims_out_["sample"]) == 1:
-            data = data.rename({"sample": self.dims_out_["sample"][0]})
-        ds: Dataset = data.to_unstacked_dataset("feature", "variable").unstack()
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+        if len(self.dims_out_[sample_name]) == 1:
+            data = data.rename({sample_name: self.dims_out_[sample_name][0]})
+        ds: Dataset = data.to_unstacked_dataset(feature_name, "variable").unstack()
         ds = self._reorder_dims(ds)
         return ds
 
     def _unstack_components(self, data: DataArray) -> Dataset:
-        ds: Dataset = data.to_unstacked_dataset("feature", "variable").unstack()
+        feature_name = self.feature_name
+        ds: Dataset = data.to_unstacked_dataset(feature_name, "variable").unstack()
         ds = self._reorder_dims(ds)
         return ds
 
     def _unstack_scores(self, data: DataArray) -> DataArray:
-        if len(self.dims_out_["sample"]) == 1:
-            data = data.rename({"sample": self.dims_out_["sample"][0]})
+        sample_name = self.sample_name
+        if len(self.dims_out_[sample_name]) == 1:
+            data = data.rename({sample_name: self.dims_out_[sample_name][0]})
         data = data.unstack()
         data = self._reorder_dims(data)
         return data
@@ -521,8 +533,8 @@ class SingleDatasetStacker(SingleDataStacker):
         data_ds: Dataset = self._unstack_data(data)
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        data_ds = self._reindex_dim(data_ds, "feature")
-        data_ds = self._reindex_dim(data_ds, "sample")
+        data_ds = self._reindex_dim(data_ds, self.feature_name)
+        data_ds = self._reindex_dim(data_ds, self.sample_name)
 
         return data_ds
 
@@ -531,7 +543,7 @@ class SingleDatasetStacker(SingleDataStacker):
         data_ds: Dataset = self._unstack_components(data)
 
         # Reindex data to original coordinates in case that some features at the boundaries were dropped
-        data_ds = self._reindex_dim(data_ds, "feature")
+        data_ds = self._reindex_dim(data_ds, self.feature_name)
 
         return data_ds
 
@@ -559,7 +571,8 @@ class ListDataArrayStacker(_BaseStacker):
 
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.stackers = []
 
     def fit_transform(
@@ -580,6 +593,9 @@ class ListDataArrayStacker(_BaseStacker):
             The dimensions of the data that will be stacked along the `feature` dimension.
 
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         # Check input
         if not isinstance(feature_dims, list):
             raise TypeError(
@@ -598,7 +614,10 @@ class ListDataArrayStacker(_BaseStacker):
 
         # Set in/out dimensions
         self.dims_in_ = [da.dims for da in data]
-        self.dims_out_ = {"sample": sample_dims, "feature": feature_dims}
+        self.dims_out_ = {
+            sample_name: sample_dims,
+            feature_name: feature_dims,
+        }
 
         # Set in/out coordinates
         self.coords_in_ = [
@@ -618,7 +637,7 @@ class ListDataArrayStacker(_BaseStacker):
         for da, fdims in zip(data, feature_dims):
             stacker = SingleDataArrayStacker()
             da_stacked = stacker.fit_transform(da, sample_dims, fdims)
-            idx_coords_size.append(da_stacked.coords["feature"].size)
+            idx_coords_size.append(da_stacked.coords[feature_name].size)
             stacked_data_list.append(da_stacked)
 
         # Create dummy feature coordinates for each DataArray
@@ -633,11 +652,11 @@ class ListDataArrayStacker(_BaseStacker):
 
         self._dummy_feature_coords = dummy_feature_coords
 
-        stacked_data_list = xr.concat(stacked_data_list, dim="feature")
+        stacked_data_list = xr.concat(stacked_data_list, dim=feature_name)
 
         self.coords_out_ = {
-            "sample": stacked_data_list.coords["sample"],
-            "feature": stacked_data_list.coords["feature"],
+            sample_name: stacked_data_list.coords[sample_name],
+            feature_name: stacked_data_list.coords[feature_name],
         }
         return stacked_data_list
 
@@ -655,34 +674,37 @@ class ListDataArrayStacker(_BaseStacker):
             The reshaped 2D data.
 
         """
+        feature_name = self.feature_name
+
         stacked_data_list = []
 
         # Stack individual DataArrays
         for i, (stacker, da) in enumerate(zip(self.stackers, data)):
             stacked_data = stacker.transform(da)
-            stacked_data = stacked_data.drop("feature")
+            stacked_data = stacked_data.drop(feature_name)
             # Replace original feature coordiantes with dummy coordinates
-            stacked_data.coords.update({"feature": self._dummy_feature_coords[i]})
+            stacked_data.coords.update({feature_name: self._dummy_feature_coords[i]})
             stacked_data_list.append(stacked_data)
 
-        return xr.concat(stacked_data_list, dim="feature")
+        return xr.concat(stacked_data_list, dim=feature_name)
 
     def inverse_transform_data(self, data: DataArray) -> DataArrayList:
         """Reshape the 2D data (sample x feature) back into its original shape."""
+        feature_name = self.feature_name
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
             # Select the features corresponding to the current DataArray
             subda = data.sel(feature=features)
             # Replace dummy feature coordinates with original feature coordinates
-            subda = subda.assign_coords(feature=stacker.coords_out_["feature"])
+            subda = subda.assign_coords(feature=stacker.coords_out_[feature_name])
 
             # In case of MultiIndex we have to set the index to the feature dimension again
-            if isinstance(subda.indexes["feature"], pd.MultiIndex):
-                subda = subda.set_index(feature=stacker.dims_out_["feature"])
+            if isinstance(subda.indexes[feature_name], pd.MultiIndex):
+                subda = subda.set_index(feature=stacker.dims_out_[feature_name])
             else:
                 # NOTE: This is a workaround for the case where the feature dimension is a tuple of length 1
                 # the problem is described here: https://github.com/pydata/xarray/discussions/7958
-                subda = subda.rename(feature=stacker.dims_out_["feature"][0])
+                subda = subda.rename(feature=stacker.dims_out_[feature_name][0])
 
             # Inverse transform the data using the corresponding stacker
             subda = stacker.inverse_transform_data(subda)
@@ -691,20 +713,21 @@ class ListDataArrayStacker(_BaseStacker):
 
     def inverse_transform_components(self, data: DataArray) -> DataArrayList:
         """Reshape the 2D data (mode x feature) back into its original shape."""
+        feature_name = self.feature_name
         dalist = []
         for stacker, features in zip(self.stackers, self._dummy_feature_coords):
             # Select the features corresponding to the current DataArray
             subda = data.sel(feature=features)
             # Replace dummy feature coordinates with original feature coordinates
-            subda = subda.assign_coords(feature=stacker.coords_out_["feature"])
+            subda = subda.assign_coords(feature=stacker.coords_out_[feature_name])
 
             # In case of MultiIndex we have to set the index to the feature dimension again
-            if isinstance(subda.indexes["feature"], pd.MultiIndex):
-                subda = subda.set_index(feature=stacker.dims_out_["feature"])
+            if isinstance(subda.indexes[feature_name], pd.MultiIndex):
+                subda = subda.set_index(feature=stacker.dims_out_[feature_name])
             else:
                 # NOTE: This is a workaround for the case where the feature dimension is a tuple of length 1
                 # the problem is described here: https://github.com/pydata/xarray/discussions/7958
-                subda = subda.rename(feature=stacker.dims_out_["feature"][0])
+                subda = subda.rename(feature=stacker.dims_out_[feature_name][0])
 
             # Inverse transform the data using the corresponding stacker
             subda = stacker.inverse_transform_components(subda)

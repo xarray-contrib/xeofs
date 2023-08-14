@@ -5,7 +5,7 @@ import xarray as xr
 from scipy.signal import hilbert  # type: ignore
 
 from .sanity_checks import ensure_tuple
-from .data_types import XarrayData, DataArray, Dataset, SingleDataObject
+from .data_types import DataArray, Dataset, SingleDataObject, XArrayData
 from .constants import VALID_LATITUDE_NAMES
 
 
@@ -92,7 +92,7 @@ def get_dims(
     return sample_dims, feature_dims  # type: ignore
 
 
-def _get_feature_dims(data: XarrayData, sample_dims: Tuple[str]) -> Tuple[Hashable]:
+def _get_feature_dims(data: XArrayData, sample_dims: Tuple[str]) -> Tuple[Hashable]:
     """Extracts the dimensions of a DataArray that are not included in the sample dimensions.
 
 
