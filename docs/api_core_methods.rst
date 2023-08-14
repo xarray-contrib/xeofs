@@ -6,4 +6,5 @@ Core methods
    :recursive:
 
    xeofs.models.EOF
+   xeofs.models.OPA
    xeofs.models.MCA
