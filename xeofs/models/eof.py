@@ -38,16 +38,22 @@ class EOF(_BaseModel):
     def __init__(
         self,
         n_modes=10,
+        center=True,
         standardize=False,
         use_coslat=False,
+        sample_name="sample",
+        feature_name="feature",
         solver="auto",
         solver_kwargs={},
         **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
+            center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            sample_name=sample_name,
+            feature_name=feature_name,
             solver=solver,
             solver_kwargs=solver_kwargs,
             **kwargs,
@@ -219,7 +225,7 @@ class EOF(_BaseModel):
 class ComplexEOF(EOF):
     """Complex Empirical Orthogonal Functions (Complex EOF) analysis.
 
-    The Complex EOF analysis [1]_ [2]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
+    The Complex EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
     to the data before performing the standard EOF analysis.
     The Hilbert transform is applied to each feature of the data individually.
 
@@ -252,8 +258,10 @@ class ComplexEOF(EOF):
 
     References
     ----------
-    .. [1] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
-    .. [2] Hannachi, A., Jolliffe, I., Stephenson, D., 2007. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152. https://doi.org/10.1002/joc.1499
+    .. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).
+    .. [2] Barnett, T. P. Interaction of the Monsoon and Pacific Trade Wind System at Interannual Time Scales Part I: The Equatorial Zone. Monthly Weather Review 111, 756–773 (1983).
+    .. [3] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
+    .. [4] Hannachi, A., Jolliffe, I., Stephenson, D., 2007. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152. https://doi.org/10.1002/joc.1499
 
     Examples
     --------

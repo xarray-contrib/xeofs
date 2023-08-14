@@ -34,6 +34,8 @@ class _BaseModel(ABC):
     ----------
     n_modes: int, default=10
         Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
     standardize: bool, default=False
         Whether to standardize the input data.
     use_coslat: bool, default=False
