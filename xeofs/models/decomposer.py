@@ -28,8 +28,9 @@ class Decomposer:
         Additional keyword arguments passed to the SVD solver.
     """
 
-    def __init__(self, n_modes=100, solver="auto", **kwargs):
+    def __init__(self, n_modes=100, flip_signs=True, solver="auto", **kwargs):
         self.n_modes = n_modes
+        self.flip_signs = flip_signs
         self.solver = solver
         self.solver_kwargs = kwargs
 
@@ -47,9 +48,9 @@ class Decomposer:
         n_coords2 = len(X.coords[dims[1]])
         rank = min(n_coords1, n_coords2)
 
-        if self.n_modes >= rank:
+        if self.n_modes > rank:
             raise ValueError(
-                f"n_modes must be smaller to the rank of the data object ({rank})"
+                f"n_modes must be smaller or equal to the rank of the data object (rank={rank})"
             )
 
         # Check if data is small enough to use exact SVD
@@ -168,16 +169,17 @@ class Decomposer:
         s.name = "s"
         VT.name = "V"
 
-        # Flip signs of components to ensure deterministic output
-        idx_sign = abs(VT).argmax(dims[1]).compute()
-        flip_signs = np.sign(VT.isel({dims[1]: idx_sign}))
-        flip_signs = flip_signs.compute()
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in flip_signs.coords.items():
-            if dim != "mode":
-                flip_signs = flip_signs.drop(dim)
-        VT *= flip_signs
-        U *= flip_signs
+        if self.flip_signs:
+            # Flip signs of components to ensure deterministic output
+            idx_sign = abs(VT).argmax(dims[1]).compute()
+            flip_signs = np.sign(VT.isel({dims[1]: idx_sign}))
+            flip_signs = flip_signs.compute()
+            # Drop all dimensions except 'mode' so that the index is clean
+            for dim, coords in flip_signs.coords.items():
+                if dim != "mode":
+                    flip_signs = flip_signs.drop(dim)
+            VT *= flip_signs
+            U *= flip_signs
 
         self.U_ = U
         self.s_ = s
