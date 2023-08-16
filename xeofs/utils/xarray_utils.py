@@ -156,7 +156,7 @@ def total_variance(data: DataArray, dim) -> DataArray:
 
 
 def hilbert_transform(
-    data: DataArray, dim, padding="exp", decay_factor=0.2
+    data: DataArray, dims, padding="exp", decay_factor=0.2
 ) -> DataArray:
     """Hilbert transform with optional padding to mitigate spectral leakage.
 
@@ -180,8 +180,8 @@ def hilbert_transform(
     return xr.apply_ufunc(
         _hilbert_transform_with_padding,
         data,
-        input_core_dims=[["sample", "feature"]],
-        output_core_dims=[["sample", "feature"]],
+        input_core_dims=[dims],
+        output_core_dims=[dims],
         kwargs={"padding": padding, "decay_factor": decay_factor},
         dask="parallelized",
         dask_gufunc_kwargs={"allow_rechunk": True},
