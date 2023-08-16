@@ -28,14 +28,12 @@ class EOFDataContainer(_BaseModelDataContainer):
     ):
         super().set_data(input_data=input_data, components=components, scores=scores)
 
-        self._verify_dims(explained_variance, ("mode",))
         self._explained_variance = explained_variance
         self._explained_variance.name = "explained_variance"
 
         self._total_variance = total_variance
         self._total_variance.name = "total_variance"
 
-        self._verify_dims(idx_modes_sorted, ("mode",))
         self._idx_modes_sorted = idx_modes_sorted
         self._idx_modes_sorted.name = "idx_modes_sorted"
 
@@ -68,7 +66,7 @@ class EOFDataContainer(_BaseModelDataContainer):
     @property
     def singular_values(self) -> DataArray:
         """Get the explained variance."""
-        svals = np.sqrt((self.input_data.sample.size - 1) * self.explained_variance)
+        svals = (self.explained_variance * (self.input_data.shape[0] - 1)) ** 0.5
         svals.attrs.update(self.explained_variance.attrs)
         svals.name = "singular_values"
         return svals

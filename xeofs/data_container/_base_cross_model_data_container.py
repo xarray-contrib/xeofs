@@ -40,13 +40,6 @@ class _BaseCrossModelDataContainer(ABC):
         scores1: DataArray,
         scores2: DataArray,
     ):
-        self._verify_dims(input_data1, ("sample", "feature"))
-        self._verify_dims(input_data2, ("sample", "feature"))
-        self._verify_dims(components1, ("feature", "mode"))
-        self._verify_dims(components2, ("feature", "mode"))
-        self._verify_dims(scores1, ("sample", "mode"))
-        self._verify_dims(scores2, ("sample", "mode"))
-
         components1.name = "left_components"
         components2.name = "right_components"
         scores1.name = "left_scores"

@@ -29,10 +29,6 @@ class _BaseModelDataContainer(ABC):
             return data
 
     def set_data(self, input_data: DataArray, components: DataArray, scores: DataArray):
-        self._verify_dims(input_data, ("sample", "feature"))
-        self._verify_dims(components, ("feature", "mode"))
-        self._verify_dims(scores, ("sample", "mode"))
-
         components.name = "components"
         scores.name = "scores"
 

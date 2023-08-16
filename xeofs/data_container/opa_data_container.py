@@ -28,11 +28,9 @@ class OPADataContainer(_BaseModelDataContainer):
     ):
         super().set_data(input_data=input_data, components=components, scores=scores)
 
-        self._verify_dims(decorrelation_time, ("mode",))
         self._decorrelation_time = decorrelation_time
         self._decorrelation_time.name = "decorrelation_time"
 
-        self._verify_dims(filter_patterns, ("feature", "mode"))
         self._filter_patterns = filter_patterns
         self._filter_patterns.name = "filter_patterns"
 

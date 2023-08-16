@@ -42,22 +42,18 @@ class MCADataContainer(_BaseCrossModelDataContainer):
             scores2=scores2,
         )
 
-        self._verify_dims(squared_covariance, ("mode",))
         self._squared_covariance = squared_covariance
         self._squared_covariance.name = "squared_covariance"
 
         self._total_squared_covariance = total_squared_covariance
         self._total_squared_covariance.name = "total_squared_covariance"
 
-        self._verify_dims(idx_modes_sorted, ("mode",))
         self._idx_modes_sorted = idx_modes_sorted
         self._idx_modes_sorted.name = "idx_modes_sorted"
 
-        self._verify_dims(norm1, ("mode",))
         self._norm1 = norm1
         self._norm1.name = "left_norm"
 
-        self._verify_dims(norm2, ("mode",))
         self._norm2 = norm2
         self._norm2.name = "right_norm"
 

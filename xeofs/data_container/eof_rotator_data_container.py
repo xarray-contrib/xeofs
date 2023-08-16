@@ -39,15 +39,12 @@ class EOFRotatorDataContainer(EOFDataContainer):
             idx_modes_sorted=idx_modes_sorted,
         )
 
-        self._verify_dims(rotation_matrix, ("mode_m", "mode_n"))
         self._rotation_matrix = rotation_matrix
         self._rotation_matrix.name = "rotation_matrix"
 
-        self._verify_dims(phi_matrix, ("mode_m", "mode_n"))
         self._phi_matrix = phi_matrix
         self._phi_matrix.name = "phi_matrix"
 
-        self._verify_dims(modes_sign, ("mode",))
         self._modes_sign = modes_sign
         self._modes_sign.name = "modes_sign"
 
