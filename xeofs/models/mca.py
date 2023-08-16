@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 import xarray as xr
@@ -75,20 +75,25 @@ class MCA(_BaseCrossModel):
         Note: It is assumed that the data objects are centered.
 
         """
-        if X1.sample.size != X2.sample.size:
+        sample_name = self.sample_name
+        n_samples = X1.coords[sample_name].size
+        if X1.coords[sample_name].size != X2.coords[sample_name].size:
             err_msg = "The two data objects must have the same number of samples."
             raise ValueError(err_msg)
 
-        return xr.dot(X1.conj(), X2, dims="sample") / (X1.sample.size - 1)
+        return xr.dot(X1.conj(), X2, dims=sample_name) / (n_samples - 1)
 
     def fit(
         self,
         data1: AnyDataObject,
         data2: AnyDataObject,
         dim,
-        weights1=None,
-        weights2=None,
+        weights1: Optional[AnyDataObject] = None,
+        weights2: Optional[AnyDataObject] = None,
     ):
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         # Preprocess the data
         data1_processed: DataArray = self.preprocessor1.fit_transform(
             data1, dim, weights1
@@ -107,8 +112,8 @@ class MCA(_BaseCrossModel):
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
             # Fit the PCA models
-            self.pca1.fit(data1_processed, "sample")
-            self.pca2.fit(data2_processed, "sample")
+            self.pca1.fit(data1_processed, dim=sample_name)
+            self.pca2.fit(data2_processed, dim=sample_name)
             # Get the PCA scores
             pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
             pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
@@ -134,8 +139,8 @@ class MCA(_BaseCrossModel):
         # Perform SVD directly on data
         else:
             # Rename feature and associated dimensions of data objects to avoid index conflicts
-            dim_renamer1 = DimensionRenamer("feature", "1")
-            dim_renamer2 = DimensionRenamer("feature", "2")
+            dim_renamer1 = DimensionRenamer(feature_name, "1")
+            dim_renamer2 = DimensionRenamer(feature_name, "2")
             data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
             data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
             # Compute the cross-covariance matrix
@@ -167,8 +172,8 @@ class MCA(_BaseCrossModel):
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
-        scores1 = xr.dot(data1_processed, singular_vectors1, dims="feature") / norm1
-        scores2 = xr.dot(data2_processed, singular_vectors2, dims="feature") / norm2
+        scores1 = xr.dot(data1_processed, singular_vectors1, dims=feature_name) / norm1
+        scores2 = xr.dot(data2_processed, singular_vectors2, dims=feature_name) / norm2
 
         self.data.set_data(
             input_data1=data1_processed,
@@ -576,8 +581,8 @@ class ComplexMCA(MCA):
         data1: AnyDataObject,
         data2: AnyDataObject,
         dim,
-        weights1=None,
-        weights2=None,
+        weights1: Optional[AnyDataObject] = None,
+        weights2: Optional[AnyDataObject] = None,
     ):
         """Fit the model.
 
@@ -596,6 +601,8 @@ class ComplexMCA(MCA):
             If specified, the right input data will be weighted by this array.
 
         """
+        sample_name = self.sample_name
+        feature_name = self.feature_name
 
         data1_processed: DataArray = self.preprocessor1.fit_transform(
             data1, dim, weights1
@@ -609,13 +616,13 @@ class ComplexMCA(MCA):
         decay_factor = self._params["decay_factor"]
         data1_processed = hilbert_transform(
             data1_processed,
-            dim="sample",
+            dims=(sample_name, feature_name),
             padding=padding,
             decay_factor=decay_factor,
         )
         data2_processed = hilbert_transform(
             data2_processed,
-            dim="sample",
+            dims=(sample_name, feature_name),
             padding=padding,
             decay_factor=decay_factor,
         )
@@ -630,27 +637,27 @@ class ComplexMCA(MCA):
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
             # Fit the PCA models
-            self.pca1.fit(data1_processed, "sample")
-            self.pca2.fit(data2_processed, "sample")
+            self.pca1.fit(data1_processed, sample_name)
+            self.pca2.fit(data2_processed, sample_name)
             # Get the PCA scores
             pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
             pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
             # Apply hilbert transform
             pca_scores1 = hilbert_transform(
                 pca_scores1,
-                dim="sample",
+                dims=(sample_name, feature_name),
                 padding=padding,
                 decay_factor=decay_factor,
             )
             pca_scores2 = hilbert_transform(
                 pca_scores2,
-                dim="sample",
+                dims=(sample_name, feature_name),
                 padding=padding,
                 decay_factor=decay_factor,
             )
             # Compute the cross-covariance matrix of the PCA scores
-            pca_scores1 = pca_scores1.rename({"mode": "feature"})
-            pca_scores2 = pca_scores2.rename({"mode": "feature"})
+            pca_scores1 = pca_scores1.rename({"mode": feature_name})
+            pca_scores2 = pca_scores2.rename({"mode": feature_name})
             cov_matrix = self._compute_cross_covariance_matrix(pca_scores1, pca_scores2)
 
             # Perform the SVD
@@ -670,8 +677,8 @@ class ComplexMCA(MCA):
         # Perform SVD directly on data
         else:
             # Rename feature and associated dimensions of data objects to avoid index conflicts
-            dim_renamer1 = DimensionRenamer("feature", "1")
-            dim_renamer2 = DimensionRenamer("feature", "2")
+            dim_renamer1 = DimensionRenamer(feature_name, "1")
+            dim_renamer2 = DimensionRenamer(feature_name, "2")
             data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
             data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
             # Compute the cross-covariance matrix

@@ -44,6 +44,7 @@ class EOF(_BaseModel):
         use_weights=False,
         solver="auto",
         solver_kwargs={},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
@@ -52,6 +53,7 @@ class EOF(_BaseModel):
             use_weights=use_weights,
             solver=solver,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "EOF analysis"})
 
@@ -59,11 +61,14 @@ class EOF(_BaseModel):
         self.data: EOFDataContainer = EOFDataContainer()
 
     def fit(self, data: AnyDataObject, dim, weights=None):
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         # Preprocess the data
         input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim="sample")
+        total_variance = compute_total_variance(input_data, dim=sample_name)
 
         # Decompose the data
         n_modes = self._params["n_modes"]
@@ -71,14 +76,15 @@ class EOF(_BaseModel):
         decomposer = Decomposer(
             n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
         )
-        decomposer.fit(input_data, dims=("sample", "feature"))
+        decomposer.fit(input_data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
         components = decomposer.V_
         scores = decomposer.U_
 
         # Compute the explained variance
-        explained_variance = singular_values**2 / (input_data.sample.size - 1)
+        n_samples = input_data.coords[sample_name].size
+        explained_variance = singular_values**2 / (n_samples - 1)
 
         # Index of the sorted explained variance
         # It's already sorted, we just need to assign it to the DataContainer
@@ -111,6 +117,7 @@ class EOF(_BaseModel):
             Projections of the new data onto the components.
 
         """
+        feature_name = self.preprocessor.feature_name
         # Preprocess the data
         data_stacked: DataArray = self.preprocessor.transform(data)
 
@@ -118,7 +125,9 @@ class EOF(_BaseModel):
         singular_values = self.data.singular_values
 
         # Project the data
-        projections = xr.dot(data_stacked, components, dims="feature") / singular_values
+        projections = (
+            xr.dot(data_stacked, components, dims=feature_name) / singular_values
+        )
         projections.name = "scores"
 
         # Unstack the projections
@@ -294,6 +303,9 @@ class ComplexEOF(EOF):
         self.data: ComplexEOFDataContainer = ComplexEOFDataContainer()
 
     def fit(self, data: AnyDataObject, dim, weights=None):
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         # Preprocess the data
         input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
 
@@ -301,11 +313,14 @@ class ComplexEOF(EOF):
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
         input_data = hilbert_transform(
-            input_data, dim="sample", padding=padding, decay_factor=decay_factor
+            input_data,
+            dims=(sample_name, feature_name),
+            padding=padding,
+            decay_factor=decay_factor,
         )
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim="sample")
+        total_variance = compute_total_variance(input_data, dim=sample_name)
 
         # Decompose the complex data
         n_modes = self._params["n_modes"]
@@ -320,7 +335,8 @@ class ComplexEOF(EOF):
         scores = decomposer.U_
 
         # Compute the explained variance
-        explained_variance = singular_values**2 / (input_data.sample.size - 1)
+        n_samples = input_data.coords[sample_name].size
+        explained_variance = singular_values**2 / (n_samples - 1)
 
         # Index of the sorted explained variance
         # It's already sorted, we just need to assign it to the DataContainer

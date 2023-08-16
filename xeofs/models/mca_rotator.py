@@ -125,6 +125,9 @@ class MCARotator(MCA):
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
 
+        sample_name = self.model.sample_name
+        feature_name = self.model.feature_name
+
         n_modes = self._params["n_modes"]
         power = self._params["power"]
         max_iter = self._params["max_iter"]
@@ -153,16 +156,16 @@ class MCARotator(MCA):
 
         comps1 = self.model.data.components1.sel(mode=slice(1, n_modes))
         comps2 = self.model.data.components2.sel(mode=slice(1, n_modes))
-        loadings = xr.concat([comps1, comps2], dim="feature") * scaling
+        loadings = xr.concat([comps1, comps2], dim=feature_name) * scaling
 
         # Rotate loadings
         rot_loadings, rot_matrix, phi_matrix = xr.apply_ufunc(
             promax,
             loadings,
             power,
-            input_core_dims=[["feature", "mode"], []],
+            input_core_dims=[[feature_name, "mode"], []],
             output_core_dims=[
-                ["feature", "mode"],
+                [feature_name, "mode"],
                 ["mode_m", "mode_n"],
                 ["mode_m", "mode_n"],
             ],
@@ -180,18 +183,20 @@ class MCARotator(MCA):
         )
 
         # Rotated (loaded) singular vectors
-        comps1_rot = rot_loadings.isel(feature=slice(0, comps1.coords["feature"].size))
+        comps1_rot = rot_loadings.isel(
+            {feature_name: slice(0, comps1.coords[feature_name].size)}
+        )
         comps2_rot = rot_loadings.isel(
-            feature=slice(comps1.coords["feature"].size, None)
+            {feature_name: slice(comps1.coords[feature_name].size, None)}
         )
 
         # Normalization factor of singular vectors
         norm1_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps1_rot,
-            input_core_dims=[["feature", "mode"]],
+            input_core_dims=[[feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={"feature"},
+            exclude_dims={feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -199,9 +204,9 @@ class MCARotator(MCA):
         norm2_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps2_rot,
-            input_core_dims=[["feature", "mode"]],
+            input_core_dims=[[feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={"feature"},
+            exclude_dims={feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -266,9 +271,9 @@ class MCARotator(MCA):
         )
 
         # Ensure consitent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax("feature").compute()
+        idx_max_value = abs(rot_loadings).argmax(feature_name).compute()
         modes_sign = xr.apply_ufunc(
-            np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
+            np.sign, rot_loadings.isel({feature_name: idx_max_value}), dask="allowed"
         )
         # Drop all dimensions except 'mode' so that the index is clean
         for dim, coords in modes_sign.coords.items():

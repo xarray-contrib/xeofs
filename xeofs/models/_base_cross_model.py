@@ -27,6 +27,10 @@ class _BaseCrossModel(ABC):
         Whether to use weights.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
+    sample_name: str, default="sample"
+        Name of the new sample dimension.
+    feature_name: str, default="feature"
+        Name of the new feature dimension.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -41,9 +45,14 @@ class _BaseCrossModel(ABC):
         use_coslat=False,
         use_weights=False,
         n_pca_modes=None,
+        sample_name="sample",
+        feature_name="feature",
         solver="auto",
         solver_kwargs={},
     ):
+        self.sample_name = sample_name
+        self.feature_name = feature_name
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -54,6 +63,9 @@ class _BaseCrossModel(ABC):
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
+        self._preprocessor_kwargs = dict(
+            sample_name=sample_name, feature_name=feature_name
+        )
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseCrossModel"}
@@ -71,11 +83,13 @@ class _BaseCrossModel(ABC):
             with_std=standardize,
             with_coslat=use_coslat,
             with_weights=use_weights,
+            **self._preprocessor_kwargs,
         )
         self.preprocessor2 = Preprocessor(
             with_std=standardize,
             with_coslat=use_coslat,
             with_weights=use_weights,
+            **self._preprocessor_kwargs,
         )
         # Initialize the data container only to avoid type errors
         # The actual data container will be initialized in respective subclasses

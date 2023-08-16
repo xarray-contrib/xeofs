@@ -27,6 +27,10 @@ class _BaseModel(ABC):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use weights.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -40,9 +44,13 @@ class _BaseModel(ABC):
         standardize=False,
         use_coslat=False,
         use_weights=False,
+        sample_name="sample",
+        feature_name="feature",
         solver="auto",
         solver_kwargs={},
     ):
+        self.sample_name = sample_name
+        self.feature_name = feature_name
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -52,6 +60,9 @@ class _BaseModel(ABC):
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
+        self._preprocessor_kwargs = dict(
+            sample_name=sample_name, feature_name=feature_name
+        )
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseModel"}
@@ -66,7 +77,10 @@ class _BaseModel(ABC):
 
         # Initialize the Preprocessor to scale and stack the data
         self.preprocessor = Preprocessor(
-            with_std=standardize, with_coslat=use_coslat, with_weights=use_weights
+            with_std=standardize,
+            with_coslat=use_coslat,
+            with_weights=use_weights,
+            **self._preprocessor_kwargs
         )
         # Initialize the data container only to avoid type errors
         # The actual data container will be initialized in respective subclasses

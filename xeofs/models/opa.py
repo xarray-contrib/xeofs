@@ -62,12 +62,15 @@ class OPA(_BaseModel):
 
     def _Ctau(self, X, tau: int) -> DataArray:
         """Compute the time-lage covariance matrix C(tau) of the data X."""
+        sample_name = self.preprocessor.sample_name
         X0 = X.copy(deep=True)
-        Xtau = X.shift(sample=-tau).dropna("sample")
+        Xtau = X.shift({sample_name: -tau}).dropna(sample_name)
 
         X0 = X0.rename({"mode": "feature1"})
         Xtau = Xtau.rename({"mode": "feature2"})
-        return xr.dot(X0, Xtau, dims=["sample"]) / (Xtau.sample.size - 1)
+
+        n_samples = Xtau[sample_name].size
+        return xr.dot(X0, Xtau, dims=[sample_name]) / (n_samples - 1)
 
     @staticmethod
     def _compute_matrix_inverse(X, dims):
@@ -82,12 +85,15 @@ class OPA(_BaseModel):
         )
 
     def fit(self, data: AnyDataObject, dim, weights: Optional[AnyDataObject] = None):
+        sample_name = self.sample_name
+        feature_name = self.feature_name
+
         # Preprocess the data
         input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
 
         # Perform PCA as a pre-processing step
         pca = EOF(n_modes=self._params["n_pca_modes"], use_coslat=False)
-        pca.fit(input_data, dim="sample")
+        pca.fit(input_data, dim=sample_name)
         svals = pca.data.singular_values
         expvar = pca.data.explained_variance
         comps = pca.data.components * svals / np.sqrt(expvar)
@@ -177,14 +183,15 @@ class OPA(_BaseModel):
         # -> W (feature x mode2)
 
         # Rename dimensions
-        U = U.rename({"feature1": "feature"})  # -> (feature x mode)
+        U = U.rename({"feature1": feature_name})  # -> (feature x mode)
         V = V.rename({"mode2": "mode"})  # -> (feature x mode)
         W = W.rename({"mode2": "mode"})  # -> (feature x mode)
         P = P.rename({"mode2": "mode"})  # -> (sample x mode)
+        scores = scores.rename({"mode": feature_name})  # -> (sample x feature)
 
         # Store the results
         self.data.set_data(
-            input_data=scores.rename({"mode": "feature"}),
+            input_data=scores,
             components=W,
             scores=P,
             filter_patterns=V,

@@ -88,6 +88,8 @@ class EOFRotator(EOF):
     def fit(self, model):
         self.model = model
         self.preprocessor = model.preprocessor
+        sample_name = model.sample_name
+        feature_name = model.feature_name
 
         n_modes = self._params.get("n_modes")
         power = self._params.get("power")
@@ -104,9 +106,9 @@ class EOFRotator(EOF):
             promax,
             loadings,
             power,
-            input_core_dims=[["feature", "mode"], []],
+            input_core_dims=[[feature_name, "mode"], []],
             output_core_dims=[
-                ["feature", "mode"],
+                [feature_name, "mode"],
                 ["mode_m", "mode_n"],
                 ["mode_m", "mode_n"],
             ],
@@ -124,7 +126,7 @@ class EOFRotator(EOF):
         )
 
         # Reorder according to variance
-        expvar = (abs(rot_loadings) ** 2).sum("feature")
+        expvar = (abs(rot_loadings) ** 2).sum(feature_name)
         # NOTE: For delayed objects, the index must be computed.
         # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
         idx_sort = expvar.compute().argsort()[::-1]
@@ -152,7 +154,7 @@ class EOFRotator(EOF):
         scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
 
         # Ensure consitent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax("feature").compute()
+        idx_max_value = abs(rot_loadings).argmax(feature_name).compute()
         modes_sign = xr.apply_ufunc(
             np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
         )
