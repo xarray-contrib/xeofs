@@ -146,7 +146,7 @@ class Preprocessor:
 
         """
         data = self.stacker.inverse_transform_components(data)
-        return self.converter.inverse_transform_components(data)  # type: ignore
+        return self.converter.inverse_transform(data)  # type: ignore
 
     def inverse_transform_scores(self, data: DataArray) -> AnyDataObject:
         """Inverse transform the scores.
@@ -163,4 +163,4 @@ class Preprocessor:
 
         """
         data = self.stacker.inverse_transform_scores(data)
-        return self.converter.inverse_transform_scores(data)  # type: ignore
+        return self.converter.inverse_transform(data)  # type: ignore

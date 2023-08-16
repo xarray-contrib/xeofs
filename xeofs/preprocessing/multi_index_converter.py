@@ -98,16 +98,17 @@ class ListMultiIndexConverter(BaseEstimator, TransformerMixin):
 
         return X_transformed
 
-    def inverse_transform(self, X: DataArrayList) -> DataArrayList:
-        # Check if input is a List of DataArrays
-        if not isinstance(X, list) or not all(isinstance(x, xr.DataArray) for x in X):
-            raise ValueError("Input must be a list of xarray DataArray")
+    def inverse_transform(self, X: DataArrayList) -> DataArrayList | DataArray:
+        # Data & components are stored in a list of DataArrays
+        if isinstance(X, list):
+            X_inverse_transformed: List[DataArray] = []
+            for x, converter in zip(X, self.converters):
+                X_inverse_transformed.append(converter.inverse_transform(x))
 
-        X_inverse_transformed: List[DataArray] = []
-        for x, converter in zip(X, self.converters):
-            X_inverse_transformed.append(converter.inverse_transform(x))
-
-        return X_inverse_transformed
+            return X_inverse_transformed
+        # Scores are stored as a DataArray
+        else:
+            return self.converters[0].inverse_transform(X)
 
     def fit_transform(self, X: DataArrayList, y=None) -> DataArrayList:
         return self.fit(X, y).transform(X)
