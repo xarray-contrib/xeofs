@@ -5,7 +5,7 @@ import xarray as xr
 from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
-from .decomposer import CrossDecomposer
+from .decomposer import Decomposer
 from ..utils.data_types import AnyDataObject, DataArray
 from ..data_container.mca_data_container import (
     MCADataContainer,
@@ -13,6 +13,7 @@ from ..data_container.mca_data_container import (
 )
 from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import hilbert_transform
+from ..utils.dimension_renamer import DimensionRenamer
 
 
 class MCA(_BaseCrossModel):
@@ -30,8 +31,18 @@ class MCA(_BaseCrossModel):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use additional weights.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
         Additional keyword arguments passed to the SVD solver.
+    n_pca_modes: int, default=None
+        The number of principal components to retain during the PCA preprocessing
+        step applied to both data sets prior to executing MCA.
+        If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
+        Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
+        only the specified number of principal components. This reduction in dimensionality can be especially beneficial
+        when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
+        intensive or in scenarios where multicollinearity is a concern.
 
     Notes
     -----
@@ -58,6 +69,18 @@ class MCA(_BaseCrossModel):
         # Initialize the DataContainer to store the results
         self.data: MCADataContainer = MCADataContainer()
 
+    def _compute_cross_covariance_matrix(self, X1, X2):
+        """Compute the cross-covariance matrix of two data objects.
+
+        Note: It is assumed that the data objects are centered.
+
+        """
+        if X1.sample.size != X2.sample.size:
+            err_msg = "The two data objects must have the same number of samples."
+            raise ValueError(err_msg)
+
+        return xr.dot(X1.conj(), X2, dims="sample") / (X1.sample.size - 1)
+
     def fit(
         self,
         data1: AnyDataObject,
@@ -66,6 +89,7 @@ class MCA(_BaseCrossModel):
         weights1=None,
         weights2=None,
     ):
+        # Preprocess the data
         data1_processed: DataArray = self.preprocessor1.fit_transform(
             data1, dim, weights1
         )
@@ -73,23 +97,67 @@ class MCA(_BaseCrossModel):
             data2, dim, weights2
         )
 
-        decomposer = CrossDecomposer(
-            n_modes=self._params["n_modes"], **self._solver_kwargs
+        # Initialize the SVD decomposer
+        decomposer = Decomposer(
+            n_modes=self._params["n_modes"],
+            solver=self._params["solver"],
+            **self._solver_kwargs,
         )
-        decomposer.fit(data1_processed, data2_processed)
 
-        # Note:
-        # - explained variance is given by the singular values of the SVD;
-        # - We use the term singular_values_pca as used in the context of PCA:
-        # Considering data X1 = X2, MCA is the same as PCA. In this case,
-        # singular_values_pca is equivalent to the singular values obtained
-        # when performing PCA of X1 or X2.
-        singular_values = decomposer.singular_values_
-        singular_vectors1 = decomposer.singular_vectors1_
-        singular_vectors2 = decomposer.singular_vectors2_
+        # Perform SVD on PCA-reduced data
+        if (self.pca1 is not None) and (self.pca2 is not None):
+            # Fit the PCA models
+            self.pca1.fit(data1_processed, "sample")
+            self.pca2.fit(data2_processed, "sample")
+            # Get the PCA scores
+            pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
+            pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
+            # Compute the cross-covariance matrix of the PCA scores
+            pca_scores1 = pca_scores1.rename({"mode": "feature1"})
+            pca_scores2 = pca_scores2.rename({"mode": "feature2"})
+            cov_matrix = self._compute_cross_covariance_matrix(pca_scores1, pca_scores2)
 
+            # Perform the SVD
+            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
+            V1 = decomposer.U_  # left singular vectors (feature1 x mode)
+            V2 = decomposer.V_  # right singular vectors (feature2 x mode)
+
+            V1pre = self.pca1.data.components  # left PCA eigenvectors (feature x mode)
+            V2pre = self.pca2.data.components  # right PCA eigenvectors (feature x mode)
+
+            # Compute the singular vectors
+            V1pre = V1pre.rename({"mode": "feature1"})
+            V2pre = V2pre.rename({"mode": "feature2"})
+            singular_vectors1 = xr.dot(V1pre, V1, dims="feature1")
+            singular_vectors2 = xr.dot(V2pre, V2, dims="feature2")
+
+        # Perform SVD directly on data
+        else:
+            # Rename feature and associated dimensions of data objects to avoid index conflicts
+            dim_renamer1 = DimensionRenamer("feature", "1")
+            dim_renamer2 = DimensionRenamer("feature", "2")
+            data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
+            data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
+            # Compute the cross-covariance matrix
+            cov_matrix = self._compute_cross_covariance_matrix(
+                data1_processed_temp, data2_processed_temp
+            )
+
+            # Perform the SVD
+            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
+            singular_vectors1 = decomposer.U_
+            singular_vectors2 = decomposer.V_
+
+            # Rename the singular vectors
+            singular_vectors1 = dim_renamer1.inverse_transform(singular_vectors1)
+            singular_vectors2 = dim_renamer2.inverse_transform(singular_vectors2)
+
+        # Store the results
+        singular_values = decomposer.s_
+
+        # Compute total squared variance
         squared_covariance = singular_values**2
-        total_squared_covariance = decomposer.total_squared_covariance_
+        total_squared_covariance = (abs(cov_matrix) ** 2).sum()
 
         norm1 = np.sqrt(singular_values)
         norm2 = np.sqrt(singular_values)
@@ -441,7 +509,7 @@ class MCA(_BaseCrossModel):
 class ComplexMCA(MCA):
     """Complex Maximum Covariance Analysis (MCA).
 
-    Complex MCA, also referred to as Analytical SVD (ASVD) by Shane et al. (2017)[1]_,
+    Complex MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017)[1]_,
     enhances traditional MCA by accommodating both amplitude and phase information.
     It achieves this by utilizing the Hilbert transform to preprocess the data,
     thus allowing for a more comprehensive analysis in the subsequent MCA computation.
@@ -530,39 +598,102 @@ class ComplexMCA(MCA):
         """
 
         data1_processed: DataArray = self.preprocessor1.fit_transform(
-            data1, dim, weights2
+            data1, dim, weights1
         )
         data2_processed: DataArray = self.preprocessor2.fit_transform(
             data2, dim, weights2
         )
 
-        # apply hilbert transform:
+        # Apply Hilbert transform:
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
         data1_processed = hilbert_transform(
-            data1_processed, dim="sample", padding=padding, decay_factor=decay_factor
+            data1_processed,
+            dim="sample",
+            padding=padding,
+            decay_factor=decay_factor,
         )
         data2_processed = hilbert_transform(
-            data2_processed, dim="sample", padding=padding, decay_factor=decay_factor
+            data2_processed,
+            dim="sample",
+            padding=padding,
+            decay_factor=decay_factor,
         )
 
-        decomposer = CrossDecomposer(
-            n_modes=self._params["n_modes"], **self._solver_kwargs
+        # Initialize the SVD decomposer
+        decomposer = Decomposer(
+            n_modes=self._params["n_modes"],
+            solver=self._params["solver"],
+            **self._solver_kwargs,
         )
-        decomposer.fit(data1_processed, data2_processed)
 
-        # Note:
-        # - explained variance is given by the singular values of the SVD;
-        # - We use the term singular_values_pca as used in the context of PCA:
-        # Considering data X1 = X2, MCA is the same as PCA. In this case,
-        # singular_values_pca is equivalent to the singular values obtained
-        # when performing PCA of X1 or X2.
-        singular_values = decomposer.singular_values_
-        singular_vectors1 = decomposer.singular_vectors1_
-        singular_vectors2 = decomposer.singular_vectors2_
+        # Perform SVD on PCA-reduced data
+        if (self.pca1 is not None) and (self.pca2 is not None):
+            # Fit the PCA models
+            self.pca1.fit(data1_processed, "sample")
+            self.pca2.fit(data2_processed, "sample")
+            # Get the PCA scores
+            pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
+            pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
+            # Apply hilbert transform
+            pca_scores1 = hilbert_transform(
+                pca_scores1,
+                dim="sample",
+                padding=padding,
+                decay_factor=decay_factor,
+            )
+            pca_scores2 = hilbert_transform(
+                pca_scores2,
+                dim="sample",
+                padding=padding,
+                decay_factor=decay_factor,
+            )
+            # Compute the cross-covariance matrix of the PCA scores
+            pca_scores1 = pca_scores1.rename({"mode": "feature"})
+            pca_scores2 = pca_scores2.rename({"mode": "feature"})
+            cov_matrix = self._compute_cross_covariance_matrix(pca_scores1, pca_scores2)
 
+            # Perform the SVD
+            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
+            V1 = decomposer.U_  # left singular vectors (feature1 x mode)
+            V2 = decomposer.V_  # right singular vectors (feature2 x mode)
+
+            V1pre = self.pca1.data.components  # left PCA eigenvectors (feature x mode)
+            V2pre = self.pca2.data.components  # right PCA eigenvectors (feature x mode)
+
+            # Compute the singular vectors
+            V1pre = V1pre.rename({"mode": "feature1"})
+            V2pre = V2pre.rename({"mode": "feature2"})
+            singular_vectors1 = xr.dot(V1pre, V1, dims="feature1")
+            singular_vectors2 = xr.dot(V2pre, V2, dims="feature2")
+
+        # Perform SVD directly on data
+        else:
+            # Rename feature and associated dimensions of data objects to avoid index conflicts
+            dim_renamer1 = DimensionRenamer("feature", "1")
+            dim_renamer2 = DimensionRenamer("feature", "2")
+            data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
+            data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
+            # Compute the cross-covariance matrix
+            cov_matrix = self._compute_cross_covariance_matrix(
+                data1_processed_temp, data2_processed_temp
+            )
+
+            # Perform the SVD
+            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
+            singular_vectors1 = decomposer.U_
+            singular_vectors2 = decomposer.V_
+
+            # Rename the singular vectors
+            singular_vectors1 = dim_renamer1.inverse_transform(singular_vectors1)
+            singular_vectors2 = dim_renamer2.inverse_transform(singular_vectors2)
+
+        # Store the results
+        singular_values = decomposer.s_
+
+        # Compute total squared variance
         squared_covariance = singular_values**2
-        total_squared_covariance = decomposer.total_squared_covariance_
+        total_squared_covariance = (abs(cov_matrix) ** 2).sum()
 
         norm1 = np.sqrt(singular_values)
         norm2 = np.sqrt(singular_values)

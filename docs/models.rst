@@ -26,6 +26,17 @@ The supported models in ``xeofs`` currently include:
       Uncovers co-varying patterns between two sets of data.
 
 
+.. grid:: 2
+
+    .. grid-item-card::  Optimal Persistence Analysis (OPA)
+      :link: api_core_methods
+      :link-type: doc
+
+
+      Identifies the optimal persistence patterns (OPP) with the largest decorrelation time.
+
+
+
 Enhanced Interpretability
 ---------------------------
 

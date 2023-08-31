@@ -165,3 +165,40 @@ def test_inverse_transform_scores(mock_data_array, dim_sample, dim_feature):
             assert (
                 unstacked.coords[dim].size == coords.size
             ), "Dimension {} has different size.".format(dim)
+
+
+def test_fit_transform_sample_feature_data():
+    """Test fit_transform with sample and feature data."""
+    # Create sample and feature data
+    np.random.seed(5)
+    simple_data = xr.DataArray(
+        np.random.rand(10, 5),
+        dims=("sample", "feature"),
+        coords={"sample": np.arange(10), "feature": np.arange(5)},
+    )
+    np.random.seed(5)
+    more_simple_data = xr.DataArray(
+        np.random.rand(10, 5),
+        dims=("sample", "feature"),
+        coords={"sample": np.arange(10), "feature": np.arange(5)},
+    )
+
+    # Create stacker and fit_transform
+    stacker = SingleDataArrayStacker()
+    stacked = stacker.fit_transform(simple_data, ("sample",), ("feature"))
+
+    # Test that the dimensions are correct
+    assert stacked.ndim == 2
+    assert set(stacked.dims) == {"sample", "feature"}
+    assert not stacked.isnull().any()
+
+    # Test that fitting new data yields the same results
+    more_stacked = stacker.transform(more_simple_data)
+    xr.testing.assert_equal(more_stacked, stacked)
+
+    # Test that the operation is reversible
+    unstacked = stacker.inverse_transform_data(stacked)
+    xr.testing.assert_equal(unstacked, simple_data)
+
+    more_unstacked = stacker.inverse_transform_data(more_stacked)
+    xr.testing.assert_equal(more_unstacked, more_simple_data)

@@ -27,6 +27,10 @@ class _BaseModel(ABC):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use weights.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to pass to the solver.
 
     """
 
@@ -36,6 +40,7 @@ class _BaseModel(ABC):
         standardize=False,
         use_coslat=False,
         use_weights=False,
+        solver="auto",
         solver_kwargs={},
     ):
         # Define model parameters
@@ -44,6 +49,7 @@ class _BaseModel(ABC):
             "standardize": standardize,
             "use_coslat": use_coslat,
             "use_weights": use_weights,
+            "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
 

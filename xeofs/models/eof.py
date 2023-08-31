@@ -23,6 +23,8 @@ class EOF(_BaseModel):
         Whether to use cosine of latitude for scaling.
     use_weights: bool, default=False
         Whether to use weights.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
         Additional keyword arguments to be passed to the SVD solver.
 
@@ -40,6 +42,7 @@ class EOF(_BaseModel):
         standardize=False,
         use_coslat=False,
         use_weights=False,
+        solver="auto",
         solver_kwargs={},
     ):
         super().__init__(
@@ -47,6 +50,7 @@ class EOF(_BaseModel):
             standardize=standardize,
             use_coslat=use_coslat,
             use_weights=use_weights,
+            solver=solver,
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "EOF analysis"})
@@ -64,12 +68,14 @@ class EOF(_BaseModel):
         # Decompose the data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
-        decomposer.fit(input_data)
+        decomposer = Decomposer(
+            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
+        )
+        decomposer.fit(input_data, dims=("sample", "feature"))
 
-        singular_values = decomposer.singular_values_
-        components = decomposer.components_
-        scores = decomposer.scores_
+        singular_values = decomposer.s_
+        components = decomposer.V_
+        scores = decomposer.U_
 
         # Compute the explained variance
         explained_variance = singular_values**2 / (input_data.sample.size - 1)
@@ -304,12 +310,14 @@ class ComplexEOF(EOF):
         # Decompose the complex data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer = Decomposer(
+            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
+        )
         decomposer.fit(input_data)
 
-        singular_values = decomposer.singular_values_
-        components = decomposer.components_
-        scores = decomposer.scores_
+        singular_values = decomposer.s_
+        components = decomposer.V_
+        scores = decomposer.U_
 
         # Compute the explained variance
         explained_variance = singular_values**2 / (input_data.sample.size - 1)

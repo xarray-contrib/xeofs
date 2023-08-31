@@ -1,7 +1,8 @@
 import numpy as np
 import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
-from sklearn.utils.extmath import randomized_svd as svd
+from numpy.linalg import svd
+from sklearn.utils.extmath import randomized_svd
 from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
 
@@ -9,162 +10,112 @@ from dask.array.linalg import svd_compressed as dask_svd
 class Decomposer:
     """Decomposes a data object using Singular Value Decomposition (SVD).
 
-    The data object will be decomposed into its components, scores and singular values.
+    The data object will be decomposed like X = U * S * V.T, where U and V are
+    orthogonal matrices and S is a diagonal matrix with the singular values on
+    the diagonal.
 
     Parameters
     ----------
     n_modes : int
         Number of components to be computed.
-    n_iter : int
-        Number of iterations for the SVD algorithm.
-    random_state : int
-        Random seed for the SVD algorithm.
-    verbose : bool
-        If True, print information about the SVD algorithm.
-
+    solver : {'auto', 'full', 'randomized'}, default='auto'
+        The solver is selected by a default policy based on size of `X` and `n_modes`:
+        if the input data is larger than 500x500 and the number of modes to extract is lower
+        than 80% of the smallest dimension of the data, then the more efficient
+        `randomized` method is enabled. Otherwise the exact full SVD is computed
+        and optionally truncated afterwards.
+    **kwargs
+        Additional keyword arguments passed to the SVD solver.
     """
 
-    def __init__(self, n_modes=100, **kwargs):
+    def __init__(self, n_modes=100, flip_signs=True, solver="auto", **kwargs):
         self.n_modes = n_modes
+        self.flip_signs = flip_signs
+        self.solver = solver
         self.solver_kwargs = kwargs
 
-    def fit(self, X):
-        is_dask = True if isinstance(X.data, DaskArray) else False
-        is_complex = True if np.iscomplexobj(X.data) else False
+    def fit(self, X, dims=("sample", "feature")):
+        """Decomposes the data object.
 
-        if (not is_complex) and (not is_dask):
-            self.solver_kwargs.update({"n_components": self.n_modes})
+        Parameters
+        ----------
+        X : DataArray
+            A 2-dimensional data object to be decomposed.
+        dims : tuple of str
+            Dimensions of the data object.
+        """
+        n_coords1 = len(X.coords[dims[0]])
+        n_coords2 = len(X.coords[dims[1]])
+        rank = min(n_coords1, n_coords2)
 
-            U, s, VT = xr.apply_ufunc(
-                svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[["sample", "feature"]],
-                output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
-            )
-
-        elif is_complex and (not is_dask):
-            # Scipy sparse version
-            self.solver_kwargs.update(
-                {
-                    "k": self.n_modes,
-                    "solver": "lobpcg",
-                }
-            )
-            U, s, VT = xr.apply_ufunc(
-                complex_svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[["sample", "feature"]],
-                output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
-            )
-            idx_sort = np.argsort(s)[::-1]
-            U = U[:, idx_sort]
-            s = s[idx_sort]
-            VT = VT[idx_sort, :]
-
-        elif (not is_complex) and is_dask:
-            self.solver_kwargs.update({"k": self.n_modes})
-            U, s, VT = xr.apply_ufunc(
-                dask_svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[["sample", "feature"]],
-                output_core_dims=[["sample", "mode"], ["mode"], ["mode", "feature"]],
-                dask="allowed",
-            )
-        else:
-            err_msg = (
-                "Complex data together with dask is currently not implemented. See dask issue 7639 "
-                "https://github.com/dask/dask/issues/7639"
-            )
-            raise NotImplementedError(err_msg)
-
-        U = U.assign_coords(mode=range(1, U.mode.size + 1))
-        s = s.assign_coords(mode=range(1, U.mode.size + 1))
-        VT = VT.assign_coords(mode=range(1, U.mode.size + 1))
-
-        U.name = "scores"
-        s.name = "singular_values"
-        VT.name = "components"
-
-        # Flip signs of components to ensure deterministic output
-        idx_sign = abs(VT).argmax("feature").compute()
-        flip_signs = np.sign(VT.isel(feature=idx_sign))
-        flip_signs = flip_signs.compute()
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in flip_signs.coords.items():
-            if dim != "mode":
-                flip_signs = flip_signs.drop(dim)
-        VT *= flip_signs
-        U *= flip_signs
-
-        self.scores_ = U
-        self.singular_values_ = s
-        self.components_ = VT.conj().transpose("feature", "mode")
-
-
-class CrossDecomposer(Decomposer):
-    """Decomposes two data objects based on their cross-covariance matrix.
-
-    The data objects will be decomposed into left and right singular vectors components and their corresponding
-    singular values.
-
-    Parameters
-    ----------
-    n_modes : int
-        Number of components to be computed.
-    n_iter : int
-        Number of iterations for the SVD algorithm.
-    random_state : int
-        Random seed for the SVD algorithm.
-    verbose : bool
-        If True, print information about the SVD algorithm.
-
-    """
-
-    def fit(self, X1, X2):
-        # Cannot fit data with different number of samples
-        if X1.sample.size != X2.sample.size:
+        if self.n_modes > rank:
             raise ValueError(
-                "The two data objects must have the same number of samples."
+                f"n_modes must be smaller or equal to the rank of the data object (rank={rank})"
             )
 
-        # Rename feature and associated dimensions of data objects to avoid conflicts
-        feature_dims_temp1 = {
-            dim: dim + "1" for dim in X1.coords["feature"].coords.keys()
-        }
-        feature_dims_temp2 = {
-            dim: dim + "2" for dim in X2.coords["feature"].coords.keys()
-        }
-        for old, new in feature_dims_temp1.items():
-            X1 = X1.rename({old: new})
-        for old, new in feature_dims_temp2.items():
-            X2 = X2.rename({old: new})
+        # Check if data is small enough to use exact SVD
+        # If not, use randomized SVD
+        # If data is complex, use scipy sparse SVD
+        # If data is dask, use dask SVD
+        # Conditions for using exact SVD follow scitkit-learn's PCA implementation
+        # Source: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
-        # Compute cross-covariance matrix
-        # Assuming that X1 and X2 are centered
-        cov_matrix = xr.dot(X1.conj(), X2, dims="sample") / (X1.sample.size - 1)
+        use_dask = True if isinstance(X.data, DaskArray) else False
+        use_complex = True if np.iscomplexobj(X.data) else False
 
-        # Compute (squared) total variance
-        self.total_covariance_ = (abs(cov_matrix)).sum().compute()
-        self.total_squared_covariance_ = (abs(cov_matrix) ** 2).sum().compute()
+        is_small_data = max(n_coords1, n_coords2) < 500
 
-        is_dask = True if isinstance(cov_matrix.data, DaskArray) else False
-        is_complex = True if np.iscomplexobj(cov_matrix.data) else False
+        if self.solver == "auto":
+            use_exact = (
+                True if is_small_data and self.n_modes > int(0.8 * rank) else False
+            )
+        elif self.solver == "full":
+            use_exact = True
+        elif self.solver == "randomized":
+            use_exact = False
+        else:
+            raise ValueError(
+                f"Unrecognized solver '{self.solver}'. "
+                "Valid options are 'auto', 'full', and 'randomized'."
+            )
 
-        if (not is_complex) and (not is_dask):
+        # Use exact SVD for small data sets
+        if use_exact:
+            U, s, VT = xr.apply_ufunc(
+                np.linalg.svd,
+                X,
+                kwargs=self.solver_kwargs,
+                input_core_dims=[dims],
+                output_core_dims=[
+                    [dims[0], "mode"],
+                    ["mode"],
+                    ["mode", dims[1]],
+                ],
+                dask="allowed",
+                vectorize=False,
+            )
+            U = U[:, : self.n_modes]
+            s = s[: self.n_modes]
+            VT = VT[: self.n_modes, :]
+
+        # Use randomized SVD for large, real-valued data sets
+        elif (not use_complex) and (not use_dask):
             self.solver_kwargs.update({"n_components": self.n_modes})
 
             U, s, VT = xr.apply_ufunc(
-                svd,
-                cov_matrix,
+                randomized_svd,
+                X,
                 kwargs=self.solver_kwargs,
-                input_core_dims=[["feature1", "feature2"]],
-                output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
+                input_core_dims=[dims],
+                output_core_dims=[
+                    [dims[0], "mode"],
+                    ["mode"],
+                    ["mode", dims[1]],
+                ],
             )
 
-        elif (is_complex) and (not is_dask):
+        # Use scipy sparse SVD for large, complex-valued data sets
+        elif use_complex and (not use_dask):
             # Scipy sparse version
             self.solver_kwargs.update(
                 {
@@ -174,24 +125,33 @@ class CrossDecomposer(Decomposer):
             )
             U, s, VT = xr.apply_ufunc(
                 complex_svd,
-                cov_matrix,
+                X,
                 kwargs=self.solver_kwargs,
-                input_core_dims=[["feature1", "feature2"]],
-                output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
+                input_core_dims=[dims],
+                output_core_dims=[
+                    [dims[0], "mode"],
+                    ["mode"],
+                    ["mode", dims[1]],
+                ],
             )
             idx_sort = np.argsort(s)[::-1]
             U = U[:, idx_sort]
             s = s[idx_sort]
             VT = VT[idx_sort, :]
 
-        elif (not is_complex) and (is_dask):
+        # Use dask SVD for large, real-valued, delayed data sets
+        elif (not use_complex) and use_dask:
             self.solver_kwargs.update({"k": self.n_modes})
             U, s, VT = xr.apply_ufunc(
                 dask_svd,
-                cov_matrix,
+                X,
                 kwargs=self.solver_kwargs,
-                input_core_dims=[["feature1", "feature2"]],
-                output_core_dims=[["feature1", "mode"], ["mode"], ["mode", "feature2"]],
+                input_core_dims=[dims],
+                output_core_dims=[
+                    [dims[0], "mode"],
+                    ["mode"],
+                    ["mode", dims[1]],
+                ],
                 dask="allowed",
             )
         else:
@@ -205,28 +165,22 @@ class CrossDecomposer(Decomposer):
         s = s.assign_coords(mode=range(1, U.mode.size + 1))
         VT = VT.assign_coords(mode=range(1, U.mode.size + 1))
 
-        U.name = "left_singular_vectors"
-        s.name = "singular_values"
-        VT.name = "right_singular_vectors"
+        U.name = "U"
+        s.name = "s"
+        VT.name = "V"
 
-        # Flip signs of components to ensure deterministic output
-        idx_sign = abs(VT).argmax("feature2").compute()
-        flip_signs = np.sign(VT.isel(feature2=idx_sign))
-        flip_signs = flip_signs.compute()
-        # Drop all dimensions except 'mode' so that the index is clean
-        # and multiplying will not introduce additional coordinates
-        for dim, coords in flip_signs.coords.items():
-            if dim != "mode":
-                flip_signs = flip_signs.drop(dim)
-        VT *= flip_signs
-        U *= flip_signs
+        if self.flip_signs:
+            # Flip signs of components to ensure deterministic output
+            idx_sign = abs(VT).argmax(dims[1]).compute()
+            flip_signs = np.sign(VT.isel({dims[1]: idx_sign}))
+            flip_signs = flip_signs.compute()
+            # Drop all dimensions except 'mode' so that the index is clean
+            for dim, coords in flip_signs.coords.items():
+                if dim != "mode":
+                    flip_signs = flip_signs.drop(dim)
+            VT *= flip_signs
+            U *= flip_signs
 
-        # Rename back to original feature dimensions (remove 1 and 2)
-        for old, new in feature_dims_temp1.items():
-            U = U.rename({new: old})
-        for old, new in feature_dims_temp2.items():
-            VT = VT.rename({new: old})
-
-        self.singular_vectors1_ = U
-        self.singular_values_ = s
-        self.singular_vectors2_ = VT.conj().transpose("feature", "mode")
+        self.U_ = U
+        self.s_ = s
+        self.V_ = VT.conj().transpose(dims[1], "mode")
