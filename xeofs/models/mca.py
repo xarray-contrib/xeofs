@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Sequence, Self
 
 import numpy as np
 import xarray as xr
@@ -6,7 +6,7 @@ from dask.diagnostics.progress import ProgressBar
 
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import Decomposer
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray
 from ..data_container.mca_data_container import (
     MCADataContainer,
     ComplexMCADataContainer,
@@ -83,24 +83,13 @@ class MCA(_BaseCrossModel):
 
         return xr.dot(X1.conj(), X2, dims=sample_name) / (n_samples - 1)
 
-    def fit(
+    def _fit_algorithm(
         self,
-        data1: AnyDataObject,
-        data2: AnyDataObject,
-        dim,
-        weights1: Optional[AnyDataObject] = None,
-        weights2: Optional[AnyDataObject] = None,
-    ):
+        data1: DataArray,
+        data2: DataArray,
+    ) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
-
-        # Preprocess the data
-        data1_processed: DataArray = self.preprocessor1.fit_transform(
-            data1, dim, weights1
-        )
-        data2_processed: DataArray = self.preprocessor2.fit_transform(
-            data2, dim, weights2
-        )
 
         # Initialize the SVD decomposer
         decomposer = Decomposer(
@@ -112,8 +101,8 @@ class MCA(_BaseCrossModel):
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
             # Fit the PCA models
-            self.pca1.fit(data1_processed, dim=sample_name)
-            self.pca2.fit(data2_processed, dim=sample_name)
+            self.pca1.fit(data1, dim=sample_name)
+            self.pca2.fit(data2, dim=sample_name)
             # Get the PCA scores
             pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
             pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
@@ -141,12 +130,10 @@ class MCA(_BaseCrossModel):
             # Rename feature and associated dimensions of data objects to avoid index conflicts
             dim_renamer1 = DimensionRenamer(feature_name, "1")
             dim_renamer2 = DimensionRenamer(feature_name, "2")
-            data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
-            data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
+            data1_temp = dim_renamer1.fit_transform(data1)
+            data2_temp = dim_renamer2.fit_transform(data2)
             # Compute the cross-covariance matrix
-            cov_matrix = self._compute_cross_covariance_matrix(
-                data1_processed_temp, data2_processed_temp
-            )
+            cov_matrix = self._compute_cross_covariance_matrix(data1_temp, data2_temp)
 
             # Perform the SVD
             decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
@@ -172,12 +159,12 @@ class MCA(_BaseCrossModel):
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
-        scores1 = xr.dot(data1_processed, singular_vectors1, dims=feature_name) / norm1
-        scores2 = xr.dot(data2_processed, singular_vectors2, dims=feature_name) / norm2
+        scores1 = xr.dot(data1, singular_vectors1, dims=feature_name) / norm1
+        scores2 = xr.dot(data2, singular_vectors2, dims=feature_name) / norm2
 
         self.data.set_data(
-            input_data1=data1_processed,
-            input_data2=data2_processed,
+            input_data1=data1,
+            input_data2=data2,
             components1=singular_vectors1,
             components2=singular_vectors2,
             scores1=scores1,
@@ -190,15 +177,20 @@ class MCA(_BaseCrossModel):
         )
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, **kwargs):
-        """Project new unseen data onto the singular vectors.
+    def transform(
+        self, data1: Optional[DataObject] = None, data2: Optional[DataObject] = None
+    ) -> Sequence[DataArray]:
+        """Get the expansion coefficients of "unseen" data.
+
+        The expansion coefficients are obtained by projecting data onto the singular vectors.
 
         Parameters
         ----------
-        data1: xr.DataArray or list of xarray.DataArray
+        data1: DataArray | Dataset | List[DataArray]
             Left input data. Must be provided if `data2` is not provided.
-        data2: xr.DataArray or list of xarray.DataArray
+        data2: DataArray | Dataset | List[DataArray]
             Right input data. Must be provided if `data1` is not provided.
 
         Returns
@@ -209,11 +201,13 @@ class MCA(_BaseCrossModel):
             Right scores.
 
         """
+        return super().transform(data1, data2)
+
+    def _transform_algorithm(
+        self, data1: Optional[DataArray] = None, data2: Optional[DataArray] = None
+    ) -> Sequence[DataArray]:
         results = []
-        if "data1" in kwargs.keys():
-            # Preprocess input data
-            data1 = kwargs["data1"]
-            data1 = self.preprocessor1.transform(data1)
+        if data1 is not None:
             # Project data onto singular vectors
             comps1 = self.data.components1
             norm1 = self.data.norm1
@@ -222,10 +216,7 @@ class MCA(_BaseCrossModel):
             scores1 = self.preprocessor1.inverse_transform_scores(scores1)
             results.append(scores1)
 
-        if "data2" in kwargs.keys():
-            # Preprocess input data
-            data2 = kwargs["data2"]
-            data2 = self.preprocessor2.transform(data2)
+        if data2 is not None:
             # Project data onto singular vectors
             comps2 = self.data.components2
             norm2 = self.data.norm2
@@ -434,17 +425,17 @@ class MCA(_BaseCrossModel):
             input_data2, scores2, correction=correction, alpha=alpha
         )
 
-        hom_pat1 = self.preprocessor1.inverse_transform_components(hom_pat1)
-        hom_pat2 = self.preprocessor2.inverse_transform_components(hom_pat2)
-
-        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
-        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
-
         hom_pat1.name = "left_homogeneous_patterns"
         hom_pat2.name = "right_homogeneous_patterns"
 
         pvals1.name = "pvalues_of_left_homogeneous_patterns"
         pvals2.name = "pvalues_of_right_homogeneous_patterns"
+
+        hom_pat1 = self.preprocessor1.inverse_transform_components(hom_pat1)
+        hom_pat2 = self.preprocessor2.inverse_transform_components(hom_pat2)
+
+        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         return (hom_pat1, hom_pat2), (pvals1, pvals2)
 
@@ -496,17 +487,17 @@ class MCA(_BaseCrossModel):
             input_data2, scores1, correction=correction, alpha=alpha
         )
 
-        patterns1 = self.preprocessor1.inverse_transform_components(patterns1)
-        patterns2 = self.preprocessor2.inverse_transform_components(patterns2)
-
-        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
-        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
-
         patterns1.name = "left_heterogeneous_patterns"
         patterns2.name = "right_heterogeneous_patterns"
 
         pvals1.name = "pvalues_of_left_heterogeneous_patterns"
         pvals2.name = "pvalues_of_right_heterogeneous_patterns"
+
+        patterns1 = self.preprocessor1.inverse_transform_components(patterns1)
+        patterns2 = self.preprocessor2.inverse_transform_components(patterns2)
+
+        pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
+        pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         return (patterns1, patterns2), (pvals1, pvals2)
 
@@ -576,56 +567,15 @@ class ComplexMCA(MCA):
         # Initialize the DataContainer to store the results
         self.data: ComplexMCADataContainer = ComplexMCADataContainer()
 
-    def fit(
-        self,
-        data1: AnyDataObject,
-        data2: AnyDataObject,
-        dim,
-        weights1: Optional[AnyDataObject] = None,
-        weights2: Optional[AnyDataObject] = None,
-    ):
-        """Fit the model.
-
-        Parameters
-        ----------
-        data1: xr.DataArray or list of xarray.DataArray
-            Left input data.
-        data2: xr.DataArray or list of xarray.DataArray
-            Right input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights1: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the left input data will be weighted by this array.
-        weights2: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the right input data will be weighted by this array.
-
-        """
+    def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
 
-        data1_processed: DataArray = self.preprocessor1.fit_transform(
-            data1, dim, weights1
-        )
-        data2_processed: DataArray = self.preprocessor2.fit_transform(
-            data2, dim, weights2
-        )
-
-        # Apply Hilbert transform:
-        padding = self._params["padding"]
-        decay_factor = self._params["decay_factor"]
-        data1_processed = hilbert_transform(
-            data1_processed,
-            dims=(sample_name, feature_name),
-            padding=padding,
-            decay_factor=decay_factor,
-        )
-        data2_processed = hilbert_transform(
-            data2_processed,
-            dims=(sample_name, feature_name),
-            padding=padding,
-            decay_factor=decay_factor,
-        )
+        # Settings for Hilbert transform
+        hilbert_kwargs = {
+            "padding": self._params["padding"],
+            "decay_factor": self._params["decay_factor"],
+        }
 
         # Initialize the SVD decomposer
         decomposer = Decomposer(
@@ -637,54 +587,55 @@ class ComplexMCA(MCA):
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
             # Fit the PCA models
-            self.pca1.fit(data1_processed, sample_name)
-            self.pca2.fit(data2_processed, sample_name)
+            self.pca1.fit(data1, sample_name)
+            self.pca2.fit(data2, sample_name)
             # Get the PCA scores
             pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
             pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
             # Apply hilbert transform
             pca_scores1 = hilbert_transform(
-                pca_scores1,
-                dims=(sample_name, feature_name),
-                padding=padding,
-                decay_factor=decay_factor,
+                pca_scores1, dims=(sample_name, "mode"), **hilbert_kwargs
             )
             pca_scores2 = hilbert_transform(
-                pca_scores2,
-                dims=(sample_name, feature_name),
-                padding=padding,
-                decay_factor=decay_factor,
+                pca_scores2, dims=(sample_name, "mode"), **hilbert_kwargs
             )
             # Compute the cross-covariance matrix of the PCA scores
-            pca_scores1 = pca_scores1.rename({"mode": feature_name})
-            pca_scores2 = pca_scores2.rename({"mode": feature_name})
+            pca_scores1 = pca_scores1.rename({"mode": "feature_temp1"})
+            pca_scores2 = pca_scores2.rename({"mode": "feature_temp2"})
             cov_matrix = self._compute_cross_covariance_matrix(pca_scores1, pca_scores2)
 
             # Perform the SVD
-            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
-            V1 = decomposer.U_  # left singular vectors (feature1 x mode)
-            V2 = decomposer.V_  # right singular vectors (feature2 x mode)
+            decomposer.fit(cov_matrix, dims=("feature_temp1", "feature_temp2"))
+            V1 = decomposer.U_  # left singular vectors (feature_temp1 x mode)
+            V2 = decomposer.V_  # right singular vectors (feature_temp2 x mode)
 
-            V1pre = self.pca1.data.components  # left PCA eigenvectors (feature x mode)
-            V2pre = self.pca2.data.components  # right PCA eigenvectors (feature x mode)
+            # left PCA eigenvectors (feature_name x mode)
+            V1pre = self.pca1.data.components
+            # right PCA eigenvectors (feature_name x mode)
+            V2pre = self.pca2.data.components
 
             # Compute the singular vectors
-            V1pre = V1pre.rename({"mode": "feature1"})
-            V2pre = V2pre.rename({"mode": "feature2"})
-            singular_vectors1 = xr.dot(V1pre, V1, dims="feature1")
-            singular_vectors2 = xr.dot(V2pre, V2, dims="feature2")
+            V1pre = V1pre.rename({"mode": "feature_temp1"})
+            V2pre = V2pre.rename({"mode": "feature_temp2"})
+            singular_vectors1 = xr.dot(V1pre, V1, dims="feature_temp1")
+            singular_vectors2 = xr.dot(V2pre, V2, dims="feature_temp2")
 
         # Perform SVD directly on data
         else:
+            # Perform Hilbert transform
+            data1 = hilbert_transform(
+                data1, dims=(sample_name, feature_name), **hilbert_kwargs
+            )
+            data2 = hilbert_transform(
+                data2, dims=(sample_name, feature_name), **hilbert_kwargs
+            )
             # Rename feature and associated dimensions of data objects to avoid index conflicts
             dim_renamer1 = DimensionRenamer(feature_name, "1")
             dim_renamer2 = DimensionRenamer(feature_name, "2")
-            data1_processed_temp = dim_renamer1.fit_transform(data1_processed)
-            data2_processed_temp = dim_renamer2.fit_transform(data2_processed)
+            data1_temp = dim_renamer1.fit_transform(data1)
+            data2_temp = dim_renamer2.fit_transform(data2)
             # Compute the cross-covariance matrix
-            cov_matrix = self._compute_cross_covariance_matrix(
-                data1_processed_temp, data2_processed_temp
-            )
+            cov_matrix = self._compute_cross_covariance_matrix(data1_temp, data2_temp)
 
             # Perform the SVD
             decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
@@ -710,12 +661,12 @@ class ComplexMCA(MCA):
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
-        scores1 = xr.dot(data1_processed, singular_vectors1) / norm1
-        scores2 = xr.dot(data2_processed, singular_vectors2) / norm2
+        scores1 = xr.dot(data1, singular_vectors1) / norm1
+        scores2 = xr.dot(data2, singular_vectors2) / norm2
 
         self.data.set_data(
-            input_data1=data1_processed,
-            input_data2=data2_processed,
+            input_data1=data1,
+            input_data2=data2,
             components1=singular_vectors1,
             components2=singular_vectors2,
             scores1=scores1,
@@ -728,8 +679,9 @@ class ComplexMCA(MCA):
         )
         # Assign analysis relevant meta data
         self.data.set_attrs(self.attrs)
+        return self
 
-    def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
+    def components_amplitude(self) -> Tuple[DataObject, DataObject]:
         """Compute the amplitude of the components.
 
         The amplitude of the components are defined as
@@ -742,9 +694,9 @@ class ComplexMCA(MCA):
 
         Returns
         -------
-        AnyDataObject
+        DataObject
             Amplitude of the left components.
-        AnyDataObject
+        DataObject
             Amplitude of the left components.
 
         """
@@ -756,7 +708,7 @@ class ComplexMCA(MCA):
 
         return (comps1, comps2)
 
-    def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
+    def components_phase(self) -> Tuple[DataObject, DataObject]:
         """Compute the phase of the components.
 
         The phase of the components are defined as
@@ -769,9 +721,9 @@ class ComplexMCA(MCA):
 
         Returns
         -------
-        AnyDataObject
+        DataObject
             Phase of the left components.
-        AnyDataObject
+        DataObject
             Phase of the right components.
 
         """
@@ -836,7 +788,7 @@ class ComplexMCA(MCA):
 
         return (scores1, scores2)
 
-    def transform(self, data1: AnyDataObject, data2: AnyDataObject):
+    def transform(self, data1: DataObject, data2: DataObject):
         raise NotImplementedError("Complex MCA does not support transform method.")
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
