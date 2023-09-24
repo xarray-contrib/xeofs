@@ -1,27 +1,26 @@
 import xarray as xr
 
-from ._base_scaler import _BaseScaler
-from ._base_stacker import _BaseStacker
-from .scaler import SingleDataArrayScaler, SingleDatasetScaler, ListDataArrayScaler
-from .stacker import SingleDataArrayStacker, SingleDatasetStacker, ListDataArrayStacker
+from .scaler import DataArrayScaler, DataSetScaler, DataListScaler
+from .stacker import DataArrayStacker, DataSetStacker, DataListStacker
 from .multi_index_converter import (
-    MultiIndexConverter,
-    ListMultiIndexConverter,
+    DataArrayMultiIndexConverter,
+    DataSetMultiIndexConverter,
+    DataListMultiIndexConverter,
 )
 from ..utils.data_types import AnyDataObject
 
 
 class ScalerFactory:
     @staticmethod
-    def create_scaler(data: AnyDataObject, **kwargs) -> _BaseScaler:
+    def create_scaler(data: AnyDataObject, **kwargs):
         if isinstance(data, xr.DataArray):
-            return SingleDataArrayScaler(**kwargs)
+            return DataArrayScaler(**kwargs)
         elif isinstance(data, xr.Dataset):
-            return SingleDatasetScaler(**kwargs)
+            return DataSetScaler(**kwargs)
         elif isinstance(data, list) and all(
             isinstance(da, xr.DataArray) for da in data
         ):
-            return ListDataArrayScaler(**kwargs)
+            return DataListScaler(**kwargs)
         else:
             raise ValueError("Invalid data type")
 
@@ -30,27 +29,29 @@ class MultiIndexConverterFactory:
     @staticmethod
     def create_converter(
         data: AnyDataObject, **kwargs
-    ) -> MultiIndexConverter | ListMultiIndexConverter:
-        if isinstance(data, (xr.DataArray, xr.Dataset)):
-            return MultiIndexConverter(**kwargs)
+    ) -> DataArrayMultiIndexConverter | DataListMultiIndexConverter:
+        if isinstance(data, xr.DataArray):
+            return DataArrayMultiIndexConverter(**kwargs)
+        elif isinstance(data, xr.Dataset):
+            return DataSetMultiIndexConverter(**kwargs)
         elif isinstance(data, list) and all(
             isinstance(da, xr.DataArray) for da in data
         ):
-            return ListMultiIndexConverter(**kwargs)
+            return DataListMultiIndexConverter(**kwargs)
         else:
             raise ValueError("Invalid data type")
 
 
 class StackerFactory:
     @staticmethod
-    def create_stacker(data: AnyDataObject, **kwargs) -> _BaseStacker:
+    def create_stacker(data: AnyDataObject, **kwargs):
         if isinstance(data, xr.DataArray):
-            return SingleDataArrayStacker(**kwargs)
+            return DataArrayStacker(**kwargs)
         elif isinstance(data, xr.Dataset):
-            return SingleDatasetStacker(**kwargs)
+            return DataSetStacker(**kwargs)
         elif isinstance(data, list) and all(
             isinstance(da, xr.DataArray) for da in data
         ):
-            return ListDataArrayStacker(**kwargs)
+            return DataListStacker(**kwargs)
         else:
             raise ValueError("Invalid data type")
