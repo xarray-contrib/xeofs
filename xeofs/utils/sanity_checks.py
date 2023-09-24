@@ -2,6 +2,8 @@ from typing import Sequence, Hashable, Tuple, Any
 
 import xarray as xr
 
+from xeofs.utils.data_types import DataArray, Dataset, DataArrayList, Dims
+
 
 def assert_single_dataarray(da, name):
     """Check if the given object is a DataArray.
@@ -61,7 +63,7 @@ def assert_dataarray_or_dataset(da, name):
         raise TypeError(f"{name} must be either a DataArray or Dataset")
 
 
-def ensure_tuple(arg: Any) -> Tuple[str]:
+def convert_to_dim_type(arg: Any) -> Dims:
     # Check for invalid types
     if not isinstance(arg, (str, tuple, list)):
         raise TypeError(f"Invalid input type: {type(arg).__name__}")
