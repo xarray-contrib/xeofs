@@ -1,4 +1,4 @@
-from typing import Tuple, Hashable, Sequence, Dict, Any, Optional
+from typing import Tuple, Hashable, Sequence, Dict, Self, Optional, List
 from abc import ABC, abstractmethod
 from datetime import datetime
 
@@ -7,7 +7,7 @@ from dask.diagnostics.progress import ProgressBar
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import _BaseCrossModelDataContainer
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray
 from .._version import __version__
 
 
@@ -63,9 +63,13 @@ class _BaseCrossModel(ABC):
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
-        self._preprocessor_kwargs = dict(
-            sample_name=sample_name, feature_name=feature_name
-        )
+        self._preprocessor_kwargs = {
+            "sample_name": sample_name,
+            "feature_name": feature_name,
+            "with_std": standardize,
+            "with_coslat": use_coslat,
+            "with_weights": use_weights,
+        }
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseCrossModel"}
@@ -79,18 +83,9 @@ class _BaseCrossModel(ABC):
         )
 
         # Initialize preprocessors to scale and stack left (1) and right (2) data
-        self.preprocessor1 = Preprocessor(
-            with_std=standardize,
-            with_coslat=use_coslat,
-            with_weights=use_weights,
-            **self._preprocessor_kwargs,
-        )
-        self.preprocessor2 = Preprocessor(
-            with_std=standardize,
-            with_coslat=use_coslat,
-            with_weights=use_weights,
-            **self._preprocessor_kwargs,
-        )
+        self.preprocessor1 = Preprocessor(**self._preprocessor_kwargs)
+        self.preprocessor2 = Preprocessor(**self._preprocessor_kwargs)
+
         # Initialize the data container only to avoid type errors
         # The actual data container will be initialized in respective subclasses
         self.data: _BaseCrossModelDataContainer = _BaseCrossModelDataContainer()
@@ -99,58 +94,102 @@ class _BaseCrossModel(ABC):
         self.pca1 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
         self.pca2 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
 
-    @abstractmethod
     def fit(
         self,
-        data1: AnyDataObject,
-        data2: AnyDataObject,
+        data1: DataObject,
+        data2: DataObject,
         dim: Hashable | Sequence[Hashable],
-        weights1: Optional[AnyDataObject] = None,
-        weights2: Optional[AnyDataObject] = None,
-    ):
+        weights1: Optional[DataObject] = None,
+        weights2: Optional[DataObject] = None,
+    ) -> Self:
         """
-        Abstract method to fit the model.
+        Fit the model to the data.
 
         Parameters
         ----------
-        data1: DataArray | Dataset | list of DataArray
+        data1: DataArray | Dataset | List[DataArray]
             Left input data.
-        data2: DataArray | Dataset | list of DataArray
+        data2: DataArray | Dataset | List[DataArray]
             Right input data.
         dim: Hashable | Sequence[Hashable]
             Define the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
-        weights1: Optional[AnyDataObject]
+        weights1: Optional[DataObject]
             Weights to be applied to the left input data.
-        weights2: Optional[AnyDataObject]=None
+        weights2: Optional[DataObject]
             Weights to be applied to the right input data.
 
         """
-        # Here follows the implementation to fit the model
-        # Typically you want to start by calling
-        # self.preprocessor1.fit_transform(data1, dim, weights)
-        # self.preprocessor2.fit_transform(data2, dim, weights)
-        raise NotImplementedError
+        # Preprocess data1
+        data1 = self.preprocessor1.fit_transform(data1, dim, weights1)
+        # Preprocess data2
+        data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
 
-    @abstractmethod
+        return self._fit_algorithm(data1, data2)
+
     def transform(
-        self, data1: Optional[AnyDataObject], data2: Optional[AnyDataObject]
-    ) -> Tuple[DataArray, DataArray]:
+        self, data1: Optional[DataObject] = None, data2: Optional[DataObject] = None
+    ) -> Sequence[DataArray]:
+        """
+        Abstract method to transform the data.
+
+
+        """
+        if data1 is None and data2 is None:
+            raise ValueError("Either data1 or data2 must be provided.")
+
+        if data1 is not None:
+            # Preprocess data1
+            data1 = self.preprocessor1.transform(data1)
+        if data2 is not None:
+            # Preprocess data2
+            data2 = self.preprocessor2.transform(data2)
+
+        return self._transform_algorithm(data1, data2)
+
+    @abstractmethod
+    def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
+        """
+        Fit the model to the preprocessed data. This method needs to be implemented in the respective
+        subclass.
+
+        Parameters
+        ----------
+        data1, data2: DataArray
+            Preprocessed input data of two dimensions: (`sample_name`, `feature_name`)
+
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(self, mode) -> Tuple[AnyDataObject, AnyDataObject]:
+    def _transform_algorithm(
+        self, data1: Optional[DataArray] = None, data2: Optional[DataArray] = None
+    ) -> Sequence[DataArray]:
+        """
+        Transform the preprocessed data. This method needs to be implemented in the respective
+        subclass.
+
+        Parameters
+        ----------
+        data1, data2: DataArray
+            Preprocessed input data of two dimensions: (`sample_name`, `feature_name`)
+
+        """
         raise NotImplementedError
 
-    def components(self) -> Tuple[AnyDataObject, AnyDataObject]:
+    @abstractmethod
+    def inverse_transform(self, mode) -> Tuple[DataObject, DataObject]:
+        raise NotImplementedError
+
+    def components(self) -> Tuple[DataObject, DataObject]:
         """Get the components."""
         comps1 = self.data.components1
         comps2 = self.data.components2
 
-        components1: AnyDataObject = self.preprocessor1.inverse_transform_components(
+        components1: DataObject = self.preprocessor1.inverse_transform_components(
             comps1
         )
-        components2: AnyDataObject = self.preprocessor2.inverse_transform_components(
+        components2: DataObject = self.preprocessor2.inverse_transform_components(
             comps2
         )
         return components1, components2
