@@ -1,24 +1,22 @@
-from typing import Dict, TypeVar, List
-
+from typing import List, Self
 
 import xarray as xr
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from ..utils.data_types import DataArray, XArrayData, AnyDataObject, DataArrayList
+from xeofs.utils.data_types import DataArray
+
+from ..utils.data_types import DataArray, DataSet, DataList
 
 
-class MultiIndexConverter(BaseEstimator, TransformerMixin):
-    def __init__(self, return_copy=False):
+class DataArrayMultiIndexConverter(BaseEstimator, TransformerMixin):
+    """Convert MultiIndexes of a ND DataArray to regular indexes."""
+
+    def __init__(self):
         self.original_indexes = {}
         self.modified_dimensions = []
-        self.return_copy = return_copy
 
-    def fit(self, X: XArrayData, y=None):
-        # Check if input is a DataArray or Dataset
-        if not isinstance(X, (xr.DataArray, xr.Dataset)):
-            raise ValueError("Input must be an xarray DataArray or Dataset")
-
+    def fit(self, X: DataArray, y=None) -> Self:
         # Store original MultiIndexes and replace with simple index
         for dim in X.dims:
             index = X.indexes[dim]
@@ -28,13 +26,8 @@ class MultiIndexConverter(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X: XArrayData) -> XArrayData:
-        # Check if input is a DataArray or Dataset
-        if not isinstance(X, (xr.DataArray, xr.Dataset)):
-            raise ValueError("Input must be an xarray DataArray or Dataset")
-
-        # Make a copy if return_copy is True
-        X_transformed = X.copy(deep=True) if self.return_copy else X
+    def transform(self, X: DataArray) -> DataArray:
+        X_transformed = X.copy(deep=True)
 
         # Replace MultiIndexes with simple index
         for dim in self.modified_dimensions:
@@ -44,13 +37,11 @@ class MultiIndexConverter(BaseEstimator, TransformerMixin):
 
         return X_transformed
 
-    def inverse_transform(self, X: XArrayData) -> XArrayData:
-        # Check if input is a DataArray or Dataset
-        if not isinstance(X, (xr.DataArray, xr.Dataset)):
-            raise ValueError("Input must be an xarray DataArray or Dataset")
+    def fit_transform(self, X: DataArray, y=None) -> DataArray:
+        return self.fit(X, y).transform(X)
 
-        # Make a copy if return_copy is True
-        X_inverse_transformed = X.copy() if self.return_copy else X
+    def _inverse_transform(self, X: DataArray) -> DataArray:
+        X_inverse_transformed = X.copy(deep=True)
 
         # Restore original MultiIndexes
         for dim, original_index in self.original_indexes.items():
@@ -66,49 +57,71 @@ class MultiIndexConverter(BaseEstimator, TransformerMixin):
 
         return X_inverse_transformed
 
-    def fit_transform(self, X: XArrayData, y=None) -> XArrayData:
-        return self.fit(X, y).transform(X)
+    def inverse_transform_data(self, X: DataArray) -> DataArray:
+        return self._inverse_transform(X)
+
+    def inverse_transform_components(self, X: DataArray) -> DataArray:
+        return self._inverse_transform(X)
+
+    def inverse_transform_scores(self, X: DataArray) -> DataArray:
+        return self._inverse_transform(X)
 
 
-class ListMultiIndexConverter(BaseEstimator, TransformerMixin):
-    def __init__(self, return_copy=False):
-        self.converters: List[MultiIndexConverter] = []
-        self.return_copy = return_copy
+class DataSetMultiIndexConverter(DataArrayMultiIndexConverter):
+    """Converts MultiIndexes to simple indexes and vice versa."""
 
-    def fit(self, X: DataArrayList, y=None):
-        # Check if input is a List of DataArrays
-        if not isinstance(X, list) or not all(isinstance(x, xr.DataArray) for x in X):
-            raise ValueError("Input must be a list of xarray DataArray")
+    def fit(self, X: DataSet, y=None) -> Self:
+        return super().fit(X, y)  # type: ignore
 
+    def transform(self, X: DataSet) -> DataSet:
+        return super().transform(X)  # type: ignore
+
+    def fit_transform(self, X: DataSet, y=None) -> DataSet:
+        return super().fit_transform(X, y)  # type: ignore
+
+    def inverse_transform_data(self, X: DataSet) -> DataSet:
+        return super().inverse_transform_data(X)  # type: ignore
+
+    def inverse_transform_components(self, X: DataSet) -> DataSet:
+        return super().inverse_transform_components(X)  # type: ignore
+
+
+class DataListMultiIndexConverter(BaseEstimator, TransformerMixin):
+    """Converts MultiIndexes to simple indexes and vice versa."""
+
+    def __init__(self):
+        self.converters: List[DataArrayMultiIndexConverter] = []
+
+    def fit(self, X: DataList, y=None):
         for x in X:
-            converter = MultiIndexConverter(return_copy=self.return_copy)
+            converter = DataArrayMultiIndexConverter()
             converter.fit(x)
             self.converters.append(converter)
 
         return self
 
-    def transform(self, X: DataArrayList) -> DataArrayList:
-        # Check if input is a List of DataArrays
-        if not isinstance(X, list) or not all(isinstance(x, xr.DataArray) for x in X):
-            raise ValueError("Input must be a list of xarray DataArray")
-
+    def transform(self, X: DataList) -> DataList:
         X_transformed: List[DataArray] = []
         for x, converter in zip(X, self.converters):
             X_transformed.append(converter.transform(x))
 
         return X_transformed
 
-    def inverse_transform(self, X: DataArrayList) -> DataArrayList | DataArray:
-        # Data & components are stored in a list of DataArrays
-        if isinstance(X, list):
-            X_inverse_transformed: List[DataArray] = []
-            for x, converter in zip(X, self.converters):
-                X_inverse_transformed.append(converter.inverse_transform(x))
-
-            return X_inverse_transformed
-        # Scores are stored as a DataArray
-        else:
-            return self.converters[0].inverse_transform(X)
-
-    def fit_transform(self, X: DataArrayList, y=None) -> DataArrayList:
+    def fit_transform(self, X: DataList, y=None) -> DataList:
         return self.fit(X, y).transform(X)
+
+    def _inverse_transform(self, X: DataList) -> DataList:
+        X_inverse_transformed: List[DataArray] = []
+        for x, converter in zip(X, self.converters):
+            X_inverse_transformed.append(converter._inverse_transform(x))
+
+        return X_inverse_transformed
+
+    def inverse_transform_data(self, X: DataList) -> DataList:
+        return self._inverse_transform(X)
+
+    def inverse_transform_components(self, X: DataList) -> DataList:
+        return self._inverse_transform(X)
+
+    def inverse_transform_scores(self, X: DataArray) -> DataArray:
+        return self.converters[0].inverse_transform_scores(X)
