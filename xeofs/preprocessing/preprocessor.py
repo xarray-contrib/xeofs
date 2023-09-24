@@ -1,8 +1,9 @@
 from typing import Optional, Sequence, Hashable, List
 
 from .factory import StackerFactory, ScalerFactory, MultiIndexConverterFactory
+from .sanitizer import DataArraySanitizer
 from ..utils.xarray_utils import get_dims
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray
 
 
 class Preprocessor:
@@ -35,85 +36,68 @@ class Preprocessor:
     ):
         self.sample_name = sample_name
         self.feature_name = feature_name
-
-        # Define model parameters
-        self._params = {
-            "with_std": with_std,
-            "with_coslat": with_coslat,
-            "with_weights": with_weights,
-        }
+        self.with_std = with_std
+        self.with_coslat = with_coslat
+        self.with_weights = with_weights
 
     def fit(
         self,
-        data: AnyDataObject,
+        data: DataObject,
         dim: Hashable | Sequence[Hashable] | List[Sequence[Hashable]],
-        weights: Optional[AnyDataObject] = None,
+        weights: Optional[DataObject] = None,
     ):
-        """Just for consistency with the other classes."""
-        raise NotImplementedError(
-            "Preprocessor does not implement fit method. Use fit_transform instead."
-        )
-
-    def fit_transform(
-        self,
-        data: AnyDataObject,
-        dim: Hashable | Sequence[Hashable] | List[Sequence[Hashable]],
-        weights: Optional[AnyDataObject] = None,
-    ) -> DataArray:
-        """Preprocess the data.
-
-        This will scale and stack the data.
-
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
-            Input data.
-        dim: tuple
-            Tuple specifying the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights: xr.DataArray or xr.Dataset or None, default=None
-            If specified, the input data will be weighted by this array.
-
-        """
         # Set sample and feature dimensions
         sample_dims, feature_dims = get_dims(data, sample_dims=dim)
         self.dims = {self.sample_name: sample_dims, self.feature_name: feature_dims}
 
-        # Scale the data
-        self.scaler = ScalerFactory.create_scaler(data, **self._params)
+        # Create Scaler
+        scaler_params = {
+            "with_std": self.with_std,
+            "with_coslat": self.with_coslat,
+            "with_weights": self.with_weights,
+        }
+        self.scaler = ScalerFactory.create_scaler(data, **scaler_params)
         data = self.scaler.fit_transform(data, sample_dims, feature_dims, weights)
 
-        # Convert MultiIndex to single index
-        self.converter = MultiIndexConverterFactory.create_converter(data)
-        data = self.converter.fit_transform(data)  # type: ignore
+        # Create MultiIndexConverter (Pre)
+        self.preconverter = MultiIndexConverterFactory.create_converter(data)
+        data = self.preconverter.fit_transform(data)
 
-        # Stack the data
+        # Create Stacker
         stacker_kwargs = {
             "sample_name": self.sample_name,
             "feature_name": self.feature_name,
         }
         self.stacker = StackerFactory.create_stacker(data, **stacker_kwargs)
-        return self.stacker.fit_transform(data, sample_dims, feature_dims)
+        data: DataArray = self.stacker.fit_transform(data, sample_dims, feature_dims)
 
-    def transform(self, data: AnyDataObject) -> DataArray:
-        """Project new unseen data onto the components (EOFs/eigenvectors).
+        # Create MultiIndexConverter (Post)
+        self.postconverter = MultiIndexConverterFactory.create_converter(data)
+        data = self.postconverter.fit_transform(data)
 
-        Parameters:
-        -------------
-        data: xr.DataArray or list of xarray.DataArray
-            Input data.
+        # Create Sanitizer
+        self.sanitizer = DataArraySanitizer(
+            sample_name=self.sample_name, feature_name=self.feature_name
+        )
+        self.sanitizer.fit(data)
+        return self
 
-        Returns:
-        ----------
-        projections: DataArray | Dataset | List[DataArray]
-            Projections of the new data onto the components.
-
-        """
+    def transform(self, data: DataObject) -> DataArray:
         data = self.scaler.transform(data)
-        data = self.converter.transform(data)  # type: ignore
-        return self.stacker.transform(data)
+        data = self.preconverter.transform(data)
+        data = self.stacker.transform(data)
+        data = self.postconverter.transform(data)
+        return self.sanitizer.transform(data)
 
-    def inverse_transform_data(self, data: DataArray) -> AnyDataObject:
+    def fit_transform(
+        self,
+        data: DataObject,
+        dim: Hashable | Sequence[Hashable] | List[Sequence[Hashable]],
+        weights: Optional[DataObject] = None,
+    ) -> DataArray:
+        return self.fit(data, dim, weights).transform(data)
+
+    def inverse_transform_data(self, data: DataArray) -> DataObject:
         """Inverse transform the data.
 
         Parameters:
@@ -127,11 +111,13 @@ class Preprocessor:
             The inverse transformed data.
 
         """
+        data = self.sanitizer.inverse_transform_data(data)
+        data = self.postconverter.inverse_transform_data(data)
         data = self.stacker.inverse_transform_data(data)
-        data = self.converter.inverse_transform(data)  # type: ignore
-        return self.scaler.inverse_transform(data)
+        data = self.preconverter.inverse_transform_data(data)
+        return self.scaler.inverse_transform_data(data)
 
-    def inverse_transform_components(self, data: DataArray) -> AnyDataObject:
+    def inverse_transform_components(self, data: DataArray) -> DataObject:
         """Inverse transform the components.
 
         Parameters:
@@ -145,10 +131,13 @@ class Preprocessor:
             The inverse transformed components.
 
         """
+        data = self.sanitizer.inverse_transform_components(data)
+        data = self.postconverter.inverse_transform_components(data)
         data = self.stacker.inverse_transform_components(data)
-        return self.converter.inverse_transform(data)  # type: ignore
+        data = self.preconverter.inverse_transform_components(data)
+        return self.scaler.inverse_transform_components(data)
 
-    def inverse_transform_scores(self, data: DataArray) -> AnyDataObject:
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
         """Inverse transform the scores.
 
         Parameters:
@@ -162,5 +151,8 @@ class Preprocessor:
             The inverse transformed scores.
 
         """
+        data = self.sanitizer.inverse_transform_scores(data)
+        data = self.postconverter.inverse_transform_scores(data)
         data = self.stacker.inverse_transform_scores(data)
-        return self.converter.inverse_transform(data)  # type: ignore
+        data = self.preconverter.inverse_transform_scores(data)
+        return self.scaler.inverse_transform_scores(data)
