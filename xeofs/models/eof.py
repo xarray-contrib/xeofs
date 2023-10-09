@@ -5,7 +5,7 @@ from ._base_model import _BaseModel
 from .decomposer import Decomposer
 from ..utils.data_types import DataObject, DataArray, Dims
 from ..data_container import EOFDataContainer, ComplexEOFDataContainer
-from ..utils.xarray_utils import hilbert_transform
+from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
 
 

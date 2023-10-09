@@ -15,8 +15,6 @@ from ..utils.data_types import DataArray
 from typing import TypeVar
 from .._version import __version__
 
-Model = TypeVar("Model", EOF, ComplexEOF)
-
 
 class EOFRotator(EOF):
     """Rotate a solution obtained from ``xe.models.EOF``.
@@ -112,19 +110,11 @@ class EOFRotator(EOF):
 
         # Rotate loadings
         loadings = components * np.sqrt(expvar)
-        rot_loadings, rot_matrix, phi_matrix = xr.apply_ufunc(
-            promax,
-            loadings,
-            power,
-            input_core_dims=[[feature_name, "mode"], []],
-            output_core_dims=[
-                [feature_name, "mode"],
-                ["mode_m", "mode_n"],
-                ["mode_m", "mode_n"],
-            ],
-            kwargs={"max_iter": max_iter, "rtol": rtol},
-            dask="allowed",
+        promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
+        rot_loadings, rot_matrix, phi_matrix = promax(
+            loadings, feature_dim=feature_name, **promax_kwargs
         )
+
         # Assign coordinates to the rotation/correlation matrices
         rot_matrix = rot_matrix.assign_coords(
             mode_m=np.arange(1, rot_matrix.mode_m.size + 1),

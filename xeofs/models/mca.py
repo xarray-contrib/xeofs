@@ -12,7 +12,7 @@ from ..data_container.mca_data_container import (
     ComplexMCADataContainer,
 )
 from ..utils.statistics import pearson_correlation
-from ..utils.xarray_utils import hilbert_transform
+from ..utils.hilbert_transform import hilbert_transform
 from ..utils.dimension_renamer import DimensionRenamer
 
 
