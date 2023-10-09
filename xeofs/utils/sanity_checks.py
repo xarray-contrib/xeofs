@@ -2,7 +2,7 @@ from typing import Sequence, Hashable, Tuple, Any
 
 import xarray as xr
 
-from xeofs.utils.data_types import DataArray, Dataset, DataArrayList, Dims
+from xeofs.utils.data_types import Dims
 
 
 def assert_single_dataarray(da, name):

@@ -1,12 +1,9 @@
-from typing import List, Optional, Sequence, Hashable
+from typing import List, Optional, Sequence, Hashable, Self
 
 import numpy as np
 import xarray as xr
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from xeofs.utils.data_types import DataArray
-
-from ..utils.constants import VALID_LATITUDE_NAMES
 from ..utils.sanity_checks import (
     assert_single_dataset,
     assert_list_dataarrays,
@@ -54,14 +51,14 @@ class DataArrayScaler(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        data : SingleDataObject
+        data : DataArray | DataSet
             Data to be scaled.
         dim : sequence of hashable
             Dimensions along which the data is considered to be a feature.
 
         Returns
         -------
-        SingleDataObject
+        DataArray | DataSet
             Square root of cosine of latitude weights.
 
         """
@@ -78,7 +75,7 @@ class DataArrayScaler(BaseEstimator, TransformerMixin):
         sample_dims: Dims,
         feature_dims: Dims,
         weights: Optional[DataArray] = None,
-    ):
+    ) -> Self:
         """Fit the scaler to the data.
 
         Parameters
@@ -186,12 +183,12 @@ class DataArrayScaler(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        data : SingleDataObject
+        data : DataArray | DataSet
             Data to be unscaled.
 
         Returns
         -------
-        SingleDataObject
+        DataArray | DataSet
             Unscaled data.
 
         """
@@ -237,7 +234,7 @@ class DataSetScaler(DataArrayScaler):
         sample_dims: Hashable | Sequence[Hashable],
         feature_dims: Hashable | Sequence[Hashable],
         weights: Optional[DataSet] = None,
-    ):
+    ) -> Self:
         return super().fit(data, sample_dims, feature_dims, weights)  # type: ignore
 
     def transform(self, data: DataSet) -> DataSet:
@@ -300,7 +297,7 @@ class DataListScaler(DataArrayScaler):
         sample_dims: Dims,
         feature_dims_list: DimsList,
         weights: Optional[DataList] = None,
-    ):
+    ) -> Self:
         """Fit the scaler to the data.
 
         Parameters
@@ -359,6 +356,8 @@ class DataListScaler(DataArrayScaler):
             scaler = DataArrayScaler(**params)
             scaler.fit(da, sample_dims=sample_dims, feature_dims=fdims, weights=wghts)
             self.scalers.append(scaler)
+
+        return self
 
     def transform(self, da_list: DataList) -> DataList:
         """Scale the data.

@@ -310,9 +310,9 @@ class MCARotator(MCA):
 
         Parameters
         ----------
-        data1 : DataArray | Dataset | DataArraylist
+        data1 : DataArray | Dataset | List[DataArray]
             Data to be projected onto the rotated singular vectors of the first dataset.
-        data2 : DataArray | Dataset | DataArraylist
+        data2 : DataArray | Dataset | List[DataArray]
             Data to be projected onto the rotated singular vectors of the second dataset.
 
         Returns

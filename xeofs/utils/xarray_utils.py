@@ -7,6 +7,7 @@ from scipy.signal import hilbert  # type: ignore
 from .sanity_checks import convert_to_dim_type
 from .data_types import (
     Dims,
+    DimsList,
     DataArray,
     DataSet,
     DataList,
@@ -72,7 +73,7 @@ def compute_sqrt_cos_lat_weights(
 def get_dims(
     data: DataArray | DataSet | DataList,
     sample_dims: Hashable | Sequence[Hashable],
-) -> Tuple[Hashable, Hashable]:
+) -> Tuple[Dims, Dims | DimsList]:
     """Extracts the dimensions of a DataArray or Dataset that are not included in the sample dimensions.
 
     Parameters:
@@ -93,17 +94,17 @@ def get_dims(
     # Check for invalid types
     if isinstance(data, (xr.DataArray, xr.Dataset)):
         sample_dims = convert_to_dim_type(sample_dims)
-        feature_dims = _get_feature_dims(data, sample_dims)
+        feature_dims: Dims = _get_feature_dims(data, sample_dims)
+        return sample_dims, feature_dims
 
     elif isinstance(data, list):
         sample_dims = convert_to_dim_type(sample_dims)
-        feature_dims = [_get_feature_dims(da, sample_dims) for da in data]
+        feature_dims: DimsList = [_get_feature_dims(da, sample_dims) for da in data]
+        return sample_dims, feature_dims
     else:
         err_message = f"Invalid input type: {type(data).__name__}. Expected one of "
         err_message += f"of the following: DataArray, Dataset or list of DataArrays."
         raise TypeError(err_message)
-
-    return sample_dims, feature_dims  # type: ignore
 
 
 def _get_feature_dims(data: DataArray | DataSet, sample_dims: Dims) -> Dims:

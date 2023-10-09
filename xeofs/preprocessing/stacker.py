@@ -5,14 +5,7 @@ import pandas as pd
 import xarray as xr
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from xeofs.utils.data_types import DataArray, DataSet, DataList
-
-from ..utils.data_types import (
-    Dims,
-    DimsList,
-    DataArray,
-    Dataset,
-)
+from ..utils.data_types import Dims, DimsList, DataArray, DataSet, DataList
 from ..utils.sanity_checks import convert_to_dim_type
 
 
@@ -358,7 +351,7 @@ class DataSetStacker(DataArrayStacker):
                     f"Name of feature dimension ({self.feature_name}) is already present in data. Please use another name."
                 )
 
-    def _stack(self, data: Dataset, sample_dims, feature_dims) -> DataArray:
+    def _stack(self, data: DataSet, sample_dims, feature_dims) -> DataArray:
         """Reshape a Dataset to 2D.
 
         Parameters
@@ -511,7 +504,7 @@ class DataListStacker(DataArrayStacker):
         sample_dims: Dims,
         feature_dims: DimsList,
         y=None,
-    ):
+    ) -> Self:
         """Fit the stacker.
 
         Parameters

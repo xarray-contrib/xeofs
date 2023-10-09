@@ -6,8 +6,6 @@ from .eof import EOF, ComplexEOF
 from .mca import MCA, ComplexMCA
 from .eof_rotator import EOFRotator, ComplexEOFRotator
 from .mca_rotator import MCARotator, ComplexMCARotator
-from ..utils.rotation import promax
-from ..utils.data_types import DataArrayList, Dataset, DataArray
 
 
 class RotatorFactory:

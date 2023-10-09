@@ -7,12 +7,12 @@ from .multi_index_converter import (
     DataSetMultiIndexConverter,
     DataListMultiIndexConverter,
 )
-from ..utils.data_types import AnyDataObject
+from ..utils.data_types import DataObject
 
 
 class ScalerFactory:
     @staticmethod
-    def create_scaler(data: AnyDataObject, **kwargs):
+    def create_scaler(data: DataObject, **kwargs):
         if isinstance(data, xr.DataArray):
             return DataArrayScaler(**kwargs)
         elif isinstance(data, xr.Dataset):
@@ -28,7 +28,7 @@ class ScalerFactory:
 class MultiIndexConverterFactory:
     @staticmethod
     def create_converter(
-        data: AnyDataObject, **kwargs
+        data: DataObject, **kwargs
     ) -> DataArrayMultiIndexConverter | DataListMultiIndexConverter:
         if isinstance(data, xr.DataArray):
             return DataArrayMultiIndexConverter(**kwargs)
@@ -44,7 +44,7 @@ class MultiIndexConverterFactory:
 
 class StackerFactory:
     @staticmethod
-    def create_stacker(data: AnyDataObject, **kwargs):
+    def create_stacker(data: DataObject, **kwargs):
         if isinstance(data, xr.DataArray):
             return DataArrayStacker(**kwargs)
         elif isinstance(data, xr.Dataset):
