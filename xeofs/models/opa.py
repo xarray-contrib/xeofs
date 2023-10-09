@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Self
 
 import xarray as xr
 import numpy as np
@@ -7,7 +7,7 @@ from ._base_model import _BaseModel
 from .eof import EOF
 from .decomposer import Decomposer
 from ..data_container.opa_data_container import OPADataContainer
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray
 
 
 class OPA(_BaseModel):
@@ -84,16 +84,13 @@ class OPA(_BaseModel):
             dask="allowed",
         )
 
-    def fit(self, data: AnyDataObject, dim, weights: Optional[AnyDataObject] = None):
+    def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
 
-        # Preprocess the data
-        input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
-
         # Perform PCA as a pre-processing step
         pca = EOF(n_modes=self._params["n_pca_modes"], use_coslat=False)
-        pca.fit(input_data, dim=sample_name)
+        pca.fit(data, dim=sample_name)
         svals = pca.data.singular_values
         expvar = pca.data.explained_variance
         comps = pca.data.components * svals / np.sqrt(expvar)
@@ -200,14 +197,15 @@ class OPA(_BaseModel):
         self.data.set_attrs(self.attrs)
         self._U = U  # store U for testing purposes of orthogonality
         self._C0 = C0  # store C0 for testing purposes of orthogonality
+        return self
 
-    def transform(self, data: AnyDataObject):
-        raise NotImplementedError()
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        raise NotImplementedError("OPA does not (yet) support transform()")
 
-    def inverse_transform(self, mode):
-        raise NotImplementedError()
+    def _inverse_transform_algorithm(self, mode) -> DataObject:
+        raise NotImplementedError("OPA does not (yet) support inverse_transform()")
 
-    def components(self) -> AnyDataObject:
+    def components(self) -> DataObject:
         """Return the optimal persistence pattern (OPP)."""
         return super().components()
 
@@ -222,7 +220,7 @@ class OPA(_BaseModel):
         """Return the decorrelation time of the optimal persistence pattern (OPP)."""
         return self.data.decorrelation_time
 
-    def filter_patterns(self) -> DataArray:
+    def filter_patterns(self) -> DataObject:
         """Return the filter patterns."""
         fps = self.data.filter_patterns
         return self.preprocessor.inverse_transform_components(fps)

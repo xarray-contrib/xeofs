@@ -1,8 +1,7 @@
 from datetime import datetime
 import numpy as np
 import xarray as xr
-from dask.diagnostics.progress import ProgressBar
-from typing import List
+from typing import Self
 
 from .eof import EOF, ComplexEOF
 from ..data_container.eof_rotator_data_container import (
@@ -11,7 +10,7 @@ from ..data_container.eof_rotator_data_container import (
 )
 
 from ..utils.rotation import promax
-from ..utils.data_types import DataArray, AnyDataObject
+from ..utils.data_types import DataArray
 
 from typing import TypeVar
 from .._version import __version__
@@ -85,7 +84,18 @@ class EOFRotator(EOF):
         # Initialize the DataContainer to store the results
         self.data: EOFRotatorDataContainer = EOFRotatorDataContainer()
 
-    def fit(self, model):
+    def fit(self, model) -> Self:
+        """Rotate the solution obtained from ``xe.models.EOF``.
+
+        Parameters
+        ----------
+        model : ``xe.models.EOF``
+            The EOF model to be rotated.
+
+        """
+        return self._fit_algorithm(model)
+
+    def _fit_algorithm(self, model) -> Self:
         self.model = model
         self.preprocessor = model.preprocessor
         sample_name = model.sample_name
@@ -179,8 +189,9 @@ class EOFRotator(EOF):
         )
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]
 
         svals = self.model.data.singular_values.sel(
@@ -189,11 +200,8 @@ class EOFRotator(EOF):
         # Select the (non-rotated) singular vectors of the first dataset
         components = self.model.data.components.sel(mode=slice(1, n_modes))
 
-        # Preprocess the data
-        da: DataArray = self.preprocessor.transform(data)
-
         # Compute non-rotated scores by project the data onto non-rotated components
-        projections = xr.dot(da, components) / svals
+        projections = xr.dot(data, components) / svals
         projections.name = "scores"
 
         # Rotate the scores
@@ -211,9 +219,12 @@ class EOFRotator(EOF):
         # Adapt the sign of the scores
         projections = projections * self.data.modes_sign
 
-        # Unstack the projections
-        projections = self.preprocessor.inverse_transform_scores(projections)
         return projections
+
+    def fit_transform(self, model) -> DataArray:
+        raise NotImplementedError(
+            "The fit_transform method is not implemented for the EOFRotator class."
+        )
 
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> DataArray:
         """Compute the inverse transpose of the rotation matrix.
@@ -288,9 +299,10 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
         # Initialize the DataContainer to store the results
         self.data: ComplexEOFRotatorDataContainer = ComplexEOFRotatorDataContainer()
 
-    def transform(self, data: AnyDataObject):
-        # Here we make use of the Method Resolution Order (MRO) to call the
-        # transform method of the first class in the MRO after `EOFRotator`
-        # that has a transform method. In this case it will be `ComplexEOF`,
-        # which will raise an error because it does not have a transform method.
-        super(EOFRotator, self).transform(data)
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        # Here we leverage the Method Resolution Order (MRO) to invoke the
+        # transform method of the first class in the MRO after EOFRotator that
+        # has a transform method. In this case, it will be ComplexEOF. However,
+        # please note that `transform` is not implemented for ComplexEOF, so this
+        # line of code will actually raise an error.
+        return super(EOFRotator, self)._transform_algorithm(data)

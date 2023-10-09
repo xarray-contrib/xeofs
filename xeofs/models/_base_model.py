@@ -1,12 +1,12 @@
 import warnings
-from typing import Optional, Sequence, Hashable, Dict, Any
+from typing import Optional, Sequence, Hashable, Dict, Any, Self, List
 from abc import ABC, abstractmethod
 from datetime import datetime
 from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import _BaseModelDataContainer
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray, Dims
 from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
@@ -86,13 +86,12 @@ class _BaseModel(ABC):
         # The actual data container will be initialized in respective subclasses
         self.data: _BaseModelDataContainer = _BaseModelDataContainer()
 
-    @abstractmethod
     def fit(
         self,
-        data: AnyDataObject,
+        data: DataObject,
         dim: Sequence[Hashable] | Hashable,
-        weights: Optional[AnyDataObject] = None,
-    ):
+        weights: Optional[DataObject] = None,
+    ) -> Self:
         """
         Fit the model to the input data.
 
@@ -107,20 +106,132 @@ class _BaseModel(ABC):
             Weighting factors for the input data.
 
         """
-        # Here follows the implementation to fit the model
-        # Typically you want to start by calling the Preprocessor first:
-        # self.preprocessor.fit_transform(data, dim, weights)
-        raise NotImplementedError
+        # Preprocess the data
+        data2D: DataArray = self.preprocessor.fit_transform(data, dim, weights)
+
+        return self._fit_algorithm(data2D)
 
     @abstractmethod
-    def transform(self):
+    def _fit_algorithm(self, data: DataArray) -> Self:
+        """Fit the model to the input data assuming a 2D DataArray.
+
+        Parameters
+        ----------
+        data: DataArray
+            Input data with dimensions (sample_name, feature_name)
+
+        Returns
+        -------
+        self: Self
+            The fitted model.
+
+        """
         raise NotImplementedError
+
+    def transform(self, data: DataObject) -> DataArray:
+        """Project data onto the components.
+
+        Parameters
+        ----------
+        data: DataObject
+            Data to be transformed.
+
+        Returns
+        -------
+        projections: DataArray
+            Projections of the data onto the components.
+
+        """
+        data2D = self.preprocessor.transform(data)
+        data2D = self._transform_algorithm(data2D)
+        return self.preprocessor.inverse_transform_scores(data2D)
 
     @abstractmethod
-    def inverse_transform(self, mode):
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        """Project data onto the components.
+
+        Parameters
+        ----------
+        data: DataArray
+            Input data with dimensions (sample_name, feature_name)
+
+        Returns
+        -------
+        projections: DataArray
+            Projections of the data onto the components.
+
+        """
         raise NotImplementedError
 
-    def components(self) -> AnyDataObject:
+    def fit_transform(
+        self,
+        data: DataObject,
+        dim: Sequence[Hashable] | Hashable,
+        weights: Optional[DataObject] = None,
+    ) -> DataArray:
+        """Fit the model to the input data and project the data onto the components.
+
+        Parameters
+        ----------
+        data: DataObject
+            Input data.
+        dim: Sequence[Hashable] | Hashable
+            Specify the sample dimensions. The remaining dimensions
+            will be treated as feature dimensions.
+        weights: Optional[DataObject]
+            Weighting factors for the input data.
+
+        Returns
+        -------
+        projections: DataArray
+            Projections of the data onto the components.
+
+        """
+        return self.fit(data, dim, weights).transform(data)
+
+    def inverse_transform(self, mode) -> DataObject:
+        """Reconstruct the original data from transformed data.
+
+        Parameters
+        ----------
+        mode: integer, a list of integers, or a slice object.
+            The mode(s) used to reconstruct the data. If a scalar is given,
+            the data will be reconstructed using the given mode. If a slice
+            is given, the data will be reconstructed using the modes in the
+            given slice. If a list of integers is given, the data will be reconstructed
+            using the modes in the given list.
+
+        Returns
+        -------
+        data: DataArray | Dataset | List[DataArray]
+            Reconstructed data.
+
+        """
+        data_reconstructed = self._inverse_transform_algorithm(mode)
+        return self.preprocessor.inverse_transform_data(data_reconstructed)
+
+    @abstractmethod
+    def _inverse_transform_algorithm(self, mode) -> DataArray:
+        """Reconstruct the original data from transformed data.
+
+        Parameters
+        ----------
+        mode: integer, a list of integers, or a slice object.
+            The mode(s) used to reconstruct the data. If a scalar is given,
+            the data will be reconstructed using the given mode. If a slice
+            is given, the data will be reconstructed using the modes in the
+            given slice. If a list of integers is given, the data will be reconstructed
+            using the modes in the given list.
+
+        Returns
+        -------
+        data: DataArray
+            Reconstructed 2D data with dimensions (sample_name, feature_name)
+
+        """
+        raise NotImplementedError
+
+    def components(self) -> DataObject:
         """Get the components."""
         components = self.data.components
         return self.preprocessor.inverse_transform_components(components)

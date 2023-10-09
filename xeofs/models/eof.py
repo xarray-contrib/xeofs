@@ -1,8 +1,9 @@
+from typing import Self
 import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import AnyDataObject, DataArray
+from ..utils.data_types import DataObject, DataArray, Dims
 from ..data_container import EOFDataContainer, ComplexEOFDataContainer
 from ..utils.xarray_utils import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
@@ -60,15 +61,12 @@ class EOF(_BaseModel):
         # Initialize the DataContainer to store the results
         self.data: EOFDataContainer = EOFDataContainer()
 
-    def fit(self, data: AnyDataObject, dim, weights=None):
+    def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
 
-        # Preprocess the data
-        input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
-
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim=sample_name)
+        total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the data
         n_modes = self._params["n_modes"]
@@ -76,14 +74,14 @@ class EOF(_BaseModel):
         decomposer = Decomposer(
             n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
         )
-        decomposer.fit(input_data, dims=(sample_name, feature_name))
+        decomposer.fit(data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
         components = decomposer.V_
         scores = decomposer.U_
 
         # Compute the explained variance
-        n_samples = input_data.coords[sample_name].size
+        n_samples = data.coords[sample_name].size
         explained_variance = singular_values**2 / (n_samples - 1)
 
         # Index of the sorted explained variance
@@ -94,7 +92,7 @@ class EOF(_BaseModel):
 
         # Assign the results to the data container
         self.data.set_data(
-            input_data=input_data,
+            input_data=data,
             components=components,
             scores=scores,
             explained_variance=explained_variance,
@@ -102,39 +100,21 @@ class EOF(_BaseModel):
             idx_modes_sorted=idx_modes_sorted,
         )
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
-        """Project new unseen data onto the components (EOFs/eigenvectors).
-
-        Parameters
-        ----------
-        data: AnyDataObject
-            Data to be transformed.
-
-        Returns
-        -------
-        projections: DataArray
-            Projections of the new data onto the components.
-
-        """
+    def _transform_algorithm(self, data: DataObject) -> DataArray:
         feature_name = self.preprocessor.feature_name
-        # Preprocess the data
-        data_stacked: DataArray = self.preprocessor.transform(data)
 
         components = self.data.components
         singular_values = self.data.singular_values
 
         # Project the data
-        projections = (
-            xr.dot(data_stacked, components, dims=feature_name) / singular_values
-        )
+        projections = xr.dot(data, components, dims=feature_name) / singular_values
         projections.name = "scores"
 
-        # Unstack the projections
-        projections = self.preprocessor.inverse_transform_scores(projections)
         return projections
 
-    def inverse_transform(self, mode) -> AnyDataObject:
+    def _inverse_transform_algorithm(self, mode) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
@@ -162,13 +142,9 @@ class EOF(_BaseModel):
         # Enforce real output
         reconstructed_data = reconstructed_data.real
 
-        # Unstack and unscale the data
-        reconstructed_data = self.preprocessor.inverse_transform_data(
-            reconstructed_data
-        )
         return reconstructed_data
 
-    def components(self) -> AnyDataObject:
+    def components(self) -> DataObject:
         """Return the (EOF) components.
 
         The components in EOF anaylsis are the eigenvectors of the covariance/correlation matrix.
@@ -302,25 +278,22 @@ class ComplexEOF(EOF):
         # Initialize the DataContainer to store the results
         self.data: ComplexEOFDataContainer = ComplexEOFDataContainer()
 
-    def fit(self, data: AnyDataObject, dim, weights=None):
+    def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
-
-        # Preprocess the data
-        input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
 
         # Apply hilbert transform:
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
-        input_data = hilbert_transform(
-            input_data,
+        data = hilbert_transform(
+            data,
             dims=(sample_name, feature_name),
             padding=padding,
             decay_factor=decay_factor,
         )
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim=sample_name)
+        total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the complex data
         n_modes = self._params["n_modes"]
@@ -328,14 +301,14 @@ class ComplexEOF(EOF):
         decomposer = Decomposer(
             n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
         )
-        decomposer.fit(input_data)
+        decomposer.fit(data)
 
         singular_values = decomposer.s_
         components = decomposer.V_
         scores = decomposer.U_
 
         # Compute the explained variance
-        n_samples = input_data.coords[sample_name].size
+        n_samples = data.coords[sample_name].size
         explained_variance = singular_values**2 / (n_samples - 1)
 
         # Index of the sorted explained variance
@@ -345,7 +318,7 @@ class ComplexEOF(EOF):
         idx_modes_sorted.coords.update(explained_variance.coords)
 
         self.data.set_data(
-            input_data=input_data,
+            input_data=data,
             components=components,
             scores=scores,
             explained_variance=explained_variance,
@@ -354,11 +327,12 @@ class ComplexEOF(EOF):
         )
         # Assign analysis-relevant meta data to the results
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
-        raise NotImplementedError("ComplexEOF does not support transform method.")
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        raise NotImplementedError("Complex EOF does not support transform method.")
 
-    def components_amplitude(self) -> AnyDataObject:
+    def components_amplitude(self) -> DataObject:
         """Return the amplitude of the (EOF) components.
 
         The amplitude of the components are defined as
@@ -378,7 +352,7 @@ class ComplexEOF(EOF):
         amplitudes = self.data.components_amplitude
         return self.preprocessor.inverse_transform_components(amplitudes)
 
-    def components_phase(self) -> AnyDataObject:
+    def components_phase(self) -> DataObject:
         """Return the phase of the (EOF) components.
 
         The phase of the components are defined as
