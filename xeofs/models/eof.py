@@ -1,10 +1,10 @@
 from typing import Self
+import numpy as np
 import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
 from ..utils.data_types import DataObject, DataArray, Dims
-from ..data_container import EOFDataContainer, ComplexEOFDataContainer
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
 
@@ -58,9 +58,6 @@ class EOF(_BaseModel):
         )
         self.attrs.update({"model": "EOF analysis"})
 
-        # Initialize the DataContainer to store the results
-        self.data: EOFDataContainer = EOFDataContainer()
-
     def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
@@ -80,33 +77,26 @@ class EOF(_BaseModel):
         components = decomposer.V_
         scores = decomposer.U_
 
-        # Compute the explained variance
-        n_samples = data.coords[sample_name].size
-        explained_variance = singular_values**2 / (n_samples - 1)
+        # Compute the explained variance per mode
+        n_samples = data.coords[self.sample_name].size
+        exp_var = singular_values**2 / (n_samples - 1)
+        exp_var.name = "explained_variance"
 
-        # Index of the sorted explained variance
-        # It's already sorted, we just need to assign it to the DataContainer
-        # for the sake of consistency
-        idx_modes_sorted = explained_variance.compute().argsort()[::-1]
-        idx_modes_sorted.coords.update(explained_variance.coords)
+        # Store the results
+        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(components, "components")
+        self.data.add(scores, "scores")
+        self.data.add(exp_var, "explained_variance")
+        self.data.add(total_variance, "total_variance")
 
-        # Assign the results to the data container
-        self.data.set_data(
-            input_data=data,
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted,
-        )
         self.data.set_attrs(self.attrs)
         return self
 
     def _transform_algorithm(self, data: DataObject) -> DataArray:
         feature_name = self.preprocessor.feature_name
 
-        components = self.data.components
-        singular_values = self.data.singular_values
+        components = self.data["components"]
+        singular_values = self.singular_values()
 
         # Project the data
         projections = xr.dot(data, components, dims=feature_name) / singular_values
@@ -133,9 +123,9 @@ class EOF(_BaseModel):
 
         """
         # Reconstruct the data
-        svals = self.data.singular_values.sel(mode=mode)
-        comps = self.data.components.sel(mode=mode)
-        scores = self.data.scores.sel(mode=mode) * svals
+        svals = self.singular_values().sel(mode=mode)
+        comps = self.data["components"].sel(mode=mode)
+        scores = self.data["scores"].sel(mode=mode) * svals
         reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = "reconstructed_data"
 
@@ -156,7 +146,7 @@ class EOF(_BaseModel):
             Components of the fitted model.
 
         """
-        components = self.data.components
+        components = self.data["components"]
         return self.preprocessor.inverse_transform_components(components)
 
     def scores(self) -> DataArray:
@@ -172,7 +162,7 @@ class EOF(_BaseModel):
             Scores of the fitted model.
 
         """
-        scores = self.data.scores
+        scores = self.data["scores"]
         return self.preprocessor.inverse_transform_scores(scores)
 
     def singular_values(self) -> DataArray:
@@ -184,7 +174,12 @@ class EOF(_BaseModel):
             Singular values obtained from the SVD.
 
         """
-        return self.data.singular_values
+        n_samples = self.data["input_data"].coords[self.sample_name].size
+        exp_var = self.explained_variance()
+        svals = (exp_var * (n_samples - 1)) ** 0.5
+        svals.attrs.update(exp_var.attrs)
+        svals.name = "singular_values"
+        return svals
 
     def explained_variance(self) -> DataArray:
         """Return explained variance.
@@ -203,7 +198,7 @@ class EOF(_BaseModel):
         explained_variance: DataArray
             Explained variance.
         """
-        return self.data.explained_variance
+        return self.data["explained_variance"]
 
     def explained_variance_ratio(self) -> DataArray:
         """Return explained variance ratio.
@@ -221,7 +216,10 @@ class EOF(_BaseModel):
         explained_variance_ratio: DataArray
             Explained variance ratio.
         """
-        return self.data.explained_variance_ratio
+        exp_var_ratio = self.data["explained_variance"] / self.data["total_variance"]
+        exp_var_ratio.attrs.update(self.data["explained_variance"].attrs)
+        exp_var_ratio.name = "explained_variance_ratio"
+        return exp_var_ratio
 
 
 class ComplexEOF(EOF):
@@ -275,9 +273,6 @@ class ComplexEOF(EOF):
         self.attrs.update({"model": "Complex EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
-        # Initialize the DataContainer to store the results
-        self.data: ComplexEOFDataContainer = ComplexEOFDataContainer()
-
     def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
@@ -307,24 +302,18 @@ class ComplexEOF(EOF):
         components = decomposer.V_
         scores = decomposer.U_
 
-        # Compute the explained variance
-        n_samples = data.coords[sample_name].size
-        explained_variance = singular_values**2 / (n_samples - 1)
+        # Compute the explained variance per mode
+        n_samples = data.coords[self.sample_name].size
+        exp_var = singular_values**2 / (n_samples - 1)
+        exp_var.name = "explained_variance"
 
-        # Index of the sorted explained variance
-        # It's already sorted, we just need to assign it to the DataContainer
-        # for the sake of consistency
-        idx_modes_sorted = explained_variance.compute().argsort()[::-1]
-        idx_modes_sorted.coords.update(explained_variance.coords)
+        # Store the results
+        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(components, "components")
+        self.data.add(scores, "scores")
+        self.data.add(exp_var, "explained_variance")
+        self.data.add(total_variance, "total_variance")
 
-        self.data.set_data(
-            input_data=data,
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted,
-        )
         # Assign analysis-relevant meta data to the results
         self.data.set_attrs(self.attrs)
         return self
@@ -349,7 +338,8 @@ class ComplexEOF(EOF):
             Amplitude of the components of the fitted model.
 
         """
-        amplitudes = self.data.components_amplitude
+        amplitudes = abs(self.data["components"])
+        amplitudes.name = "components_amplitude"
         return self.preprocessor.inverse_transform_components(amplitudes)
 
     def components_phase(self) -> DataObject:
@@ -369,8 +359,10 @@ class ComplexEOF(EOF):
             Phase of the components of the fitted model.
 
         """
-        phases = self.data.components_phase
-        return self.preprocessor.inverse_transform_components(phases)
+        comps = self.data["components"]
+        comp_phase = xr.apply_ufunc(np.angle, comps, dask="allowed", keep_attrs=True)
+        comp_phase.name = "components_phase"
+        return self.preprocessor.inverse_transform_components(comp_phase)
 
     def scores_amplitude(self) -> DataArray:
         """Return the amplitude of the (PC) scores.
@@ -389,7 +381,8 @@ class ComplexEOF(EOF):
             Amplitude of the scores of the fitted model.
 
         """
-        amplitudes = self.data.scores_amplitude
+        amplitudes = abs(self.data["scores"])
+        amplitudes.name = "scores_amplitude"
         return self.preprocessor.inverse_transform_scores(amplitudes)
 
     def scores_phase(self) -> DataArray:
@@ -409,5 +402,7 @@ class ComplexEOF(EOF):
             Phase of the scores of the fitted model.
 
         """
-        phases = self.data.scores_phase
+        scores = self.data["scores"]
+        phases = xr.apply_ufunc(np.angle, scores, dask="allowed", keep_attrs=True)
+        phases.name = "scores_phase"
         return self.preprocessor.inverse_transform_scores(phases)

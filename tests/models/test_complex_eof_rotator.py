@@ -4,9 +4,7 @@ import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 
 from xeofs.models import ComplexEOF, ComplexEOFRotator
-from xeofs.data_container.eof_rotator_data_container import (
-    ComplexEOFRotatorDataContainer,
-)
+from xeofs.data_container import DataContainer
 
 
 @pytest.fixture
@@ -52,7 +50,7 @@ def test_fit(ceof_model):
         ceof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
     assert type(ceof_rotator.model) == ComplexEOF
-    assert type(ceof_rotator.data) == ComplexEOFRotatorDataContainer
+    assert type(ceof_rotator.data) == DataContainer
 
 
 @pytest.mark.parametrize(

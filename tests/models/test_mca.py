@@ -367,16 +367,16 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_compute(mca_model, mock_dask_data_array, dim):
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
 
-    assert isinstance(mca_model.data.squared_covariance.data, DaskArray)
-    assert isinstance(mca_model.data.components1.data, DaskArray)
-    assert isinstance(mca_model.data.components2.data, DaskArray)
-    assert isinstance(mca_model.data.scores1.data, DaskArray)
-    assert isinstance(mca_model.data.scores2.data, DaskArray)
+    assert isinstance(mca_model.data["squared_covariance"].data, DaskArray)
+    assert isinstance(mca_model.data["components1"].data, DaskArray)
+    assert isinstance(mca_model.data["components2"].data, DaskArray)
+    assert isinstance(mca_model.data["scores1"].data, DaskArray)
+    assert isinstance(mca_model.data["scores2"].data, DaskArray)
 
     mca_model.compute()
 
-    assert isinstance(mca_model.data.squared_covariance.data, np.ndarray)
-    assert isinstance(mca_model.data.components1.data, np.ndarray)
-    assert isinstance(mca_model.data.components2.data, np.ndarray)
-    assert isinstance(mca_model.data.scores1.data, np.ndarray)
-    assert isinstance(mca_model.data.scores2.data, np.ndarray)
+    assert isinstance(mca_model.data["squared_covariance"].data, np.ndarray)
+    assert isinstance(mca_model.data["components1"].data, np.ndarray)
+    assert isinstance(mca_model.data["components2"].data, np.ndarray)
+    assert isinstance(mca_model.data["scores1"].data, np.ndarray)
+    assert isinstance(mca_model.data["scores2"].data, np.ndarray)

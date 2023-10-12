@@ -227,64 +227,68 @@ def test_compute(mca_model_delayed):
     mca_rotator.fit(mca_model_delayed)
 
     assert isinstance(
-        mca_rotator.data.squared_covariance.data, DaskArray
+        mca_rotator.data["squared_covariance"].data, DaskArray
     ), "squared_covariance is not a delayed object"
     assert isinstance(
-        mca_rotator.data.components1.data, DaskArray
+        mca_rotator.data["components1"].data, DaskArray
     ), "components1 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.components2.data, DaskArray
+        mca_rotator.data["components2"].data, DaskArray
     ), "components2 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.scores1.data, DaskArray
+        mca_rotator.data["scores1"].data, DaskArray
     ), "scores1 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.scores2.data, DaskArray
+        mca_rotator.data["scores2"].data, DaskArray
     ), "scores2 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.rotation_matrix.data, DaskArray
+        mca_rotator.data["rotation_matrix"].data, DaskArray
     ), "rotation_matrix is not a delayed object"
     assert isinstance(
-        mca_rotator.data.phi_matrix.data, DaskArray
+        mca_rotator.data["phi_matrix"].data, DaskArray
     ), "phi_matrix is not a delayed object"
     assert isinstance(
-        mca_rotator.data.norm1.data, DaskArray
+        mca_rotator.data["norm1"].data, DaskArray
     ), "norm1 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.norm2.data, DaskArray
+        mca_rotator.data["norm2"].data, DaskArray
     ), "norm2 is not a delayed object"
     assert isinstance(
-        mca_rotator.data.modes_sign.data, DaskArray
+        mca_rotator.data["modes_sign"].data, DaskArray
     ), "modes_sign is not a delayed object"
 
     mca_rotator.compute()
 
     assert isinstance(
-        mca_rotator.data.squared_covariance.data, np.ndarray
+        mca_rotator.data["squared_covariance"].data, np.ndarray
     ), "squared_covariance is not computed"
     assert isinstance(
-        mca_rotator.data.total_squared_covariance.data, np.ndarray
+        mca_rotator.data["total_squared_covariance"].data, np.ndarray
     ), "total_squared_covariance is not computed"
     assert isinstance(
-        mca_rotator.data.components1.data, np.ndarray
+        mca_rotator.data["components1"].data, np.ndarray
     ), "components1 is not computed"
     assert isinstance(
-        mca_rotator.data.components2.data, np.ndarray
+        mca_rotator.data["components2"].data, np.ndarray
     ), "components2 is not computed"
     assert isinstance(
-        mca_rotator.data.scores1.data, np.ndarray
+        mca_rotator.data["scores1"].data, np.ndarray
     ), "scores1 is not computed"
     assert isinstance(
-        mca_rotator.data.scores2.data, np.ndarray
+        mca_rotator.data["scores2"].data, np.ndarray
     ), "scores2 is not computed"
     assert isinstance(
-        mca_rotator.data.rotation_matrix.data, np.ndarray
+        mca_rotator.data["rotation_matrix"].data, np.ndarray
     ), "rotation_matrix is not computed"
     assert isinstance(
-        mca_rotator.data.phi_matrix.data, np.ndarray
+        mca_rotator.data["phi_matrix"].data, np.ndarray
     ), "phi_matrix is not computed"
-    assert isinstance(mca_rotator.data.norm1.data, np.ndarray), "norm1 is not computed"
-    assert isinstance(mca_rotator.data.norm2.data, np.ndarray), "norm2 is not computed"
     assert isinstance(
-        mca_rotator.data.modes_sign.data, np.ndarray
+        mca_rotator.data["norm1"].data, np.ndarray
+    ), "norm1 is not computed"
+    assert isinstance(
+        mca_rotator.data["norm2"].data, np.ndarray
+    ), "norm2 is not computed"
+    assert isinstance(
+        mca_rotator.data["modes_sign"].data, np.ndarray
     ), "modes_sign is not computed"

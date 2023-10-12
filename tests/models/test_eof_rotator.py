@@ -4,9 +4,7 @@ import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 
 from xeofs.models import EOF, EOFRotator
-from xeofs.data_container.eof_rotator_data_container import (
-    EOFRotatorDataContainer,
-)
+from xeofs.data_container import DataContainer
 
 
 @pytest.fixture
@@ -52,7 +50,7 @@ def test_fit(eof_model):
         eof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
     assert type(eof_rotator.model) == EOF
-    assert type(eof_rotator.data) == EOFRotatorDataContainer
+    assert type(eof_rotator.data) == DataContainer
 
 
 @pytest.mark.parametrize(
@@ -183,36 +181,30 @@ def test_compute(eof_model_delayed):
 
     # before computation, the attributes should be dask arrays
     assert isinstance(
-        eof_rotator.data.explained_variance.data, DaskArray
+        eof_rotator.data["explained_variance"].data, DaskArray
     ), "The attribute _explained_variance should be a dask array."
     assert isinstance(
-        eof_rotator.data.explained_variance_ratio.data, DaskArray
-    ), "The attribute _explained_variance_ratio should be a dask array."
-    assert isinstance(
-        eof_rotator.data.components.data, DaskArray
+        eof_rotator.data["components"].data, DaskArray
     ), "The attribute _components should be a dask array."
     assert isinstance(
-        eof_rotator.data.rotation_matrix.data, DaskArray
+        eof_rotator.data["rotation_matrix"].data, DaskArray
     ), "The attribute _rotation_matrix should be a dask array."
     assert isinstance(
-        eof_rotator.data.scores.data, DaskArray
+        eof_rotator.data["scores"].data, DaskArray
     ), "The attribute _scores should be a dask array."
 
     eof_rotator.compute()
 
     # after computation, the attributes should be numpy ndarrays
     assert isinstance(
-        eof_rotator.data.explained_variance.data, np.ndarray
+        eof_rotator.data["explained_variance"].data, np.ndarray
     ), "The attribute _explained_variance should be a numpy ndarray."
     assert isinstance(
-        eof_rotator.data.explained_variance_ratio.data, np.ndarray
-    ), "The attribute _explained_variance_ratio should be a numpy ndarray."
-    assert isinstance(
-        eof_rotator.data.components.data, np.ndarray
+        eof_rotator.data["components"].data, np.ndarray
     ), "The attribute _components should be a numpy ndarray."
     assert isinstance(
-        eof_rotator.data.rotation_matrix.data, np.ndarray
+        eof_rotator.data["rotation_matrix"].data, np.ndarray
     ), "The attribute _rotation_matrix should be a numpy ndarray."
     assert isinstance(
-        eof_rotator.data.scores.data, np.ndarray
+        eof_rotator.data["scores"].data, np.ndarray
     ), "The attribute _scores should be a numpy ndarray."

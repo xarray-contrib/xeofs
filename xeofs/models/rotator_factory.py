@@ -1,7 +1,3 @@
-import numpy as np
-import xarray as xr
-from typing import Optional, Union, List, Tuple
-
 from .eof import EOF, ComplexEOF
 from .mca import MCA, ComplexMCA
 from .eof_rotator import EOFRotator, ComplexEOFRotator

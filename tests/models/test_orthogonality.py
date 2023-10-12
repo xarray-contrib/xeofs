@@ -23,7 +23,7 @@ def test_eof_components(dim, use_coslat, mock_data_array):
     """Components are orthogonal"""
     model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    V = model.data.components.values
+    V = model.data["components"].values
     assert np.allclose(
         V.T @ V, np.eye(V.shape[1]), atol=1e-5
     ), "Components are not orthogonal"
@@ -41,7 +41,7 @@ def test_eof_scores(dim, use_coslat, mock_data_array):
     """Scores are orthogonal"""
     model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    U = model.data.scores.values
+    U = model.data["scores"].values
     assert np.allclose(
         U.T @ U, np.eye(U.shape[1]), atol=1e-5
     ), "Scores are not orthogonal"
@@ -60,7 +60,7 @@ def test_ceof_components(dim, use_coslat, mock_data_array):
     """Components are unitary"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    V = model.data.components.values
+    V = model.data["components"].values
     assert np.allclose(
         V.conj().T @ V, np.eye(V.shape[1]), atol=1e-5
     ), "Components are not unitary"
@@ -78,7 +78,7 @@ def test_ceof_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    U = model.data.scores.values
+    U = model.data["scores"].values
     assert np.allclose(
         U.conj().T @ U, np.eye(U.shape[1]), atol=1e-5
     ), "Scores are not unitary"
@@ -102,7 +102,7 @@ def test_reof_components(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    V = rot.data.components.values
+    V = rot.data["components"].values
     K = V.conj().T @ V
     assert np.allclose(
         np.diag(K), np.ones(V.shape[1]), atol=1e-5
@@ -128,7 +128,7 @@ def test_reof_scores(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    U = rot.data.scores.values
+    U = rot.data["scores"].values
     K = U.conj().T @ U
     if power == 1:
         # Varimax rotation does guarantee orthogonality
@@ -157,7 +157,7 @@ def test_creof_components(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = ComplexEOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    V = rot.data.components.values
+    V = rot.data["components"].values
     K = V.conj().T @ V
     assert np.allclose(
         np.diag(K), np.ones(V.shape[1]), atol=1e-5
@@ -183,7 +183,7 @@ def test_creof_scores(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = ComplexEOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    U = rot.data.scores.values
+    U = rot.data["scores"].values
     K = U.conj().T @ U
     if power == 1:
         # Varimax rotation does guarantee unitarity
@@ -209,8 +209,8 @@ def test_mca_components(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = MCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    V1 = model.data.components1.values
-    V2 = model.data.components2.values
+    V1 = model.data["components1"].values
+    V2 = model.data["components2"].values
     K1 = V1.T @ V1
     K2 = V2.T @ V2
     assert np.allclose(
@@ -235,10 +235,10 @@ def test_mca_scores(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = MCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    U1 = model.data.scores1.values
-    U2 = model.data.scores2.values
+    U1 = model.data["scores1"].values
+    U2 = model.data["scores2"].values
     K = U1.T @ U2
-    target = np.eye(K.shape[0]) * (model.data.input_data1.sample.size - 1)
+    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
     assert np.allclose(K, target, atol=1e-5), "Scores are not orthogonal"
 
 
@@ -257,8 +257,8 @@ def test_cmca_components(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    V1 = model.data.components1.values
-    V2 = model.data.components2.values
+    V1 = model.data["components1"].values
+    V2 = model.data["components2"].values
     K1 = V1.conj().T @ V1
     K2 = V2.conj().T @ V2
     assert np.allclose(
@@ -283,10 +283,10 @@ def test_cmca_scores(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = ComplexMCA(n_modes=10, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    U1 = model.data.scores1.values
-    U2 = model.data.scores2.values
+    U1 = model.data["scores1"].values
+    U2 = model.data["scores2"].values
     K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data.input_data1.sample.size - 1)
+    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
     assert np.allclose(K, target, atol=1e-5), "Scores are not unitary"
 
 
@@ -316,8 +316,8 @@ def test_rmca_components(dim, use_coslat, power, squared_loadings, mock_data_arr
     model.fit(data1, data2, dim=dim)
     rot = MCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    V1 = rot.data.components1.values
-    V2 = rot.data.components2.values
+    V1 = rot.data["components1"].values
+    V2 = rot.data["components2"].values
     K1 = V1.conj().T @ V1
     K2 = V2.conj().T @ V2
     assert np.allclose(
@@ -356,10 +356,10 @@ def test_rmca_scores(dim, use_coslat, power, squared_loadings, mock_data_array):
     model.fit(data1, data2, dim=dim)
     rot = MCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    U1 = rot.data.scores1.values
-    U2 = rot.data.scores2.values
+    U1 = rot.data["scores1"].values
+    U2 = rot.data["scores2"].values
     K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data.input_data1.sample.size - 1)
+    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
     if power == 1:
         # Varimax rotation does guarantee orthogonality
         assert np.allclose(K, target, atol=1e-5), "Components are not orthogonal"
@@ -393,8 +393,8 @@ def test_crmca_components(dim, use_coslat, power, squared_loadings, mock_data_ar
     model.fit(data1, data2, dim=dim)
     rot = ComplexMCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    V1 = rot.data.components1.values
-    V2 = rot.data.components2.values
+    V1 = rot.data["components1"].values
+    V2 = rot.data["components2"].values
     K1 = V1.conj().T @ V1
     K2 = V2.conj().T @ V2
     assert np.allclose(
@@ -433,10 +433,10 @@ def test_crmca_scores(dim, use_coslat, power, squared_loadings, mock_data_array)
     model.fit(data1, data2, dim=dim)
     rot = ComplexMCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    U1 = rot.data.scores1.values
-    U2 = rot.data.scores2.values
+    U1 = rot.data["scores1"].values
+    U2 = rot.data["scores2"].values
     K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data.input_data1.sample.size - 1)
+    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
     if power == 1:
         # Varimax rotation does guarantee orthogonality
         assert np.allclose(K, target, atol=1e-5), "Components are not orthogonal"

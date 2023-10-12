@@ -2,10 +2,9 @@ import warnings
 from typing import Optional, Sequence, Hashable, Dict, Any, Self, List
 from abc import ABC, abstractmethod
 from datetime import datetime
-from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
-from ..data_container import _BaseModelDataContainer
+from ..data_container import DataContainer
 from ..utils.data_types import DataObject, DataArray, Dims
 from .._version import __version__
 
@@ -82,9 +81,8 @@ class _BaseModel(ABC):
             with_weights=use_weights,
             **self._preprocessor_kwargs
         )
-        # Initialize the data container only to avoid type errors
-        # The actual data container will be initialized in respective subclasses
-        self.data: _BaseModelDataContainer = _BaseModelDataContainer()
+        # Initialize the data container that stores the results
+        self.data = DataContainer()
 
     def fit(
         self,
@@ -233,12 +231,12 @@ class _BaseModel(ABC):
 
     def components(self) -> DataObject:
         """Get the components."""
-        components = self.data.components
+        components = self.data["components"]
         return self.preprocessor.inverse_transform_components(components)
 
     def scores(self) -> DataArray:
         """Get the scores."""
-        scores = self.data.scores
+        scores = self.data["scores"]
         return self.preprocessor.inverse_transform_scores(scores)
 
     def compute(self, verbose: bool = False):
@@ -250,11 +248,7 @@ class _BaseModel(ABC):
             Whether or not to provide additional information about the computing progress.
 
         """
-        if verbose:
-            with ProgressBar():
-                self.data.compute()
-        else:
-            self.data.compute()
+        self.data.compute(verbose=verbose)
 
     def get_params(self) -> Dict[str, Any]:
         """Get the model parameters."""

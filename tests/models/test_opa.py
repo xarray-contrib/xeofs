@@ -385,7 +385,7 @@ def test_scores_uncorrelated(dim, use_coslat, mock_data_array):
         use_coslat=use_coslat,
     )
     model.fit(mock_data_array, dim=dim)
-    scores = model.data.scores.values
+    scores = model.data["scores"].values
     check = scores.T @ scores / (scores.shape[0] - 1)
     assert np.allclose(
         check, np.eye(check.shape[1]), atol=1e-5

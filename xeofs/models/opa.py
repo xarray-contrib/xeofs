@@ -6,14 +6,14 @@ import numpy as np
 from ._base_model import _BaseModel
 from .eof import EOF
 from .decomposer import Decomposer
-from ..data_container.opa_data_container import OPADataContainer
 from ..utils.data_types import DataObject, DataArray
 
 
 class OPA(_BaseModel):
     """Optimal Persistence Analysis (OPA).
 
-    OPA identifies the optimal persistence patterns (OPP) with the
+    OPA identifies the optimal persistence patterns or
+    optimally persistent patterns (OPP) with the
     largest decorrelation time in a time-varying field. Introduced by DelSole
     in 2001 [1]_, and further developed in 2006 [2]_, it's a method used to
     find patterns whose time series show strong persistence over time.
@@ -38,12 +38,12 @@ class OPA(_BaseModel):
     >>> model = OPA(n_modes=10, tau_max=50, n_pca_modes=100)
     >>> model.fit(data, dim=("time"))
 
-    Retrieve the optimal perstitence patterns (OPP) and their time series:
+    Retrieve the optimally persistent patterns (OPP) and their time series:
 
     >>> opp = model.components()
     >>> opp_ts = model.scores()
 
-    Retrieve the decorrelation time of the optimal persistence patterns (OPP):
+    Retrieve the decorrelation time of the OPPs:
 
     >>> decorrelation_time = model.decorrelation_time()
     """
@@ -56,9 +56,6 @@ class OPA(_BaseModel):
         super().__init__(n_modes=n_modes, **kwargs)
         self.attrs.update({"model": "OPA"})
         self._params.update({"tau_max": tau_max, "n_pca_modes": n_pca_modes})
-
-        # Initialize the DataContainer to store the results
-        self.data: OPADataContainer = OPADataContainer()
 
     def _Ctau(self, X, tau: int) -> DataArray:
         """Compute the time-lage covariance matrix C(tau) of the data X."""
@@ -91,17 +88,17 @@ class OPA(_BaseModel):
         # Perform PCA as a pre-processing step
         pca = EOF(n_modes=self._params["n_pca_modes"], use_coslat=False)
         pca.fit(data, dim=sample_name)
-        svals = pca.data.singular_values
-        expvar = pca.data.explained_variance
-        comps = pca.data.components * svals / np.sqrt(expvar)
+        svals = pca.singular_values()
+        expvar = pca.data["explained_variance"]
+        comps = pca.data["components"] * svals / np.sqrt(expvar)
         # -> comps (feature x mode)
-        scores = pca.data.scores * np.sqrt(expvar)
+        scores = pca.data["scores"] * np.sqrt(expvar)
         # -> scores (sample x mode)
 
         # Compute the covariance matrix with zero time lag
         C0 = self._Ctau(scores, 0)
         # -> C0 (feature1 x feature2)
-        C0inv = self._compute_matrix_inverse(C0, dims=("feature1", "feature2"))
+        # C0inv = self._compute_matrix_inverse(C0, dims=("feature1", "feature2"))
         # -> C0inv (feature2 x feature1)
         M = 0.5 * C0
         # -> M (feature1 x feature2)
@@ -187,13 +184,13 @@ class OPA(_BaseModel):
         scores = scores.rename({"mode": feature_name})  # -> (sample x feature)
 
         # Store the results
-        self.data.set_data(
-            input_data=scores,
-            components=W,
-            scores=P,
-            filter_patterns=V,
-            decorrelation_time=lbda,
-        )
+        # NOTE: not sure if "scores" should be taken as input data here, "data" may be more correct -> to be verified
+        self.data.add(name="input_data", data=scores, allow_compute=False)
+        self.data.add(name="components", data=W, allow_compute=True)
+        self.data.add(name="scores", data=P, allow_compute=True)
+        self.data.add(name="filter_patterns", data=V, allow_compute=True)
+        self.data.add(name="decorrelation_time", data=lbda, allow_compute=True)
+
         self.data.set_attrs(self.attrs)
         self._U = U  # store U for testing purposes of orthogonality
         self._C0 = C0  # store C0 for testing purposes of orthogonality
@@ -206,11 +203,11 @@ class OPA(_BaseModel):
         raise NotImplementedError("OPA does not (yet) support inverse_transform()")
 
     def components(self) -> DataObject:
-        """Return the optimal persistence pattern (OPP)."""
+        """Return the optimally persistent patterns (OPPs)."""
         return super().components()
 
     def scores(self) -> DataArray:
-        """Return the time series of the optimal persistence pattern (OPP).
+        """Return the time series of the OPPs.
 
         The time series have a maximum decorrelation time that are uncorrelated with each other.
         """
@@ -218,9 +215,9 @@ class OPA(_BaseModel):
 
     def decorrelation_time(self) -> DataArray:
         """Return the decorrelation time of the optimal persistence pattern (OPP)."""
-        return self.data.decorrelation_time
+        return self.data["decorrelation_time"]
 
     def filter_patterns(self) -> DataObject:
         """Return the filter patterns."""
-        fps = self.data.filter_patterns
+        fps = self.data["filter_patterns"]
         return self.preprocessor.inverse_transform_components(fps)
