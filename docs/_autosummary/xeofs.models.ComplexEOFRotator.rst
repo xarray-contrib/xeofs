@@ -24,6 +24,7 @@
       ~ComplexEOFRotator.explained_variance
       ~ComplexEOFRotator.explained_variance_ratio
       ~ComplexEOFRotator.fit
+      ~ComplexEOFRotator.fit_transform
       ~ComplexEOFRotator.get_params
       ~ComplexEOFRotator.inverse_transform
       ~ComplexEOFRotator.scores

@@ -29,6 +29,7 @@
       ~MCA.singular_values
       ~MCA.squared_covariance
       ~MCA.squared_covariance_fraction
+      ~MCA.total_covariance
       ~MCA.transform
    
    

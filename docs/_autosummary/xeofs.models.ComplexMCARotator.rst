@@ -33,6 +33,7 @@
       ~ComplexMCARotator.singular_values
       ~ComplexMCARotator.squared_covariance
       ~ComplexMCARotator.squared_covariance_fraction
+      ~ComplexMCARotator.total_covariance
       ~ComplexMCARotator.transform
    
    

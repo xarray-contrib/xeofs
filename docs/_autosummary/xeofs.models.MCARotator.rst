@@ -29,6 +29,7 @@
       ~MCARotator.singular_values
       ~MCARotator.squared_covariance
       ~MCARotator.squared_covariance_fraction
+      ~MCARotator.total_covariance
       ~MCARotator.transform
    
    

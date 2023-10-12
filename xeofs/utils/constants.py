@@ -10,6 +10,9 @@ VALID_LATITUDE_NAMES = [
     "LAT",
 ]
 
+VALID_LONGITUDE_NAMES = ["lon", "lons", "longitude", "longitudes"]
+VALID_CARTESIAN_X_NAMES = ["x", "x_coord"]
+VALID_CARTESIAN_Y_NAMES = ["y", "y_coord"]
 
 MULTIPLE_TESTS = [
     "bonferroni",
@@ -23,3 +26,6 @@ MULTIPLE_TESTS = [
     "fdr_tsbh",
     "fdr_tsbky",
 ]
+
+
+AVG_EARTH_RADIUS = 6371.0  # in km

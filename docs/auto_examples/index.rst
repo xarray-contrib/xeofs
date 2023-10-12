@@ -131,6 +131,23 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="TIn this demonstration, we&#x27;ll apply GWPCA to a dataset detailing the chemical compositions of s...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_gwpca_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1eof_plot_gwpca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Geographically weighted PCA</div>
+    </div>
+
+
+.. raw:: html
+
     </div>
 
 2 | MCA

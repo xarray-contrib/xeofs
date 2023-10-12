@@ -22,6 +22,7 @@
       ~EOFBootstrapper.explained_variance
       ~EOFBootstrapper.explained_variance_ratio
       ~EOFBootstrapper.fit
+      ~EOFBootstrapper.fit_transform
       ~EOFBootstrapper.get_params
       ~EOFBootstrapper.inverse_transform
       ~EOFBootstrapper.scores

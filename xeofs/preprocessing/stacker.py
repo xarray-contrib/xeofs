@@ -386,6 +386,10 @@ class DataSetStacker(Stacker):
                 raise ValueError(
                     f"Name of feature dimension ({self.feature_name}) is already present in data. Please use another name."
                 )
+        else:
+            raise ValueError(
+                f"Datasets without feature dimension are currently not supported. Please convert your Dataset to a DataArray first, e.g. by using `to_array()`."
+            )
 
     def _stack(self, data: DataSet, sample_dims, feature_dims) -> DataArray:
         """Reshape a Dataset to 2D.

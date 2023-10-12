@@ -60,6 +60,7 @@ class _BaseModel(ABC):
     ):
         self.sample_name = sample_name
         self.feature_name = feature_name
+        self.n_modes = n_modes
         # Define model parameters
         self._params = {
             "n_modes": n_modes,

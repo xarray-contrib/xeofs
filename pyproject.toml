@@ -11,7 +11,7 @@ documentation = "https://xeofs.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-numpy = ">=1.19.2"
+numpy = "~1.24"
 pandas = ">=1.4.1"
 xarray = ">=0.21.1"
 scikit-learn = ">=1.0.2"
@@ -19,21 +19,25 @@ pooch = "^1.6.0"
 tqdm = "^4.64.0"
 dask = ">=2023.0.1"
 statsmodels = ">=0.14.0"
+netCDF4 = "^1.5.7"
+numba = "^0.57"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
 pytest = "^7.0.1"
 coverage = "^6.3.1"
-netCDF4 = "^1.5.7"
-sphinx-gallery = "^0"
-sphinx-design = "^0"
-nbsphinx = "^0"
-sphinx-copybutton = "^0"
-pydata-sphinx-theme = "^0"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "~23.7.0"
+
+[tool.poetry.group.docs.dependencies]
+rpy2 = {version = ">=3.5", optional = true}
+sphinx-gallery = {version = "^0", optional = true}
+sphinx-design = {version = "^0", optional = true}
+sphinx-copybutton = {version = "^0", optional = true}
+nbsphinx = {version = "^0", optional = true}
+pydata-sphinx-theme = {version = "^0", optional = true}
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]
