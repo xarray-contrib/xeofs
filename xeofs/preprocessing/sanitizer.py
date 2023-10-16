@@ -1,88 +1,90 @@
-from typing import Self
+from typing import Self, Optional
 
 import xarray as xr
-from sklearn.base import BaseEstimator, TransformerMixin
 
-from ..utils.data_types import DataArray
+from .transformer import Transformer
+from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar
 
 
-class DataArraySanitizer(BaseEstimator, TransformerMixin):
+class Sanitizer(Transformer):
     """
     Removes NaNs from the feature dimension of a 2D DataArray.
 
     """
 
     def __init__(self, sample_name="sample", feature_name="feature"):
-        self.sample_name = sample_name
-        self.feature_name = feature_name
+        super().__init__(sample_name=sample_name, feature_name=feature_name)
 
-    def _check_input_type(self, data) -> None:
-        if not isinstance(data, xr.DataArray):
+    def _check_input_type(self, X) -> None:
+        if not isinstance(X, xr.DataArray):
             raise ValueError("Input must be an xarray DataArray")
 
-    def _check_input_dims(self, data: DataArray) -> None:
-        if set(data.dims) != set([self.sample_name, self.feature_name]):
+    def _check_input_dims(self, X) -> None:
+        if set(X.dims) != set([self.sample_name, self.feature_name]):
             raise ValueError(
                 "Input must have dimensions ({:}, {:})".format(
                     self.sample_name, self.feature_name
                 )
             )
 
-    def _check_input_coords(self, data: DataArray) -> None:
-        if not data.coords[self.feature_name].identical(self.feature_coords):
+    def _check_input_coords(self, X) -> None:
+        if not X.coords[self.feature_name].identical(self.feature_coords):
             raise ValueError(
                 "Cannot transform data. Feature coordinates are different."
             )
 
-    def fit(self, data: DataArray, y=None) -> Self:
+    def fit(
+        self,
+        X: Data,
+        sample_dims: Optional[Dims] = None,
+        feature_dims: Optional[Dims] = None,
+        **kwargs
+    ) -> Self:
         # Check if input is a DataArray
-        self._check_input_type(data)
+        self._check_input_type(X)
 
         # Check if input has the correct dimensions
-        self._check_input_dims(data)
+        self._check_input_dims(X)
 
-        self.feature_coords = data.coords[self.feature_name]
+        self.feature_coords = X.coords[self.feature_name]
 
         # Identify NaN locations
-        self.is_valid_feature = data.notnull().all(self.sample_name).compute()
+        self.is_valid_feature = X.notnull().all(self.sample_name).compute()
 
         return self
 
-    def transform(self, data: DataArray) -> DataArray:
+    def transform(self, X: DataArray) -> DataArray:
         # Check if input is a DataArray
-        self._check_input_type(data)
+        self._check_input_type(X)
 
         # Check if input has the correct dimensions
-        self._check_input_dims(data)
+        self._check_input_dims(X)
 
         # Check if input has the correct coordinates
-        self._check_input_coords(data)
+        self._check_input_coords(X)
 
         # Remove NaN entries
-        data = data.isel({self.feature_name: self.is_valid_feature})
+        X = X.isel({self.feature_name: self.is_valid_feature})
 
-        return data
+        return X
 
-    def fit_transform(self, data: DataArray, y=None) -> DataArray:
-        return self.fit(data, y).transform(data)
-
-    def inverse_transform_data(self, data: DataArray) -> DataArray:
+    def inverse_transform_data(self, X: DataArray) -> DataArray:
         # Reindex only if feature coordinates are different
-        is_same_coords = data.coords[self.feature_name].identical(self.feature_coords)
+        is_same_coords = X.coords[self.feature_name].identical(self.feature_coords)
 
         if is_same_coords:
-            return data
+            return X
         else:
-            return data.reindex({self.feature_name: self.feature_coords.values})
+            return X.reindex({self.feature_name: self.feature_coords.values})
 
-    def inverse_transform_components(self, data: DataArray) -> DataArray:
+    def inverse_transform_components(self, X: DataArray) -> DataArray:
         # Reindex only if feature coordinates are different
-        is_same_coords = data.coords[self.feature_name].identical(self.feature_coords)
+        is_same_coords = X.coords[self.feature_name].identical(self.feature_coords)
 
         if is_same_coords:
-            return data
+            return X
         else:
-            return data.reindex({self.feature_name: self.feature_coords.values})
+            return X.reindex({self.feature_name: self.feature_coords.values})
 
-    def inverse_transform_scores(self, data: DataArray) -> DataArray:
-        return data
+    def inverse_transform_scores(self, X: DataArray) -> DataArray:
+        return X

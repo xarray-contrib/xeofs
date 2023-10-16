@@ -22,8 +22,6 @@ class EOF(_BaseModel):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use weights.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -42,7 +40,6 @@ class EOF(_BaseModel):
         n_modes=10,
         standardize=False,
         use_coslat=False,
-        use_weights=False,
         solver="auto",
         solver_kwargs={},
         **kwargs,
@@ -51,7 +48,6 @@ class EOF(_BaseModel):
             n_modes=n_modes,
             standardize=standardize,
             use_coslat=use_coslat,
-            use_weights=use_weights,
             solver=solver,
             solver_kwargs=solver_kwargs,
             **kwargs,

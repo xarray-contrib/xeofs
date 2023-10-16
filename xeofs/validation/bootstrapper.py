@@ -78,9 +78,7 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             bst_data = input_data.isel(sample=idx_rnd)
             # Perform EOF analysis with the subsampled data
             # No scaling because we use the pre-scaled data from the model
-            bst_model = EOF(
-                n_modes=n_modes, standardize=False, use_coslat=False, use_weights=False
-            )
+            bst_model = EOF(n_modes=n_modes, standardize=False, use_coslat=False)
             bst_model.fit(bst_data, dim="sample")
             # Save results
             expvar = bst_model.data["explained_variance"]

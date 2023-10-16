@@ -2,64 +2,35 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.preprocessing.scaler import DataSetScaler
+from xeofs.preprocessing.scaler import Scaler
 
 
 @pytest.mark.parametrize(
-    "with_std, with_coslat, with_weights",
+    "with_std, with_coslat",
     [
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
     ],
 )
-def test_init_params(with_std, with_coslat, with_weights):
-    s = DataSetScaler(
-        with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-    )
+def test_init_params(with_std, with_coslat):
+    s = Scaler(with_std=with_std, with_coslat=with_coslat)
     assert s.get_params()["with_std"] == with_std
     assert s.get_params()["with_coslat"] == with_coslat
-    assert s.get_params()["with_weights"] == with_weights
 
 
 @pytest.mark.parametrize(
-    "with_std, with_coslat, with_weights",
+    "with_std, with_coslat",
     [
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
     ],
 )
-def test_fit_params(with_std, with_coslat, with_weights, mock_dataset):
-    s = DataSetScaler(
-        with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-    )
+def test_fit_params(with_std, with_coslat, mock_dataset):
+    s = Scaler(with_std=with_std, with_coslat=with_coslat)
     sample_dims = ["time"]
     feature_dims = ["lat", "lon"]
     size_lats = mock_dataset.lat.size
@@ -72,48 +43,37 @@ def test_fit_params(with_std, with_coslat, with_weights, mock_dataset):
         assert hasattr(s, "std_"), "Scaler has no std attribute."
     if with_coslat:
         assert hasattr(s, "coslat_weights_"), "Scaler has no coslat_weights attribute."
-    if with_weights:
-        assert hasattr(s, "weights_"), "Scaler has no weights attribute."
     assert s.mean_ is not None, "Scaler mean is None."
     if with_std:
         assert s.std_ is not None, "Scaler std is None."
     if with_coslat:
         assert s.coslat_weights_ is not None, "Scaler coslat_weights is None."
-    if with_weights:
-        assert s.weights_ is not None, "Scaler weights is None."
 
 
 @pytest.mark.parametrize(
     "with_std, with_coslat, with_weights",
     [
         (True, True, True),
-        (True, True, False),
         (True, False, True),
-        (True, False, False),
         (False, True, True),
-        (False, True, False),
         (False, False, True),
-        (False, False, False),
-        (True, True, True),
         (True, True, False),
-        (True, False, True),
         (True, False, False),
-        (False, True, True),
         (False, True, False),
-        (False, False, True),
         (False, False, False),
     ],
 )
 def test_transform_params(with_std, with_coslat, with_weights, mock_dataset):
-    s = DataSetScaler(
-        with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-    )
+    s = Scaler(with_std=with_std, with_coslat=with_coslat)
     sample_dims = ["time"]
     feature_dims = ["lat", "lon"]
     size_lats = mock_dataset.lat.size
-    weights1 = xr.DataArray(np.random.rand(size_lats), dims=["lat"], name="t2m")
-    weights2 = xr.DataArray(np.random.rand(size_lats), dims=["lat"], name="prcp")
-    weights = xr.merge([weights1, weights2])
+    if with_weights:
+        weights1 = xr.DataArray(np.random.rand(size_lats), dims=["lat"], name="t2m")
+        weights2 = xr.DataArray(np.random.rand(size_lats), dims=["lat"], name="prcp")
+        weights = xr.merge([weights1, weights2])
+    else:
+        weights = None
     s.fit(mock_dataset, sample_dims, feature_dims, weights)
     transformed = s.transform(mock_dataset)
     assert transformed is not None, "Transformed data is None."
@@ -140,41 +100,21 @@ def test_transform_params(with_std, with_coslat, with_weights, mock_dataset):
             transformed, mock_dataset
         ), "Data has not been transformed."
 
-    if with_weights:
-        assert s.weights_ is not None, "Scaler weights is None."
-        assert not np.array_equal(
-            transformed, mock_dataset
-        ), "Data has not been transformed."
-
     transformed2 = s.fit_transform(mock_dataset, sample_dims, feature_dims, weights)
     xr.testing.assert_allclose(transformed, transformed2)
 
 
 @pytest.mark.parametrize(
-    "with_std, with_coslat, with_weights",
+    "with_std, with_coslat",
     [
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
     ],
 )
-def test_inverse_transform_params(with_std, with_coslat, with_weights, mock_dataset):
-    s = DataSetScaler(
-        with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-    )
+def test_inverse_transform_params(with_std, with_coslat, mock_dataset):
+    s = Scaler(with_std=with_std, with_coslat=with_coslat)
     sample_dims = ["time"]
     feature_dims = ["lat", "lon"]
     size_lats = mock_dataset.lat.size
@@ -197,7 +137,7 @@ def test_inverse_transform_params(with_std, with_coslat, with_weights, mock_data
     ],
 )
 def test_fit_dims(dim_sample, dim_feature, mock_dataset):
-    s = DataSetScaler(with_std=True)
+    s = Scaler(with_std=True)
     s.fit(mock_dataset, dim_sample, dim_feature)
     assert hasattr(s, "mean_"), "Scaler has no mean attribute."
     assert s.mean_ is not None, "Scaler mean is None."
@@ -222,7 +162,7 @@ def test_fit_dims(dim_sample, dim_feature, mock_dataset):
     ],
 )
 def test_fit_transform_dims(dim_sample, dim_feature, mock_dataset):
-    s = DataSetScaler()
+    s = Scaler()
     transformed = s.fit_transform(mock_dataset, dim_sample, dim_feature)
     # check that all dimensions are present
     assert set(transformed.dims) == set(
@@ -235,25 +175,20 @@ def test_fit_transform_dims(dim_sample, dim_feature, mock_dataset):
 
 # Test input types
 def test_fit_input_type(mock_dataset, mock_data_array, mock_data_array_list):
-    s = DataSetScaler()
-    # Cannot fit DataArray
-    with pytest.raises(TypeError):
-        s.fit(mock_data_array, ["time"], ["lon", "lat"])
+    s = Scaler()
     # Cannot fit list of DataArrays
     with pytest.raises(TypeError):
         s.fit(mock_data_array_list, ["time"], ["lon", "lat"])
 
     s.fit(mock_dataset, ["time"], ["lon", "lat"])
-    # Cannot transform DataArray
-    with pytest.raises(TypeError):
-        s.transform(mock_data_array)
+
     # Cannot transform list of DataArrays
     with pytest.raises(TypeError):
         s.transform(mock_data_array_list)
 
 
 # def test_fit_weights_input_type(mock_dataset):
-#     s = DataSetScaler()
+#     s = Scaler()
 #     # Fitting with weights requires that the weights have the same variables as the dataset
 #     # used for fitting; otherwise raise an error
 #     size_lats = mock_dataset.lat.size

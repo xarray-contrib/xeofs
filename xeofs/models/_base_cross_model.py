@@ -17,12 +17,12 @@ class _BaseCrossModel(ABC):
     -------------
     n_modes: int, default=10
         Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
     standardize: bool, default=False
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use weights.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
     sample_name: str, default="sample"
@@ -39,9 +39,9 @@ class _BaseCrossModel(ABC):
     def __init__(
         self,
         n_modes=10,
+        center=True,
         standardize=False,
         use_coslat=False,
-        use_weights=False,
         n_pca_modes=None,
         sample_name="sample",
         feature_name="feature",
@@ -54,9 +54,9 @@ class _BaseCrossModel(ABC):
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
+            "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
-            "use_weights": use_weights,
             "n_pca_modes": n_pca_modes,
             "solver": solver,
         }
@@ -64,9 +64,9 @@ class _BaseCrossModel(ABC):
         self._preprocessor_kwargs = {
             "sample_name": sample_name,
             "feature_name": feature_name,
+            "with_center": center,
             "with_std": standardize,
             "with_coslat": use_coslat,
-            "with_weights": use_weights,
         }
 
         # Define analysis-relevant meta data

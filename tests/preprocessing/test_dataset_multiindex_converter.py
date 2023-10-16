@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 
 from xeofs.preprocessing.multi_index_converter import (
-    DataSetMultiIndexConverter,
+    MultiIndexConverter,
 )
 from ..conftest import generate_synthetic_dataset
 from xeofs.utils.data_types import DataArray
@@ -38,7 +38,7 @@ VALID_TEST_DATA = [
     indirect=["synthetic_dataset"],
 )
 def test_transform(synthetic_dataset):
-    converter = DataSetMultiIndexConverter()
+    converter = MultiIndexConverter()
     converter.fit(synthetic_dataset)
     transformed_data = converter.transform(synthetic_dataset)
 
@@ -70,7 +70,7 @@ def test_transform(synthetic_dataset):
     indirect=["synthetic_dataset"],
 )
 def test_inverse_transform(synthetic_dataset):
-    converter = DataSetMultiIndexConverter()
+    converter = MultiIndexConverter()
     converter.fit(synthetic_dataset)
     transformed_data = converter.transform(synthetic_dataset)
     inverse_transformed_data = converter.inverse_transform_data(transformed_data)

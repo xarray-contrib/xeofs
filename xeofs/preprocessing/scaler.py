@@ -1,25 +1,14 @@
-from typing import List, Optional, Sequence, Hashable, Self
+from typing import Optional, Self
 
 import numpy as np
 import xarray as xr
-from sklearn.base import BaseEstimator, TransformerMixin
 
-from ..utils.sanity_checks import (
-    assert_single_dataset,
-    assert_list_dataarrays,
-    convert_to_dim_type,
-)
-from ..utils.data_types import (
-    Dims,
-    DimsList,
-    DataArray,
-    DataSet,
-    DataList,
-)
-from ..utils.xarray_utils import compute_sqrt_cos_lat_weights
+from .transformer import Transformer
+from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound
+from ..utils.xarray_utils import compute_sqrt_cos_lat_weights, feature_ones_like
 
 
-class DataArrayScaler(BaseEstimator, TransformerMixin):
+class Scaler(Transformer):
     """Scale the data along sample dimensions.
 
     Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
@@ -28,162 +17,132 @@ class DataArrayScaler(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
+    with_center : bool, default=True
+        If True, the data is centered by subtracting the mean.
     with_std : bool, default=True
         If True, the data is divided by the standard deviation.
     with_coslat : bool, default=False
         If True, the data is multiplied by the square root of cosine of latitude weights.
-    with_weights : bool, default=False
-        If True, the data is multiplied by additional user-defined weights.
-
+    weights : DataArray | Dataset, optional
+        Weights to be applied to the data. Must have the same dimensions as the data.
+        If None, no weights are applied.
     """
 
-    def __init__(self, with_std=False, with_coslat=False, with_weights=False):
+    def __init__(
+        self,
+        with_center: bool = True,
+        with_std: bool = False,
+        with_coslat: bool = False,
+    ):
+        super().__init__()
+        self.with_center = with_center
         self.with_std = with_std
         self.with_coslat = with_coslat
-        self.with_weights = with_weights
 
-    def _verify_input(self, data: DataArray, name: str):
-        if not isinstance(data, xr.DataArray):
-            raise ValueError(f"{name} must be an xarray DataArray")
+    def _verify_input(self, X, name: str):
+        if not isinstance(X, (xr.DataArray, xr.Dataset)):
+            raise TypeError(f"{name} must be an xarray DataArray or Dataset")
 
-    def _compute_sqrt_cos_lat_weights(self, data, dim):
-        """Compute the square root of cosine of latitude weights.
+    def _process_weights(self, X: DataVarBound, weights) -> DataVarBound:
+        if weights is None:
+            wghts: DataVarBound = feature_ones_like(X, self.feature_dims)
+        else:
+            wghts: DataVarBound = weights
 
-        Parameters
-        ----------
-        data : DataArray | DataSet
-            Data to be scaled.
-        dim : sequence of hashable
-            Dimensions along which the data is considered to be a feature.
-
-        Returns
-        -------
-        DataArray | DataSet
-            Square root of cosine of latitude weights.
-
-        """
-        self._verify_input(data, "data")
-
-        weights = compute_sqrt_cos_lat_weights(data, dim)
-        weights.name = "coslat_weights"
-
-        return weights
+        return wghts
 
     def fit(
         self,
-        data: DataArray,
+        X: DataVar,
         sample_dims: Dims,
         feature_dims: Dims,
-        weights: Optional[DataArray] = None,
+        weights: Optional[DataVar] = None,
     ) -> Self:
         """Fit the scaler to the data.
 
         Parameters
         ----------
-        data : DataArray
+        X : DataArray | Dataset
             Data to be scaled.
         sample_dims : sequence of hashable
             Dimensions along which the data is considered to be a sample.
         feature_dims : sequence of hashable
             Dimensions along which the data is considered to be a feature.
-        weights : DataArray, optional
+        weights : DataArray | Dataset, optional
             Weights to be applied to the data. Must have the same dimensions as the data.
             If None, no weights are applied.
 
         """
         # Check input types
-        self._verify_input(data, "data")
-        if weights is not None:
-            self._verify_input(weights, "weights")
+        self._verify_input(X, "data")
 
-        sample_dims = convert_to_dim_type(sample_dims)
-        feature_dims = convert_to_dim_type(feature_dims)
-
+        self.sample_dims = sample_dims
+        self.feature_dims = feature_dims
         # Store sample and feature dimensions for later use
-        self.dims_ = {"sample": sample_dims, "feature": feature_dims}
-
-        # Scaling parameters are computed along sample dimensions
-        self.mean_: DataArray = data.mean(sample_dims).compute()
+        self.dims = {"sample": sample_dims, "feature": feature_dims}
 
         params = self.get_params()
+
+        # Scaling parameters are computed along sample dimensions
+        if params["with_center"]:
+            self.mean_: DataVar = X.mean(self.sample_dims).compute()
+
         if params["with_std"]:
-            self.std_: DataArray = data.std(sample_dims).compute()
+            self.std_: DataVar = X.std(self.sample_dims).compute()
 
         if params["with_coslat"]:
-            self.coslat_weights_: DataArray = self._compute_sqrt_cos_lat_weights(
-                data, feature_dims
+            self.coslat_weights_: DataVar = compute_sqrt_cos_lat_weights(
+                data=X, feature_dims=self.feature_dims
             ).compute()
 
-        if params["with_weights"]:
-            if weights is None:
-                raise ValueError("Weights must be provided when with_weights is True")
-            self.weights_: DataArray = weights.compute()
+        # Convert None weights to ones
+        self.weights_: DataVar = self._process_weights(X, weights).compute()
 
         return self
 
-    def transform(self, data: DataArray) -> DataArray:
+    def transform(self, X: DataVarBound) -> DataVarBound:
         """Scale the data.
 
         Parameters
         ----------
-        data : DataArray
+        data : DataArray | Dataset
             Data to be scaled.
 
         Returns
         -------
-        DataArray
+        DataArray | Dataset
             Scaled data.
 
         """
-        self._verify_input(data, "data")
-
-        data = data - self.mean_
+        self._verify_input(X, "X")
 
         params = self.get_params()
+
+        if params["with_center"]:
+            X = X - self.mean_
         if params["with_std"]:
-            data = data / self.std_
+            X = X / self.std_
         if params["with_coslat"]:
-            data = data * self.coslat_weights_
-        if params["with_weights"]:
-            data = data * self.weights_
-        return data
+            X = X * self.coslat_weights_
+
+        X = X * self.weights_
+        return X
 
     def fit_transform(
         self,
-        data: DataArray,
+        X: DataVarBound,
         sample_dims: Dims,
         feature_dims: Dims,
-        weights: Optional[DataArray] = None,
-    ) -> DataArray:
-        """Fit the scaler to the data and scale it.
+        weights: Optional[DataVarBound] = None,
+    ) -> DataVarBound:
+        return self.fit(X, sample_dims, feature_dims, weights).transform(X)
 
-        Parameters
-        ----------
-        data : DataArray
-            Data to be scaled.
-        sample_dims : sequence of hashable
-            Dimensions along which the data is considered to be a sample.
-        feature_dims : sequence of hashable
-            Dimensions along which the data is considered to be a feature.
-        weights : DataArray, optional
-            Weights to be applied to the data. Must have the same dimensions as the data.
-            If None, no weights are applied.
-
-        Returns
-        -------
-        DataArray
-            Scaled data.
-
-        """
-
-        return self.fit(data, sample_dims, feature_dims, weights).transform(data)
-
-    def inverse_transform_data(self, data: DataArray) -> DataArray:
+    def inverse_transform_data(self, X: DataVarBound) -> DataVarBound:
         """Unscale the data.
 
         Parameters
         ----------
-        data : DataArray | DataSet
+        X : DataArray | DataSet
             Data to be unscaled.
 
         Returns
@@ -192,243 +151,181 @@ class DataArrayScaler(BaseEstimator, TransformerMixin):
             Unscaled data.
 
         """
-        self._verify_input(data, "data")
+        self._verify_input(X, "X")
 
         params = self.get_params()
-        if params["with_weights"]:
-            data = data / self.weights_
+        X = X / self.weights_
         if params["with_coslat"]:
-            data = data / self.coslat_weights_
+            X = X / self.coslat_weights_
         if params["with_std"]:
-            data = data * self.std_
+            X = X * self.std_
+        if params["with_center"]:
+            X = X + self.mean_
 
-        data = data + self.mean_
+        return X
 
-        return data
+    def inverse_transform_components(self, X: DataVarBound) -> DataVarBound:
+        return X
 
-    def inverse_transform_components(self, data: DataArray) -> DataArray:
-        return data
-
-    def inverse_transform_scores(self, data: DataArray) -> DataArray:
-        return data
-
-
-class DataSetScaler(DataArrayScaler):
-    def _verify_input(self, data: DataSet, name: str):
-        """Verify that the input data is a Dataset.
-
-        Parameters
-        ----------
-        data : xarray.Dataset
-            Data to be checked.
-
-        """
-        assert_single_dataset(data, name)
-
-    def _compute_sqrt_cos_lat_weights(self, data: DataSet, dim) -> DataArray:
-        return super()._compute_sqrt_cos_lat_weights(data, dim)
-
-    def fit(
-        self,
-        data: DataSet,
-        sample_dims: Hashable | Sequence[Hashable],
-        feature_dims: Hashable | Sequence[Hashable],
-        weights: Optional[DataSet] = None,
-    ) -> Self:
-        return super().fit(data, sample_dims, feature_dims, weights)  # type: ignore
-
-    def transform(self, data: DataSet) -> DataSet:
-        return super().transform(data)  # type: ignore
-
-    def fit_transform(
-        self,
-        data: DataSet,
-        sample_dims: Hashable | Sequence[Hashable],
-        feature_dims: Hashable | Sequence[Hashable],
-        weights: Optional[DataSet] = None,
-    ) -> DataSet:
-        return super().fit_transform(data, sample_dims, feature_dims, weights)  # type: ignore
-
-    def inverse_transform_data(self, data: DataSet) -> DataSet:
-        return super().inverse_transform_data(data)  # type: ignore
-
-    def inverse_transform_components(self, data: DataSet) -> DataSet:
-        return super().inverse_transform_components(data)  # type: ignore
+    def inverse_transform_scores(self, X: DataArray) -> DataArray:
+        return X
 
 
-class DataListScaler(DataArrayScaler):
-    """Scale a list of xr.DataArray along sample dimensions.
+# class DataListScaler(Scaler):
+#     """Scale a list of xr.DataArray along sample dimensions.
 
-    Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
-    (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting),
-    and (iv) multiplying by additional user-defined weights.
+#     Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
+#     (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting),
+#     and (iv) multiplying by additional user-defined weights.
 
-    Parameters
-    ----------
-    with_std : bool, default=True
-        If True, the data is divided by the standard deviation.
-    with_coslat : bool, default=False
-        If True, the data is multiplied by the square root of cosine of latitude weights.
-    with_weights : bool, default=False
-        If True, the data is multiplied by additional user-defined weights.
+#     Parameters
+#     ----------
+#     with_std : bool, default=True
+#         If True, the data is divided by the standard deviation.
+#     with_coslat : bool, default=False
+#         If True, the data is multiplied by the square root of cosine of latitude weights.
+#     with_weights : bool, default=False
+#         If True, the data is multiplied by additional user-defined weights.
 
-    """
+#     """
 
-    def __init__(self, with_std=False, with_coslat=False, with_weights=False):
-        super().__init__(
-            with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-        )
-        self.scalers = []
+#     def __init__(self, with_std=False, with_coslat=False):
+#         super().__init__(with_std=with_std, with_coslat=with_coslat)
+#         self.scalers = []
 
-    def _verify_input(self, data: DataList, name: str):
-        """Verify that the input data is a list of DataArrays.
+#     def _verify_input(self, data, name: str):
+#         """Verify that the input data is a list of DataArrays.
 
-        Parameters
-        ----------
-        data : list of xarray.DataArray
-            Data to be checked.
+#         Parameters
+#         ----------
+#         data : list of xarray.DataArray
+#             Data to be checked.
 
-        """
-        assert_list_dataarrays(data, name)
+#         """
+#         if not isinstance(data, list):
+#             raise TypeError(f"{name} must be a list of xarray DataArrays or Datasets")
+#         if not all(isinstance(da, (xr.DataArray, xr.Dataset)) for da in data):
+#             raise TypeError(f"{name} must be a list of xarray DataArrays or Datasets")
 
-    def fit(
-        self,
-        data: DataList,
-        sample_dims: Dims,
-        feature_dims_list: DimsList,
-        weights: Optional[DataList] = None,
-    ) -> Self:
-        """Fit the scaler to the data.
+#     def fit(
+#         self,
+#         data: List[Data],
+#         sample_dims: Dims,
+#         feature_dims_list: DimsList,
+#         weights: Optional[List[Data] | Data] = None,
+#     ) -> Self:
+#         """Fit the scaler to the data.
 
-        Parameters
-        ----------
-        data : list of xarray.DataArray
-            Data to be scaled.
-        sample_dims : hashable or sequence of hashable
-            Dimensions along which the data is considered to be a sample.
-        feature_dims_list : list of hashable or list of sequence of hashable
-            List of dimensions along which the data is considered to be a feature.
-        weights : list of xarray.DataArray, optional
-            List of weights to be applied to the data. Must have the same dimensions as the data.
+#         Parameters
+#         ----------
+#         data : list of xarray.DataArray
+#             Data to be scaled.
+#         sample_dims : hashable or sequence of hashable
+#             Dimensions along which the data is considered to be a sample.
+#         feature_dims_list : list of hashable or list of sequence of hashable
+#             List of dimensions along which the data is considered to be a feature.
+#         weights : list of xarray.DataArray, optional
+#             List of weights to be applied to the data. Must have the same dimensions as the data.
 
-        """
-        self._verify_input(data, "data")
+#         """
+#         self._verify_input(data, "data")
 
-        # Check input
-        if not isinstance(feature_dims_list, list):
-            err_message = "feature dims must be a list of the feature dimensions of each DataArray, "
-            err_message += 'e.g. [("lon", "lat"), ("lon")]'
-            raise TypeError(err_message)
+#         # Check input
+#         if not isinstance(feature_dims_list, list):
+#             err_message = "feature dims must be a list of the feature dimensions of each DataArray, "
+#             err_message += 'e.g. [("lon", "lat"), ("lon")]'
+#             raise TypeError(err_message)
 
-        sample_dims = convert_to_dim_type(sample_dims)
-        feature_dims = [convert_to_dim_type(fdims) for fdims in feature_dims_list]
+#         # Sample dimensions are the same for all data arrays
+#         # Feature dimensions may be different for each data array
+#         self.dims = {"sample": sample_dims, "feature": feature_dims_list}
 
-        # Sample dimensions are the same for all data arrays
-        # Feature dimensions may be different for each data array
-        self.dims = {"sample": sample_dims, "feature": feature_dims}
+#         # However, for each DataArray a list of feature dimensions must be provided
+#         _check_parameter_number("feature_dims", feature_dims_list, len(data))
 
-        # However, for each DataArray a list of feature dimensions must be provided
-        if len(data) != len(feature_dims):
-            err_message = (
-                "Number of data arrays and feature dimensions must be the same. "
-            )
-            err_message += f"Got {len(data)} data arrays and {len(feature_dims)} feature dimensions"
-            raise ValueError(err_message)
+#         # If no weights are provided, create a list of None
+#         self.weights = process_parameter("weights", weights, None, len(data))
 
-        # If no weights are provided, create a list of None
-        if weights is None:
-            self.weights = [None] * len(data)
-        else:
-            self.weights = weights
+#         params = self.get_params()
 
-        # Check that number of weights is the same as number of data arrays
-        params = self.get_params()
-        if params["with_weights"]:
-            if len(data) != len(self.weights):
-                err_message = "Number of data arrays and weights must be the same. "
-                err_message += (
-                    f"Got {len(data)} data arrays and {len(self.weights)} weights"
-                )
-                raise ValueError(err_message)
+#         for da, wghts, fdims in zip(data, self.weights, feature_dims_list):
+#             # Create Scaler object for each data array
+#             scaler = Scaler(**params)
+#             scaler.fit(da, sample_dims=sample_dims, feature_dims=fdims, weights=wghts)
+#             self.scalers.append(scaler)
 
-        for da, wghts, fdims in zip(data, self.weights, feature_dims):
-            # Create DataArrayScaler object for each data array
-            scaler = DataArrayScaler(**params)
-            scaler.fit(da, sample_dims=sample_dims, feature_dims=fdims, weights=wghts)
-            self.scalers.append(scaler)
+#         return self
 
-        return self
+#     def transform(self, da_list: List[Data]) -> List[Data]:
+#         """Scale the data.
 
-    def transform(self, da_list: DataList) -> DataList:
-        """Scale the data.
+#         Parameters
+#         ----------
+#         da_list : list of xarray.DataArray
+#             Data to be scaled.
 
-        Parameters
-        ----------
-        da_list : list of xarray.DataArray
-            Data to be scaled.
+#         Returns
+#         -------
+#         list of xarray.DataArray
+#             Scaled data.
 
-        Returns
-        -------
-        list of xarray.DataArray
-            Scaled data.
+#         """
+#         self._verify_input(da_list, "da_list")
 
-        """
-        self._verify_input(da_list, "da_list")
+#         da_list_transformed = []
+#         for scaler, da in zip(self.scalers, da_list):
+#             da_list_transformed.append(scaler.transform(da))
+#         return da_list_transformed
 
-        da_list_transformed = []
-        for scaler, da in zip(self.scalers, da_list):
-            da_list_transformed.append(scaler.transform(da))
-        return da_list_transformed
+#     def fit_transform(
+#         self,
+#         data: List[Data],
+#         sample_dims: Dims,
+#         feature_dims_list: DimsList,
+#         weights: Optional[List[Data] | Data] = None,
+#     ) -> List[Data]:
+#         """Fit the scaler to the data and scale it.
 
-    def fit_transform(
-        self,
-        data: DataList,
-        sample_dims: Dims,
-        feature_dims_list: DimsList,
-        weights: Optional[DataList] = None,
-    ) -> DataList:
-        """Fit the scaler to the data and scale it.
+#         Parameters
+#         ----------
+#         data : list of xr.DataArray
+#             Data to be scaled.
+#         sample_dims : hashable or sequence of hashable
+#             Dimensions along which the data is considered to be a sample.
+#         feature_dims_list : list of hashable or list of sequence of hashable
+#             List of dimensions along which the data is considered to be a feature.
+#         weights : list of xr.DataArray, optional
+#             List of weights to be applied to the data. Must have the same dimensions as the data.
 
-        Parameters
-        ----------
-        data : list of xr.DataArray
-            Data to be scaled.
-        sample_dims : hashable or sequence of hashable
-            Dimensions along which the data is considered to be a sample.
-        feature_dims_list : list of hashable or list of sequence of hashable
-            List of dimensions along which the data is considered to be a feature.
-        weights : list of xr.DataArray, optional
-            List of weights to be applied to the data. Must have the same dimensions as the data.
+#         Returns
+#         -------
+#         list of xarray.DataArray
+#             Scaled data.
 
-        Returns
-        -------
-        list of xarray.DataArray
-            Scaled data.
+#         """
+#         self.fit(data, sample_dims, feature_dims_list, weights)
+#         return self.transform(data)
 
-        """
-        self.fit(data, sample_dims, feature_dims_list, weights)
-        return self.transform(data)
+#     def inverse_transform_data(self, da_list: List[Data]) -> List[Data]:
+#         """Unscale the data.
 
-    def inverse_transform_data(self, da_list: DataList) -> DataList:
-        """Unscale the data.
+#         Parameters
+#         ----------
+#         da_list : list of xarray.DataArray
+#             Data to be scaled.
 
-        Parameters
-        ----------
-        da_list : list of xarray.DataArray
-            Data to be scaled.
+#         Returns
+#         -------
+#         list of xarray.DataArray
+#             Scaled data.
 
-        Returns
-        -------
-        list of xarray.DataArray
-            Scaled data.
+#         """
+#         self._verify_input(da_list, "da_list")
 
-        """
-        self._verify_input(da_list, "da_list")
+#         da_list_transformed = []
+#         for scaler, da in zip(self.scalers, da_list):
+#             da_list_transformed.append(scaler.inverse_transform_data(da))
+#         return da_list_transformed
 
-        da_list_transformed = []
-        for scaler, da in zip(self.scalers, da_list):
-            da_list_transformed.append(scaler.inverse_transform_data(da))
-        return da_list_transformed
-
-    def inverse_transform_components(self, da_list: DataList) -> DataList:
-        return da_list
+#     def inverse_transform_components(self, da_list: List[Data]) -> List[Data]:
+#         return da_list

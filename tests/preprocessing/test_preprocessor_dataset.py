@@ -57,30 +57,21 @@ VALID_TEST_CASES = [
         (False, True, False),
         (False, False, True),
         (False, False, False),
-        (True, True, True),
-        (True, True, False),
-        (True, False, True),
-        (True, False, False),
-        (False, True, True),
-        (False, True, False),
-        (False, False, True),
-        (False, False, False),
     ],
 )
-def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_data_array):
+def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_dataset):
     """fit method should not be implemented."""
-    prep = Preprocessor(
-        with_std=with_std, with_coslat=with_coslat, with_weights=with_weights
-    )
+    prep = Preprocessor(with_std=with_std, with_coslat=with_coslat)
 
     weights = None
     if with_weights:
-        weights = mock_data_array.mean("time").copy()
-        weights[:] = 0.5
+        weights = mock_dataset.mean("time").copy()
+        weights = weights.where(weights == True, 0.5)
 
-    data_trans = prep.fit_transform(mock_data_array, weights=weights, dim="time")
+    data_trans = prep.fit_transform(mock_dataset, "time", weights)
 
     assert hasattr(prep, "scaler")
+    assert hasattr(prep, "renamer")
     assert hasattr(prep, "preconverter")
     assert hasattr(prep, "stacker")
     assert hasattr(prep, "postconverter")
@@ -106,9 +97,10 @@ def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_data_a
 )
 def test_fit_transform_same_dim_names(index_policy, nan_policy, dask_policy):
     data = generate_synthetic_dataset(1, 1, 1, index_policy, nan_policy, dask_policy)
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     prep = Preprocessor(sample_name="sample0", feature_name="feature")
-    transformed = prep.fit_transform(data, dim=("sample0",))
+    transformed = prep.fit_transform(data, sample_dims)
     reconstructed = prep.inverse_transform_data(transformed)
 
     data_is_dask_before = data_is_dask(data)
@@ -132,7 +124,7 @@ def test_fit_transform(sample_name, feature_name, data_params):
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     prep = Preprocessor(sample_name=sample_name, feature_name=feature_name)
-    transformed = prep.fit_transform(data, dim=sample_dims)
+    transformed = prep.fit_transform(data, sample_dims)
 
     data_is_dask_before = data_is_dask(data)
     data_is_dask_after = data_is_dask(transformed)
@@ -152,7 +144,7 @@ def test_inverse_transform(sample_name, feature_name, data_params):
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     prep = Preprocessor(sample_name=sample_name, feature_name=feature_name)
-    transformed = prep.fit_transform(data, dim=sample_dims)
+    transformed = prep.fit_transform(data, sample_dims)
     components = transformed.rename({sample_name: "mode"})
     scores = transformed.rename({feature_name: "mode"})
 

@@ -1,11 +1,22 @@
 import warnings
-from typing import Optional, Sequence, Hashable, Dict, Any, Self, List
+from typing import Optional, Sequence, Hashable, Dict, Any, Self, List, TypeVar, Tuple
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+import numpy as np
+import xarray as xr
+
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, DataArray, Dims
+from ..utils.data_types import DataObject, Data, DataArray, DataSet, DataList, Dims
+from ..utils.xarray_utils import (
+    convert_to_dim_type,
+    get_dims,
+    feature_ones_like,
+    convert_to_list,
+    process_parameter,
+    _check_parameter_number,
+)
 from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
@@ -24,8 +35,6 @@ class _BaseModel(ABC):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use weights.
     sample_name: str, default="sample"
         Name of the sample dimension.
     feature_name: str, default="feature"
@@ -40,9 +49,9 @@ class _BaseModel(ABC):
     def __init__(
         self,
         n_modes=10,
+        center=True,
         standardize=False,
         use_coslat=False,
-        use_weights=False,
         sample_name="sample",
         feature_name="feature",
         solver="auto",
@@ -53,15 +62,12 @@ class _BaseModel(ABC):
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
+            "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
-            "use_weights": use_weights,
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
-        self._preprocessor_kwargs = dict(
-            sample_name=sample_name, feature_name=feature_name
-        )
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseModel"}
@@ -76,26 +82,39 @@ class _BaseModel(ABC):
 
         # Initialize the Preprocessor to scale and stack the data
         self.preprocessor = Preprocessor(
+            sample_name=sample_name,
+            feature_name=feature_name,
+            with_center=center,
             with_std=standardize,
             with_coslat=use_coslat,
-            with_weights=use_weights,
-            **self._preprocessor_kwargs
         )
         # Initialize the data container that stores the results
         self.data = DataContainer()
 
+    def _validate_type(self, data) -> None:
+        err_msg = "Invalid input type: {:}. Expected one of the following: DataArray, Dataset or list of these.".format(
+            type(data).__name__
+        )
+        if isinstance(data, (xr.DataArray, xr.Dataset)):
+            pass
+        elif isinstance(data, (list, tuple)):
+            if not all(isinstance(d, (xr.DataArray, xr.Dataset)) for d in data):
+                raise TypeError(err_msg)
+        else:
+            raise TypeError(err_msg)
+
     def fit(
         self,
-        data: DataObject,
+        X: List[Data] | Data,
         dim: Sequence[Hashable] | Hashable,
-        weights: Optional[DataObject] = None,
+        weights: Optional[List[Data] | Data] = None,
     ) -> Self:
         """
         Fit the model to the input data.
 
         Parameters
         ----------
-        data: DataArray | Dataset | List[DataArray]
+        X: DataArray | Dataset | List[DataArray]
             Input data.
         dim: Sequence[Hashable] | Hashable
             Specify the sample dimensions. The remaining dimensions
@@ -104,8 +123,17 @@ class _BaseModel(ABC):
             Weighting factors for the input data.
 
         """
-        # Preprocess the data
-        data2D: DataArray = self.preprocessor.fit_transform(data, dim, weights)
+        # Check for invalid types
+        self._validate_type(X)
+        if weights is not None:
+            self._validate_type(weights)
+
+        self.sample_dims = convert_to_dim_type(dim)
+
+        # Preprocess the data & transform to 2D
+        data2D: DataArray = self.preprocessor.fit_transform(
+            X, self.sample_dims, weights
+        )
 
         return self._fit_algorithm(data2D)
 
@@ -126,7 +154,7 @@ class _BaseModel(ABC):
         """
         raise NotImplementedError
 
-    def transform(self, data: DataObject) -> DataArray:
+    def transform(self, data: List[Data] | Data) -> DataArray:
         """Project data onto the components.
 
         Parameters
@@ -140,6 +168,8 @@ class _BaseModel(ABC):
             Projections of the data onto the components.
 
         """
+        self._validate_type(data)
+
         data2D = self.preprocessor.transform(data)
         data2D = self._transform_algorithm(data2D)
         return self.preprocessor.inverse_transform_scores(data2D)
@@ -163,9 +193,9 @@ class _BaseModel(ABC):
 
     def fit_transform(
         self,
-        data: DataObject,
+        data: List[Data] | Data,
         dim: Sequence[Hashable] | Hashable,
-        weights: Optional[DataObject] = None,
+        weights: Optional[List[Data] | Data] = None,
     ) -> DataArray:
         """Fit the model to the input data and project the data onto the components.
 

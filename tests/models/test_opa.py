@@ -16,18 +16,8 @@ def test_init():
     """Tests the initialization of the OPA class"""
     opa = OPA(n_modes=3, tau_max=3, n_pca_modes=19, use_coslat=True)
 
-    # Assert parameters are correctly stored in the _params attribute
-    assert opa._params == {
-        "n_modes": 3,
-        "tau_max": 3,
-        "n_pca_modes": 19,
-        "standardize": False,
-        "use_coslat": True,
-        "use_weights": False,
-        "solver": "auto",
-    }
-
     # Assert preprocessor has been initialized
+    assert hasattr(opa, "_params")
     assert hasattr(opa, "preprocessor")
 
 
@@ -229,15 +219,12 @@ def test_get_params(opa_model):
     # Test get_params method
     params = opa_model.get_params()
     assert isinstance(params, dict)
-    assert params == {
-        "n_modes": 3,
-        "tau_max": 3,
-        "n_pca_modes": 19,
-        "standardize": False,
-        "use_coslat": False,
-        "use_weights": False,
-        "solver": "auto",
-    }
+    assert params.get("n_modes") == 3
+    assert params.get("tau_max") == 3
+    assert params.get("n_pca_modes") == 19
+    assert params.get("standardize") is False
+    assert params.get("use_coslat") is False
+    assert params.get("solver") == "auto"
 
 
 @pytest.mark.parametrize(

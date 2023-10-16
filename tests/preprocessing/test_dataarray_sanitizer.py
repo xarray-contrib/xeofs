@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import xarray as xr
 
-from xeofs.preprocessing.sanitizer import DataArraySanitizer
+from xeofs.preprocessing.sanitizer import Sanitizer
 from xeofs.utils.data_types import DataArray
 from ..conftest import generate_synthetic_dataarray
 from ..utilities import (
@@ -63,7 +63,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataarray(*data_params)
     data = data.rename({"sample0": sample_name, "feature0": feature_name})
 
-    sanitizer = DataArraySanitizer(sample_name=sample_name, feature_name=feature_name)
+    sanitizer = Sanitizer(sample_name=sample_name, feature_name=feature_name)
     sanitizer.fit(data)
     data_clean = sanitizer.transform(data)
     reconstructed_data = sanitizer.inverse_transform_data(data_clean)
@@ -84,7 +84,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
 def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataarray(*data_params)
 
-    sanitizer = DataArraySanitizer(sample_name=sample_name, feature_name=feature_name)
+    sanitizer = Sanitizer(sample_name=sample_name, feature_name=feature_name)
 
     with pytest.raises(ValueError):
         sanitizer.fit(data)
@@ -99,7 +99,7 @@ def test_fit(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     with pytest.raises(ValueError):
         sanitizer.fit(data)
 
@@ -113,7 +113,7 @@ def test_transform(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     sanitizer.fit(data)
     transformed_data = sanitizer.transform(data)
     transformed_data2 = sanitizer.transform(data)
@@ -138,7 +138,7 @@ def test_transform_invalid(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     sanitizer.fit(data)
     with pytest.raises(ValueError):
         sanitizer.transform(data.isel(feature0=slice(0, 2)))
@@ -153,7 +153,7 @@ def test_fit_transform(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     transformed_data = sanitizer.fit_transform(data)
 
     is_dask_before = data_is_dask(data)
@@ -175,7 +175,7 @@ def test_invserse_transform_data(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     sanitizer.fit(data)
     cleaned_data = sanitizer.transform(data)
     uncleaned_data = sanitizer.inverse_transform_data(cleaned_data)
@@ -201,7 +201,7 @@ def test_invserse_transform_components(synthetic_dataarray):
     data: DataArray = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     sanitizer.fit(data)
 
     stacked_data = sanitizer.transform(data)
@@ -228,7 +228,7 @@ def test_invserse_transform_scores(synthetic_dataarray):
     data: DataArray = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
-    sanitizer = DataArraySanitizer()
+    sanitizer = Sanitizer()
     sanitizer.fit(data)
 
     stacked_data = sanitizer.transform(data)

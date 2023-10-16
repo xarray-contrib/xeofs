@@ -7,17 +7,25 @@ from typing import (
     Hashable,
 )
 
-import xarray as xr
 import dask.array as da
+import xarray as xr
+from xarray.core import dataarray as xr_dataarray
+from xarray.core import dataset as xr_dataset
 
-DataArray: TypeAlias = xr.DataArray
-DataSet: TypeAlias = xr.Dataset
-DataList: TypeAlias = List[xr.DataArray]
+DataArray: TypeAlias = xr_dataarray.DataArray
+DataSet: TypeAlias = xr_dataset.Dataset
+Data: TypeAlias = DataArray | DataSet
+DataVar = TypeVar("DataVar", DataArray, DataSet)
+DataVarBound = TypeVar("DataVarBound", bound=Data)
+
+DataArrayList: TypeAlias = List[DataArray]
+DataSetList: TypeAlias = List[DataSet]
+DataList: TypeAlias = List[Data]
+DataVarList: TypeAlias = List[DataVar]
+
+
 DaskArray: TypeAlias = da.Array  # type: ignore
 DataObject: TypeAlias = DataArray | DataSet | DataList
-DataX2 = TypeVar("DataX2", DataArray, DataSet)
-DataX3 = TypeVar("DataX3", DataArray, DataSet, DataList)
-
 
 Dims: TypeAlias = Sequence[Hashable]
 DimsTuple: TypeAlias = Tuple[Dims, ...]

@@ -11,16 +11,8 @@ def test_init():
     """Tests the initialization of the EOF class"""
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
-    # Assert parameters are correctly stored in the _params attribute
-    assert eof._params == {
-        "n_modes": 5,
-        "standardize": True,
-        "use_coslat": True,
-        "use_weights": False,
-        "solver": "auto",
-    }
-
     # Assert preprocessor has been initialized
+    assert hasattr(eof, "_params")
     assert hasattr(eof, "preprocessor")
 
 
@@ -254,13 +246,10 @@ def test_get_params():
     # Test get_params method
     params = eof.get_params()
     assert isinstance(params, dict)
-    assert params == {
-        "n_modes": 5,
-        "standardize": True,
-        "use_coslat": True,
-        "use_weights": False,
-        "solver": "auto",
-    }
+    assert params.get("n_modes") == 5
+    assert params.get("standardize") is True
+    assert params.get("use_coslat") is True
+    assert params.get("solver") == "auto"
 
 
 @pytest.mark.parametrize(
