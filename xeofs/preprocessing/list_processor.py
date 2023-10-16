@@ -1,12 +1,10 @@
 from typing import List, Self, TypeVar, Generic, Type, Dict, Any
 
-from .transformer import Transformer
-
 from .dimension_renamer import DimensionRenamer
 from .scaler import Scaler
 from .sanitizer import Sanitizer
 from .multi_index_converter import MultiIndexConverter
-from .stacker import DataArrayStacker, DataSetStacker, Stacker
+from .stacker import Stacker
 from ..utils.data_types import (
     Data,
     DataVar,
@@ -23,7 +21,7 @@ T = TypeVar(
 )
 
 
-class GenericListTransformer(Transformer, Generic[T]):
+class GenericListTransformer(Generic[T]):
     """Apply a Transformer to each of the elements of a list.
 
     Parameters
@@ -60,14 +58,14 @@ class GenericListTransformer(Transformer, Generic[T]):
             Keyword arguments for the transformer that should be iterated over.
 
         """
-        self.sample_dims = sample_dims
-        self.feature_dims = feature_dims
-        self.iter_kwargs = iter_kwargs
+        self._sample_dims = sample_dims
+        self._feature_dims = feature_dims
+        self._iter_kwargs = iter_kwargs
 
         for i, x in enumerate(X):
             # Add transformer specific keyword arguments
             # For iterable kwargs, use the i-th element of the iterable
-            kwargs = {k: v[i] for k, v in self.iter_kwargs.items()}
+            kwargs = {k: v[i] for k, v in self._iter_kwargs.items()}
             proc: T = self.transformer_class(**self.init_kwargs)
             proc.fit(x, sample_dims, feature_dims[i], **kwargs)
             self.transformers.append(proc)
