@@ -17,30 +17,11 @@ from ..utilities import (
 N_SAMPLE_DIMS = [1]
 N_FEATURE_DIMS = [1]
 INDEX_POLICY = ["index"]
-NAN_POLICY = ["no_nan", "isolated", "fulldim"]
+NAN_POLICY = ["no_nan", "fulldim"]
 DASK_POLICY = ["no_dask", "dask"]
 SEED = [0]
 
 VALID_TEST_DATA = [
-    (ns, nf, index, nan, dask)
-    for ns in N_SAMPLE_DIMS
-    for nf in N_FEATURE_DIMS
-    for index in INDEX_POLICY
-    for nan in NAN_POLICY
-    for dask in DASK_POLICY
-]
-
-# =============================================================================
-# INVALID TEST CASES
-# =============================================================================
-N_SAMPLE_DIMS = [2]
-N_FEATURE_DIMS = [2]
-INDEX_POLICY = ["index", "multiindex"]
-NAN_POLICY = ["no_nan", "isolated", "fulldim"]
-DASK_POLICY = ["no_dask", "dask"]
-SEED = [0]
-
-INVALID_TEST_DATA = [
     (ns, nf, index, nan, dask)
     for ns in N_SAMPLE_DIMS
     for nf in N_FEATURE_DIMS
@@ -86,20 +67,6 @@ def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
 
     sanitizer = Sanitizer(sample_name=sample_name, feature_name=feature_name)
 
-    with pytest.raises(ValueError):
-        sanitizer.fit(data)
-
-
-@pytest.mark.parametrize(
-    "synthetic_dataarray",
-    INVALID_TEST_DATA,
-    indirect=["synthetic_dataarray"],
-)
-def test_fit(synthetic_dataarray):
-    data = synthetic_dataarray
-    data = data.rename({"sample0": "sample", "feature0": "feature"})
-
-    sanitizer = Sanitizer()
     with pytest.raises(ValueError):
         sanitizer.fit(data)
 

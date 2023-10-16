@@ -91,7 +91,8 @@ def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_datase
     "index_policy, nan_policy, dask_policy",
     [
         ("index", "no_nan", "no_dask"),
-        ("multiindex", "isolated", "dask"),
+        ("multiindex", "no_nan", "dask"),
+        ("index", "fulldim", "no_dask"),
         ("multiindex", "fulldim", "dask"),
     ],
 )

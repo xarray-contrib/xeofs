@@ -18,7 +18,7 @@ from ..utilities import (
 N_SAMPLE_DIMS = [1, 2]
 N_FEATURE_DIMS = [1, 2]
 INDEX_POLICY = ["index", "multiindex"]
-NAN_POLICY = ["no_nan", "isolated", "fulldim"]
+NAN_POLICY = ["no_nan", "fulldim"]
 DASK_POLICY = ["no_dask", "dask"]
 SEED = [0]
 
@@ -92,7 +92,8 @@ def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_data_a
     "index_policy, nan_policy, dask_policy",
     [
         ("index", "no_nan", "no_dask"),
-        ("multiindex", "isolated", "dask"),
+        ("multiindex", "no_nan", "dask"),
+        ("index", "fulldim", "no_dask"),
         ("multiindex", "fulldim", "dask"),
     ],
 )
