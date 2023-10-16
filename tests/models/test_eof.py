@@ -108,6 +108,21 @@ def test_explained_variance_ratio(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
+def test_isolated_nans(dim, mock_data_array_isolated_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    with pytest.raises(ValueError):
+        eof.fit(mock_data_array_isolated_nans, dim)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
 def test_components(dim, mock_data_array):
     """Tests the components method of the EOF class"""
     eof = EOF()
@@ -116,6 +131,50 @@ def test_components(dim, mock_data_array):
     # Test components method
     components = eof.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
+    assert isinstance(components, xr.DataArray), "Components is not a DataArray"
+    assert set(components.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components does not have the right feature dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_components_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_full_dimensional_nans, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = tuple(set(mock_data_array_full_dimensional_nans.dims) - set(dim))
+    assert isinstance(components, xr.DataArray), "Components is not a DataArray"
+    assert set(components.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components does not have the right feature dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_components_boundary_nans(dim, mock_data_array_boundary_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_boundary_nans, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = tuple(set(mock_data_array_boundary_nans.dims) - set(dim))
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
     assert set(components.dims) == set(
         ("mode",) + feature_dims
@@ -188,6 +247,48 @@ def test_scores(dim, mock_data_array):
     """Tests the scores method of the EOF class"""
     eof = EOF()
     eof.fit(mock_data_array, dim)
+
+    # Test scores method
+    scores = eof.scores()
+    assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
+    assert set(scores.dims) == set(
+        (dim + ("mode",))
+    ), "Scores does not have the right dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_scores_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
+    """Tests the scores method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_full_dimensional_nans, dim)
+
+    # Test scores method
+    scores = eof.scores()
+    assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
+    assert set(scores.dims) == set(
+        (dim + ("mode",))
+    ), "Scores does not have the right dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_scores_boundary_nans(dim, mock_data_array_boundary_nans):
+    """Tests the scores method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_boundary_nans, dim)
 
     # Test scores method
     scores = eof.scores()
