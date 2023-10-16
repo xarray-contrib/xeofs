@@ -80,3 +80,16 @@ def convert_to_dim_type(arg: Any) -> Dims:
         return tuple(arg)
     else:
         return (arg,)
+
+
+def validate_input_type(X) -> None:
+    err_msg = "Invalid input type: {:}. Expected one of the following: DataArray, Dataset or list of these.".format(
+        type(X).__name__
+    )
+    if isinstance(X, (xr.DataArray, xr.Dataset)):
+        pass
+    elif isinstance(X, (list, tuple)):
+        if not all(isinstance(x, (xr.DataArray, xr.Dataset)) for x in X):
+            raise TypeError(err_msg)
+    else:
+        raise TypeError(err_msg)

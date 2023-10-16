@@ -6,6 +6,8 @@ from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
 from ..utils.data_types import DataObject, DataArray
+from ..utils.xarray_utils import convert_to_dim_type
+from ..utils.sanity_checks import validate_input_type
 from .._version import __version__
 
 
@@ -117,10 +119,18 @@ class _BaseCrossModel(ABC):
             Weights to be applied to the right input data.
 
         """
+        validate_input_type(data1)
+        validate_input_type(data2)
+        if weights1 is not None:
+            validate_input_type(weights1)
+        if weights2 is not None:
+            validate_input_type(weights2)
+
+        self.sample_dims = convert_to_dim_type(dim)
         # Preprocess data1
-        data1 = self.preprocessor1.fit_transform(data1, dim, weights1)
+        data1 = self.preprocessor1.fit_transform(data1, self.sample_dims, weights1)
         # Preprocess data2
-        data2 = self.preprocessor2.fit_transform(data2, dim, weights2)
+        data2 = self.preprocessor2.fit_transform(data2, self.sample_dims, weights2)
 
         return self._fit_algorithm(data1, data2)
 
@@ -136,9 +146,11 @@ class _BaseCrossModel(ABC):
             raise ValueError("Either data1 or data2 must be provided.")
 
         if data1 is not None:
+            validate_input_type(data1)
             # Preprocess data1
             data1 = self.preprocessor1.transform(data1)
         if data2 is not None:
+            validate_input_type(data2)
             # Preprocess data2
             data2 = self.preprocessor2.transform(data2)
 

@@ -9,6 +9,7 @@ import xarray as xr
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
 from ..utils.data_types import DataObject, Data, DataArray, DataSet, DataList, Dims
+from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
     convert_to_dim_type,
     get_dims,
@@ -91,18 +92,6 @@ class _BaseModel(ABC):
         # Initialize the data container that stores the results
         self.data = DataContainer()
 
-    def _validate_type(self, data) -> None:
-        err_msg = "Invalid input type: {:}. Expected one of the following: DataArray, Dataset or list of these.".format(
-            type(data).__name__
-        )
-        if isinstance(data, (xr.DataArray, xr.Dataset)):
-            pass
-        elif isinstance(data, (list, tuple)):
-            if not all(isinstance(d, (xr.DataArray, xr.Dataset)) for d in data):
-                raise TypeError(err_msg)
-        else:
-            raise TypeError(err_msg)
-
     def fit(
         self,
         X: List[Data] | Data,
@@ -124,9 +113,9 @@ class _BaseModel(ABC):
 
         """
         # Check for invalid types
-        self._validate_type(X)
+        validate_input_type(X)
         if weights is not None:
-            self._validate_type(weights)
+            validate_input_type(weights)
 
         self.sample_dims = convert_to_dim_type(dim)
 
@@ -168,7 +157,7 @@ class _BaseModel(ABC):
             Projections of the data onto the components.
 
         """
-        self._validate_type(data)
+        validate_input_type(data)
 
         data2D = self.preprocessor.transform(data)
         data2D = self._transform_algorithm(data2D)
