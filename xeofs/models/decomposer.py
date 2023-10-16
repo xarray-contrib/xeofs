@@ -65,35 +65,24 @@ class Decomposer:
 
         is_small_data = max(n_coords1, n_coords2) < 500
 
-        if self.solver == "auto":
-            use_exact = (
-                True if is_small_data and self.n_modes > int(0.8 * rank) else False
-            )
-        elif self.solver == "full":
-            use_exact = True
-        elif self.solver == "randomized":
-            use_exact = False
-        else:
-            raise ValueError(
-                f"Unrecognized solver '{self.solver}'. "
-                "Valid options are 'auto', 'full', and 'randomized'."
-            )
+        match self.solver:
+            case "auto":
+                use_exact = (
+                    True if is_small_data and self.n_modes > int(0.8 * rank) else False
+                )
+            case "full":
+                use_exact = True
+            case "randomized":
+                use_exact = False
+            case _:
+                raise ValueError(
+                    f"Unrecognized solver '{self.solver}'. "
+                    "Valid options are 'auto', 'full', and 'randomized'."
+                )
 
         # Use exact SVD for small data sets
         if use_exact:
-            U, s, VT = xr.apply_ufunc(
-                np.linalg.svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[dims],
-                output_core_dims=[
-                    [dims[0], "mode"],
-                    ["mode"],
-                    ["mode", dims[1]],
-                ],
-                dask="allowed",
-                vectorize=False,
-            )
+            U, s, VT = self._svd(X, dims, np.linalg.svd, self.solver_kwargs)
             U = U[:, : self.n_modes]
             s = s[: self.n_modes]
             VT = VT[: self.n_modes, :]
@@ -101,39 +90,13 @@ class Decomposer:
         # Use randomized SVD for large, real-valued data sets
         elif (not use_complex) and (not use_dask):
             self.solver_kwargs.update({"n_components": self.n_modes})
-
-            U, s, VT = xr.apply_ufunc(
-                randomized_svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[dims],
-                output_core_dims=[
-                    [dims[0], "mode"],
-                    ["mode"],
-                    ["mode", dims[1]],
-                ],
-            )
+            U, s, VT = self._svd(X, dims, randomized_svd, self.solver_kwargs)
 
         # Use scipy sparse SVD for large, complex-valued data sets
         elif use_complex and (not use_dask):
             # Scipy sparse version
-            self.solver_kwargs.update(
-                {
-                    "k": self.n_modes,
-                    "solver": "lobpcg",
-                }
-            )
-            U, s, VT = xr.apply_ufunc(
-                complex_svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[dims],
-                output_core_dims=[
-                    [dims[0], "mode"],
-                    ["mode"],
-                    ["mode", dims[1]],
-                ],
-            )
+            self.solver_kwargs.update({"k": self.n_modes, "solver": "lobpcg"})
+            U, s, VT = self._svd(X, dims, complex_svd, self.solver_kwargs)
             idx_sort = np.argsort(s)[::-1]
             U = U[:, idx_sort]
             s = s[idx_sort]
@@ -142,18 +105,7 @@ class Decomposer:
         # Use dask SVD for large, real-valued, delayed data sets
         elif (not use_complex) and use_dask:
             self.solver_kwargs.update({"k": self.n_modes})
-            U, s, VT = xr.apply_ufunc(
-                dask_svd,
-                X,
-                kwargs=self.solver_kwargs,
-                input_core_dims=[dims],
-                output_core_dims=[
-                    [dims[0], "mode"],
-                    ["mode"],
-                    ["mode", dims[1]],
-                ],
-                dask="allowed",
-            )
+            U, s, VT = self._svd(X, dims, dask_svd, self.solver_kwargs)
         else:
             err_msg = (
                 "Complex data together with dask is currently not implemented. See dask issue 7639 "
@@ -184,3 +136,47 @@ class Decomposer:
         self.U_ = U
         self.s_ = s
         self.V_ = VT.conj().transpose(dims[1], "mode")
+
+    def _svd(self, X, dims, func, kwargs):
+        """Performs SVD on the data
+
+        Parameters
+        ----------
+        X : DataArray
+            A 2-dimensional data object to be decomposed.
+        dims : tuple of str
+            Dimensions of the data object.
+        func : Callable
+            Method to perform SVD.
+        kwargs : dict
+            Additional keyword arguments passed to the SVD solver.
+
+        Returns
+        -------
+        U : DataArray
+            Left singular vectors.
+        s : DataArray
+            Singular values.
+        VT : DataArray
+            Right singular vectors.
+        """
+        try:
+            U, s, VT = xr.apply_ufunc(
+                func,
+                X,
+                kwargs=kwargs,
+                input_core_dims=[dims],
+                output_core_dims=[
+                    [dims[0], "mode"],
+                    ["mode"],
+                    ["mode", dims[1]],
+                ],
+                dask="allowed",
+            )
+            return U, s, VT
+        except ValueError:
+            raise ValueError(
+                "SVD failed. This may be due to isolated NaN values in the data. Please consider the following steps:\n"
+                "1. Check for and remove any isolated NaNs in your dataset.\n"
+                "2. If the error persists, please raise an issue at https://github.com/nicrie/xeofs/issues."
+            )
