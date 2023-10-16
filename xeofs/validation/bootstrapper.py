@@ -56,6 +56,8 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
 
         self.model = model
         self.preprocessor = model.preprocessor
+        sample_name = model.sample_name
+        feature_name = model.feature_name
 
         input_data = model.data["input_data"]
         n_samples = input_data.sample.size
@@ -75,7 +77,11 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         for i in trange(n_bootstraps):
             # Sample with replacement
             idx_rnd = rng.choice(n_samples, n_samples, replace=True)
-            bst_data = input_data.isel(sample=idx_rnd)
+            bst_data = input_data.isel({sample_name: idx_rnd})
+            # We need to assign the sample coordinates of the real data
+            # otherwise the transform() method will try to align the sample coordinates
+            # with the of the bootstrap data
+            bst_data = bst_data.assign_coords({sample_name: input_data[sample_name]})
             # Perform EOF analysis with the subsampled data
             # No scaling because we use the pre-scaled data from the model
             bst_model = EOF(n_modes=n_modes, standardize=False, use_coslat=False)
