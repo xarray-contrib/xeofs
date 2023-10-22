@@ -381,7 +381,9 @@ def test_transform(dim, mock_data_array):
     assert isinstance(projections, xr.DataArray), "Projection is not a DataArray"
 
     # Check that the projection has the right name
-    assert projections.name == "scores", "Projection has wrong name"
+    assert projections.name == "scores", "Projection has wrong name: {}".format(
+        projections.name
+    )
 
     # Check that the projection's data is the same as the scores
     np.testing.assert_allclose(

@@ -71,7 +71,8 @@ class EOF(_BaseModel):
 
         singular_values = decomposer.s_
         components = decomposer.V_
-        scores = decomposer.U_
+        scores = decomposer.U_ * decomposer.s_
+        scores.name = "scores"
 
         # Compute the explained variance per mode
         n_samples = data.coords[self.sample_name].size
@@ -82,6 +83,7 @@ class EOF(_BaseModel):
         self.data.add(data, "input_data", allow_compute=False)
         self.data.add(components, "components")
         self.data.add(scores, "scores")
+        self.data.add(singular_values, "norms")
         self.data.add(exp_var, "explained_variance")
         self.data.add(total_variance, "total_variance")
 
@@ -92,10 +94,9 @@ class EOF(_BaseModel):
         feature_name = self.preprocessor.feature_name
 
         components = self.data["components"]
-        singular_values = self.singular_values()
 
         # Project the data
-        projections = xr.dot(data, components, dims=feature_name) / singular_values
+        projections = xr.dot(data, components, dims=feature_name)
         projections.name = "scores"
 
         return projections
@@ -119,9 +120,8 @@ class EOF(_BaseModel):
 
         """
         # Reconstruct the data
-        svals = self.singular_values().sel(mode=mode)
         comps = self.data["components"].sel(mode=mode)
-        scores = self.data["scores"].sel(mode=mode) * svals
+        scores = self.data["scores"].sel(mode=mode)
         reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = "reconstructed_data"
 
@@ -142,15 +142,19 @@ class EOF(_BaseModel):
             Components of the fitted model.
 
         """
-        components = self.data["components"]
-        return self.preprocessor.inverse_transform_components(components)
+        return super().components()
 
-    def scores(self) -> DataArray:
+    def scores(self, normalized=True) -> DataArray:
         """Return the (PC) scores.
 
         The scores in EOF anaylsis are the projection of the data matrix onto the
         eigenvectors of the covariance matrix (or correlation) matrix.
         Other names include the principal component (PC) scores or just PCs.
+
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the scores by the L2 norm (singular values).
 
         Returns
         -------
@@ -158,8 +162,7 @@ class EOF(_BaseModel):
             Scores of the fitted model.
 
         """
-        scores = self.data["scores"]
-        return self.preprocessor.inverse_transform_scores(scores)
+        return super().scores(normalized=normalized)
 
     def singular_values(self) -> DataArray:
         """Return the singular values of the Singular Value Decomposition.
@@ -170,12 +173,7 @@ class EOF(_BaseModel):
             Singular values obtained from the SVD.
 
         """
-        n_samples = self.data["input_data"].coords[self.sample_name].size
-        exp_var = self.explained_variance()
-        svals = (exp_var * (n_samples - 1)) ** 0.5
-        svals.attrs.update(exp_var.attrs)
-        svals.name = "singular_values"
-        return svals
+        return self.data["norms"]
 
     def explained_variance(self) -> DataArray:
         """Return explained variance.
@@ -296,7 +294,7 @@ class ComplexEOF(EOF):
 
         singular_values = decomposer.s_
         components = decomposer.V_
-        scores = decomposer.U_
+        scores = decomposer.U_ * decomposer.s_
 
         # Compute the explained variance per mode
         n_samples = data.coords[self.sample_name].size
@@ -307,6 +305,7 @@ class ComplexEOF(EOF):
         self.data.add(data, "input_data", allow_compute=False)
         self.data.add(components, "components")
         self.data.add(scores, "scores")
+        self.data.add(singular_values, "norms")
         self.data.add(exp_var, "explained_variance")
         self.data.add(total_variance, "total_variance")
 
@@ -360,7 +359,7 @@ class ComplexEOF(EOF):
         comp_phase.name = "components_phase"
         return self.preprocessor.inverse_transform_components(comp_phase)
 
-    def scores_amplitude(self) -> DataArray:
+    def scores_amplitude(self, normalized=True) -> DataArray:
         """Return the amplitude of the (PC) scores.
 
         The amplitude of the scores are defined as
@@ -371,13 +370,22 @@ class ComplexEOF(EOF):
         where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
         :math:`|\\cdot|` denotes the absolute value.
 
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the scores by the singular values.
+
         Returns
         -------
         scores_amplitude: DataArray | Dataset | List[DataArray]
             Amplitude of the scores of the fitted model.
 
         """
-        amplitudes = abs(self.data["scores"])
+        scores = self.data["scores"].copy()
+        if normalized:
+            scores = scores / self.data["norms"]
+
+        amplitudes = abs(scores)
         amplitudes.name = "scores_amplitude"
         return self.preprocessor.inverse_transform_scores(amplitudes)
 

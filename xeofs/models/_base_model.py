@@ -23,6 +23,8 @@ from .._version import __version__
 # Ignore warnings from numpy casting with additional coordinates
 warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
 
+xr.set_options(keep_attrs=True)
+
 
 class _BaseModel(ABC):
     """
@@ -144,13 +146,15 @@ class _BaseModel(ABC):
         """
         raise NotImplementedError
 
-    def transform(self, data: List[Data] | Data) -> DataArray:
+    def transform(self, data: List[Data] | Data, normalized=True) -> DataArray:
         """Project data onto the components.
 
         Parameters
         ----------
-        data: DataObject
+        data: DataArray | Dataset | List[DataArray]
             Data to be transformed.
+        normalized: bool, default=True
+            Whether to normalize the scores by the L2 norm.
 
         Returns
         -------
@@ -162,6 +166,9 @@ class _BaseModel(ABC):
 
         data2D = self.preprocessor.transform(data)
         data2D = self._transform_algorithm(data2D)
+        if normalized:
+            data2D = data2D / self.data["norms"]
+            data2D.name = "scores"
         return self.preprocessor.inverse_transform_scores(data2D)
 
     @abstractmethod
@@ -186,6 +193,7 @@ class _BaseModel(ABC):
         data: List[Data] | Data,
         dim: Sequence[Hashable] | Hashable,
         weights: Optional[List[Data] | Data] = None,
+        **kwargs
     ) -> DataArray:
         """Fit the model to the input data and project the data onto the components.
 
@@ -198,6 +206,8 @@ class _BaseModel(ABC):
             will be treated as feature dimensions.
         weights: Optional[DataObject]
             Weighting factors for the input data.
+        **kwargs
+            Additional keyword arguments to pass to the transform method.
 
         Returns
         -------
@@ -205,7 +215,7 @@ class _BaseModel(ABC):
             Projections of the data onto the components.
 
         """
-        return self.fit(data, dim, weights).transform(data)
+        return self.fit(data, dim, weights).transform(data, **kwargs)
 
     def inverse_transform(self, mode) -> DataObject:
         """Reconstruct the original data from transformed data.
@@ -254,9 +264,20 @@ class _BaseModel(ABC):
         components = self.data["components"]
         return self.preprocessor.inverse_transform_components(components)
 
-    def scores(self) -> DataArray:
-        """Get the scores."""
-        scores = self.data["scores"]
+    def scores(self, normalized=True) -> DataArray:
+        """Get the scores.
+
+        Parameters
+        ----------
+        normalized: bool, default=True
+            Whether to normalize the scores by the L2 norm.
+        """
+        scores = self.data["scores"].copy()
+        if normalized:
+            attrs = scores.attrs.copy()
+            scores = scores / self.data["norms"]
+            scores.attrs.update(attrs)
+            scores.name = "scores"
         return self.preprocessor.inverse_transform_scores(scores)
 
     def compute(self, verbose: bool = False):

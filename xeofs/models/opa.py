@@ -88,11 +88,10 @@ class OPA(_BaseModel):
         # Perform PCA as a pre-processing step
         pca = EOF(n_modes=self._params["n_pca_modes"], use_coslat=False)
         pca.fit(data, dim=sample_name)
-        svals = pca.singular_values()
-        expvar = pca.data["explained_variance"]
-        comps = pca.data["components"] * svals / np.sqrt(expvar)
+        n_samples = data.coords[sample_name].size
+        comps = pca.data["components"] * np.sqrt(n_samples - 1)
         # -> comps (feature x mode)
-        scores = pca.data["scores"] * np.sqrt(expvar)
+        scores = pca.data["scores"] / np.sqrt(n_samples - 1)
         # -> scores (sample x mode)
 
         # Compute the covariance matrix with zero time lag
@@ -183,11 +182,22 @@ class OPA(_BaseModel):
         P = P.rename({"mode2": "mode"})  # -> (sample x mode)
         scores = scores.rename({"mode": feature_name})  # -> (sample x feature)
 
+        # Compute the norms of the scores
+        norms = xr.apply_ufunc(
+            np.linalg.norm,
+            P,
+            input_core_dims=[["sample"]],
+            vectorize=False,
+            dask="allowed",
+            kwargs={"axis": -1},
+        )
+
         # Store the results
         # NOTE: not sure if "scores" should be taken as input data here, "data" may be more correct -> to be verified
         self.data.add(name="input_data", data=scores, allow_compute=False)
         self.data.add(name="components", data=W, allow_compute=True)
         self.data.add(name="scores", data=P, allow_compute=True)
+        self.data.add(name="norms", data=norms, allow_compute=True)
         self.data.add(name="filter_patterns", data=V, allow_compute=True)
         self.data.add(name="decorrelation_time", data=lbda, allow_compute=True)
 

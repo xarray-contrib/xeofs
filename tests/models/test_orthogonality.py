@@ -41,7 +41,7 @@ def test_eof_scores(dim, use_coslat, mock_data_array):
     """Scores are orthogonal"""
     model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    U = model.data["scores"].values
+    U = model.data["scores"].values / model.data["norms"].values
     assert np.allclose(
         U.T @ U, np.eye(U.shape[1]), atol=1e-5
     ), "Scores are not orthogonal"
@@ -78,7 +78,7 @@ def test_ceof_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    U = model.data["scores"].values
+    U = model.data["scores"].values / model.data["norms"].values
     assert np.allclose(
         U.conj().T @ U, np.eye(U.shape[1]), atol=1e-5
     ), "Scores are not unitary"
@@ -128,7 +128,7 @@ def test_reof_scores(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    U = rot.data["scores"].values
+    U = rot.data["scores"].values / rot.data["norms"].values
     K = U.conj().T @ U
     if power == 1:
         # Varimax rotation does guarantee orthogonality
@@ -183,7 +183,7 @@ def test_creof_scores(dim, use_coslat, power, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     rot = ComplexEOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    U = rot.data["scores"].values
+    U = rot.data["scores"].values / rot.data["norms"].values
     K = U.conj().T @ U
     if power == 1:
         # Varimax rotation does guarantee unitarity

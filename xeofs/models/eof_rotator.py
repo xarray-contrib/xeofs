@@ -134,8 +134,16 @@ class EOFRotator(EOF):
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
 
-        # Rotate scores
+        # Compute "pseudo" norms
+        n_samples = model.data["input_data"].coords[self.sample_name].size
+        norms = (expvar * (n_samples - 1)) ** 0.5
+        norms.name = "singular_values"
+
+        # Get unrotated, normalized scores
+        svals = model.data["norms"].sel(mode=slice(1, n_modes))
         scores = model.data["scores"].sel(mode=slice(1, n_modes))
+        scores = scores / svals
+        # Rotate scores
         RinvT = self._compute_rot_mat_inv_trans(
             rot_matrix, input_dims=("mode_m", "mode_n")
         )
@@ -147,7 +155,10 @@ class EOFRotator(EOF):
         # Reorder according to variance
         scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
 
-        # Ensure consitent signs for deterministic output
+        # Scale scores by "pseudo" norms
+        scores = scores * norms
+
+        # Ensure consistent signs for deterministic output
         idx_max_value = abs(rot_loadings).argmax(self.feature_name).compute()
         modes_sign = xr.apply_ufunc(
             np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
@@ -163,6 +174,7 @@ class EOFRotator(EOF):
         self.data.add(model.data["input_data"], "input_data", allow_compute=False)
         self.data.add(rot_components, "components")
         self.data.add(scores, "scores")
+        self.data.add(norms, "norms")
         self.data.add(expvar, "explained_variance")
         self.data.add(model.data["total_variance"], "total_variance")
         self.data.add(idx_sort, "idx_modes_sorted")
@@ -178,10 +190,11 @@ class EOFRotator(EOF):
         n_modes = self._params["n_modes"]
 
         svals = self.model.singular_values().sel(mode=slice(1, self._params["n_modes"]))
+        pseudo_norms = self.data["norms"]
         # Select the (non-rotated) singular vectors of the first dataset
         components = self.model.data["components"].sel(mode=slice(1, n_modes))
 
-        # Compute non-rotated scores by project the data onto non-rotated components
+        # Compute non-rotated scores by projecting the data onto non-rotated components
         projections = xr.dot(data, components) / svals
         projections.name = "scores"
 
@@ -196,6 +209,9 @@ class EOFRotator(EOF):
         projections = projections.isel(
             mode=self.data["idx_modes_sorted"].values
         ).assign_coords(mode=projections.mode)
+
+        # Scale scores by "pseudo" norms
+        projections = projections * pseudo_norms
 
         # Adapt the sign of the scores
         projections = projections * self.data["modes_sign"]

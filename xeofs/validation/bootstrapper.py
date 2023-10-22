@@ -79,8 +79,9 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             idx_rnd = rng.choice(n_samples, n_samples, replace=True)
             bst_data = input_data.isel({sample_name: idx_rnd})
             # We need to assign the sample coordinates of the real data
-            # otherwise the transform() method will try to align the sample coordinates
-            # with the of the bootstrap data
+            # otherwise the transform() method will raise an error as it
+            # tries to align the sample coordinates
+            # with the coordinates of the bootstrapped (permutated) data
             bst_data = bst_data.assign_coords({sample_name: input_data[sample_name]})
             # Perform EOF analysis with the subsampled data
             # No scaling because we use the pre-scaled data from the model
@@ -127,6 +128,7 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         )
         self.data.add(name="components", data=bst_components)
         self.data.add(name="scores", data=bst_scores)
+        self.data.add(name="norms", data=model.data["norms"])
         self.data.add(name="explained_variance", data=bst_expvar)
         self.data.add(name="total_variance", data=bst_total_variance)
 
