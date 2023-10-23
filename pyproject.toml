@@ -22,15 +22,11 @@ statsmodels = ">=0.14.0"
 netCDF4 = "^1.5.7"
 numba = "^0.57"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 flake8 = "^4.0.1"
 pytest = "^7.0.1"
 coverage = "^6.3.1"
-
-
-[tool.poetry.group.dev.dependencies]
-black = "~23.7.0"
-cca-zoo = "^2.3.11"
+black = "~23.7.0" 
 
 [tool.poetry.group.docs.dependencies]
 rpy2 = {version = ">=3.5", optional = true}
