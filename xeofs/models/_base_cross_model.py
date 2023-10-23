@@ -51,11 +51,12 @@ class _BaseCrossModel(ABC):
         sample_name="sample",
         feature_name="feature",
         solver="auto",
+        random_state=None,
         solver_kwargs={},
     ):
+        self.n_modes = n_modes
         self.sample_name = sample_name
         self.feature_name = feature_name
-        self._compute = compute
 
         # Define model parameters
         self._params = {
@@ -64,9 +65,17 @@ class _BaseCrossModel(ABC):
             "standardize": standardize,
             "use_coslat": use_coslat,
             "n_pca_modes": n_pca_modes,
+            "compute": compute,
+            "sample_name": sample_name,
+            "feature_name": feature_name,
             "solver": solver,
+            "random_state": random_state,
         }
+
         self._solver_kwargs = solver_kwargs
+        self._solver_kwargs.update(
+            {"solver": solver, "random_state": random_state, "compute": compute}
+        )
         self._preprocessor_kwargs = {
             "sample_name": sample_name,
             "feature_name": feature_name,
@@ -77,7 +86,6 @@ class _BaseCrossModel(ABC):
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseCrossModel"}
-        self.attrs.update(self._params)
         self.attrs.update(
             {
                 "software": "xeofs",
@@ -85,6 +93,7 @@ class _BaseCrossModel(ABC):
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
+        self.attrs.update(self._params)
 
         # Initialize preprocessors to scale and stack left (1) and right (2) data
         self.preprocessor1 = Preprocessor(**self._preprocessor_kwargs)
@@ -95,10 +104,14 @@ class _BaseCrossModel(ABC):
 
         # Initialize PCA objects
         self.pca1 = (
-            EOF(n_modes=n_pca_modes, compute=self._compute) if n_pca_modes else None
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            if n_pca_modes
+            else None
         )
         self.pca2 = (
-            EOF(n_modes=n_pca_modes, compute=self._compute) if n_pca_modes else None
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            if n_pca_modes
+            else None
         )
 
     def fit(

@@ -64,26 +64,33 @@ class _BaseModel(ABC):
         sample_name="sample",
         feature_name="feature",
         compute=True,
+        random_state=None,
         solver="auto",
         solver_kwargs={},
     ):
         self.n_modes = n_modes
         self.sample_name = sample_name
         self.feature_name = feature_name
-        self._compute = compute
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
             "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
+            "sample_name": sample_name,
+            "feature_name": feature_name,
+            "random_state": random_state,
+            "compute": compute,
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
+        self._solver_kwargs.update(
+            {"solver": solver, "random_state": random_state, "compute": compute}
+        )
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseModel"}
-        self.attrs.update(self._params)
         self.attrs.update(
             {
                 "software": "xeofs",
@@ -91,6 +98,7 @@ class _BaseModel(ABC):
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
+        self.attrs.update(self._params)
 
         # Initialize the Preprocessor to scale and stack the data
         self.preprocessor = Preprocessor(

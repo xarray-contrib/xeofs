@@ -38,7 +38,7 @@ def test_complex_dask_data_array(mock_complex_data_array):
 
 def test_init(decomposer):
     assert decomposer.n_modes == 2
-    assert decomposer.solver_kwargs["random_state"] == 42
+    assert decomposer.random_state == 42
 
 
 def test_fit_full(mock_data_array):
@@ -146,3 +146,34 @@ def test_fit_complex(mock_complex_data_array):
     # Check that U and V are complex
     assert np.iscomplexobj(decomposer.U_.data)
     assert np.iscomplexobj(decomposer.V_.data)
+
+
+@pytest.mark.parametrize(
+    "data",
+    ["real", "complex", "dask_real"],
+)
+def test_random_state(
+    data, mock_data_array, mock_complex_data_array, mock_dask_data_array
+):
+    match data:
+        case "real":
+            X = mock_data_array
+        case "complex":
+            X = mock_complex_data_array
+        case "dask_real":
+            X = mock_dask_data_array
+        case _:
+            raise ValueError(f"Unrecognized data type '{data}'.")
+
+    decomposer = Decomposer(
+        n_modes=2, solver="randomized", random_state=42, compute=True
+    )
+    decomposer.fit(X)
+    U1 = decomposer.U_.data
+
+    # Refit
+    decomposer.fit(X)
+    U2 = decomposer.U_.data
+
+    # Check that the results are the same
+    assert np.alltrue(U1 == U2)

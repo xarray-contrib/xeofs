@@ -57,13 +57,13 @@ class EOFRotator(EOF):
         rtol: float = 1e-8,
         compute: bool = True,
     ):
-        self._compute = compute
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
             "power": power,
             "max_iter": max_iter,
             "rtol": rtol,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -112,7 +112,7 @@ class EOFRotator(EOF):
         rot_loadings, rot_matrix, phi_matrix = promax(
             loadings,
             feature_dim=self.feature_name,
-            compute=self._compute,
+            compute=self._params["compute"],
             **promax_kwargs
         )
 

@@ -54,6 +54,7 @@ class EOF(_BaseModel):
         sample_name="sample",
         feature_name="feature",
         compute: bool = True,
+        random_state=None,
         solver="auto",
         solver_kwargs={},
         **kwargs,
@@ -66,6 +67,7 @@ class EOF(_BaseModel):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
+            random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
             **kwargs,
@@ -82,12 +84,7 @@ class EOF(_BaseModel):
         # Decompose the data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(
-            n_modes=n_modes,
-            solver=self._params["solver"],
-            compute=self._compute,
-            **self._solver_kwargs,
-        )
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
         decomposer.fit(data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
@@ -322,12 +319,7 @@ class ComplexEOF(EOF):
         # Decompose the complex data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(
-            n_modes=n_modes,
-            solver=self._params["solver"],
-            compute=self._compute,
-            **self._solver_kwargs,
-        )
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
         decomposer.fit(data)
 
         singular_values = decomposer.s_

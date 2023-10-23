@@ -42,6 +42,8 @@ class MCA(_BaseCrossModel):
         Name of the new feature dimension.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
+    random_state: int, default=None
+        Seed for the random number generator.
     solver_kwargs: dict, default={}
         Additional keyword arguments passed to the SVD solver.
 
@@ -74,6 +76,7 @@ class MCA(_BaseCrossModel):
         sample_name="sample",
         feature_name="feature",
         solver="auto",
+        random_state=None,
         solver_kwargs={},
     ):
         super().__init__(
@@ -86,6 +89,7 @@ class MCA(_BaseCrossModel):
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
+            random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "MCA"})
@@ -113,12 +117,7 @@ class MCA(_BaseCrossModel):
         feature_name = self.feature_name
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(
-            n_modes=self._params["n_modes"],
-            solver=self._params["solver"],
-            compute=self._compute,
-            **self._solver_kwargs,
-        )
+        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
@@ -596,6 +595,8 @@ class ComplexMCA(MCA):
         Name of the new feature dimension.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
+    random_state: int, optional
+        Random state for randomized SVD solver.
     solver_kwargs: dict, default={}
         Additional keyword arguments passed to the SVD solver.
 
@@ -634,6 +635,7 @@ class ComplexMCA(MCA):
         sample_name="sample",
         feature_name="feature",
         solver="auto",
+        random_state=None,
         solver_kwargs={},
     ):
         super().__init__(
@@ -646,6 +648,7 @@ class ComplexMCA(MCA):
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
+            random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "Complex MCA"})
@@ -662,12 +665,7 @@ class ComplexMCA(MCA):
         }
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(
-            n_modes=self._params["n_modes"],
-            solver=self._params["solver"],
-            compute=self._compute,
-            **self._solver_kwargs,
-        )
+        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):

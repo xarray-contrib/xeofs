@@ -6,6 +6,7 @@ from numpy.linalg import svd
 from sklearn.utils.extmath import randomized_svd
 from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
+from typing import Optional
 
 
 class Decomposer:
@@ -29,15 +30,26 @@ class Decomposer:
         than 80% of the smallest dimension of the data, then the more efficient
         `randomized` method is enabled. Otherwise the exact full SVD is computed
         and optionally truncated afterwards.
+    random_state : Optional[int], default=None
+        Seed for the random number generator.
     **kwargs
         Additional keyword arguments passed to the SVD solver.
     """
 
-    def __init__(self, n_modes, flip_signs=True, compute=True, solver="auto", **kwargs):
+    def __init__(
+        self,
+        n_modes: int,
+        flip_signs: bool = True,
+        compute: bool = True,
+        solver: str = "auto",
+        random_state: Optional[int] = None,
+        **kwargs,
+    ):
         self.n_modes = n_modes
         self.flip_signs = flip_signs
         self.compute = compute
         self.solver = solver
+        self.random_state = random_state
         self.solver_kwargs = kwargs
 
     def fit(self, X, dims=("sample", "feature")):
@@ -95,13 +107,21 @@ class Decomposer:
 
         # Use randomized SVD for large, real-valued data sets
         elif (not use_complex) and (not use_dask):
-            self.solver_kwargs.update({"n_components": self.n_modes})
+            self.solver_kwargs.update(
+                {"n_components": self.n_modes, "random_state": self.random_state}
+            )
             U, s, VT = self._svd(X, dims, randomized_svd, self.solver_kwargs)
 
         # Use scipy sparse SVD for large, complex-valued data sets
         elif use_complex and (not use_dask):
             # Scipy sparse version
-            self.solver_kwargs.update({"k": self.n_modes, "solver": "lobpcg"})
+            self.solver_kwargs.update(
+                {
+                    "k": self.n_modes,
+                    "solver": "lobpcg",
+                    "random_state": self.random_state,
+                }
+            )
             U, s, VT = self._svd(X, dims, complex_svd, self.solver_kwargs)
             idx_sort = np.argsort(s)[::-1]
             U = U[:, idx_sort]
@@ -110,7 +130,7 @@ class Decomposer:
 
         # Use dask SVD for large, real-valued, delayed data sets
         elif (not use_complex) and use_dask:
-            self.solver_kwargs.update({"k": self.n_modes})
+            self.solver_kwargs.update({"k": self.n_modes, "seed": self.random_state})
             U, s, VT = self._svd(X, dims, dask_svd, self.solver_kwargs)
             U, s, VT = self._compute_svd_result(U, s, VT)
         else:

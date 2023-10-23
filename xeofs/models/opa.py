@@ -76,6 +76,7 @@ class OPA(_BaseModel):
         sample_name="sample",
         feature_name="feature",
         solver="auto",
+        random_state=None,
         solver_kwargs={},
     ):
         if n_modes > n_pca_modes:
@@ -91,6 +92,7 @@ class OPA(_BaseModel):
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
+            random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "OPA"})
@@ -126,7 +128,15 @@ class OPA(_BaseModel):
 
         # Perform PCA as a pre-processing step
         pca = EOF(
-            n_modes=self._params["n_pca_modes"], use_coslat=False, compute=self._compute
+            n_modes=self._params["n_pca_modes"],
+            standardize=False,
+            use_coslat=False,
+            sample_name=self.sample_name,
+            feature_name=self.feature_name,
+            solver=self._params["solver"],
+            compute=self._params["compute"],
+            random_state=self._params["random_state"],
+            solver_kwargs=self._solver_kwargs,
         )
         pca.fit(data, dim=sample_name)
         n_samples = data.coords[sample_name].size
@@ -161,7 +171,10 @@ class OPA(_BaseModel):
         # A. Hannachi (2021), Patterns Identification and
         # Data Mining in Weather and Climate, Equation (8.20)
         decomposer = Decomposer(
-            n_modes=C0.shape[0], flip_signs=False, compute=self._compute, solver="full"
+            n_modes=C0.shape[0],
+            flip_signs=False,
+            compute=self._params["compute"],
+            solver="full",
         )
         decomposer.fit(C0, dims=("feature1", "feature2"))
         C0_sqrt = decomposer.U_ * np.sqrt(decomposer.s_)
