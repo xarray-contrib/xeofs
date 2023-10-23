@@ -1,4 +1,4 @@
-from typing import Self
+from typing_extensions import Self
 
 from .transformer import Transformer
 from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound

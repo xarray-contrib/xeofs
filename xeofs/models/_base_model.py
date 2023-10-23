@@ -1,5 +1,6 @@
 import warnings
-from typing import Optional, Sequence, Hashable, Dict, Any, Self, List, TypeVar, Tuple
+from typing import Optional, Sequence, Hashable, Dict, Any, List, TypeVar, Tuple
+from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 

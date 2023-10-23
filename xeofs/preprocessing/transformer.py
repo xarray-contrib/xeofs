@@ -1,4 +1,5 @@
-from typing import Self, Optional
+from typing import Optional
+from typing_extensions import Self
 from abc import abstractmethod
 
 from sklearn.base import BaseEstimator, TransformerMixin

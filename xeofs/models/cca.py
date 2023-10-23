@@ -9,7 +9,8 @@ Copyright (c) 2020-2023 James Chapman
 
 from abc import abstractmethod
 from datetime import datetime
-from typing import Sequence, Self, List, Hashable
+from typing import Sequence, List, Hashable
+from typing_extensions import Self
 
 import dask.array as da
 import numpy as np

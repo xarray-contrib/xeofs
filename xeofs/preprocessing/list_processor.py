@@ -1,4 +1,5 @@
-from typing import List, Self, TypeVar, Generic, Type, Dict, Any
+from typing import List, TypeVar, Generic, Type, Dict, Any
+from typing_extensions import Self
 
 from .dimension_renamer import DimensionRenamer
 from .scaler import Scaler

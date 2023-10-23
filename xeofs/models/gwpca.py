@@ -1,4 +1,5 @@
-from typing import Self, List, Sequence, Hashable, Optional, Callable
+from typing import Sequence, Hashable, Optional, Callable
+from typing_extensions import Self
 
 from sklearn.utils.extmath import randomized_svd
 

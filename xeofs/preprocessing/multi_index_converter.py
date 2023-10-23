@@ -1,5 +1,5 @@
-from typing import List, Self, Optional
-
+from typing import List, Optional
+from typing_extensions import Self
 import pandas as pd
 
 from .transformer import Transformer

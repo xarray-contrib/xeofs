@@ -1,4 +1,5 @@
-from typing import Optional, Self, Dict
+from typing import Optional, Dict
+from typing_extensions import Self
 
 import xarray as xr
 import numpy as np

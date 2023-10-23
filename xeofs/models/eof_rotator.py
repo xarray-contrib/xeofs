@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 import xarray as xr
-from typing import Self
+from typing_extensions import Self
 
 from .eof import EOF, ComplexEOF
 from ..data_container import DataContainer

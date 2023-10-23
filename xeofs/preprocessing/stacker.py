@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import List, Optional, Self, Type
+from typing import List, Optional, Type
+from typing_extensions import Self
 
 import numpy as np
 import pandas as pd

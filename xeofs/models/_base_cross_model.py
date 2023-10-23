@@ -1,4 +1,5 @@
-from typing import Tuple, Hashable, Sequence, Dict, Self, Optional, List
+from typing import Tuple, Hashable, Sequence, Dict, Optional, List
+from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 

@@ -1,5 +1,5 @@
-from typing import Self, Optional
-
+from typing import Optional
+from typing_extensions import Self
 import xarray as xr
 
 from .transformer import Transformer
