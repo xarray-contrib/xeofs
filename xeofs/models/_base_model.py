@@ -44,6 +44,10 @@ class _BaseModel(ABC):
         Name of the sample dimension.
     feature_name: str, default="feature"
         Name of the feature dimension.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately. This is recommended
+        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+        boosts computational efficiency compared to deferring the computation.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -59,12 +63,14 @@ class _BaseModel(ABC):
         use_coslat=False,
         sample_name="sample",
         feature_name="feature",
+        compute=True,
         solver="auto",
         solver_kwargs={},
     ):
+        self.n_modes = n_modes
         self.sample_name = sample_name
         self.feature_name = feature_name
-        self.n_modes = n_modes
+        self._compute = compute
         # Define model parameters
         self._params = {
             "n_modes": n_modes,

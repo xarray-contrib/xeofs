@@ -18,10 +18,20 @@ class EOF(_BaseModel):
     ----------
     n_modes: int, default=10
         Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
     standardize: bool, default=False
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately. This is recommended
+        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+        boosts computational efficiency compared to deferring the computation.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -43,6 +53,7 @@ class EOF(_BaseModel):
         use_coslat=False,
         sample_name="sample",
         feature_name="feature",
+        compute: bool = True,
         solver="auto",
         solver_kwargs={},
         **kwargs,
@@ -54,6 +65,7 @@ class EOF(_BaseModel):
             use_coslat=use_coslat,
             sample_name=sample_name,
             feature_name=feature_name,
+            compute=compute,
             solver=solver,
             solver_kwargs=solver_kwargs,
             **kwargs,
@@ -71,7 +83,10 @@ class EOF(_BaseModel):
         n_modes = self._params["n_modes"]
 
         decomposer = Decomposer(
-            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
+            n_modes=n_modes,
+            solver=self._params["solver"],
+            compute=self._compute,
+            **self._solver_kwargs,
         )
         decomposer.fit(data, dims=(sample_name, feature_name))
 
@@ -236,12 +251,6 @@ class ComplexEOF(EOF):
     ----------
     n_modes : int
         Number of modes to calculate.
-    standardize : bool
-        Whether to standardize the input data.
-    use_coslat : bool
-        Whether to use cosine of latitude for scaling.
-    use_weights : bool
-        Whether to use weights.
     padding : str, optional
         Specifies the method used for padding the data prior to applying the Hilbert
         transform. This can help to mitigate the effect of spectral leakage.
@@ -253,6 +262,24 @@ class ComplexEOF(EOF):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize : bool
+        Whether to standardize the input data.
+    use_coslat : bool
+        Whether to use cosine of latitude for scaling.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately. This is recommended
+        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+        boosts computational efficiency compared to deferring the computation.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to be passed to the SVD solver.
     solver_kwargs : dict, optional
         Additional keyword arguments to be passed to the SVD solver.
 
@@ -296,7 +323,10 @@ class ComplexEOF(EOF):
         n_modes = self._params["n_modes"]
 
         decomposer = Decomposer(
-            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
+            n_modes=n_modes,
+            solver=self._params["solver"],
+            compute=self._compute,
+            **self._solver_kwargs,
         )
         decomposer.fit(data)
 

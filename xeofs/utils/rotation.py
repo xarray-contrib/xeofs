@@ -4,7 +4,7 @@ import xarray as xr
 from .data_types import DataArray
 
 
-def promax(loadings: DataArray, feature_dim, **kwargs):
+def promax(loadings: DataArray, feature_dim, compute=True, **kwargs):
     rotated, rot_mat, phi_mat = xr.apply_ufunc(
         _promax,
         loadings,
@@ -17,6 +17,10 @@ def promax(loadings: DataArray, feature_dim, **kwargs):
         kwargs=kwargs,
         dask="allowed",
     )
+    if compute:
+        rotated = rotated.compute()
+        rot_mat = rot_mat.compute()
+        phi_mat = phi_mat.compute()
     return rotated, rot_mat, phi_mat
 
 

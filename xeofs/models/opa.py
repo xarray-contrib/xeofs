@@ -24,8 +24,24 @@ class OPA(_BaseModel):
         Number of optimal persistence patterns (OPP) to be computed.
     tau_max : int
         Maximum time lag for the computation of the covariance matrix.
+    center : bool, default=True
+        Whether to center the input data.
+    standardize : bool, default=False
+        Whether to standardize the input data.
+    use_coslat : bool, default=False
+        Whether to use cosine of latitude for scaling.
     n_pca_modes : int
         Number of modes to be computed in the pre-processing step using EOF.
+    compute : bool, default=True
+        Whether to compute the decomposition immediately.
+    sample_name : str, default="sample"
+        Name of the sample dimension.
+    feature_name : str, default="feature"
+        Name of the feature dimension.
+    solver : {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs : dict, default={}
+        Additional keyword arguments to pass to the solver.
 
     References
     ----------
@@ -48,12 +64,35 @@ class OPA(_BaseModel):
     >>> decorrelation_time = model.decorrelation_time()
     """
 
-    def __init__(self, n_modes, tau_max, n_pca_modes, **kwargs):
+    def __init__(
+        self,
+        n_modes,
+        tau_max,
+        center=True,
+        standardize=False,
+        use_coslat=False,
+        n_pca_modes=100,
+        compute=True,
+        sample_name="sample",
+        feature_name="feature",
+        solver="auto",
+        solver_kwargs={},
+    ):
         if n_modes > n_pca_modes:
             raise ValueError(
                 f"n_modes must be smaller or equal to n_pca_modes (n_modes={n_modes}, n_pca_modes={n_pca_modes})"
             )
-        super().__init__(n_modes=n_modes, **kwargs)
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            compute=compute,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "OPA"})
         self._params.update({"tau_max": tau_max, "n_pca_modes": n_pca_modes})
 
@@ -86,7 +125,9 @@ class OPA(_BaseModel):
         feature_name = self.feature_name
 
         # Perform PCA as a pre-processing step
-        pca = EOF(n_modes=self._params["n_pca_modes"], use_coslat=False)
+        pca = EOF(
+            n_modes=self._params["n_pca_modes"], use_coslat=False, compute=self._compute
+        )
         pca.fit(data, dim=sample_name)
         n_samples = data.coords[sample_name].size
         comps = pca.data["components"] * np.sqrt(n_samples - 1)
@@ -119,7 +160,9 @@ class OPA(_BaseModel):
         # using a symmtric matrix given in
         # A. Hannachi (2021), Patterns Identification and
         # Data Mining in Weather and Climate, Equation (8.20)
-        decomposer = Decomposer(n_modes=C0.shape[0], flip_signs=False, solver="full")
+        decomposer = Decomposer(
+            n_modes=C0.shape[0], flip_signs=False, compute=self._compute, solver="full"
+        )
         decomposer.fit(C0, dims=("feature1", "feature2"))
         C0_sqrt = decomposer.U_ * np.sqrt(decomposer.s_)
         # -> C0_sqrt (feature1 x mode)

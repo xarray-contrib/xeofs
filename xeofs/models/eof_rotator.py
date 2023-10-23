@@ -32,6 +32,8 @@ class EOFRotator(EOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
 
     References
     ----------
@@ -53,7 +55,9 @@ class EOFRotator(EOF):
         power: int = 1,
         max_iter: int = 1000,
         rtol: float = 1e-8,
+        compute: bool = True,
     ):
+        self._compute = compute
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -106,7 +110,10 @@ class EOFRotator(EOF):
         loadings = components * np.sqrt(expvar)
         promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
         rot_loadings, rot_matrix, phi_matrix = promax(
-            loadings, feature_dim=self.feature_name, **promax_kwargs
+            loadings,
+            feature_dim=self.feature_name,
+            compute=self._compute,
+            **promax_kwargs
         )
 
         # Assign coordinates to the rotation/correlation matrices
@@ -271,6 +278,8 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
 
     References
     ----------

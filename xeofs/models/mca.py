@@ -20,16 +20,12 @@ class MCA(_BaseCrossModel):
     ----------
     n_modes: int, default=10
         Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
     standardize: bool, default=False
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use additional weights.
-    solver: {"auto", "full", "randomized"}, default="auto"
-        Solver to use for the SVD computation.
-    solver_kwargs: dict, default={}
-        Additional keyword arguments passed to the SVD solver.
     n_pca_modes: int, default=None
         The number of principal components to retain during the PCA preprocessing
         step applied to both data sets prior to executing MCA.
@@ -38,6 +34,16 @@ class MCA(_BaseCrossModel):
         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
+    sample_name: str, default="sample"
+        Name of the new sample dimension.
+    feature_name: str, default="feature"
+        Name of the new feature dimension.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments passed to the SVD solver.
 
     Notes
     -----
@@ -57,8 +63,31 @@ class MCA(_BaseCrossModel):
 
     """
 
-    def __init__(self, solver_kwargs={}, **kwargs):
-        super().__init__(solver_kwargs=solver_kwargs, **kwargs)
+    def __init__(
+        self,
+        n_modes=10,
+        center=True,
+        standardize=False,
+        use_coslat=False,
+        n_pca_modes=None,
+        compute=True,
+        sample_name="sample",
+        feature_name="feature",
+        solver="auto",
+        solver_kwargs={},
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            n_pca_modes=n_pca_modes,
+            compute=compute,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "MCA"})
 
     def _compute_cross_covariance_matrix(self, X1, X2):
@@ -87,6 +116,7 @@ class MCA(_BaseCrossModel):
         decomposer = Decomposer(
             n_modes=self._params["n_modes"],
             solver=self._params["solver"],
+            compute=self._compute,
             **self._solver_kwargs,
         )
 
@@ -533,12 +563,6 @@ class ComplexMCA(MCA):
     ----------
     n_modes: int, default=10
         Number of modes to calculate.
-    standardize: bool, default=False
-        Whether to standardize the input data.
-    use_coslat: bool, default=False
-        Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use additional weights.
     padding : str, optional
         Specifies the method used for padding the data prior to applying the Hilbert
         transform. This can help to mitigate the effect of spectral leakage.
@@ -550,6 +574,28 @@ class ComplexMCA(MCA):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    n_pca_modes: int, default=None
+        The number of principal components to retain during the PCA preprocessing
+        step applied to both data sets prior to executing MCA.
+        If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
+        Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
+        only the specified number of principal components. This reduction in dimensionality can be especially beneficial
+        when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
+        intensive or in scenarios where multicollinearity is a concern.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
+    sample_name: str, default="sample"
+        Name of the new sample dimension.
+    feature_name: str, default="feature"
+        Name of the new feature dimension.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
         Additional keyword arguments passed to the SVD solver.
 
@@ -575,8 +621,33 @@ class ComplexMCA(MCA):
 
     """
 
-    def __init__(self, padding="exp", decay_factor=0.2, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        n_modes=10,
+        padding="exp",
+        decay_factor=0.2,
+        center=True,
+        standardize=False,
+        use_coslat=False,
+        n_pca_modes=None,
+        compute=True,
+        sample_name="sample",
+        feature_name="feature",
+        solver="auto",
+        solver_kwargs={},
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            n_pca_modes=n_pca_modes,
+            compute=compute,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "Complex MCA"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
@@ -594,6 +665,7 @@ class ComplexMCA(MCA):
         decomposer = Decomposer(
             n_modes=self._params["n_modes"],
             solver=self._params["solver"],
+            compute=self._compute,
             **self._solver_kwargs,
         )
 

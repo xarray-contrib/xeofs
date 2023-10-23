@@ -27,6 +27,8 @@ class _BaseCrossModel(ABC):
         Whether to use cosine of latitude for scaling.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
+    compute : bool, default=True
+        Whether to compute the decomposition immediately.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -45,6 +47,7 @@ class _BaseCrossModel(ABC):
         standardize=False,
         use_coslat=False,
         n_pca_modes=None,
+        compute=True,
         sample_name="sample",
         feature_name="feature",
         solver="auto",
@@ -52,6 +55,7 @@ class _BaseCrossModel(ABC):
     ):
         self.sample_name = sample_name
         self.feature_name = feature_name
+        self._compute = compute
 
         # Define model parameters
         self._params = {
@@ -90,8 +94,12 @@ class _BaseCrossModel(ABC):
         self.data = DataContainer()
 
         # Initialize PCA objects
-        self.pca1 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
-        self.pca2 = EOF(n_modes=n_pca_modes) if n_pca_modes else None
+        self.pca1 = (
+            EOF(n_modes=n_pca_modes, compute=self._compute) if n_pca_modes else None
+        )
+        self.pca2 = (
+            EOF(n_modes=n_pca_modes, compute=self._compute) if n_pca_modes else None
+        )
 
     def fit(
         self,

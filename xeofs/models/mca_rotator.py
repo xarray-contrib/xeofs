@@ -37,6 +37,8 @@ class MCARotator(MCA):
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton [1]_.
+    compute : bool, default=True
+        Whether to compute the decomposition immediately.
 
     References
     ----------
@@ -59,7 +61,9 @@ class MCARotator(MCA):
         max_iter: int = 1000,
         rtol: float = 1e-8,
         squared_loadings: bool = False,
+        compute: bool = True,
     ):
+        self._compute = compute
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -158,7 +162,10 @@ class MCARotator(MCA):
         # Rotate loadings
         promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
         rot_loadings, rot_matrix, phi_matrix = promax(
-            loadings=loadings, feature_dim=feature_name, **promax_kwargs
+            loadings=loadings,
+            feature_dim=feature_name,
+            compute=self._compute,
+            **promax_kwargs
         )
 
         # Assign coordinates to the rotation/correlation matrices

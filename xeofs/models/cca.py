@@ -50,6 +50,7 @@ class CCABaseModel(BaseEstimator):
         pca: bool = False,
         variance_fraction: float = 0.99,
         init_pca_modes: int | float = 0.75,
+        compute: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
     ):
@@ -58,6 +59,7 @@ class CCABaseModel(BaseEstimator):
         self.n_modes = n_modes
         self.use_coslat = use_coslat
         self.pca = pca
+        self._compute = compute
         self.variance_fraction = variance_fraction
         self.init_pca_modes = init_pca_modes
 
@@ -167,7 +169,7 @@ class CCABaseModel(BaseEstimator):
         view_transformed = []
 
         for i, view in enumerate(views):
-            pca = EOF(n_modes=n_pca_modes[i])
+            pca = EOF(n_modes=n_pca_modes[i], compute=self._compute)
             pca.fit(view, dim=self.sample_name)
             self.pca_models.append(pca)
 
@@ -237,6 +239,8 @@ class CCA(CCABaseModel):
         A value of 1.0 will perform a full SVD of the data. Choosing a smaller value can increase computation speed. Default 0.75
     c : Sequence[float] | float], optional
         Regularisation parameter, by default 0 (no regularization)
+    compute : bool, optional
+        Whether to compute the decomposition immediately, by default True
 
 
     Notes
@@ -267,12 +271,14 @@ class CCA(CCABaseModel):
         pca=True,
         variance_fraction=0.99,
         init_pca_modes=0.75,
+        compute=True,
         eps=1e-6,
     ):
         super().__init__(
             n_modes=n_modes,
             use_coslat=use_coslat,
             pca=pca,
+            compute=compute,
             variance_fraction=variance_fraction,
             init_pca_modes=init_pca_modes,
         )

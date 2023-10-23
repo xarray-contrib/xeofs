@@ -83,6 +83,7 @@ class ExtendedEOF(EOF):
                 center=True,
                 standardize=False,
                 use_coslat=False,
+                compute=self._compute,
                 sample_name=self.sample_name,
                 feature_name=self.feature_name,
             )
@@ -118,6 +119,7 @@ class ExtendedEOF(EOF):
             center=True,
             standardize=False,
             use_coslat=False,
+            compute=self._compute,
             sample_name=self.sample_name,
             feature_name=self.feature_name,
             solver=self._params["solver"],
