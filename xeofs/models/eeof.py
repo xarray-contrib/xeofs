@@ -67,9 +67,28 @@ class ExtendedEOF(EOF):
         tau: int,
         embedding: int,
         n_pca_modes: Optional[int] = None,
-        **kwargs,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        compute: bool = True,
+        solver: str = "auto",
+        random_state: Optional[int] = None,
+        solver_kwargs: dict = {},
     ):
-        super().__init__(n_modes=n_modes, **kwargs)
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            compute=compute,
+            solver=solver,
+            random_state=random_state,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "Extended EOF Analysis"})
         self._params.update(
             {"tau": tau, "embedding": embedding, "n_pca_modes": n_pca_modes}

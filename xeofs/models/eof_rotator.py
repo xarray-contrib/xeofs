@@ -21,7 +21,7 @@ class EOFRotator(EOF):
 
     Parameters
     ----------
-    n_modes : int, default=10
+    n_modes : int, default=2
         Specify the number of modes to be rotated.
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
@@ -51,7 +51,7 @@ class EOFRotator(EOF):
 
     def __init__(
         self,
-        n_modes: int = 10,
+        n_modes: int = 2,
         power: int = 1,
         max_iter: int = 1000,
         rtol: float = 1e-8,
@@ -267,7 +267,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
 
     Parameters
     ----------
-    n_modes : int, default=10
+    n_modes : int, default=2
         Specify the number of modes to be rotated.
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
@@ -298,8 +298,17 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
 
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        n_modes: int = 2,
+        power: int = 1,
+        max_iter: int = 1000,
+        rtol: float = 1e-8,
+        compute: bool = True,
+    ):
+        super().__init__(
+            n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
+        )
         self.attrs.update({"model": "Rotated Complex EOF analysis"})
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:

@@ -1,4 +1,4 @@
-from typing import Optional, Self
+from typing import Optional, Self, Dict
 
 import xarray as xr
 import numpy as np
@@ -66,18 +66,18 @@ class OPA(_BaseModel):
 
     def __init__(
         self,
-        n_modes,
-        tau_max,
-        center=True,
-        standardize=False,
-        use_coslat=False,
-        n_pca_modes=100,
-        compute=True,
-        sample_name="sample",
-        feature_name="feature",
-        solver="auto",
-        random_state=None,
-        solver_kwargs={},
+        n_modes: int,
+        tau_max: int,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        n_pca_modes: int = 100,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        solver: str = "auto",
+        random_state: Optional[int] = None,
+        solver_kwargs: Dict = {},
     ):
         if n_modes > n_pca_modes:
             raise ValueError(

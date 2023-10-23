@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Optional, Dict
 import numpy as np
 import xarray as xr
 
@@ -12,7 +12,7 @@ from ..utils.xarray_utils import total_variance as compute_total_variance
 class EOF(_BaseModel):
     """Empirical Orthogonal Functions (EOF) analysis.
 
-    EOF analysis is more commonly referend to as principal component analysis (PCA).
+    More commonly known as Principal Component Analysis (PCA).
 
     Parameters
     ----------
@@ -47,16 +47,16 @@ class EOF(_BaseModel):
 
     def __init__(
         self,
-        n_modes=10,
-        center=True,
-        standardize=False,
-        use_coslat=False,
-        sample_name="sample",
-        feature_name="feature",
+        n_modes: int = 2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
         compute: bool = True,
-        random_state=None,
-        solver="auto",
-        solver_kwargs={},
+        random_state: Optional[int] = None,
+        solver: str = "auto",
+        solver_kwargs: Dict = {},
         **kwargs,
     ):
         super().__init__(
@@ -162,7 +162,7 @@ class EOF(_BaseModel):
         """
         return super().components()
 
-    def scores(self, normalized=True) -> DataArray:
+    def scores(self, normalized: bool = True) -> DataArray:
         """Return the (PC) scores.
 
         The scores in EOF anaylsis are the projection of the data matrix onto the
@@ -259,26 +259,26 @@ class ComplexEOF(EOF):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
-    center: bool, default=True
-        Whether to center the input data.
-    standardize : bool
-        Whether to standardize the input data.
-    use_coslat : bool
-        Whether to use cosine of latitude for scaling.
-    sample_name: str, default="sample"
-        Name of the sample dimension.
-    feature_name: str, default="feature"
-        Name of the feature dimension.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately. This is recommended
-        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-        boosts computational efficiency compared to deferring the computation.
-    solver: {"auto", "full", "randomized"}, default="auto"
-        Solver to use for the SVD computation.
-    solver_kwargs: dict, default={}
-        Additional keyword arguments to be passed to the SVD solver.
-    solver_kwargs : dict, optional
-        Additional keyword arguments to be passed to the SVD solver.
+        center: bool, default=True
+            Whether to center the input data.
+        standardize : bool
+            Whether to standardize the input data.
+        use_coslat : bool
+            Whether to use cosine of latitude for scaling.
+        sample_name: str, default="sample"
+            Name of the sample dimension.
+        feature_name: str, default="feature"
+            Name of the feature dimension.
+        compute: bool, default=True
+            Whether to compute the decomposition immediately. This is recommended
+            if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+            boosts computational efficiency compared to deferring the computation.
+        solver: {"auto", "full", "randomized"}, default="auto"
+            Solver to use for the SVD computation.
+        solver_kwargs: dict, default={}
+            Additional keyword arguments to be passed to the SVD solver.
+        solver_kwargs : dict, optional
+            Additional keyword arguments to be passed to the SVD solver.
 
     References
     ----------
@@ -294,8 +294,33 @@ class ComplexEOF(EOF):
 
     """
 
-    def __init__(self, padding="exp", decay_factor=0.2, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        n_modes: int = 2,
+        padding: str = "exp",
+        decay_factor: float = 0.2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        compute: bool = True,
+        random_state: Optional[int] = None,
+        solver: str = "auto",
+        solver_kwargs: Dict = {},
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            compute=compute,
+            random_state=random_state,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "Complex EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 

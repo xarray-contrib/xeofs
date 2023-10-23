@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Sequence, Self
+from typing import Tuple, Optional, Sequence, Self, Dict
 
 import numpy as np
 import xarray as xr
@@ -18,7 +18,7 @@ class MCA(_BaseCrossModel):
 
     Parameters
     ----------
-    n_modes: int, default=10
+    n_modes: int, default=2
         Number of modes to calculate.
     center: bool, default=True
         Whether to center the input data.
@@ -67,17 +67,17 @@ class MCA(_BaseCrossModel):
 
     def __init__(
         self,
-        n_modes=10,
-        center=True,
-        standardize=False,
-        use_coslat=False,
-        n_pca_modes=None,
-        compute=True,
-        sample_name="sample",
-        feature_name="feature",
-        solver="auto",
-        random_state=None,
-        solver_kwargs={},
+        n_modes: int = 2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        n_pca_modes: Optional[int] = None,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        solver: str = "auto",
+        random_state: Optional[int] = None,
+        solver_kwargs: Dict = {},
     ):
         super().__init__(
             n_modes=n_modes,
@@ -560,7 +560,7 @@ class ComplexMCA(MCA):
 
     Parameters
     ----------
-    n_modes: int, default=10
+    n_modes: int, default=2
         Number of modes to calculate.
     padding : str, optional
         Specifies the method used for padding the data prior to applying the Hilbert
@@ -624,19 +624,19 @@ class ComplexMCA(MCA):
 
     def __init__(
         self,
-        n_modes=10,
-        padding="exp",
-        decay_factor=0.2,
-        center=True,
-        standardize=False,
-        use_coslat=False,
-        n_pca_modes=None,
-        compute=True,
-        sample_name="sample",
-        feature_name="feature",
-        solver="auto",
-        random_state=None,
-        solver_kwargs={},
+        n_modes: int = 2,
+        padding: str = "exp",
+        decay_factor: float = 0.2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        n_pca_modes: Optional[int] = None,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        solver: str = "auto",
+        random_state: Optional[bool] = None,
+        solver_kwargs: Dict = {},
     ):
         super().__init__(
             n_modes=n_modes,

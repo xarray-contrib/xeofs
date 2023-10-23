@@ -265,14 +265,14 @@ class CCA(CCABaseModel):
 
     def __init__(
         self,
-        n_modes,
-        use_coslat=False,
-        c=0,
-        pca=True,
-        variance_fraction=0.99,
-        init_pca_modes=0.75,
-        compute=True,
-        eps=1e-6,
+        n_modes: int = 2,
+        use_coslat: bool = False,
+        c: float = 0,
+        pca: bool = True,
+        variance_fraction: float = 0.99,
+        init_pca_modes: float = 0.75,
+        compute: bool = True,
+        eps: float = 1e-6,
     ):
         super().__init__(
             n_modes=n_modes,
