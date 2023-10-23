@@ -244,6 +244,9 @@ class GWPCA(_BaseModel):
         llwc.name = "largest_locally_weighted_components"
         return self.preprocessor.inverse_transform_scores(llwc)
 
+    def scores(self):
+        raise NotImplementedError("GWPCA does not support scores() yet.")
+
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("GWPCA does not support transform() yet.")
 
