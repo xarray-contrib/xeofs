@@ -4,7 +4,7 @@ Source: https://github.com/jameschapman19/cca_zoo
 
 The original code is licensed under the MIT License.
 
-Copyright (c) 2020 James Chapman
+Copyright (c) 2020-2023 James Chapman
 """
 
 from abc import abstractmethod
@@ -59,7 +59,7 @@ class CCABaseModel(BaseEstimator):
         self.n_modes = n_modes
         self.use_coslat = use_coslat
         self.pca = pca
-        self._compute = compute
+        self.compute = compute
         self.variance_fraction = variance_fraction
         self.init_pca_modes = init_pca_modes
 
@@ -69,7 +69,6 @@ class CCABaseModel(BaseEstimator):
             "sample_name": sample_name,
             "feature_name": feature_name,
             "with_std": False,
-            "with_weights": False,
         }
 
         # Define analysis-relevant meta data
@@ -169,13 +168,23 @@ class CCABaseModel(BaseEstimator):
         view_transformed = []
 
         for i, view in enumerate(views):
-            pca = EOF(n_modes=n_pca_modes[i], compute=self._compute)
+            pca = EOF(n_modes=n_pca_modes[i], compute=self.compute)
             pca.fit(view, dim=self.sample_name)
+            if self.compute:
+                pca.compute()
             self.pca_models.append(pca)
 
             # TODO: method to get cumulative explained variance
             cum_exp_var_ratio = pca.explained_variance_ratio().cumsum()
-            if cum_exp_var_ratio.isel(mode=-1) < self.variance_fraction:
+            # Ensure that the sum of the explained variance ratio is always less than 1
+            # Due to rounding errors the total sum may be slightly larger than 1,
+            # which we counter by a small correction
+            cum_exp_var_ratio -= 1e-6
+            max_exp_var_ratio = cum_exp_var_ratio.isel(mode=-1).item()
+            if (
+                max_exp_var_ratio <= self.variance_fraction
+                and max_exp_var_ratio <= 0.9999
+            ):
                 print(
                     "Warning: variance fraction {:.4f} is not reached. ".format(
                         self.variance_fraction
@@ -185,8 +194,11 @@ class CCABaseModel(BaseEstimator):
                     )
                 )
             n_modes_keep = cum_exp_var_ratio.where(
-                cum_exp_var_ratio < self.variance_fraction, drop=True
+                cum_exp_var_ratio <= self.variance_fraction, drop=True
             ).size
+            if n_modes_keep == 0:
+                n_modes_keep += 1
+
             # TODO: it's more convinient to work the common scaling of sklearn; provide additional parameter
             # provide this parameter to transform method as well
             scores = pca.scores().isel(mode=slice(0, n_modes_keep))
@@ -205,12 +217,15 @@ class CCABaseModel(BaseEstimator):
 
 
 class CCA(CCABaseModel):
-    r"""
+    r"""Canonical Correlation Analysis (CCA) model.
+    
     Regularised CCA (canonical ridge) model. 
     
-    This model adds a regularization term to the CCA objective function to avoid overfitting and improve stability. It uses PCA to perform the optimization efficiently for high dimensional data.
+    CCA identifies linear combinations of variables from multiple datasets that 
+    maximize their mutual correlations. An optional regularisation parameter can be used to
+    improve the conditioning of the covariance matrix.
 
-    The objective function of regularised CCA is:
+    The objective function of (regularised) CCA is:
 
     .. math::
 
@@ -222,7 +237,7 @@ class CCA(CCABaseModel):
 
         (1-c_2)w_2^TX_2^TX_2w_2+c_2w_2^Tw_2=n
 
-    where :math:`c_i` are the regularization parameters for each view.
+    where :math:`c_i` are the regularization parameters for dataset.
 
     Parameters
     ----------
@@ -614,6 +629,14 @@ class CCA(CCABaseModel):
         return transformed_views
 
     def transform(self, views: Sequence[DataObject]) -> List[DataArray]:
+        """Transform the input data into the canonical space.
+
+        Parameters
+        ----------
+        views : List[DataArray | Dataset]
+            Input data to transform
+
+        """
         view_preprocessed = []
         for i, view in enumerate(views):
             view_preprocessed = self.preprocessors[i].transform(view)
@@ -626,7 +649,8 @@ class CCA(CCABaseModel):
             unstacked_transformed_views.append(unstacked_view)
         return unstacked_transformed_views
 
-    def canonical_loadings(self, normalize: bool = True) -> List[DataObject]:
+    def components(self, normalize: bool = True) -> List[DataObject]:
+        """Get the canonical loadings for each view."""
         can_loads = self.data["canonical_loadings"]
         input_data = self.data["input_data"]
         variates = self.data["variates"]
@@ -651,7 +675,8 @@ class CCA(CCABaseModel):
         ]
         return loadings
 
-    def canonical_variates(self) -> List[DataArray]:
+    def scores(self) -> List[DataArray]:
+        """Get the canonical variates for each view."""
         variates = []
         for i, view in enumerate(self.data["variates"]):
             vari = self.preprocessors[i].inverse_transform_scores(view)
@@ -659,25 +684,17 @@ class CCA(CCABaseModel):
         return variates
 
     def explained_variance(self) -> List[DataArray]:
+        """Get the explained variance for each view."""
         return self.data["explained_variance"]
 
     def explained_variance_ratio(self) -> List[DataArray]:
+        """Get the explained variance ratio for each view."""
         return self.data["explained_variance_ratio"]
 
     def explained_covariance(self) -> DataArray:
-        """
-        Calculates the covariance matrix of the transformed components for each view.
-
-        Parameters
-        ----------
-        views : list/tuple of numpy arrays or array likes with the same number of rows (samples)
-
-        Returns
-        -------
-        explained_covariances : list of numpy arrays
-            Covariance matrices for the transformed components of each view.
-        """
+        """Get the explained covariance."""
         return self.data["explained_covariance"]
 
     def explained_covariance_ratio(self) -> DataArray:
+        """Get the explained covariance ratio."""
         return self.data["explained_covariance_ratio"]
