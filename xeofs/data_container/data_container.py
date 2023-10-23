@@ -1,3 +1,4 @@
+from typing import Dict
 from dask.diagnostics.progress import ProgressBar
 
 from ..utils.data_types import DataArray
@@ -34,6 +35,17 @@ class DataContainer(dict):
                 else:
                     self[k] = v.compute()
 
-    def set_attrs(self, attrs: dict):
+    def _validate_attrs(self, attrs: Dict) -> Dict:
+        """Convert any boolean and None values to strings"""
+        for key, value in attrs.items():
+            if isinstance(value, bool):
+                attrs[key] = str(value)
+            elif value is None:
+                attrs[key] = "None"
+
+        return attrs
+
+    def set_attrs(self, attrs: Dict):
+        attrs = self._validate_attrs(attrs)
         for key in self.keys():
             self[key].attrs = attrs
