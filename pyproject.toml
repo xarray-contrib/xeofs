@@ -30,6 +30,7 @@ coverage = "^6.3.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "~23.7.0"
+cca-zoo = "^2.3.11"
 
 [tool.poetry.group.docs.dependencies]
 rpy2 = {version = ">=3.5", optional = true}
