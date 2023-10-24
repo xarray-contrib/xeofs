@@ -269,7 +269,7 @@ def test_fit_with_dataset(mca_model, mock_dataset, dim):
         (("lon", "lat")),
     ],
 )
-def test_fit_with_dataarraylist(mca_model, mock_data_array_list, dim):
+def test_fit_with_datalist(mca_model, mock_data_array_list, dim):
     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
     assert hasattr(mca_model, "preprocessor1")
     assert hasattr(mca_model, "preprocessor2")

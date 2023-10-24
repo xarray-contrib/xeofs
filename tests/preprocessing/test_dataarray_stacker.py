@@ -1,204 +1,230 @@
 import pytest
-import xarray as xr
 import numpy as np
+import xarray as xr
 
-from xeofs.preprocessing.stacker import SingleDataArrayStacker
+from xeofs.preprocessing.stacker import DataArrayStacker
+from xeofs.utils.data_types import DataArray
+from ..conftest import generate_synthetic_dataarray
+from ..utilities import (
+    get_dims_from_data,
+    data_is_dask,
+    assert_expected_dims,
+    assert_expected_coords,
+)
+
+# =============================================================================
+# GENERALLY VALID TEST CASES
+# =============================================================================
+N_SAMPLE_DIMS = [1, 2]
+N_FEATURE_DIMS = [1, 2]
+INDEX_POLICY = ["index"]
+NAN_POLICY = ["no_nan"]
+DASK_POLICY = ["no_dask", "dask"]
+SEED = [0]
+
+VALID_TEST_DATA = [
+    (ns, nf, index, nan, dask)
+    for ns in N_SAMPLE_DIMS
+    for nf in N_FEATURE_DIMS
+    for index in INDEX_POLICY
+    for nan in NAN_POLICY
+    for dask in DASK_POLICY
+]
+
+
+# TESTS
+# =============================================================================
+@pytest.mark.parametrize(
+    "sample_name, feature_name, data_params",
+    [
+        ("sample", "feature", (1, 1)),
+        ("sample0", "feature0", (1, 1)),
+        ("sample0", "feature", (1, 2)),
+        ("sample", "feature0", (2, 1)),
+        ("sample", "feature", (2, 2)),
+        ("another_sample", "another_feature", (1, 1)),
+        ("another_sample", "another_feature", (2, 2)),
+    ],
+)
+def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
+    data = generate_synthetic_dataarray(*data_params)
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+
+    stacker = DataArrayStacker(sample_name=sample_name, feature_name=feature_name)
+    stacker.fit(data, sample_dims, feature_dims)
+    stacked_data = stacker.transform(data)
+    reconstructed_data = stacker.inverse_transform_data(stacked_data)
+
+    assert stacked_data.ndim == 2
+    assert set(stacked_data.dims) == set((sample_name, feature_name))
+    assert set(reconstructed_data.dims) == set(data.dims)
 
 
 @pytest.mark.parametrize(
-    "dim_sample, dim_feature",
+    "sample_name, feature_name, data_params",
     [
-        (("time",), ("lat", "lon")),
-        (("time",), ("lon", "lat")),
-        (("lat", "lon"), ("time",)),
-        (("lon", "lat"), ("time",)),
+        ("sample1", "feature", (2, 1)),
+        ("sample", "feature1", (1, 2)),
+        ("sample1", "feature1", (3, 3)),
     ],
 )
-def test_fit_transform(
-    dim_sample,
-    dim_feature,
-    mock_data_array,
-    mock_data_array_isolated_nans,
-    mock_data_array_full_dimensional_nans,
-    mock_data_array_boundary_nans,
-):
-    # Test basic functionality
-    stacker = SingleDataArrayStacker()
-    stacked = stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
-    assert stacked.ndim == 2
-    assert set(stacked.dims) == {"sample", "feature"}
-    assert not stacked.isnull().any()
+def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
+    data = generate_synthetic_dataarray(*data_params)
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that the operation is reversible
-    unstacked = stacker.inverse_transform_data(stacked)
-    xr.testing.assert_equal(unstacked, mock_data_array)
+    stacker = DataArrayStacker(sample_name=sample_name, feature_name=feature_name)
 
-    # Test that isolated NaNs raise an error
     with pytest.raises(ValueError):
-        stacker.fit_transform(mock_data_array_isolated_nans, dim_sample, dim_feature)
+        stacker.fit(data, sample_dims, feature_dims)
 
-    # Test that NaNs across a full dimension are handled correctly
-    stacked = stacker.fit_transform(
-        mock_data_array_full_dimensional_nans, dim_sample, dim_feature
-    )
-    unstacked = stacker.inverse_transform_data(stacked)
-    xr.testing.assert_equal(unstacked, mock_data_array_full_dimensional_nans)
 
-    # Test that NaNs on the boundary are handled correctly
-    stacked = stacker.fit_transform(
-        mock_data_array_boundary_nans, dim_sample, dim_feature
-    )
-    unstacked = stacker.inverse_transform_data(stacked)
-    xr.testing.assert_equal(unstacked, mock_data_array_boundary_nans)
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
+)
+def test_fit(synthetic_dataarray):
+    data = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that the same stacker cannot be used with data of different shapes
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
+)
+def test_transform(synthetic_dataarray):
+    data = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
+    transformed_data = stacker.transform(data)
+    transformed_data2 = stacker.transform(data)
+
+    is_dask_before = data_is_dask(data)
+    is_dask_after = data_is_dask(transformed_data)
+
+    assert isinstance(transformed_data, DataArray)
+    assert transformed_data.ndim == 2
+    assert transformed_data.dims == ("sample", "feature")
+    assert is_dask_before == is_dask_after
+    assert transformed_data.identical(transformed_data2)
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
+)
+def test_transform_invalid(synthetic_dataarray):
+    data = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
     with pytest.raises(ValueError):
-        other_data = mock_data_array.isel(time=slice(None, -1), lon=slice(None, -1))
-        stacker.transform(other_data)
+        stacker.transform(data.isel(feature0=slice(0, 2)))
 
 
 @pytest.mark.parametrize(
-    "dim_sample, dim_feature",
-    [
-        (("time",), ("lat", "lon")),
-        (("time",), ("lon", "lat")),
-        (("lat", "lon"), ("time",)),
-        (("lon", "lat"), ("time",)),
-    ],
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
 )
-def test_transform(mock_data_array, dim_sample, dim_feature):
-    # Test basic functionality
-    stacker = SingleDataArrayStacker()
-    stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
-    other_data = mock_data_array.copy(deep=True)
-    transformed = stacker.transform(other_data)
+def test_fit_transform(synthetic_dataarray):
+    data = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that transformed data has the correct dimensions
-    assert transformed.ndim == 2
-    assert set(transformed.dims) == {"sample", "feature"}
-    assert not transformed.isnull().any()
+    stacker = DataArrayStacker()
+    transformed_data = stacker.fit_transform(data, sample_dims, feature_dims)
 
-    # Invalid data raises an error
-    with pytest.raises(ValueError):
-        stacker.transform(mock_data_array.isel(lon=slice(None, 2), time=slice(None, 2)))
+    is_dask_before = data_is_dask(data)
+    is_dask_after = data_is_dask(transformed_data)
+
+    assert isinstance(transformed_data, DataArray)
+    assert transformed_data.ndim == 2
+    assert transformed_data.dims == ("sample", "feature")
+    assert is_dask_before == is_dask_after
 
 
 @pytest.mark.parametrize(
-    "dim_sample, dim_feature",
-    [
-        (("time",), ("lat", "lon")),
-        (("time",), ("lon", "lat")),
-        (("lat", "lon"), ("time",)),
-        (("lon", "lat"), ("time",)),
-    ],
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
 )
-def test_inverse_transform_data(mock_data_array, dim_sample, dim_feature):
-    # Test inverse transform
-    stacker = SingleDataArrayStacker()
-    stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
-    stacked = stacker.transform(mock_data_array)
-    unstacked = stacker.inverse_transform_data(stacked)
-    xr.testing.assert_equal(unstacked, mock_data_array)
+def test_invserse_transform_data(synthetic_dataarray):
+    data = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that the operation is reversible
-    restacked = stacker.transform(unstacked)
-    xr.testing.assert_equal(restacked, stacked)
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
+    stacked_data = stacker.transform(data)
+    unstacked_data = stacker.inverse_transform_data(stacked_data)
+
+    is_dask_before = data_is_dask(data)
+    is_dask_after = data_is_dask(unstacked_data)
+
+    # Unstacked data has dimensions of original data
+    assert_expected_dims(data, unstacked_data, policy="all")
+    # Unstacked data has coordinates of original data
+    assert_expected_coords(data, unstacked_data, policy="all")
+    # inverse transform should not change dask-ness
+    assert is_dask_before == is_dask_after
 
 
 @pytest.mark.parametrize(
-    "dim_sample, dim_feature",
-    [
-        (("time",), ("lat", "lon")),
-        (("time",), ("lon", "lat")),
-        (("lat", "lon"), ("time",)),
-        (("lon", "lat"), ("time",)),
-    ],
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
 )
-def test_inverse_transform_components(mock_data_array, dim_sample, dim_feature):
-    # Test basic functionality
-    stacker = SingleDataArrayStacker()
-    stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
-    components = xr.DataArray(
-        np.random.normal(size=(len(stacker.coords_out_["feature"]), 10)),
-        dims=("feature", "mode"),
-        coords={"feature": stacker.coords_out_["feature"]},
-    )
-    unstacked = stacker.inverse_transform_components(components)
+def test_invserse_transform_components(synthetic_dataarray):
+    data: DataArray = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that feature dimensions are preserved
-    assert set(unstacked.dims) == set(dim_feature + ("mode",))
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
 
-    # Test that feature coordinates are preserved
-    for dim, coords in mock_data_array.coords.items():
-        if dim in dim_feature:
-            assert (
-                unstacked.coords[dim].size == coords.size
-            ), "Dimension {} has different size.".format(dim)
+    stacked_data = stacker.transform(data)
+    components = stacked_data.rename({"sample": "mode"})
+    unstacked_data = stacker.inverse_transform_components(components)
+
+    is_dask_before = data_is_dask(data)
+    is_dask_after = data_is_dask(unstacked_data)
+
+    # Unstacked components has correct feature dimensions
+    assert_expected_dims(data, unstacked_data, policy="feature")
+    # Unstacked data has coordinates of original data
+    assert_expected_coords(data, unstacked_data, policy="feature")
+    # inverse transform should not change dask-ness
+    assert is_dask_before == is_dask_after
 
 
 @pytest.mark.parametrize(
-    "dim_sample, dim_feature",
-    [
-        (("time",), ("lat", "lon")),
-        (("time",), ("lon", "lat")),
-        (("lat", "lon"), ("time",)),
-        (("lon", "lat"), ("time",)),
-    ],
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
 )
-def test_inverse_transform_scores(mock_data_array, dim_sample, dim_feature):
-    # Test basic functionality
-    stacker = SingleDataArrayStacker()
-    stacker.fit_transform(mock_data_array, dim_sample, dim_feature)
-    scores = xr.DataArray(
-        np.random.rand(len(stacker.coords_out_["sample"]), 10),
-        dims=("sample", "mode"),
-        coords={"sample": stacker.coords_out_["sample"]},
-    )
-    unstacked = stacker.inverse_transform_scores(scores)
+def test_invserse_transform_scores(synthetic_dataarray):
+    data: DataArray = synthetic_dataarray
+    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    # Test that sample dimensions are preserved
-    assert set(unstacked.dims) == set(dim_sample + ("mode",))
+    stacker = DataArrayStacker()
+    stacker.fit(data, sample_dims, feature_dims)
 
-    # Test that sample coordinates are preserved
-    for dim, coords in mock_data_array.coords.items():
-        if dim in dim_sample:
-            assert (
-                unstacked.coords[dim].size == coords.size
-            ), "Dimension {} has different size.".format(dim)
+    stacked_data = stacker.transform(data)
+    components = stacked_data.rename({"feature": "mode"})
+    unstacked_data = stacker.inverse_transform_scores(components)
 
+    is_dask_before = data_is_dask(data)
+    is_dask_after = data_is_dask(unstacked_data)
 
-def test_fit_transform_sample_feature_data():
-    """Test fit_transform with sample and feature data."""
-    # Create sample and feature data
-    np.random.seed(5)
-    simple_data = xr.DataArray(
-        np.random.rand(10, 5),
-        dims=("sample", "feature"),
-        coords={"sample": np.arange(10), "feature": np.arange(5)},
-    )
-    np.random.seed(5)
-    more_simple_data = xr.DataArray(
-        np.random.rand(10, 5),
-        dims=("sample", "feature"),
-        coords={"sample": np.arange(10), "feature": np.arange(5)},
-    )
-
-    # Create stacker and fit_transform
-    stacker = SingleDataArrayStacker()
-    stacked = stacker.fit_transform(simple_data, ("sample",), ("feature"))
-
-    # Test that the dimensions are correct
-    assert stacked.ndim == 2
-    assert set(stacked.dims) == {"sample", "feature"}
-    assert not stacked.isnull().any()
-
-    # Test that fitting new data yields the same results
-    more_stacked = stacker.transform(more_simple_data)
-    xr.testing.assert_equal(more_stacked, stacked)
-
-    # Test that the operation is reversible
-    unstacked = stacker.inverse_transform_data(stacked)
-    xr.testing.assert_equal(unstacked, simple_data)
-
-    more_unstacked = stacker.inverse_transform_data(more_stacked)
-    xr.testing.assert_equal(more_unstacked, more_simple_data)
+    # Unstacked components has correct feature dimensions
+    assert_expected_dims(data, unstacked_data, policy="sample")
+    # Unstacked data has coordinates of original data
+    assert_expected_coords(data, unstacked_data, policy="sample")
+    # inverse transform should not change dask-ness
+    assert is_dask_before == is_dask_after

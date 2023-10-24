@@ -5,6 +5,7 @@ from dask.array import Array as DaskArray  # type: ignore
 
 # Import the classes from your modules
 from xeofs.models import MCA, MCARotator
+from ..utilities import data_is_dask
 
 
 @pytest.fixture
@@ -16,7 +17,7 @@ def mca_model(mock_data_array, dim):
 
 @pytest.fixture
 def mca_model_delayed(mock_dask_data_array, dim):
-    mca = MCA(n_modes=5)
+    mca = MCA(n_modes=5, compute=False)
     mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
 
@@ -213,78 +214,38 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 
 
 @pytest.mark.parametrize(
-    "dim",
+    "dim, compute",
     [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
+        (("time",), True),
+        (("lat", "lon"), True),
+        (("lon", "lat"), True),
+        (("time",), False),
+        (("lat", "lon"), False),
+        (("lon", "lat"), False),
     ],
 )
-def test_compute(mca_model_delayed):
+def test_compute(mca_model_delayed, compute):
     """Test the compute method of the MCARotator class."""
 
-    mca_rotator = MCARotator(n_modes=4, rtol=1e-5)
+    mca_rotator = MCARotator(n_modes=4, compute=compute, rtol=1e-5)
     mca_rotator.fit(mca_model_delayed)
 
-    assert isinstance(
-        mca_rotator.data.squared_covariance.data, DaskArray
-    ), "squared_covariance is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.components1.data, DaskArray
-    ), "components1 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.components2.data, DaskArray
-    ), "components2 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.scores1.data, DaskArray
-    ), "scores1 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.scores2.data, DaskArray
-    ), "scores2 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.rotation_matrix.data, DaskArray
-    ), "rotation_matrix is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.phi_matrix.data, DaskArray
-    ), "phi_matrix is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.norm1.data, DaskArray
-    ), "norm1 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.norm2.data, DaskArray
-    ), "norm2 is not a delayed object"
-    assert isinstance(
-        mca_rotator.data.modes_sign.data, DaskArray
-    ), "modes_sign is not a delayed object"
+    if compute:
+        assert not data_is_dask(mca_rotator.data["squared_covariance"])
+        assert not data_is_dask(mca_rotator.data["components1"])
+        assert not data_is_dask(mca_rotator.data["components2"])
+        assert not data_is_dask(mca_rotator.data["rotation_matrix"])
+        assert not data_is_dask(mca_rotator.data["phi_matrix"])
+        assert not data_is_dask(mca_rotator.data["norm1"])
+        assert not data_is_dask(mca_rotator.data["norm2"])
+        assert not data_is_dask(mca_rotator.data["modes_sign"])
 
-    mca_rotator.compute()
-
-    assert isinstance(
-        mca_rotator.data.squared_covariance.data, np.ndarray
-    ), "squared_covariance is not computed"
-    assert isinstance(
-        mca_rotator.data.total_squared_covariance.data, np.ndarray
-    ), "total_squared_covariance is not computed"
-    assert isinstance(
-        mca_rotator.data.components1.data, np.ndarray
-    ), "components1 is not computed"
-    assert isinstance(
-        mca_rotator.data.components2.data, np.ndarray
-    ), "components2 is not computed"
-    assert isinstance(
-        mca_rotator.data.scores1.data, np.ndarray
-    ), "scores1 is not computed"
-    assert isinstance(
-        mca_rotator.data.scores2.data, np.ndarray
-    ), "scores2 is not computed"
-    assert isinstance(
-        mca_rotator.data.rotation_matrix.data, np.ndarray
-    ), "rotation_matrix is not computed"
-    assert isinstance(
-        mca_rotator.data.phi_matrix.data, np.ndarray
-    ), "phi_matrix is not computed"
-    assert isinstance(mca_rotator.data.norm1.data, np.ndarray), "norm1 is not computed"
-    assert isinstance(mca_rotator.data.norm2.data, np.ndarray), "norm2 is not computed"
-    assert isinstance(
-        mca_rotator.data.modes_sign.data, np.ndarray
-    ), "modes_sign is not computed"
+    else:
+        assert data_is_dask(mca_rotator.data["squared_covariance"])
+        assert data_is_dask(mca_rotator.data["components1"])
+        assert data_is_dask(mca_rotator.data["components2"])
+        assert data_is_dask(mca_rotator.data["rotation_matrix"])
+        assert data_is_dask(mca_rotator.data["phi_matrix"])
+        assert data_is_dask(mca_rotator.data["norm1"])
+        assert data_is_dask(mca_rotator.data["norm2"])
+        assert data_is_dask(mca_rotator.data["modes_sign"])

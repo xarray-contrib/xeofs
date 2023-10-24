@@ -1,28 +1,38 @@
+from typing import Optional, Dict
+from typing_extensions import Self
+import numpy as np
 import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import AnyDataObject, DataArray
-from ..data_container import EOFDataContainer, ComplexEOFDataContainer
-from ..utils.xarray_utils import hilbert_transform
+from ..utils.data_types import DataObject, DataArray, Dims
+from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
 
 
 class EOF(_BaseModel):
     """Empirical Orthogonal Functions (EOF) analysis.
 
-    EOF analysis is more commonly referend to as principal component analysis (PCA).
+    More commonly known as Principal Component Analysis (PCA).
 
     Parameters
     ----------
     n_modes: int, default=10
         Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
     standardize: bool, default=False
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
-    use_weights: bool, default=False
-        Whether to use weights.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately. This is recommended
+        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+        boosts computational efficiency compared to deferring the computation.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -38,94 +48,79 @@ class EOF(_BaseModel):
 
     def __init__(
         self,
-        n_modes=10,
-        standardize=False,
-        use_coslat=False,
-        use_weights=False,
-        solver="auto",
-        solver_kwargs={},
+        n_modes: int = 2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        compute: bool = True,
+        random_state: Optional[int] = None,
+        solver: str = "auto",
+        solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
+            center=center,
             standardize=standardize,
             use_coslat=use_coslat,
-            use_weights=use_weights,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            compute=compute,
+            random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "EOF analysis"})
 
-        # Initialize the DataContainer to store the results
-        self.data: EOFDataContainer = EOFDataContainer()
-
-    def fit(self, data: AnyDataObject, dim, weights=None):
-        # Preprocess the data
-        input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
+    def _fit_algorithm(self, data: DataArray) -> Self:
+        sample_name = self.sample_name
+        feature_name = self.feature_name
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim="sample")
+        total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(
-            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
-        )
-        decomposer.fit(input_data, dims=("sample", "feature"))
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer.fit(data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
         components = decomposer.V_
-        scores = decomposer.U_
+        scores = decomposer.U_ * decomposer.s_
+        scores.name = "scores"
 
-        # Compute the explained variance
-        explained_variance = singular_values**2 / (input_data.sample.size - 1)
+        # Compute the explained variance per mode
+        n_samples = data.coords[self.sample_name].size
+        exp_var = singular_values**2 / (n_samples - 1)
+        exp_var.name = "explained_variance"
 
-        # Index of the sorted explained variance
-        # It's already sorted, we just need to assign it to the DataContainer
-        # for the sake of consistency
-        idx_modes_sorted = explained_variance.compute().argsort()[::-1]
-        idx_modes_sorted.coords.update(explained_variance.coords)
+        # Store the results
+        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(components, "components")
+        self.data.add(scores, "scores")
+        self.data.add(singular_values, "norms")
+        self.data.add(exp_var, "explained_variance")
+        self.data.add(total_variance, "total_variance")
 
-        # Assign the results to the data container
-        self.data.set_data(
-            input_data=input_data,
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted,
-        )
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
-        """Project new unseen data onto the components (EOFs/eigenvectors).
+    def _transform_algorithm(self, data: DataObject) -> DataArray:
+        feature_name = self.preprocessor.feature_name
 
-        Parameters
-        ----------
-        data: AnyDataObject
-            Data to be transformed.
-
-        Returns
-        -------
-        projections: DataArray
-            Projections of the new data onto the components.
-
-        """
-        # Preprocess the data
-        data_stacked: DataArray = self.preprocessor.transform(data)
-
-        components = self.data.components
-        singular_values = self.data.singular_values
+        components = self.data["components"]
 
         # Project the data
-        projections = xr.dot(data_stacked, components, dims="feature") / singular_values
+        projections = xr.dot(data, components, dims=feature_name)
         projections.name = "scores"
 
-        # Unstack the projections
-        projections = self.preprocessor.inverse_transform_scores(projections)
         return projections
 
-    def inverse_transform(self, mode) -> AnyDataObject:
+    def _inverse_transform_algorithm(self, mode) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
@@ -144,22 +139,17 @@ class EOF(_BaseModel):
 
         """
         # Reconstruct the data
-        svals = self.data.singular_values.sel(mode=mode)
-        comps = self.data.components.sel(mode=mode)
-        scores = self.data.scores.sel(mode=mode) * svals
+        comps = self.data["components"].sel(mode=mode)
+        scores = self.data["scores"].sel(mode=mode)
         reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = "reconstructed_data"
 
         # Enforce real output
         reconstructed_data = reconstructed_data.real
 
-        # Unstack and unscale the data
-        reconstructed_data = self.preprocessor.inverse_transform_data(
-            reconstructed_data
-        )
         return reconstructed_data
 
-    def components(self) -> AnyDataObject:
+    def components(self) -> DataObject:
         """Return the (EOF) components.
 
         The components in EOF anaylsis are the eigenvectors of the covariance/correlation matrix.
@@ -171,15 +161,19 @@ class EOF(_BaseModel):
             Components of the fitted model.
 
         """
-        components = self.data.components
-        return self.preprocessor.inverse_transform_components(components)
+        return super().components()
 
-    def scores(self) -> DataArray:
+    def scores(self, normalized: bool = True) -> DataArray:
         """Return the (PC) scores.
 
         The scores in EOF anaylsis are the projection of the data matrix onto the
         eigenvectors of the covariance matrix (or correlation) matrix.
         Other names include the principal component (PC) scores or just PCs.
+
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the scores by the L2 norm (singular values).
 
         Returns
         -------
@@ -187,8 +181,7 @@ class EOF(_BaseModel):
             Scores of the fitted model.
 
         """
-        scores = self.data.scores
-        return self.preprocessor.inverse_transform_scores(scores)
+        return super().scores(normalized=normalized)
 
     def singular_values(self) -> DataArray:
         """Return the singular values of the Singular Value Decomposition.
@@ -199,7 +192,7 @@ class EOF(_BaseModel):
             Singular values obtained from the SVD.
 
         """
-        return self.data.singular_values
+        return self.data["norms"]
 
     def explained_variance(self) -> DataArray:
         """Return explained variance.
@@ -218,7 +211,7 @@ class EOF(_BaseModel):
         explained_variance: DataArray
             Explained variance.
         """
-        return self.data.explained_variance
+        return self.data["explained_variance"]
 
     def explained_variance_ratio(self) -> DataArray:
         """Return explained variance ratio.
@@ -236,13 +229,16 @@ class EOF(_BaseModel):
         explained_variance_ratio: DataArray
             Explained variance ratio.
         """
-        return self.data.explained_variance_ratio
+        exp_var_ratio = self.data["explained_variance"] / self.data["total_variance"]
+        exp_var_ratio.attrs.update(self.data["explained_variance"].attrs)
+        exp_var_ratio.name = "explained_variance_ratio"
+        return exp_var_ratio
 
 
 class ComplexEOF(EOF):
     """Complex Empirical Orthogonal Functions (Complex EOF) analysis.
 
-    The Complex EOF analysis [1]_ [2]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
+    The Complex EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
     to the data before performing the standard EOF analysis.
     The Hilbert transform is applied to each feature of the data individually.
 
@@ -253,12 +249,6 @@ class ComplexEOF(EOF):
     ----------
     n_modes : int
         Number of modes to calculate.
-    standardize : bool
-        Whether to standardize the input data.
-    use_coslat : bool
-        Whether to use cosine of latitude for scaling.
-    use_weights : bool
-        Whether to use weights.
     padding : str, optional
         Specifies the method used for padding the data prior to applying the Hilbert
         transform. This can help to mitigate the effect of spectral leakage.
@@ -270,13 +260,33 @@ class ComplexEOF(EOF):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
-    solver_kwargs : dict, optional
-        Additional keyword arguments to be passed to the SVD solver.
+        center: bool, default=True
+            Whether to center the input data.
+        standardize : bool
+            Whether to standardize the input data.
+        use_coslat : bool
+            Whether to use cosine of latitude for scaling.
+        sample_name: str, default="sample"
+            Name of the sample dimension.
+        feature_name: str, default="feature"
+            Name of the feature dimension.
+        compute: bool, default=True
+            Whether to compute the decomposition immediately. This is recommended
+            if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+            boosts computational efficiency compared to deferring the computation.
+        solver: {"auto", "full", "randomized"}, default="auto"
+            Solver to use for the SVD computation.
+        solver_kwargs: dict, default={}
+            Additional keyword arguments to be passed to the SVD solver.
+        solver_kwargs : dict, optional
+            Additional keyword arguments to be passed to the SVD solver.
 
     References
     ----------
-    .. [1] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
-    .. [2] Hannachi, A., Jolliffe, I., Stephenson, D., 2007. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152. https://doi.org/10.1002/joc.1499
+    .. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).
+    .. [2] Barnett, T. P. Interaction of the Monsoon and Pacific Trade Wind System at Interannual Time Scales Part I: The Equatorial Zone. Monthly Weather Review 111, 756–773 (1983).
+    .. [3] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
+    .. [4] Hannachi, A., Jolliffe, I., Stephenson, D., 2007. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152. https://doi.org/10.1002/joc.1499
 
     Examples
     --------
@@ -285,64 +295,84 @@ class ComplexEOF(EOF):
 
     """
 
-    def __init__(self, padding="exp", decay_factor=0.2, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        n_modes: int = 2,
+        padding: str = "exp",
+        decay_factor: float = 0.2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        compute: bool = True,
+        random_state: Optional[int] = None,
+        solver: str = "auto",
+        solver_kwargs: Dict = {},
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            compute=compute,
+            random_state=random_state,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+        )
         self.attrs.update({"model": "Complex EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
-        # Initialize the DataContainer to store the results
-        self.data: ComplexEOFDataContainer = ComplexEOFDataContainer()
-
-    def fit(self, data: AnyDataObject, dim, weights=None):
-        # Preprocess the data
-        input_data: DataArray = self.preprocessor.fit_transform(data, dim, weights)
+    def _fit_algorithm(self, data: DataArray) -> Self:
+        sample_name = self.sample_name
+        feature_name = self.feature_name
 
         # Apply hilbert transform:
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
-        input_data = hilbert_transform(
-            input_data, dim="sample", padding=padding, decay_factor=decay_factor
+        data = hilbert_transform(
+            data,
+            dims=(sample_name, feature_name),
+            padding=padding,
+            decay_factor=decay_factor,
         )
 
         # Compute the total variance
-        total_variance = compute_total_variance(input_data, dim="sample")
+        total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the complex data
         n_modes = self._params["n_modes"]
 
-        decomposer = Decomposer(
-            n_modes=n_modes, solver=self._params["solver"], **self._solver_kwargs
-        )
-        decomposer.fit(input_data)
+        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer.fit(data)
 
         singular_values = decomposer.s_
         components = decomposer.V_
-        scores = decomposer.U_
+        scores = decomposer.U_ * decomposer.s_
 
-        # Compute the explained variance
-        explained_variance = singular_values**2 / (input_data.sample.size - 1)
+        # Compute the explained variance per mode
+        n_samples = data.coords[self.sample_name].size
+        exp_var = singular_values**2 / (n_samples - 1)
+        exp_var.name = "explained_variance"
 
-        # Index of the sorted explained variance
-        # It's already sorted, we just need to assign it to the DataContainer
-        # for the sake of consistency
-        idx_modes_sorted = explained_variance.compute().argsort()[::-1]
-        idx_modes_sorted.coords.update(explained_variance.coords)
+        # Store the results
+        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(components, "components")
+        self.data.add(scores, "scores")
+        self.data.add(singular_values, "norms")
+        self.data.add(exp_var, "explained_variance")
+        self.data.add(total_variance, "total_variance")
 
-        self.data.set_data(
-            input_data=input_data,
-            components=components,
-            scores=scores,
-            explained_variance=explained_variance,
-            total_variance=total_variance,
-            idx_modes_sorted=idx_modes_sorted,
-        )
         # Assign analysis-relevant meta data to the results
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
-        raise NotImplementedError("ComplexEOF does not support transform method.")
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        raise NotImplementedError("Complex EOF does not support transform method.")
 
-    def components_amplitude(self) -> AnyDataObject:
+    def components_amplitude(self) -> DataObject:
         """Return the amplitude of the (EOF) components.
 
         The amplitude of the components are defined as
@@ -359,10 +389,11 @@ class ComplexEOF(EOF):
             Amplitude of the components of the fitted model.
 
         """
-        amplitudes = self.data.components_amplitude
+        amplitudes = abs(self.data["components"])
+        amplitudes.name = "components_amplitude"
         return self.preprocessor.inverse_transform_components(amplitudes)
 
-    def components_phase(self) -> AnyDataObject:
+    def components_phase(self) -> DataObject:
         """Return the phase of the (EOF) components.
 
         The phase of the components are defined as
@@ -379,10 +410,12 @@ class ComplexEOF(EOF):
             Phase of the components of the fitted model.
 
         """
-        phases = self.data.components_phase
-        return self.preprocessor.inverse_transform_components(phases)
+        comps = self.data["components"]
+        comp_phase = xr.apply_ufunc(np.angle, comps, dask="allowed", keep_attrs=True)
+        comp_phase.name = "components_phase"
+        return self.preprocessor.inverse_transform_components(comp_phase)
 
-    def scores_amplitude(self) -> DataArray:
+    def scores_amplitude(self, normalized=True) -> DataArray:
         """Return the amplitude of the (PC) scores.
 
         The amplitude of the scores are defined as
@@ -393,13 +426,23 @@ class ComplexEOF(EOF):
         where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
         :math:`|\\cdot|` denotes the absolute value.
 
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the scores by the singular values.
+
         Returns
         -------
         scores_amplitude: DataArray | Dataset | List[DataArray]
             Amplitude of the scores of the fitted model.
 
         """
-        amplitudes = self.data.scores_amplitude
+        scores = self.data["scores"].copy()
+        if normalized:
+            scores = scores / self.data["norms"]
+
+        amplitudes = abs(scores)
+        amplitudes.name = "scores_amplitude"
         return self.preprocessor.inverse_transform_scores(amplitudes)
 
     def scores_phase(self) -> DataArray:
@@ -419,5 +462,7 @@ class ComplexEOF(EOF):
             Phase of the scores of the fitted model.
 
         """
-        phases = self.data.scores_phase
+        scores = self.data["scores"]
+        phases = xr.apply_ufunc(np.angle, scores, dask="allowed", keep_attrs=True)
+        phases.name = "scores_phase"
         return self.preprocessor.inverse_transform_scores(phases)

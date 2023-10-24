@@ -5,6 +5,7 @@ from dask.array import Array as DaskArray  # type: ignore
 from numpy.testing import assert_allclose
 
 from xeofs.models.mca import MCA
+from ..utilities import data_is_dask
 
 
 @pytest.fixture
@@ -357,26 +358,26 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 
 
 @pytest.mark.parametrize(
-    "dim",
+    "dim, compute",
     [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
+        (("time",), True),
+        (("lat", "lon"), True),
+        (("lon", "lat"), True),
+        (("time",), False),
+        (("lat", "lon"), False),
+        (("lon", "lat"), False),
     ],
 )
-def test_compute(mca_model, mock_dask_data_array, dim):
+def test_compute(mock_dask_data_array, dim, compute):
+    mca_model = MCA(n_modes=10, compute=compute)
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
 
-    assert isinstance(mca_model.data.squared_covariance.data, DaskArray)
-    assert isinstance(mca_model.data.components1.data, DaskArray)
-    assert isinstance(mca_model.data.components2.data, DaskArray)
-    assert isinstance(mca_model.data.scores1.data, DaskArray)
-    assert isinstance(mca_model.data.scores2.data, DaskArray)
+    if compute:
+        assert not data_is_dask(mca_model.data["squared_covariance"])
+        assert not data_is_dask(mca_model.data["components1"])
+        assert not data_is_dask(mca_model.data["components2"])
 
-    mca_model.compute()
-
-    assert isinstance(mca_model.data.squared_covariance.data, np.ndarray)
-    assert isinstance(mca_model.data.components1.data, np.ndarray)
-    assert isinstance(mca_model.data.components2.data, np.ndarray)
-    assert isinstance(mca_model.data.scores1.data, np.ndarray)
-    assert isinstance(mca_model.data.scores2.data, np.ndarray)
+    else:
+        assert data_is_dask(mca_model.data["squared_covariance"])
+        assert data_is_dask(mca_model.data["components1"])
+        assert data_is_dask(mca_model.data["components2"])

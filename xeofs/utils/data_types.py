@@ -1,18 +1,33 @@
-from typing import List, TypeAlias, TypedDict, Optional, Tuple, TypeVar
+from typing import (
+    List,
+    TypeAlias,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Hashable,
+)
 
+import dask.array as da
 import xarray as xr
+from xarray.core import dataarray as xr_dataarray
+from xarray.core import dataset as xr_dataset
 
-DataArray: TypeAlias = xr.DataArray
-Dataset: TypeAlias = xr.Dataset
+DataArray: TypeAlias = xr_dataarray.DataArray
+DataSet: TypeAlias = xr_dataset.Dataset
+Data: TypeAlias = DataArray | DataSet
+DataVar = TypeVar("DataVar", DataArray, DataSet)
+DataVarBound = TypeVar("DataVarBound", bound=Data)
+
 DataArrayList: TypeAlias = List[DataArray]
-SingleDataObject = TypeVar("SingleDataObject", DataArray, Dataset)
-AnyDataObject = TypeVar("AnyDataObject", DataArray, Dataset, DataArrayList)
+DataSetList: TypeAlias = List[DataSet]
+DataList: TypeAlias = List[Data]
+DataVarList: TypeAlias = List[DataVar]
 
-XarrayData: TypeAlias = DataArray | Dataset
-# Model dimensions are always 2-dimensional: sample and feature
-Dims: TypeAlias = Tuple[str]
+
+DaskArray: TypeAlias = da.Array  # type: ignore
+DataObject: TypeAlias = DataArray | DataSet | DataList
+
+Dims: TypeAlias = Sequence[Hashable]
+DimsTuple: TypeAlias = Tuple[Dims, ...]
 DimsList: TypeAlias = List[Dims]
-SampleDims: TypeAlias = Dims
-FeatureDims: TypeAlias = Dims | DimsList
-# can be either like ('lat', 'lon') (1 DataArray) or (('lat', 'lon'), ('lon')) (multiple DataArrays)
-ModelDims = TypedDict("ModelDims", {"sample": SampleDims, "feature": FeatureDims})
+DimsListTuple: TypeAlias = Tuple[DimsList, ...]

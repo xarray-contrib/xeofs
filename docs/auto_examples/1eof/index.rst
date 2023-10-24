@@ -14,6 +14,23 @@
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial  data. EEOF analysis,...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eeof_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1eof_plot_eeof.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Extented EOF analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in T-mode maximises the spatial variance.">
 
 .. only:: html
@@ -116,16 +133,35 @@
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="TIn this demonstration, we&#x27;ll apply GWPCA to a dataset detailing the chemical compositions of s...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_gwpca_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1eof_plot_gwpca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Geographically weighted PCA</div>
+    </div>
+
+
+.. raw:: html
+
     </div>
 
 
 .. toctree::
    :hidden:
 
+   /auto_examples/1eof/plot_eeof
    /auto_examples/1eof/plot_eof-tmode
    /auto_examples/1eof/plot_eof-smode
    /auto_examples/1eof/plot_multivariate-eof
    /auto_examples/1eof/plot_mreof
    /auto_examples/1eof/plot_rotated_eof
    /auto_examples/1eof/plot_weighted-eof
+   /auto_examples/1eof/plot_gwpca
 

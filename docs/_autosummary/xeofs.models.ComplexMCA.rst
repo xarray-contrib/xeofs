@@ -33,6 +33,7 @@
       ~ComplexMCA.singular_values
       ~ComplexMCA.squared_covariance
       ~ComplexMCA.squared_covariance_fraction
+      ~ComplexMCA.total_covariance
       ~ComplexMCA.transform
    
    

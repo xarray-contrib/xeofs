@@ -22,6 +22,7 @@
       ~EOF.explained_variance
       ~EOF.explained_variance_ratio
       ~EOF.fit
+      ~EOF.fit_transform
       ~EOF.get_params
       ~EOF.inverse_transform
       ~EOF.scores

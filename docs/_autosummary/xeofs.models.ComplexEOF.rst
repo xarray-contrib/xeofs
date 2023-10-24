@@ -24,6 +24,7 @@
       ~ComplexEOF.explained_variance
       ~ComplexEOF.explained_variance_ratio
       ~ComplexEOF.fit
+      ~ComplexEOF.fit_transform
       ~ComplexEOF.get_params
       ~ComplexEOF.inverse_transform
       ~ComplexEOF.scores

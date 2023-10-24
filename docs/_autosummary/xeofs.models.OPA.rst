@@ -22,6 +22,7 @@
       ~OPA.decorrelation_time
       ~OPA.filter_patterns
       ~OPA.fit
+      ~OPA.fit_transform
       ~OPA.get_params
       ~OPA.inverse_transform
       ~OPA.scores

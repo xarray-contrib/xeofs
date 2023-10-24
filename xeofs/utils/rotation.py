@@ -1,15 +1,107 @@
-""" Implementation of VARIMAX and PROMAX rotation. """
-
-# =============================================================================
-# Imports
-# =============================================================================
 import numpy as np
+import xarray as xr
+
+from .data_types import DataArray
 
 
-# =============================================================================
-# VARIMAX
-# =============================================================================
-def varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float = 1e-8):
+def promax(loadings: DataArray, feature_dim, compute=True, **kwargs):
+    rotated, rot_mat, phi_mat = xr.apply_ufunc(
+        _promax,
+        loadings,
+        input_core_dims=[[feature_dim, "mode"]],
+        output_core_dims=[
+            [feature_dim, "mode"],
+            ["mode_m", "mode_n"],
+            ["mode_m", "mode_n"],
+        ],
+        kwargs=kwargs,
+        dask="allowed",
+    )
+    if compute:
+        rotated = rotated.compute()
+        rot_mat = rot_mat.compute()
+        phi_mat = phi_mat.compute()
+    return rotated, rot_mat, phi_mat
+
+
+def _promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+    """
+    Perform (oblique) Promax rotation.
+
+    This implementation also works for complex numbers.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        2D matrix to be rotated. Must have shape ``p x m`` containing
+        p features and m modes.
+    power : int
+        Rotation parameter defining the power the Varimax solution is raised
+        to. For ``power=1``, this is equivalent to the Varimax solution
+        (the default is 1).
+    max_iter: int
+        Maximum number of iterations for finding the rotation matrix
+        (the default is 1000).
+    rtol:
+        The relative tolerance for the rotation process to achieve
+        (the default is 1e-8).
+
+    Returns
+    -------
+    Xrot : np.ndarray
+        2D matrix containing the rotated modes.
+    rot_mat : np.ndarray
+        Rotation matrix of shape ``m x m`` with m being number of modes.
+    phi : np.ndarray
+        Correlation matrix of PCs of shape ``m x m`` with m being number
+        of modes. For Varimax solution (``power=1``), the correlation matrix
+        is diagonal i.e. the modes are uncorrelated.
+
+    """
+    X = X.copy()
+
+    # Perform varimax rotation
+    X, rot_mat = _varimax(X=X, max_iter=max_iter, rtol=rtol)
+
+    # Pre-normalization by communalities (sum of squared rows)
+    h = np.sqrt(np.sum(X * X.conj(), axis=1))
+    # Add a stabilizer to avoid zero communalities
+    eps = 1e-9
+    X = (1.0 / (h + eps))[:, np.newaxis] * X
+
+    # Max-normalisation of columns
+    Xnorm = X / np.max(abs(X), axis=0)
+
+    # "Procustes" equation
+    P = Xnorm * np.abs(Xnorm) ** (power - 1)
+
+    # Fit linear regression model of "Procrustes" equation
+    # see Richman 1986 for derivation
+    L = np.linalg.inv(X.conj().T @ X) @ X.conj().T @ P
+
+    # calculate diagonal of inverse square
+    try:
+        sigma_inv = np.diag(np.diag(np.linalg.inv(L.conj().T @ L)))
+    except np.linalg.LinAlgError:
+        sigma_inv = np.diag(np.diag(np.linalg.pinv(L.conj().T @ L)))
+
+    # transform and calculate inner products
+    L = L @ np.sqrt(sigma_inv)
+    Xrot = X @ L
+
+    # Post-normalization based on Kaiser
+    Xrot = h[:, np.newaxis] * Xrot
+
+    rot_mat = rot_mat @ L
+
+    # Correlation matrix
+    L_inv = np.linalg.inv(L)
+    phi = L_inv @ L_inv.conj().T
+
+    return Xrot, rot_mat, phi
+
+
+def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float = 1e-8):
     """
     Perform (orthogonal) Varimax rotation.
 
@@ -85,83 +177,3 @@ def varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float =
     # Rotate
     Xrot = X @ R
     return Xrot, R
-
-
-# =============================================================================
-# PROMAX
-# =============================================================================
-def promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
-    """
-    Perform (oblique) Promax rotation.
-
-    This implementation also works for complex numbers.
-
-    Parameters
-    ----------
-    X : np.ndarray
-        2D matrix to be rotated. Must have shape ``p x m`` containing
-        p features and m modes.
-    power : int
-        Rotation parameter defining the power the Varimax solution is raised
-        to. For ``power=1``, this is equivalent to the Varimax solution
-        (the default is 1).
-    max_iter: int
-        Maximum number of iterations for finding the rotation matrix
-        (the default is 1000).
-    rtol:
-        The relative tolerance for the rotation process to achieve
-        (the default is 1e-8).
-
-    Returns
-    -------
-    Xrot : np.ndarray
-        2D matrix containing the rotated modes.
-    rot_mat : np.ndarray
-        Rotation matrix of shape ``m x m`` with m being number of modes.
-    phi : np.ndarray
-        Correlation matrix of PCs of shape ``m x m`` with m being number
-        of modes. For Varimax solution (``power=1``), the correlation matrix
-        is diagonal i.e. the modes are uncorrelated.
-
-    """
-    X = X.copy()
-
-    # Perform varimax rotation
-    X, rot_mat = varimax(X=X, max_iter=max_iter, rtol=rtol)
-
-    # Pre-normalization by communalities (sum of squared rows)
-    h = np.sqrt(np.sum(X * X.conj(), axis=1))
-    # Add a stabilizer to avoid zero communalities
-    eps = 1e-9
-    X = (1.0 / (h + eps))[:, np.newaxis] * X
-
-    # Max-normalisation of columns
-    Xnorm = X / np.max(abs(X), axis=0)
-
-    # "Procustes" equation
-    P = Xnorm * np.abs(Xnorm) ** (power - 1)
-
-    # Fit linear regression model of "Procrustes" equation
-    # see Richman 1986 for derivation
-    L = np.linalg.inv(X.conj().T @ X) @ X.conj().T @ P
-
-    # calculate diagonal of inverse square
-    try:
-        sigma_inv = np.diag(np.diag(np.linalg.inv(L.conj().T @ L)))
-    except np.linalg.LinAlgError:
-        sigma_inv = np.diag(np.diag(np.linalg.pinv(L.conj().T @ L)))
-
-    # transform and calculate inner products
-    L = L @ np.sqrt(sigma_inv)
-    Xrot = X @ L
-
-    # Post-normalization based on Kaiser
-    Xrot = h[:, np.newaxis] * Xrot
-
-    rot_mat = rot_mat @ L
-
-    # Correlation matrix
-    L_inv = np.linalg.inv(L)
-    phi = L_inv @ L_inv.conj().T
-
-    return Xrot, rot_mat, phi

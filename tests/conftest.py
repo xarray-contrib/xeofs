@@ -4,9 +4,220 @@ import numpy as np
 import pytest
 import warnings
 import xarray as xr
+import pandas as pd
+
+from xeofs.utils.data_types import DataArray, DataSet, DataList
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+
+
+# =============================================================================
+# Synthetic data
+# =============================================================================
+def generate_synthetic_dataarray(
+    n_sample=1,
+    n_feature=1,
+    index_policy="index",
+    nan_policy="no_nan",
+    dask_policy="no_dask",
+    seed=0,
+) -> DataArray:
+    """Create synthetic DataArray.
+
+    Parameters:
+    ------------
+    n_sample: int
+        Number of sample dimensions.
+    n_dims_feature: int
+        Number of feature dimensions.
+    index_policy: ["index", "multiindex"], default="index"
+        If "multiindex", the data will have a multiindex.
+    nan_policy: ["no_nan", "isolated", "fulldim"], default="no_nan"
+        If specified, the data will contain NaNs.
+    dsak_policy: ["no_dask", "dask"], default="no_dask"
+        If "dask", the data will be a dask array.
+    seed: int, default=0
+        Seed for the random number generator.
+
+    Returns:
+    ---------
+    data: xr.DataArray
+        Synthetic data.
+
+    """
+    rng = np.random.default_rng(seed)
+
+    # Create dimensions
+    sample_dims = [f"sample{i}" for i in range(n_sample)]
+    feature_dims = [f"feature{i}" for i in range(n_feature)]
+    all_dims = feature_dims + sample_dims
+
+    # Create coordinates/indices
+    coords = {}
+    for i, dim in enumerate(all_dims):
+        if index_policy == "multiindex":
+            coords[dim] = pd.MultiIndex.from_arrays(
+                [np.arange(6 - i), np.arange(6 - i)],
+                names=[f"index{i}a", f"index{i}b"],
+            )
+        elif index_policy == "index":
+            coords[dim] = np.arange(6 + i)
+        else:
+            raise ValueError(f"Invalid value for index_policy: {index_policy}")
+
+    # Get data shape
+    shape = tuple([len(coords[dim]) for dim in all_dims])
+
+    # Create data
+    noise = rng.normal(5, 3, size=shape)
+    signal = 2 * np.sin(np.linspace(0, 2 * np.pi, shape[-1]))
+    signal = np.broadcast_to(signal, shape)
+    data = signal + noise
+    data = xr.DataArray(data, dims=all_dims, coords=coords)
+
+    # Add NaNs
+    if nan_policy == "no_nan":
+        pass
+    elif nan_policy == "isolated":
+        isolated_point = {dim: 0 for dim in all_dims}
+        data.loc[isolated_point] = np.nan
+    elif nan_policy == "fulldim":
+        fulldim_point = {dim: 0 for dim in feature_dims}
+        data.loc[fulldim_point] = np.nan
+    else:
+        raise ValueError(f"Invalid value for nan_policy: {nan_policy}")
+
+    # Convert to dask array
+    if dask_policy == "no_dask":
+        pass
+    elif dask_policy == "dask":
+        data = data.chunk({"sample0": 1})
+    else:
+        raise ValueError(f"Invalid value for dask_policy: {dask_policy}")
+
+    return data
+
+
+def generate_synthetic_dataset(
+    n_variables=1,
+    n_sample=1,
+    n_feature=1,
+    index_policy="index",
+    nan_policy="no_nan",
+    dask_policy="no_dask",
+    seed=0,
+) -> DataSet:
+    """Create synthetic Dataset.
+
+    Parameters:
+    ------------
+    n_variables: int
+        Number of variables.
+    n_sample: int
+        Number of sample dimensions.
+    n_dims_feature: int
+        Number of feature dimensions.
+    index_policy: ["index", "multiindex"], default="index"
+        If "multiindex", the data will have a multiindex.
+    nan_policy: ["no_nan", "isolated", "fulldim"], default="no_nan"
+        If specified, the data will contain NaNs.
+    dask_policy: ["no_dask", "dask"], default="no_dask"
+        If "dask", the data will be a dask array.
+    seed: int, default=0
+        Seed for the random number generator.
+
+    Returns:
+    ---------
+    data: xr.Dataset
+        Synthetic data.
+
+    """
+    data = generate_synthetic_dataarray(
+        n_sample, n_feature, index_policy, nan_policy, dask_policy, seed
+    )
+    dataset = xr.Dataset({"var0": data})
+    seed += 1
+
+    for n in range(1, n_variables):
+        data_n = generate_synthetic_dataarray(
+            n_sample=n_sample,
+            n_feature=n_feature,
+            index_policy=index_policy,
+            nan_policy=nan_policy,
+            dask_policy=dask_policy,
+            seed=seed,
+        )
+        dataset[f"var{n}"] = data_n
+        seed += 1
+    return dataset
+
+
+def generate_list_of_synthetic_dataarrays(
+    n_arrays=1,
+    n_sample=1,
+    n_feature=1,
+    index_policy="index",
+    nan_policy="no_nan",
+    dask_policy="no_dask",
+    seed=0,
+) -> DataList:
+    """Create synthetic Dataset.
+
+    Parameters:
+    ------------
+    n_arrays: int
+        Number of DataArrays.
+    n_sample: int
+        Number of sample dimensions.
+    n_dims_feature: int
+        Number of feature dimensions.
+    index_policy: ["index", "multiindex"], default="index"
+        If "multiindex", the data will have a multiindex.
+    nan_policy: ["no_nan", "isolated", "fulldim"], default="no_nan"
+        If specified, the data will contain NaNs.
+    dask_policy: ["no_dask", "dask"], default="no_dask"
+        If "dask", the data will be a dask array.
+    seed: int, default=0
+        Seed for the random number generator.
+
+    Returns:
+    ---------
+    data: xr.Dataset
+        Synthetic data.
+
+    """
+    data_arrays = []
+    for n in range(n_arrays):
+        data_n = generate_synthetic_dataarray(
+            n_sample=n_sample,
+            n_feature=n_feature,
+            index_policy=index_policy,
+            nan_policy=nan_policy,
+            dask_policy=dask_policy,
+            seed=seed,
+        )
+        data_arrays.append(data_n)
+        seed += 1
+    return data_arrays
+
+
+@pytest.fixture
+def synthetic_dataarray(request) -> DataArray:
+    data = generate_synthetic_dataarray(*request.param)
+    return data
+
+
+@pytest.fixture
+def synthetic_dataset(request) -> DataSet:
+    data = generate_synthetic_dataset(*request.param)
+    return data
+
+
+@pytest.fixture
+def synthetic_datalist(request) -> DataList:
+    data = generate_list_of_synthetic_dataarrays(*request.param)
+    return data
 
 
 # =============================================================================

@@ -22,6 +22,7 @@
       ~EOFRotator.explained_variance
       ~EOFRotator.explained_variance_ratio
       ~EOFRotator.fit
+      ~EOFRotator.fit_transform
       ~EOFRotator.get_params
       ~EOFRotator.inverse_transform
       ~EOFRotator.scores

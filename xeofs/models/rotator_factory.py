@@ -1,15 +1,7 @@
-import numpy as np
-import xarray as xr
-from typing import Optional, Union, List, Tuple
-
-from xeofs.utils.data_types import DataArrayList, XarrayData
-
 from .eof import EOF, ComplexEOF
 from .mca import MCA, ComplexMCA
 from .eof_rotator import EOFRotator, ComplexEOFRotator
 from .mca_rotator import MCARotator, ComplexMCARotator
-from ..utils.rotation import promax
-from ..utils.data_types import XarrayData, DataArrayList, Dataset, DataArray
 
 
 class RotatorFactory:

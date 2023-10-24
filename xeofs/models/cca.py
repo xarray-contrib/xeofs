@@ -1,743 +1,701 @@
-# from typing import Tuple
-
-# import numpy as np
-# import xarray as xr
-
-# from ._base_cross_model import _BaseCrossModel
-# from .decomposer import CrossDecomposer
-# from ..utils.data_types import AnyDataObject, DataArray
-# from ..data_container.mca_data_container import (
-#     MCADataContainer,
-#     ComplexMCADataContainer,
-# )
-# from ..utils.statistics import pearson_correlation
-# from ..utils.xarray_utils import hilbert_transform
-
-
-# class MCA(_BaseCrossModel):
-#     """Maximum Covariance Analyis (MCA).
-
-#     MCA is a statistical method that finds patterns of maximum covariance between two datasets.
-
-#     Parameters
-#     ----------
-#     n_modes: int, default=10
-#         Number of modes to calculate.
-#     standardize: bool, default=False
-#         Whether to standardize the input data.
-#     use_coslat: bool, default=False
-#         Whether to use cosine of latitude for scaling.
-#     use_weights: bool, default=False
-#         Whether to use additional weights.
-#     solver_kwargs: dict, default={}
-#         Additional keyword arguments passed to the SVD solver.
-#     n_pca_modes: int, default=None
-#         The number of principal components to retain during the PCA preprocessing
-#         step applied to both data sets prior to executing MCA.
-#         If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
-#         Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
-#         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
-#         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
-#         intensive or in scenarios where multicollinearity is a concern.
-
-#     Notes
-#     -----
-#     MCA is similar to Principal Component Analysis (PCA) and Canonical Correlation Analysis (CCA),
-#     but while PCA finds modes of maximum variance and CCA finds modes of maximum correlation,
-#     MCA finds modes of maximum covariance. See [1]_ [2]_ for more details.
-
-#     References
-#     ----------
-#     .. [1] Bretherton, C., Smith, C., Wallace, J., 1992. An intercomparison of methods for finding coupled patterns in climate data. Journal of climate 5, 541–560.
-#     .. [2] Cherry, S., 1996. Singular value decomposition analysis and canonical correlation analysis. Journal of Climate 9, 2003–2009.
-
-#     Examples
-#     --------
-#     >>> model = MCA(n_modes=5, standardize=True)
-#     >>> model.fit(data1, data2)
-
-#     """
-
-#     def __init__(self, solver_kwargs={}, **kwargs):
-#         super().__init__(solver_kwargs=solver_kwargs, **kwargs)
-#         self.attrs.update({"model": "MCA"})
-
-#         # Initialize the DataContainer to store the results
-#         self.data: MCADataContainer = MCADataContainer()
-
-#     def fit(
-#         self,
-#         data1: AnyDataObject,
-#         data2: AnyDataObject,
-#         dim,
-#         weights1=None,
-#         weights2=None,
-#     ):
-#         # Preprocess the data
-#         data1_processed: DataArray = self.preprocessor1.fit_transform(
-#             data1, dim, weights1
-#         )
-#         data2_processed: DataArray = self.preprocessor2.fit_transform(
-#             data2, dim, weights2
-#         )
-
-#         # Perform the decomposition of the cross-covariance matrix
-#         decomposer = CrossDecomposer(
-#             n_modes=self._params["n_modes"], **self._solver_kwargs
-#         )
-
-#         # Perform SVD on PCA-reduced data
-#         if (self.pca1 is not None) and (self.pca2 is not None):
-#             # Fit the PCA models
-#             self.pca1.fit(data1_processed, "sample")
-#             self.pca2.fit(data2_processed, "sample")
-#             # Get the PCA scores
-#             pca_scores1 = self.pca1.data.scores * self.pca1.data.singular_values
-#             pca_scores2 = self.pca2.data.scores * self.pca2.data.singular_values
-#             # Rename the dimensions to adhere to the CrossDecomposer API
-#             pca_scores1 = pca_scores1.rename({"mode": "feature"})
-#             pca_scores2 = pca_scores2.rename({"mode": "feature"})
-
-#             # Perform the SVD
-#             decomposer.fit(pca_scores1, pca_scores2)
-#             V1 = decomposer.singular_vectors1_.rename({"feature": "core"})
-#             V2 = decomposer.singular_vectors2_.rename({"feature": "core"})
-
-#             V1pre = self.pca1.data.components.rename({"mode": "core"})
-#             V2pre = self.pca2.data.components.rename({"mode": "core"})
-
-#             # Compute the singular vectors based on the PCA eigenvectors
-#             singular_vectors1 = xr.dot(V1pre, V1, dims="core")
-#             singular_vectors2 = xr.dot(V2pre, V2, dims="core")
-
-#         # Perform SVD directly on data
-#         else:
-#             decomposer.fit(data1_processed, data2_processed)
-#             singular_vectors1 = decomposer.singular_vectors1_
-#             singular_vectors2 = decomposer.singular_vectors2_
-
-#         # Store the results
-#         singular_values = decomposer.singular_values_
-
-#         squared_covariance = singular_values**2
-#         total_squared_covariance = decomposer.total_squared_covariance_
-
-#         norm1 = np.sqrt(singular_values)
-#         norm2 = np.sqrt(singular_values)
-
-#         # Index of the sorted squared covariance
-#         idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
-#         idx_sorted_modes.coords.update(squared_covariance.coords)
-
-#         # Project the data onto the singular vectors
-#         scores1 = xr.dot(data1_processed, singular_vectors1, dims="feature") / norm1
-#         scores2 = xr.dot(data2_processed, singular_vectors2, dims="feature") / norm2
-
-#         self.data.set_data(
-#             input_data1=data1_processed,
-#             input_data2=data2_processed,
-#             components1=singular_vectors1,
-#             components2=singular_vectors2,
-#             scores1=scores1,
-#             scores2=scores2,
-#             squared_covariance=squared_covariance,
-#             total_squared_covariance=total_squared_covariance,
-#             idx_modes_sorted=idx_sorted_modes,
-#             norm1=norm1,
-#             norm2=norm2,
-#         )
-#         # Assign analysis-relevant meta data
-#         self.data.set_attrs(self.attrs)
-
-#     def transform(self, **kwargs):
-#         """Project new unseen data onto the singular vectors.
-
-#         Parameters
-#         ----------
-#         data1: xr.DataArray or list of xarray.DataArray
-#             Left input data. Must be provided if `data2` is not provided.
-#         data2: xr.DataArray or list of xarray.DataArray
-#             Right input data. Must be provided if `data1` is not provided.
-
-#         Returns
-#         -------
-#         scores1: DataArray | Dataset | List[DataArray]
-#             Left scores.
-#         scores2: DataArray | Dataset | List[DataArray]
-#             Right scores.
-
-#         """
-#         results = []
-#         if "data1" in kwargs.keys():
-#             # Preprocess input data
-#             data1 = kwargs["data1"]
-#             data1 = self.preprocessor1.transform(data1)
-#             # Project data onto singular vectors
-#             comps1 = self.data.components1
-#             norm1 = self.data.norm1
-#             scores1 = xr.dot(data1, comps1) / norm1
-#             # Inverse transform scores
-#             scores1 = self.preprocessor1.inverse_transform_scores(scores1)
-#             results.append(scores1)
-
-#         if "data2" in kwargs.keys():
-#             # Preprocess input data
-#             data2 = kwargs["data2"]
-#             data2 = self.preprocessor2.transform(data2)
-#             # Project data onto singular vectors
-#             comps2 = self.data.components2
-#             norm2 = self.data.norm2
-#             scores2 = xr.dot(data2, comps2) / norm2
-#             # Inverse transform scores
-#             scores2 = self.preprocessor2.inverse_transform_scores(scores2)
-#             results.append(scores2)
-
-#         return results
-
-#     def inverse_transform(self, mode):
-#         """Reconstruct the original data from transformed data.
-
-#         Parameters
-#         ----------
-#         mode: scalars, slices or array of tick labels.
-#             The mode(s) used to reconstruct the data. If a scalar is given,
-#             the data will be reconstructed using the given mode. If a slice
-#             is given, the data will be reconstructed using the modes in the
-#             given slice. If a array is given, the data will be reconstructed
-#             using the modes in the given array.
-
-#         Returns
-#         -------
-#         Xrec1: DataArray | Dataset | List[DataArray]
-#             Reconstructed data of left field.
-#         Xrec2: DataArray | Dataset | List[DataArray]
-#             Reconstructed data of right field.
-
-#         """
-#         # Singular vectors
-#         comps1 = self.data.components1.sel(mode=mode)
-#         comps2 = self.data.components2.sel(mode=mode)
-
-#         # Scores = projections
-#         scores1 = self.data.scores1.sel(mode=mode)
-#         scores2 = self.data.scores2.sel(mode=mode)
-
-#         # Norms
-#         norm1 = self.data.norm1.sel(mode=mode)
-#         norm2 = self.data.norm2.sel(mode=mode)
-
-#         # Reconstruct the data
-#         data1 = xr.dot(scores1, comps1.conj() * norm1, dims="mode")
-#         data2 = xr.dot(scores2, comps2.conj() * norm2, dims="mode")
-
-#         # Enforce real output
-#         data1 = data1.real
-#         data2 = data2.real
-
-#         # Unstack and rescale the data
-#         data1 = self.preprocessor1.inverse_transform_data(data1)
-#         data2 = self.preprocessor2.inverse_transform_data(data2)
-
-#         return data1, data2
-
-#     def squared_covariance(self):
-#         """Get the squared covariance.
-
-#         The squared covariance corresponds to the explained variance in PCA and is given by the
-#         squared singular values of the covariance matrix.
-
-#         """
-#         return self.data.squared_covariance
-
-#     def squared_covariance_fraction(self):
-#         """Calculate the squared covariance fraction (SCF).
-
-#         The SCF is a measure of the proportion of the total squared covariance that is explained by each mode `i`. It is computed
-#         as follows:
-
-#         .. math::
-#         SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{m} \\sigma_i^2}
-
-#         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
-
-#         """
-#         return self.data.squared_covariance_fraction
-
-#     def singular_values(self):
-#         """Get the singular values of the cross-covariance matrix."""
-#         return self.data.singular_values
-
-#     def covariance_fraction(self):
-#         """Get the covariance fraction (CF).
-
-#         Cheng and Dunkerton (1995) define the CF as follows:
-
-#         .. math::
-#         CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
-
-#         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
-
-#         In this implementation the sum of singular values is estimated from the first `n` modes, therefore one should aim to
-#         retain as many modes as possible to get a good estimate of the covariance fraction.
-
-#         Note
-#         ----
-#         It is important to differentiate the CF from the squared covariance fraction (SCF). While the SCF is an invariant quantity in MCA, the CF is not.
-#         Therefore, the SCF is used to assess the relative importance of each mode. Cheng and Dunkerton (1995) [1]_ introduced the CF in the context of
-#         Varimax-rotated MCA to compare the relative importance of each mode before and after rotation. In the special case of both data fields in MCA being identical,
-#         the CF is equivalent to the explained variance ratio in EOF analysis.
-
-#         References
-#         ----------
-#         .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
-
-
-#         """
-#         # Check how sensitive the CF is to the number of modes
-#         svals = self.data.singular_values
-#         cf = svals[0] / svals.cumsum()
-#         change_per_mode = cf.shift({"mode": 1}) - cf
-#         change_in_cf_in_last_mode = change_per_mode.isel(mode=-1)
-#         if change_in_cf_in_last_mode > 0.001:
-#             print(
-#                 f"Warning: CF is sensitive to the number of modes retained. Please increase `n_modes` for a better estimate."
-#             )
-#         return self.data.covariance_fraction
-
-#     def components(self):
-#         """Return the singular vectors of the left and right field.
-
-#         Returns
-#         -------
-#         components1: DataArray | Dataset | List[DataArray]
-#             Left components of the fitted model.
-#         components2: DataArray | Dataset | List[DataArray]
-#             Right components of the fitted model.
-
-#         """
-#         return super().components()
-
-#     def scores(self):
-#         """Return the scores of the left and right field.
-
-#         The scores in MCA are the projection of the left and right field onto the
-#         left and right singular vector of the cross-covariance matrix.
-
-#         Returns
-#         -------
-#         scores1: DataArray
-#             Left scores.
-#         scores2: DataArray
-#             Right scores.
-
-#         """
-#         return super().scores()
-
-#     def homogeneous_patterns(self, correction=None, alpha=0.05):
-#         """Return the homogeneous patterns of the left and right field.
-
-#         The homogeneous patterns are the correlation coefficients between the
-#         input data and the scores.
-
-#         More precisely, the homogeneous patterns `r_{hom}` are defined as
-
-#         .. math::
-#           r_{hom, x} = corr \\left(X, A_x \\right)
-#         .. math::
-#           r_{hom, y} = corr \\left(Y, A_y \\right)
-
-#         where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
-#         are the scores of the left and right field, respectively.
-
-#         Parameters
-#         ----------
-#         correction: str, default=None
-#             Method to apply a multiple testing correction. If None, no correction
-#             is applied.  Available methods are:
-#             - bonferroni : one-step correction
-#             - sidak : one-step correction
-#             - holm-sidak : step down method using Sidak adjustments
-#             - holm : step-down method using Bonferroni adjustments
-#             - simes-hochberg : step-up method (independent)
-#             - hommel : closed method based on Simes tests (non-negative)
-#             - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-#             - fdr_by : Benjamini/Yekutieli (negative)
-#             - fdr_tsbh : two stage fdr correction (non-negative)
-#             - fdr_tsbky : two stage fdr correction (non-negative)
-#         alpha: float, default=0.05
-#             The desired family-wise error rate. Not used if `correction` is None.
-
-#         Returns
-#         -------
-#         patterns1: DataArray | Dataset | List[DataArray]
-#             Left homogenous patterns.
-#         patterns2: DataArray | Dataset | List[DataArray]
-#             Right homogenous patterns.
-#         pvals1: DataArray | Dataset | List[DataArray]
-#             Left p-values.
-#         pvals2: DataArray | Dataset | List[DataArray]
-#             Right p-values.
-
-#         """
-#         input_data1 = self.data.input_data1
-#         input_data2 = self.data.input_data2
-
-#         scores1 = self.data.scores1
-#         scores2 = self.data.scores2
-
-#         hom_pat1, pvals1 = pearson_correlation(
-#             input_data1, scores1, correction=correction, alpha=alpha
-#         )
-#         hom_pat2, pvals2 = pearson_correlation(
-#             input_data2, scores2, correction=correction, alpha=alpha
-#         )
-
-#         hom_pat1 = self.preprocessor1.inverse_transform_components(hom_pat1)
-#         hom_pat2 = self.preprocessor2.inverse_transform_components(hom_pat2)
-
-#         pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
-#         pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
-
-#         hom_pat1.name = "left_homogeneous_patterns"
-#         hom_pat2.name = "right_homogeneous_patterns"
-
-#         pvals1.name = "pvalues_of_left_homogeneous_patterns"
-#         pvals2.name = "pvalues_of_right_homogeneous_patterns"
-
-#         return (hom_pat1, hom_pat2), (pvals1, pvals2)
-
-#     def heterogeneous_patterns(self, correction=None, alpha=0.05):
-#         """Return the heterogeneous patterns of the left and right field.
-
-#         The heterogeneous patterns are the correlation coefficients between the
-#         input data and the scores of the other field.
-
-#         More precisely, the heterogeneous patterns `r_{het}` are defined as
-
-#         .. math::
-#           r_{het, x} = corr \\left(X, A_y \\right)
-#         .. math::
-#           r_{het, y} = corr \\left(Y, A_x \\right)
-
-#         where :math:`X` and :math:`Y` are the input data, :math:`A_x` and :math:`A_y`
-#         are the scores of the left and right field, respectively.
-
-#         Parameters
-#         ----------
-#         correction: str, default=None
-#             Method to apply a multiple testing correction. If None, no correction
-#             is applied.  Available methods are:
-#             - bonferroni : one-step correction
-#             - sidak : one-step correction
-#             - holm-sidak : step down method using Sidak adjustments
-#             - holm : step-down method using Bonferroni adjustments
-#             - simes-hochberg : step-up method (independent)
-#             - hommel : closed method based on Simes tests (non-negative)
-#             - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-#             - fdr_by : Benjamini/Yekutieli (negative)
-#             - fdr_tsbh : two stage fdr correction (non-negative)
-#             - fdr_tsbky : two stage fdr correction (non-negative)
-#         alpha: float, default=0.05
-#             The desired family-wise error rate. Not used if `correction` is None.
-
-#         """
-#         input_data1 = self.data.input_data1
-#         input_data2 = self.data.input_data2
-
-#         scores1 = self.data.scores1
-#         scores2 = self.data.scores2
-
-#         patterns1, pvals1 = pearson_correlation(
-#             input_data1, scores2, correction=correction, alpha=alpha
-#         )
-#         patterns2, pvals2 = pearson_correlation(
-#             input_data2, scores1, correction=correction, alpha=alpha
-#         )
-
-#         patterns1 = self.preprocessor1.inverse_transform_components(patterns1)
-#         patterns2 = self.preprocessor2.inverse_transform_components(patterns2)
-
-#         pvals1 = self.preprocessor1.inverse_transform_components(pvals1)
-#         pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
-
-#         patterns1.name = "left_heterogeneous_patterns"
-#         patterns2.name = "right_heterogeneous_patterns"
-
-#         pvals1.name = "pvalues_of_left_heterogeneous_patterns"
-#         pvals2.name = "pvalues_of_right_heterogeneous_patterns"
-
-#         return (patterns1, patterns2), (pvals1, pvals2)
-
-
-# class ComplexMCA(MCA):
-#     """Complex Maximum Covariance Analysis (MCA).
-
-#     Complex MCA, also referred to as Analytical SVD (ASVD) by Shane et al. (2017)[1]_,
-#     enhances traditional MCA by accommodating both amplitude and phase information.
-#     It achieves this by utilizing the Hilbert transform to preprocess the data,
-#     thus allowing for a more comprehensive analysis in the subsequent MCA computation.
-
-#     An optional padding with exponentially decaying values can be applied prior to
-#     the Hilbert transform in order to mitigate the impact of spectral leakage.
-
-#     Parameters
-#     ----------
-#     n_modes: int, default=10
-#         Number of modes to calculate.
-#     standardize: bool, default=False
-#         Whether to standardize the input data.
-#     use_coslat: bool, default=False
-#         Whether to use cosine of latitude for scaling.
-#     use_weights: bool, default=False
-#         Whether to use additional weights.
-#     padding : str, optional
-#         Specifies the method used for padding the data prior to applying the Hilbert
-#         transform. This can help to mitigate the effect of spectral leakage.
-#         Currently, only 'exp' for exponential padding is supported. Default is 'exp'.
-#     decay_factor : float, optional
-#         Specifies the decay factor used in the exponential padding. This parameter
-#         is only used if padding='exp'. The recommended value typically ranges between 0.05 to 0.2
-#         but ultimately depends on the variability in the data.
-#         A smaller value (e.g. 0.05) is recommended for
-#         data with high variability, while a larger value (e.g. 0.2) is recommended
-#         for data with low variability. Default is 0.2.
-#     solver_kwargs: dict, default={}
-#         Additional keyword arguments passed to the SVD solver.
-
-#     Notes
-#     -----
-#     Complex MCA extends MCA to complex-valued data that contain both magnitude and phase information.
-#     The Hilbert transform is used to transform real-valued data to complex-valued data, from which both
-#     amplitude and phase can be extracted.
-
-#     Similar to MCA, Complex MCA is used in climate science to identify coupled patterns of variability
-#     between two different climate variables. But unlike MCA, Complex MCA can identify coupled patterns
-#     that involve phase shifts.
-
-#     References
-#     ----------
-#     [1]_: Elipot, S., Frajka-Williams, E., Hughes, C.W., Olhede, S., Lankhorst, M., 2017. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054. https://doi.org/10.1175/JCLI-D-16-0664.1
-
-
-#     Examples
-#     --------
-#     >>> model = ComplexMCA(n_modes=5, standardize=True)
-#     >>> model.fit(data1, data2)
-
-#     """
-
-#     def __init__(self, padding="exp", decay_factor=0.2, **kwargs):
-#         super().__init__(**kwargs)
-#         self.attrs.update({"model": "Complex MCA"})
-#         self._params.update({"padding": padding, "decay_factor": decay_factor})
-
-#         # Initialize the DataContainer to store the results
-#         self.data: ComplexMCADataContainer = ComplexMCADataContainer()
-
-#     def fit(
-#         self,
-#         data1: AnyDataObject,
-#         data2: AnyDataObject,
-#         dim,
-#         weights1=None,
-#         weights2=None,
-#     ):
-#         """Fit the model.
-
-#         Parameters
-#         ----------
-#         data1: xr.DataArray or list of xarray.DataArray
-#             Left input data.
-#         data2: xr.DataArray or list of xarray.DataArray
-#             Right input data.
-#         dim: tuple
-#             Tuple specifying the sample dimensions. The remaining dimensions
-#             will be treated as feature dimensions.
-#         weights1: xr.DataArray or xr.Dataset or None, default=None
-#             If specified, the left input data will be weighted by this array.
-#         weights2: xr.DataArray or xr.Dataset or None, default=None
-#             If specified, the right input data will be weighted by this array.
-
-#         """
-
-#         data1_processed: DataArray = self.preprocessor1.fit_transform(
-#             data1, dim, weights2
-#         )
-#         data2_processed: DataArray = self.preprocessor2.fit_transform(
-#             data2, dim, weights2
-#         )
-
-#         # apply hilbert transform:
-#         padding = self._params["padding"]
-#         decay_factor = self._params["decay_factor"]
-#         data1_processed = hilbert_transform(
-#             data1_processed, dim="sample", padding=padding, decay_factor=decay_factor
-#         )
-#         data2_processed = hilbert_transform(
-#             data2_processed, dim="sample", padding=padding, decay_factor=decay_factor
-#         )
-
-#         decomposer = CrossDecomposer(
-#             n_modes=self._params["n_modes"], **self._solver_kwargs
-#         )
-#         decomposer.fit(data1_processed, data2_processed)
-
-#         # Note:
-#         # - explained variance is given by the singular values of the SVD;
-#         # - We use the term singular_values_pca as used in the context of PCA:
-#         # Considering data X1 = X2, MCA is the same as PCA. In this case,
-#         # singular_values_pca is equivalent to the singular values obtained
-#         # when performing PCA of X1 or X2.
-#         singular_values = decomposer.singular_values_
-#         singular_vectors1 = decomposer.singular_vectors1_
-#         singular_vectors2 = decomposer.singular_vectors2_
-
-#         squared_covariance = singular_values**2
-#         total_squared_covariance = decomposer.total_squared_covariance_
-
-#         norm1 = np.sqrt(singular_values)
-#         norm2 = np.sqrt(singular_values)
-
-#         # Index of the sorted squared covariance
-#         idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
-#         idx_sorted_modes.coords.update(squared_covariance.coords)
-
-#         # Project the data onto the singular vectors
-#         scores1 = xr.dot(data1_processed, singular_vectors1) / norm1
-#         scores2 = xr.dot(data2_processed, singular_vectors2) / norm2
-
-#         self.data.set_data(
-#             input_data1=data1_processed,
-#             input_data2=data2_processed,
-#             components1=singular_vectors1,
-#             components2=singular_vectors2,
-#             scores1=scores1,
-#             scores2=scores2,
-#             squared_covariance=squared_covariance,
-#             total_squared_covariance=total_squared_covariance,
-#             idx_modes_sorted=idx_sorted_modes,
-#             norm1=norm1,
-#             norm2=norm2,
-#         )
-#         # Assign analysis relevant meta data
-#         self.data.set_attrs(self.attrs)
-
-#     def components_amplitude(self) -> Tuple[AnyDataObject, AnyDataObject]:
-#         """Compute the amplitude of the components.
-
-#         The amplitude of the components are defined as
-
-#         .. math::
-#             A_ij = |C_ij|
-
-#         where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
-#         :math:`|\\cdot|` denotes the absolute value.
-
-#         Returns
-#         -------
-#         AnyDataObject
-#             Amplitude of the left components.
-#         AnyDataObject
-#             Amplitude of the left components.
-
-#         """
-#         comps1 = self.data.components_amplitude1
-#         comps2 = self.data.components_amplitude2
-
-#         comps1 = self.preprocessor1.inverse_transform_components(comps1)
-#         comps2 = self.preprocessor2.inverse_transform_components(comps2)
-
-#         return (comps1, comps2)
-
-#     def components_phase(self) -> Tuple[AnyDataObject, AnyDataObject]:
-#         """Compute the phase of the components.
-
-#         The phase of the components are defined as
-
-#         .. math::
-#             \\phi_{ij} = \\arg(C_{ij})
-
-#         where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
-#         :math:`\\arg(\\cdot)` denotes the argument of a complex number.
-
-#         Returns
-#         -------
-#         AnyDataObject
-#             Phase of the left components.
-#         AnyDataObject
-#             Phase of the right components.
-
-#         """
-#         comps1 = self.data.components_phase1
-#         comps2 = self.data.components_phase2
-
-#         comps1 = self.preprocessor1.inverse_transform_components(comps1)
-#         comps2 = self.preprocessor2.inverse_transform_components(comps2)
-
-#         return (comps1, comps2)
-
-#     def scores_amplitude(self) -> Tuple[DataArray, DataArray]:
-#         """Compute the amplitude of the scores.
-
-#         The amplitude of the scores are defined as
-
-#         .. math::
-#             A_ij = |S_ij|
-
-#         where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
-#         :math:`|\\cdot|` denotes the absolute value.
-
-#         Returns
-#         -------
-#         DataArray
-#             Amplitude of the left scores.
-#         DataArray
-#             Amplitude of the right scores.
-
-#         """
-#         scores1 = self.data.scores_amplitude1
-#         scores2 = self.data.scores_amplitude2
-
-#         scores1 = self.preprocessor1.inverse_transform_scores(scores1)
-#         scores2 = self.preprocessor2.inverse_transform_scores(scores2)
-#         return (scores1, scores2)
-
-#     def scores_phase(self) -> Tuple[DataArray, DataArray]:
-#         """Compute the phase of the scores.
-
-#         The phase of the scores are defined as
-
-#         .. math::
-#             \\phi_{ij} = \\arg(S_{ij})
-
-#         where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
-#         :math:`\\arg(\\cdot)` denotes the argument of a complex number.
-
-#         Returns
-#         -------
-#         DataArray
-#             Phase of the left scores.
-#         DataArray
-#             Phase of the right scores.
-
-#         """
-#         scores1 = self.data.scores_phase1
-#         scores2 = self.data.scores_phase2
-
-#         scores1 = self.preprocessor1.inverse_transform_scores(scores1)
-#         scores2 = self.preprocessor2.inverse_transform_scores(scores2)
-
-#         return (scores1, scores2)
-
-#     def transform(self, data1: AnyDataObject, data2: AnyDataObject):
-#         raise NotImplementedError("Complex MCA does not support transform method.")
-
-#     def homogeneous_patterns(self, correction=None, alpha=0.05):
-#         raise NotImplementedError(
-#             "Complex MCA does not support homogeneous_patterns method."
-#         )
-
-#     def heterogeneous_patterns(self, correction=None, alpha=0.05):
-#         raise NotImplementedError(
-#             "Complex MCA does not support heterogeneous_patterns method."
-#         )
+"""
+This code is based on the work of James Chapman from cca-zoo.
+Source: https://github.com/jameschapman19/cca_zoo
+
+The original code is licensed under the MIT License.
+
+Copyright (c) 2020-2023 James Chapman
+"""
+
+from abc import abstractmethod
+from datetime import datetime
+from typing import Sequence, List, Hashable
+from typing_extensions import Self
+
+import dask.array as da
+import numpy as np
+import xarray as xr
+from scipy.linalg import eigh
+from sklearn.base import BaseEstimator
+from sklearn.utils.validation import FLOAT_DTYPES
+from xeofs.models import EOF
+
+from .._version import __version__
+from ..preprocessing.preprocessor import Preprocessor
+from ..utils.data_types import DataObject, DataArray, DataList
+
+
+def _check_parameter_number(parameter_name: str, parameter, n_views: int):
+    if len(parameter) != n_views:
+        raise ValueError(
+            f"number of views passed should match number of parameter {parameter_name}"
+            f"len(views)={n_views} and "
+            f"len({parameter_name})={len(parameter)}"
+        )
+
+
+def _process_parameter(parameter_name: str, parameter, default, n_views: int):
+    if parameter is None:
+        parameter = [default] * n_views
+    elif not isinstance(parameter, (list, tuple)):
+        parameter = [parameter] * n_views
+    _check_parameter_number(parameter_name, parameter, n_views)
+    return parameter
+
+
+class CCABaseModel(BaseEstimator):
+    def __init__(
+        self,
+        n_modes: int = 10,
+        use_coslat: bool = False,
+        pca: bool = False,
+        variance_fraction: float = 0.99,
+        init_pca_modes: int | float = 0.75,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+    ):
+        self.sample_name = sample_name
+        self.feature_name = feature_name
+        self.n_modes = n_modes
+        self.use_coslat = use_coslat
+        self.pca = pca
+        self.compute = compute
+        self.variance_fraction = variance_fraction
+        self.init_pca_modes = init_pca_modes
+
+        self.dtypes = FLOAT_DTYPES
+
+        self._preprocessor_kwargs = {
+            "sample_name": sample_name,
+            "feature_name": feature_name,
+            "with_std": False,
+        }
+
+        # Define analysis-relevant meta data
+        self.attrs = {"model": "BaseCrossModel"}
+        self.attrs.update(
+            {
+                "software": "xeofs",
+                "version": __version__,
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
+
+        # Initialize the data container only to avoid type errors
+        # The actual data container will be initialized in respective subclasses
+        # self.data: _BaseCrossModelDataContainer = _BaseCrossModelDataContainer()
+        self.data = {}
+
+    def _validate_data(self, views: Sequence[DataArray]):
+        if not all(
+            data[self.sample_name].size == views[0][self.sample_name].size
+            for data in views
+        ):
+            raise ValueError("All views must have the same number of samples")
+        if not all(data.ndim == 2 for data in views):
+            raise ValueError("All views must have 2 dimensions")
+        if not all(data.dtype in self.dtypes for data in views):
+            raise ValueError("All views must have dtype of {}.".format(self.dtypes))
+        if not all(data[self.feature_name].size >= self.n_modes for data in views):
+            raise ValueError(
+                "All views must have at least {} features.".format(self.n_modes)
+            )
+
+    def _process_init_pca_modes(self, n_modes):
+        err_msg = "init_pca_modes must be either a float <= 1.0 or an integer > 1"
+        n_modes_list = []
+        n_modes_max = [
+            min(self.n_samples_, n_features) for n_features in self.n_features_
+        ]
+        for n, n_max in zip(n_modes, n_modes_max):
+            if isinstance(n, float):
+                if n > 1.0:
+                    raise ValueError(err_msg)
+                n = int(n * n_max)
+                n_modes_list.append(n)
+            elif isinstance(n, int):
+                if n <= 1:
+                    raise ValueError(err_msg)
+                n_modes_list.append(n)
+            else:
+                raise ValueError(err_msg)
+        return n_modes_list
+
+    def fit(
+        self,
+        views: Sequence[DataObject],
+        dim: Hashable | Sequence[Hashable],
+    ) -> Self:
+        self.n_views_ = len(views)
+        self.use_coslat = _process_parameter(
+            "use_coslat", self.use_coslat, False, self.n_views_
+        )
+        self.init_pca_modes = _process_parameter(
+            "init_pca_modes", self.init_pca_modes, 0.75, self.n_views_
+        )
+
+        # Preprocess the input data
+        self.preprocessors = [
+            Preprocessor(with_coslat=self.use_coslat[i], **self._preprocessor_kwargs)
+            for i in range(self.n_views_)
+        ]
+        views2D: List[DataArray] = [
+            preprocessor.fit_transform(data, dim)
+            for preprocessor, data in zip(self.preprocessors, views)
+        ]
+        self._validate_data(views2D)
+        self.n_features_ = [data.coords[self.feature_name].size for data in views2D]
+        self.n_samples_ = views2D[0][self.sample_name].size
+
+        self.data["input_data"] = views2D
+        views2D = self._process_data(views2D)
+        self.data["pca_data"] = views2D
+
+        self._fit_algorithm(views2D)
+
+        return self
+
+    def _process_data(self, views: DataList) -> DataList:
+        if self.pca:
+            views = self._apply_pca(views)
+        return views
+
+    def _apply_pca(self, views: DataList):
+        self.pca_models = []
+
+        n_pca_modes = self._process_init_pca_modes(self.init_pca_modes)
+
+        view_transformed = []
+
+        for i, view in enumerate(views):
+            pca = EOF(n_modes=n_pca_modes[i], compute=self.compute)
+            pca.fit(view, dim=self.sample_name)
+            if self.compute:
+                pca.compute()
+            self.pca_models.append(pca)
+
+            # TODO: method to get cumulative explained variance
+            cum_exp_var_ratio = pca.explained_variance_ratio().cumsum()
+            # Ensure that the sum of the explained variance ratio is always less than 1
+            # Due to rounding errors the total sum may be slightly larger than 1,
+            # which we counter by a small correction
+            cum_exp_var_ratio -= 1e-6
+            max_exp_var_ratio = cum_exp_var_ratio.isel(mode=-1).item()
+            if (
+                max_exp_var_ratio <= self.variance_fraction
+                and max_exp_var_ratio <= 0.9999
+            ):
+                print(
+                    "Warning: variance fraction {:.4f} is not reached. ".format(
+                        self.variance_fraction
+                    )
+                    + "Only {:.4f} of variance is explained.".format(
+                        cum_exp_var_ratio.isel(mode=-1).item()
+                    )
+                )
+            n_modes_keep = cum_exp_var_ratio.where(
+                cum_exp_var_ratio <= self.variance_fraction, drop=True
+            ).size
+            if n_modes_keep == 0:
+                n_modes_keep += 1
+
+            # TODO: it's more convinient to work the common scaling of sklearn; provide additional parameter
+            # provide this parameter to transform method as well
+            scores = pca.scores().isel(mode=slice(0, n_modes_keep))
+            svals = pca.singular_values().isel(mode=slice(0, n_modes_keep))
+            scores = (
+                (scores * svals)
+                .rename({"mode": self.feature_name})
+                .transpose(self.sample_name, self.feature_name)
+            )
+            view_transformed.append(scores)
+        return view_transformed
+
+    @abstractmethod
+    def _fit_algorithm(self, views: List[DataArray]) -> Self:
+        raise NotImplementedError
+
+
+class CCA(CCABaseModel):
+    r"""Canonical Correlation Analysis (CCA) model.
+    
+    Regularised CCA (canonical ridge) model. 
+    
+    CCA identifies linear combinations of variables from multiple datasets that 
+    maximize their mutual correlations. An optional regularisation parameter can be used to
+    improve the conditioning of the covariance matrix.
+
+    The objective function of (regularised) CCA is:
+
+    .. math::
+
+        w_{opt}=\underset{w}{\mathrm{argmax}}\{ w_1^TX_1^TX_2w_2  \}\\
+
+        \text{subject to:}
+
+        (1-c_1)w_1^TX_1^TX_1w_1+c_1w_1^Tw_1=n
+
+        (1-c_2)w_2^TX_2^TX_2w_2+c_2w_2^Tw_2=n
+
+    where :math:`c_i` are the regularization parameters for dataset.
+
+    Parameters
+    ----------
+    n_modes : int, optional
+        Number of latent dimensions to use, by default 10
+    use_coslat : bool, optional
+        Whether to use the square root of the cosine of the latitude as weights, by default False
+    pca : bool, optional
+        Whether to perform PCA on the input data, by default True
+    variance_fraction : float, optional
+        Fraction of variance to keep when performing PCA, by default 0.99
+    init_pca_modes : int | float, optional
+        Number of PCA modes to compute. If float, the number of modes is given by the fraction of maximum number of modes for the given data.
+        A value of 1.0 will perform a full SVD of the data. Choosing a smaller value can increase computation speed. Default 0.75
+    c : Sequence[float] | float], optional
+        Regularisation parameter, by default 0 (no regularization)
+    compute : bool, optional
+        Whether to compute the decomposition immediately, by default True
+
+
+    Notes
+    -----
+    This implementation is largely based on the MCCA class from the cca_zoo repository [3]_ .
+    
+
+    References
+    ----------
+    .. [1] Vinod, Hrishikesh _D. "Canonical ridge and econometrics of joint production." Journal of econometrics 4.2 (1976): 147-166.
+    .. [2] Hotelling, Harold. "Relations between two sets of variates." Breakthroughs in statistics. Springer, New York, NY, 1992. 162-190.
+    .. [3] Chapman et al., (2021). CCA-Zoo: A collection of Regularized, Deep Learning based, Kernel, and Probabilistic CCA methods in a scikit-learn style framework. Journal of Open Source Software, 6(68), 3823
+
+    Examples
+    --------
+    >>> from xe.models import CCA
+    >>> model = CCA(n_modes=5)
+    >>> model.fit(data)
+    >>> can_loadings = model.canonical_loadings()
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        use_coslat: bool = False,
+        c: float = 0,
+        pca: bool = True,
+        variance_fraction: float = 0.99,
+        init_pca_modes: float = 0.75,
+        compute: bool = True,
+        eps: float = 1e-6,
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            use_coslat=use_coslat,
+            pca=pca,
+            compute=compute,
+            variance_fraction=variance_fraction,
+            init_pca_modes=init_pca_modes,
+        )
+        self.attrs.update({"model": "CCA"})
+        self.c = c
+        self.eps = eps
+
+    def _fit_algorithm(self, views: List[DataArray]) -> Self:
+        self.c = _process_parameter("c", self.c, 0, self.n_views_)
+        eigvals, eigvecs = self._solve_gevp(views)
+        self.eigvals = eigvals
+        self.eigvecs = eigvecs
+        # Compute the weights for each view
+        self._weights(eigvals, eigvecs, views)
+        # Compute loadings (= normalized weights)
+        self.data["loadings"] = [
+            wght / self._apply_norm(wght, [self.feature_name])
+            for wght in self.data["weights"]
+        ]
+        canonical_variates = self._transform(self.data["input_data"])
+        self.data["variates"] = canonical_variates
+
+        self.data["canonical_loadings"] = [
+            xr.dot(data, vari, dims=self.sample_name, optimize=True)
+            for data, vari in zip(self.data["input_data"], canonical_variates)
+        ]
+
+        # Compute explained variance
+        # Transform the views using the loadings
+        transformed_views = [
+            xr.dot(view, loading, dims=self.feature_name)
+            for view, loading in zip(views, self.data["loadings"])
+        ]
+        # Calculate the variance of each latent dimension in the transformed views
+        self.data["explained_variance"] = [
+            transformed.var(self.sample_name) for transformed in transformed_views
+        ]
+
+        # Explained variance ratio
+        self.data["total_variance"] = [
+            view.var(self.sample_name).sum() for view in views
+        ]
+
+        # Calculate the explained variance ratio for each latent dimension for each view
+        self.data["explained_variance_ratio"] = [
+            exp_var / total_var
+            for exp_var, total_var in zip(
+                self.data["explained_variance"], self.data["total_variance"]
+            )
+        ]
+
+        # Explained Covariance
+        k = self.n_modes
+        explained_covariance = []
+
+        # just take the kth column of each transformed view and _compute_covariance
+        for i in range(k):
+            transformed_views_k = [
+                view.isel(mode=slice(i, i + 1)) for view in transformed_views
+            ]
+            cov_ = self._apply_compute_covariance(
+                transformed_views_k, dims_in=["sample", "mode"]
+            )
+            svals = self._compute_singular_values(cov_, dims_in=["mode1", "mode2"])
+            explained_covariance.append(svals.isel(mode=0).item())
+        self.data["explained_covariance"] = xr.DataArray(
+            explained_covariance, dims=["mode"], coords={"mode": range(1, k + 1)}
+        )
+
+        minimum_dimension = min([view[self.feature_name].size for view in views])
+
+        cov = self._apply_compute_covariance(views, dims_in=["sample", "feature"])
+        S = self._compute_singular_values(cov, dims_in=["feature1", "feature2"])
+        # select every other element starting from the first until the minimum dimension
+        self.data["total_explained_covariance"] = (
+            S.isel(mode=slice(0, None, 2)).isel(mode=slice(0, minimum_dimension)).sum()
+        )
+        self.data["explained_covariance_ratio"] = (
+            self.data["explained_covariance"] / self.data["total_explained_covariance"]
+        )
+
+        return self
+
+    def _compute_singular_values(
+        self, x, dims_in=["feature1", "feature2"], dims_out=["mode"]
+    ):
+        svals = xr.apply_ufunc(
+            np.linalg.svd,
+            x,
+            input_core_dims=[dims_in],
+            output_core_dims=[dims_out],
+            kwargs={"compute_uv": False},
+            vectorize=False,
+            dask="allowed",
+        )
+        svals = svals.assign_coords({"mode": range(1, svals.mode.size + 1)})
+        return svals
+
+    def _apply_norm(self, x, dims):
+        return xr.apply_ufunc(
+            np.linalg.norm,
+            x,
+            input_core_dims=[dims],
+            output_core_dims=[[]],
+            kwargs={"axis": -1},
+            vectorize=True,
+            dask="allowed",
+        )
+
+    def _solve_gevp(self, views: Sequence[DataArray], y=None, **kwargs):
+        # Setup the eigenvalue problem
+        C = self._C(views, dims_in=[self.sample_name, self.feature_name])
+        D = self._D(views, **kwargs)
+        self.splits = np.cumsum([view.shape[1] for view in views])
+        # Solve the eigenvalue problem
+        # Get the dimension of _C
+        p = C.shape[0]
+        subset_by_index = [p - self.n_modes, p - 1]
+        # Solve the generalized eigenvalue problem Cx=lambda Dx using a subset of eigenvalues and eigenvectors
+        [eigvals, eigvecs] = self._apply_eigh(C, D, subset_by_index=subset_by_index)
+        # Sort the eigenvalues and eigenvectors in descending order
+        idx_sorted_modes = eigvals.compute().argsort()[::-1]
+        idx_sorted_modes = idx_sorted_modes.assign_coords(
+            {"mode": range(idx_sorted_modes.mode.size)}
+        )
+        eigvals = eigvals.isel(mode=idx_sorted_modes)
+        eigvecs = eigvecs.isel(mode=idx_sorted_modes).real
+        # Set coordiantes
+        coords_mode = range(1, eigvals.mode.size + 1)
+        coords_feature = C.coords[self.feature_name + "1"].values
+        eigvals = eigvals.assign_coords({"mode": coords_mode})
+        eigvecs = eigvecs.assign_coords(
+            {
+                "mode": coords_mode,
+                self.feature_name: coords_feature,
+            }
+        )
+        return eigvals, eigvecs
+
+    def _weights(self, eigvals, eigvecs, views, **kwargs):
+        # split eigvecs into weights for each view
+        # add 0 before the np ndarray splits
+        idx = np.concatenate([[0], self.splits])
+        self.data["weights"] = [
+            eigvecs.isel({self.feature_name: slice(idx[i], idx[i + 1])})
+            for i in range(len(idx) - 1)
+        ]
+        if self.pca:
+            # go from weights in PCA space to weights in original space
+            n_modes = [data.feature.size for data in self.data["pca_data"]]
+            self.data["weights"] = [
+                xr.dot(
+                    pca.components()
+                    .isel(mode=slice(0, n_modes[i]))
+                    .rename({"mode": "temp_dim"}),
+                    self.data["weights"][i].rename({"feature": "temp_dim"}),
+                    dims="temp_dim",
+                    optimize=True,
+                )
+                for i, pca in enumerate(self.pca_models)
+            ]
+
+    def _apply_eigh(self, a, b, subset_by_index):
+        return xr.apply_ufunc(
+            eigh,
+            a,
+            b,
+            input_core_dims=[
+                [self.feature_name + "1", self.feature_name + "2"],
+                [self.feature_name + "1", self.feature_name + "2"],
+            ],
+            output_core_dims=[["mode"], ["feature", "mode"]],
+            kwargs={"subset_by_index": subset_by_index},
+            vectorize=False,
+            dask="allowed",
+        )
+
+    def _C(self, views, dims_in):
+        C = self._apply_compute_covariance(views, dims_in=dims_in)
+        return C / len(views)
+
+    def _apply_compute_covariance(
+        self, views: Sequence[DataArray], dims_in, dims_out=None
+    ) -> DataArray:
+        if dims_out is None:
+            dims_out = [dims_in[1] + "1", dims_in[1] + "2"]
+        all_views = xr.concat(views, dim=dims_in[1])
+        C = self._apply_cov(all_views, dims_in=dims_in, dims_out=dims_out)
+        Ci = [
+            self._apply_cov(view, dims_in=dims_in, dims_out=dims_out) for view in views
+        ]
+        return C - self._block_diag_dask(Ci, dims_in=dims_out)
+
+    def _apply_cov(
+        self, x, dims_in=["sample", "feature"], dims_out=["feature1", "feature2"]
+    ):
+        if x[dims_in[1]].size == 1:
+            return xr.apply_ufunc(
+                np.cov,
+                x,
+                input_core_dims=[dims_in],
+                output_core_dims=[[]],
+                kwargs={"rowvar": False},
+                vectorize=False,
+                dask="allowed",
+            )
+        else:
+            C = xr.apply_ufunc(
+                np.cov,
+                x,
+                input_core_dims=[dims_in],
+                output_core_dims=[dims_out],
+                kwargs={"rowvar": False},
+                vectorize=False,
+                dask="allowed",
+            )
+            feature_coords = x.coords[dims_in[1]].values
+            C = C.assign_coords(
+                {dims_out[0]: feature_coords, dims_out[1]: feature_coords}
+            )
+            return C
+
+    def _block_diag_dask(self, views, dims_in=["feature1", "featur2"], dims_out=None):
+        if dims_out is None:
+            dims_out = dims_in
+        if all(view.size == 1 for view in views):
+            result = da.diag(np.array([view.item() for view in views]))
+        else:
+            # Extract underlying Dask arrays
+            arrays = [da.asarray(view.data) for view in views]
+
+            # Construct a block-diagonal dask array
+            blocks = [
+                [
+                    darr2 if j == i else da.zeros((darr2.shape[0], darr1.shape[0]))
+                    for j, darr1 in enumerate(views)
+                ]
+                for i, darr2 in enumerate(arrays)
+            ]
+
+            # Use Dask's block to stack the arrays
+            blocked_array = da.block(blocks)
+
+            # Convert the result back to a DataArray
+            feature_coords = xr.concat(views, dim=dims_in[0])[dims_in[0]].values
+            result = xr.DataArray(
+                blocked_array,
+                dims=dims_out,
+                coords={dims_out[0]: feature_coords, dims_out[1]: feature_coords},
+            )
+        if any(isinstance(view.data, da.Array) for view in views):
+            return result
+        else:
+            return result.compute()
+
+    def _D(self, views):
+        if self.pca:
+            blocks = []
+            for i, view in enumerate(views):
+                pc = self.pca_models[i]
+                feature_coords = view.coords[self.feature_name]
+                n_features = feature_coords.size
+                expvar = pc.explained_variance().isel(mode=slice(0, n_features))
+                block = xr.DataArray(
+                    da.diag((1 - self.c[i]) * expvar.data + self.c[i]),
+                    dims=[self.feature_name + "1", self.feature_name + "2"],
+                    coords={
+                        self.feature_name + "1": feature_coords.values,
+                        self.feature_name + "2": feature_coords.values,
+                    },
+                )
+                block = block.compute()
+                blocks.append(block)
+
+        else:
+            blocks = [self._apply_E(view, c) for view, c in zip(views, self.c)]
+
+        D = self._block_diag_dask(blocks, dims_in=["feature1", "feature2"])
+
+        D_smallest_eig = self._apply_smallest_eigval(D, dims=["feature1", "feature2"])
+        D_smallest_eig = D_smallest_eig - self.eps
+        identity_matrix = xr.DataArray(np.eye(D.shape[0]), dims=D.dims, coords=D.coords)
+        D = D - D_smallest_eig * identity_matrix
+        return D / len(views)
+
+    def _apply_E(self, view, c):
+        E = xr.apply_ufunc(
+            self._E,
+            view,
+            input_core_dims=[[self.sample_name, self.feature_name]],
+            output_core_dims=[[self.feature_name + "1", self.feature_name + "2"]],
+            kwargs={"c": c},
+            vectorize=False,
+            dask="allowed",
+        )
+        feature_coords = view.coords[self.feature_name].values
+        E = E.assign_coords(
+            {
+                self.feature_name + "1": feature_coords,
+                self.feature_name + "2": feature_coords,
+            }
+        )
+        return E
+
+    def _E(self, view, c):
+        return (1 - c) * np.cov(view, rowvar=False) + c * np.eye(view.shape[1])
+
+    def _apply_smallest_eigval(self, D, dims):
+        return xr.apply_ufunc(
+            self._smallest_eigval,
+            D,
+            input_core_dims=[dims],
+            output_core_dims=[[]],
+            vectorize=True,
+            dask="allowed",
+        )
+
+    def _smallest_eigval(self, D):
+        return min(0, np.linalg.eigvalsh(D).min())
+
+    def weights(self) -> List[DataObject]:
+        weights = [
+            prep.inverse_transform_components(wghts)
+            for prep, wghts in zip(self.preprocessors, self.data["weights"])
+        ]
+        return weights
+
+    def _transform(self, views: Sequence[DataArray]) -> List[DataArray]:
+        transformed_views = []
+        for i, view in enumerate(views):
+            transformed_view = xr.dot(view, self.data["weights"][i], dims="feature")
+            transformed_views.append(transformed_view)
+        return transformed_views
+
+    def transform(self, views: Sequence[DataObject]) -> List[DataArray]:
+        """Transform the input data into the canonical space.
+
+        Parameters
+        ----------
+        views : List[DataArray | Dataset]
+            Input data to transform
+
+        """
+        view_preprocessed = []
+        for i, view in enumerate(views):
+            view_preprocessed = self.preprocessors[i].transform(view)
+
+        transformed_views = self._transform(view_preprocessed)
+
+        unstacked_transformed_views = []
+        for i, view in enumerate(transformed_views):
+            unstacked_view = self.preprocessors[i].inverse_transform_scores(view)
+            unstacked_transformed_views.append(unstacked_view)
+        return unstacked_transformed_views
+
+    def components(self, normalize: bool = True) -> List[DataObject]:
+        """Get the canonical loadings for each view."""
+        can_loads = self.data["canonical_loadings"]
+        input_data = self.data["input_data"]
+        variates = self.data["variates"]
+
+        if normalize:
+            # Compute correlations
+            loadings = [
+                (
+                    loads
+                    / data[self.sample_name].size
+                    / data.std(self.sample_name)
+                    / vari.std(self.sample_name)
+                ).clip(-1, 1)
+                for loads, data, vari in zip(can_loads, input_data, variates)
+            ]
+        else:
+            loadings = can_loads
+
+        loadings = [
+            prep.inverse_transform_components(load)
+            for prep, load in zip(self.preprocessors, loadings)
+        ]
+        return loadings
+
+    def scores(self) -> List[DataArray]:
+        """Get the canonical variates for each view."""
+        variates = []
+        for i, view in enumerate(self.data["variates"]):
+            vari = self.preprocessors[i].inverse_transform_scores(view)
+            variates.append(vari)
+        return variates
+
+    def explained_variance(self) -> List[DataArray]:
+        """Get the explained variance for each view."""
+        return self.data["explained_variance"]
+
+    def explained_variance_ratio(self) -> List[DataArray]:
+        """Get the explained variance ratio for each view."""
+        return self.data["explained_variance_ratio"]
+
+    def explained_covariance(self) -> DataArray:
+        """Get the explained covariance."""
+        return self.data["explained_covariance"]
+
+    def explained_covariance_ratio(self) -> DataArray:
+        """Get the explained covariance ratio."""
+        return self.data["explained_covariance_ratio"]

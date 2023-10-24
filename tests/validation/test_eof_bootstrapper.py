@@ -56,51 +56,51 @@ def test_fit(eof_model):
 
     # DataArrays are created
     assert isinstance(
-        bootstrapper.data.explained_variance, xr.DataArray
+        bootstrapper.data["explained_variance"], xr.DataArray
     ), "explained variance is not a DataArray"
     assert isinstance(
-        bootstrapper.data.components, xr.DataArray
+        bootstrapper.data["components"], xr.DataArray
     ), "components is not a DataArray"
     assert isinstance(
-        bootstrapper.data.scores, xr.DataArray
+        bootstrapper.data["scores"], xr.DataArray
     ), "scores is not a DataArray"
 
     # DataArrays have expected dims
-    expected_dims = set(eof_model.data.explained_variance.dims)
+    expected_dims = set(eof_model.data["explained_variance"].dims)
     expected_dims.add("n")
-    true_dims = set(bootstrapper.data.explained_variance.dims)
+    true_dims = set(bootstrapper.data["explained_variance"].dims)
     err_message = (
         f"explained variance dimensions are {true_dims} instead of {expected_dims}"
     )
     assert true_dims == expected_dims, err_message
 
-    expected_dims = set(eof_model.data.components.dims)
+    expected_dims = set(eof_model.data["components"].dims)
     expected_dims.add("n")
-    true_dims = set(bootstrapper.data.components.dims)
+    true_dims = set(bootstrapper.data["components"].dims)
     err_message = f"components dimensions are {true_dims} instead of {expected_dims}"
     assert true_dims == expected_dims, err_message
 
-    expected_dims = set(eof_model.data.scores.dims)
+    expected_dims = set(eof_model.data["scores"].dims)
     expected_dims.add("n")
-    true_dims = set(bootstrapper.data.scores.dims)
+    true_dims = set(bootstrapper.data["scores"].dims)
     err_message = f"scores dimensions are {true_dims} instead of {expected_dims}"
     assert true_dims == expected_dims, err_message
 
     # DataArrays have expected coords
-    ref_da = eof_model.data.explained_variance
-    test_da = bootstrapper.data.explained_variance
+    ref_da = eof_model.data["explained_variance"]
+    test_da = bootstrapper.data["explained_variance"]
     for dim, coords in ref_da.coords.items():
         assert test_da[dim].equals(
             coords
         ), f"explained variance coords for {dim} are not equal"
 
-    ref_da = eof_model.data.components
-    test_da = bootstrapper.data.components
+    ref_da = eof_model.data["components"]
+    test_da = bootstrapper.data["components"]
     for dim, coords in ref_da.coords.items():
         assert test_da[dim].equals(coords), f"components coords for {dim} are not equal"
 
-    ref_da = eof_model.data.scores
-    test_da = bootstrapper.data.scores
+    ref_da = eof_model.data["scores"]
+    test_da = bootstrapper.data["scores"]
     for dim, coords in ref_da.coords.items():
         assert test_da[dim].equals(coords), f"scores coords for {dim} are not equal"
 

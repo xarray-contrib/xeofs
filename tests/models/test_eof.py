@@ -11,16 +11,8 @@ def test_init():
     """Tests the initialization of the EOF class"""
     eof = EOF(n_modes=5, standardize=True, use_coslat=True)
 
-    # Assert parameters are correctly stored in the _params attribute
-    assert eof._params == {
-        "n_modes": 5,
-        "standardize": True,
-        "use_coslat": True,
-        "use_weights": False,
-        "solver": "auto",
-    }
-
     # Assert preprocessor has been initialized
+    assert hasattr(eof, "_params")
     assert hasattr(eof, "preprocessor")
 
 
@@ -116,6 +108,21 @@ def test_explained_variance_ratio(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
+def test_isolated_nans(dim, mock_data_array_isolated_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    with pytest.raises(ValueError):
+        eof.fit(mock_data_array_isolated_nans, dim)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
 def test_components(dim, mock_data_array):
     """Tests the components method of the EOF class"""
     eof = EOF()
@@ -124,6 +131,50 @@ def test_components(dim, mock_data_array):
     # Test components method
     components = eof.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
+    assert isinstance(components, xr.DataArray), "Components is not a DataArray"
+    assert set(components.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components does not have the right feature dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_components_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_full_dimensional_nans, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = tuple(set(mock_data_array_full_dimensional_nans.dims) - set(dim))
+    assert isinstance(components, xr.DataArray), "Components is not a DataArray"
+    assert set(components.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components does not have the right feature dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_components_boundary_nans(dim, mock_data_array_boundary_nans):
+    """Tests the components method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_boundary_nans, dim)
+
+    # Test components method
+    components = eof.components()
+    feature_dims = tuple(set(mock_data_array_boundary_nans.dims) - set(dim))
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
     assert set(components.dims) == set(
         ("mode",) + feature_dims
@@ -213,6 +264,48 @@ def test_scores(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
+def test_scores_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
+    """Tests the scores method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_full_dimensional_nans, dim)
+
+    # Test scores method
+    scores = eof.scores()
+    assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
+    assert set(scores.dims) == set(
+        (dim + ("mode",))
+    ), "Scores does not have the right dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_scores_boundary_nans(dim, mock_data_array_boundary_nans):
+    """Tests the scores method of the EOF class"""
+    eof = EOF()
+    eof.fit(mock_data_array_boundary_nans, dim)
+
+    # Test scores method
+    scores = eof.scores()
+    assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
+    assert set(scores.dims) == set(
+        (dim + ("mode",))
+    ), "Scores does not have the right dimensions"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
 def test_scores_dataset(dim, mock_dataset):
     """Tests the scores method of the EOF class"""
     eof = EOF()
@@ -254,13 +347,10 @@ def test_get_params():
     # Test get_params method
     params = eof.get_params()
     assert isinstance(params, dict)
-    assert params == {
-        "n_modes": 5,
-        "standardize": True,
-        "use_coslat": True,
-        "use_weights": False,
-        "solver": "auto",
-    }
+    assert params.get("n_modes") == 5
+    assert params.get("standardize") is True
+    assert params.get("use_coslat") is True
+    assert params.get("solver") == "auto"
 
 
 @pytest.mark.parametrize(
@@ -291,7 +381,9 @@ def test_transform(dim, mock_data_array):
     assert isinstance(projections, xr.DataArray), "Projection is not a DataArray"
 
     # Check that the projection has the right name
-    assert projections.name == "scores", "Projection has wrong name"
+    assert projections.name == "scores", "Projection has wrong name: {}".format(
+        projections.name
+    )
 
     # Check that the projection's data is the same as the scores
     np.testing.assert_allclose(

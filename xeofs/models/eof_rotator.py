@@ -1,22 +1,13 @@
 from datetime import datetime
 import numpy as np
 import xarray as xr
-from dask.diagnostics.progress import ProgressBar
-from typing import List
+from typing_extensions import Self
 
 from .eof import EOF, ComplexEOF
-from ..data_container.eof_rotator_data_container import (
-    EOFRotatorDataContainer,
-    ComplexEOFRotatorDataContainer,
-)
-
+from ..data_container import DataContainer
 from ..utils.rotation import promax
-from ..utils.data_types import DataArray, AnyDataObject
-
-from typing import TypeVar
+from ..utils.data_types import DataArray
 from .._version import __version__
-
-Model = TypeVar("Model", EOF, ComplexEOF)
 
 
 class EOFRotator(EOF):
@@ -30,7 +21,7 @@ class EOFRotator(EOF):
 
     Parameters
     ----------
-    n_modes : int, default=10
+    n_modes : int, default=2
         Specify the number of modes to be rotated.
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
@@ -41,6 +32,8 @@ class EOFRotator(EOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
 
     References
     ----------
@@ -58,10 +51,11 @@ class EOFRotator(EOF):
 
     def __init__(
         self,
-        n_modes: int = 10,
+        n_modes: int = 2,
         power: int = 1,
         max_iter: int = 1000,
         rtol: float = 1e-8,
+        compute: bool = True,
     ):
         # Define model parameters
         self._params = {
@@ -69,6 +63,7 @@ class EOFRotator(EOF):
             "power": power,
             "max_iter": max_iter,
             "rtol": rtol,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -82,12 +77,25 @@ class EOFRotator(EOF):
             }
         )
 
-        # Initialize the DataContainer to store the results
-        self.data: EOFRotatorDataContainer = EOFRotatorDataContainer()
+        # Define data container
+        self.data = DataContainer()
 
-    def fit(self, model):
+    def fit(self, model) -> Self:
+        """Rotate the solution obtained from ``xe.models.EOF``.
+
+        Parameters
+        ----------
+        model : ``xe.models.EOF``
+            The EOF model to be rotated.
+
+        """
+        return self._fit_algorithm(model)
+
+    def _fit_algorithm(self, model) -> Self:
         self.model = model
         self.preprocessor = model.preprocessor
+        self.sample_name = model.sample_name
+        self.feature_name = model.feature_name
 
         n_modes = self._params.get("n_modes")
         power = self._params.get("power")
@@ -95,24 +103,19 @@ class EOFRotator(EOF):
         rtol = self._params.get("rtol")
 
         # Select modes to rotate
-        components = model.data.components.sel(mode=slice(1, n_modes))
-        expvar = model.data.explained_variance.sel(mode=slice(1, n_modes))
+        components = model.data["components"].sel(mode=slice(1, n_modes))
+        expvar = model.explained_variance().sel(mode=slice(1, n_modes))
 
         # Rotate loadings
         loadings = components * np.sqrt(expvar)
-        rot_loadings, rot_matrix, phi_matrix = xr.apply_ufunc(
-            promax,
+        promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
+        rot_loadings, rot_matrix, phi_matrix = promax(
             loadings,
-            power,
-            input_core_dims=[["feature", "mode"], []],
-            output_core_dims=[
-                ["feature", "mode"],
-                ["mode_m", "mode_n"],
-                ["mode_m", "mode_n"],
-            ],
-            kwargs={"max_iter": max_iter, "rtol": rtol},
-            dask="allowed",
+            feature_dim=self.feature_name,
+            compute=self._params["compute"],
+            **promax_kwargs
         )
+
         # Assign coordinates to the rotation/correlation matrices
         rot_matrix = rot_matrix.assign_coords(
             mode_m=np.arange(1, rot_matrix.mode_m.size + 1),
@@ -124,7 +127,7 @@ class EOFRotator(EOF):
         )
 
         # Reorder according to variance
-        expvar = (abs(rot_loadings) ** 2).sum("feature")
+        expvar = (abs(rot_loadings) ** 2).sum(self.feature_name)
         # NOTE: For delayed objects, the index must be computed.
         # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
         idx_sort = expvar.compute().argsort()[::-1]
@@ -138,8 +141,16 @@ class EOFRotator(EOF):
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
 
+        # Compute "pseudo" norms
+        n_samples = model.data["input_data"].coords[self.sample_name].size
+        norms = (expvar * (n_samples - 1)) ** 0.5
+        norms.name = "singular_values"
+
+        # Get unrotated, normalized scores
+        svals = model.data["norms"].sel(mode=slice(1, n_modes))
+        scores = model.data["scores"].sel(mode=slice(1, n_modes))
+        scores = scores / svals
         # Rotate scores
-        scores = model.data.scores.sel(mode=slice(1, n_modes))
         RinvT = self._compute_rot_mat_inv_trans(
             rot_matrix, input_dims=("mode_m", "mode_n")
         )
@@ -151,8 +162,11 @@ class EOFRotator(EOF):
         # Reorder according to variance
         scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
 
-        # Ensure consitent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax("feature").compute()
+        # Scale scores by "pseudo" norms
+        scores = scores * norms
+
+        # Ensure consistent signs for deterministic output
+        idx_max_value = abs(rot_loadings).argmax(self.feature_name).compute()
         modes_sign = xr.apply_ufunc(
             np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
         )
@@ -163,39 +177,36 @@ class EOFRotator(EOF):
         rot_components = rot_components * modes_sign
         scores = scores * modes_sign
 
-        # Create the data container
-        self.data.set_data(
-            input_data=model.data.input_data,
-            components=rot_components,
-            scores=scores,
-            explained_variance=expvar,
-            total_variance=model.data.total_variance,
-            idx_modes_sorted=idx_sort,
-            rotation_matrix=rot_matrix,
-            phi_matrix=phi_matrix,
-            modes_sign=modes_sign,
-        )
+        # Store the results
+        self.data.add(model.data["input_data"], "input_data", allow_compute=False)
+        self.data.add(rot_components, "components")
+        self.data.add(scores, "scores")
+        self.data.add(norms, "norms")
+        self.data.add(expvar, "explained_variance")
+        self.data.add(model.data["total_variance"], "total_variance")
+        self.data.add(idx_sort, "idx_modes_sorted")
+        self.data.add(rot_matrix, "rotation_matrix")
+        self.data.add(phi_matrix, "phi_matrix")
+        self.data.add(modes_sign, "modes_sign")
+
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+        return self
 
-    def transform(self, data: AnyDataObject) -> DataArray:
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]
 
-        svals = self.model.data.singular_values.sel(
-            mode=slice(1, self._params["n_modes"])
-        )
+        svals = self.model.singular_values().sel(mode=slice(1, self._params["n_modes"]))
+        pseudo_norms = self.data["norms"]
         # Select the (non-rotated) singular vectors of the first dataset
-        components = self.model.data.components.sel(mode=slice(1, n_modes))
+        components = self.model.data["components"].sel(mode=slice(1, n_modes))
 
-        # Preprocess the data
-        da: DataArray = self.preprocessor.transform(data)
-
-        # Compute non-rotated scores by project the data onto non-rotated components
-        projections = xr.dot(da, components) / svals
+        # Compute non-rotated scores by projecting the data onto non-rotated components
+        projections = xr.dot(data, components) / svals
         projections.name = "scores"
 
         # Rotate the scores
-        R = self.data.rotation_matrix
+        R = self.data["rotation_matrix"]
         RinvT = self._compute_rot_mat_inv_trans(R, input_dims=("mode_m", "mode_n"))
         projections = projections.rename({"mode": "mode_m"})
         RinvT = RinvT.rename({"mode_n": "mode"})
@@ -203,15 +214,21 @@ class EOFRotator(EOF):
         # Reorder according to variance
         # this must be done in one line: i) select modes according to their variance, ii) replace coords with modes from 1 ... n
         projections = projections.isel(
-            mode=self.data.idx_modes_sorted.values
+            mode=self.data["idx_modes_sorted"].values
         ).assign_coords(mode=projections.mode)
 
-        # Adapt the sign of the scores
-        projections = projections * self.data.modes_sign
+        # Scale scores by "pseudo" norms
+        projections = projections * pseudo_norms
 
-        # Unstack the projections
-        projections = self.preprocessor.inverse_transform_scores(projections)
+        # Adapt the sign of the scores
+        projections = projections * self.data["modes_sign"]
+
         return projections
+
+    def fit_transform(self, model) -> DataArray:
+        raise NotImplementedError(
+            "The fit_transform method is not implemented for the EOFRotator class."
+        )
 
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> DataArray:
         """Compute the inverse transpose of the rotation matrix.
@@ -250,7 +267,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
 
     Parameters
     ----------
-    n_modes : int, default=10
+    n_modes : int, default=2
         Specify the number of modes to be rotated.
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
@@ -261,6 +278,8 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately.
 
     References
     ----------
@@ -279,16 +298,23 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
 
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        n_modes: int = 2,
+        power: int = 1,
+        max_iter: int = 1000,
+        rtol: float = 1e-8,
+        compute: bool = True,
+    ):
+        super().__init__(
+            n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
+        )
         self.attrs.update({"model": "Rotated Complex EOF analysis"})
 
-        # Initialize the DataContainer to store the results
-        self.data: ComplexEOFRotatorDataContainer = ComplexEOFRotatorDataContainer()
-
-    def transform(self, data: AnyDataObject):
-        # Here we make use of the Method Resolution Order (MRO) to call the
-        # transform method of the first class in the MRO after `EOFRotator`
-        # that has a transform method. In this case it will be `ComplexEOF`,
-        # which will raise an error because it does not have a transform method.
-        super(EOFRotator, self).transform(data)
+    def _transform_algorithm(self, data: DataArray) -> DataArray:
+        # Here we leverage the Method Resolution Order (MRO) to invoke the
+        # transform method of the first class in the MRO after EOFRotator that
+        # has a transform method. In this case, it will be ComplexEOF. However,
+        # please note that `transform` is not implemented for ComplexEOF, so this
+        # line of code will actually raise an error.
+        return super(EOFRotator, self)._transform_algorithm(data)

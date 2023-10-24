@@ -4,9 +4,8 @@ import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 
 from xeofs.models import EOF, EOFRotator
-from xeofs.data_container.eof_rotator_data_container import (
-    EOFRotatorDataContainer,
-)
+from xeofs.data_container import DataContainer
+from ..utilities import data_is_dask
 
 
 @pytest.fixture
@@ -18,7 +17,7 @@ def eof_model(mock_data_array, dim):
 
 @pytest.fixture
 def eof_model_delayed(mock_dask_data_array, dim):
-    eof = EOF(n_modes=5)
+    eof = EOF(n_modes=5, compute=False)
     eof.fit(mock_dask_data_array, dim)
     return eof
 
@@ -52,7 +51,7 @@ def test_fit(eof_model):
         eof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
     assert type(eof_rotator.model) == EOF
-    assert type(eof_rotator.data) == EOFRotatorDataContainer
+    assert type(eof_rotator.data) == DataContainer
 
 
 @pytest.mark.parametrize(
@@ -170,49 +169,26 @@ def test_scores(eof_model):
 
 
 @pytest.mark.parametrize(
-    "dim",
+    "dim, compute",
     [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
+        (("time",), True),
+        (("lat", "lon"), True),
+        (("lon", "lat"), True),
+        (("time",), False),
+        (("lat", "lon"), False),
+        (("lon", "lat"), False),
     ],
 )
-def test_compute(eof_model_delayed):
-    eof_rotator = EOFRotator(n_modes=5)
+def test_compute(eof_model_delayed, compute):
+    eof_rotator = EOFRotator(n_modes=5, compute=compute)
     eof_rotator.fit(eof_model_delayed)
 
-    # before computation, the attributes should be dask arrays
-    assert isinstance(
-        eof_rotator.data.explained_variance.data, DaskArray
-    ), "The attribute _explained_variance should be a dask array."
-    assert isinstance(
-        eof_rotator.data.explained_variance_ratio.data, DaskArray
-    ), "The attribute _explained_variance_ratio should be a dask array."
-    assert isinstance(
-        eof_rotator.data.components.data, DaskArray
-    ), "The attribute _components should be a dask array."
-    assert isinstance(
-        eof_rotator.data.rotation_matrix.data, DaskArray
-    ), "The attribute _rotation_matrix should be a dask array."
-    assert isinstance(
-        eof_rotator.data.scores.data, DaskArray
-    ), "The attribute _scores should be a dask array."
+    if compute:
+        assert not data_is_dask(eof_rotator.data["explained_variance"])
+        assert not data_is_dask(eof_rotator.data["components"])
+        assert not data_is_dask(eof_rotator.data["rotation_matrix"])
 
-    eof_rotator.compute()
-
-    # after computation, the attributes should be numpy ndarrays
-    assert isinstance(
-        eof_rotator.data.explained_variance.data, np.ndarray
-    ), "The attribute _explained_variance should be a numpy ndarray."
-    assert isinstance(
-        eof_rotator.data.explained_variance_ratio.data, np.ndarray
-    ), "The attribute _explained_variance_ratio should be a numpy ndarray."
-    assert isinstance(
-        eof_rotator.data.components.data, np.ndarray
-    ), "The attribute _components should be a numpy ndarray."
-    assert isinstance(
-        eof_rotator.data.rotation_matrix.data, np.ndarray
-    ), "The attribute _rotation_matrix should be a numpy ndarray."
-    assert isinstance(
-        eof_rotator.data.scores.data, np.ndarray
-    ), "The attribute _scores should be a numpy ndarray."
+    else:
+        assert data_is_dask(eof_rotator.data["explained_variance"])
+        assert data_is_dask(eof_rotator.data["components"])
+        assert data_is_dask(eof_rotator.data["rotation_matrix"])
