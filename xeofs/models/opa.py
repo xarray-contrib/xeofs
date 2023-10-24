@@ -11,13 +11,11 @@ from ..utils.data_types import DataObject, DataArray
 
 
 class OPA(_BaseModel):
-    """Optimal Persistence Analysis (OPA).
+    """Optimal Persistence Analysis.
 
-    OPA identifies the optimal persistence patterns or
-    optimally persistent patterns (OPP) with the
-    largest decorrelation time in a time-varying field. Introduced by DelSole
-    in 2001 [1]_, and further developed in 2006 [2]_, it's a method used to
-    find patterns whose time series show strong persistence over time.
+    Optimal Persistence Analysis (OPA) [1]_ [2]_ identifies the patterns with the
+    largest decorrelation time in a time-varying field, known as optimal
+    persistence patterns or optimally persistent patterns (OPP).
 
     Parameters
     ----------
@@ -46,8 +44,8 @@ class OPA(_BaseModel):
 
     References
     ----------
-    .. [1] DelSole, T., 2001. Optimally Persistent Patterns in Time-Varying Fields. Journal of the Atmospheric Sciences 58, 1341–1356. https://doi.org/10.1175/1520-0469(2001)058<1341:OPPITV>2.0.CO;2
-    .. [2] DelSole, T., 2006. Low-Frequency Variations of Surface Temperature in Observations and Simulations. Journal of Climate 19, 4487–4507. https://doi.org/10.1175/JCLI3879.1
+    .. [1] DelSole, T. Optimally Persistent Patterns in Time-Varying Fields. Journal of the Atmospheric Sciences 58, 1341–1356 (2001).
+    .. [2] DelSole, T. Low-Frequency Variations of Surface Temperature in Observations and Simulations. Journal of Climate 19, 4487–4507 (2006).
 
     Examples
     --------

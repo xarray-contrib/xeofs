@@ -11,9 +11,10 @@ from ..utils.xarray_utils import total_variance as compute_total_variance
 
 
 class EOF(_BaseModel):
-    """Empirical Orthogonal Functions (EOF) analysis.
+    """EOF analysis.
 
-    More commonly known as Principal Component Analysis (PCA).
+    Empirical Orthogonal Functions (EOF) analysis, more commonly known
+    as Principal Component Analysis (PCA).
 
     Parameters
     ----------
@@ -236,7 +237,7 @@ class EOF(_BaseModel):
 
 
 class ComplexEOF(EOF):
-    """Complex Empirical Orthogonal Functions (Complex EOF) analysis.
+    """Complex EOF analysis.
 
     The Complex EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
     to the data before performing the standard EOF analysis.

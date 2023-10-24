@@ -13,7 +13,7 @@ from ..utils.dimension_renamer import DimensionRenamer
 
 
 class MCA(_BaseCrossModel):
-    """Maximum Covariance Analyis (MCA).
+    """Maximum Covariance Analyis.
 
     MCA is a statistical method that finds patterns of maximum covariance between two datasets.
 
@@ -546,7 +546,7 @@ class MCA(_BaseCrossModel):
 
 
 class ComplexMCA(MCA):
-    """Complex Maximum Covariance Analysis (MCA).
+    """Complex MCA.
 
     Complex MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
     enhances traditional MCA by accommodating both amplitude and phase information.
