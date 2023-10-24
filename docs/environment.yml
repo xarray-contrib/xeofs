@@ -18,11 +18,12 @@ dependencies:
   - ipython
   - ipykernel
   - rpy2
+  - sphinx-gallery
+  - sphinx-design
+  - sphinx-copybutton
+  - nbsphinx
+  - pydata-sphinx-theme
+  - sphinx
+  - nbconvert
   - pip:
-    - pydata-sphinx-theme
-    - sphinx-gallery
-    - sphinx-design
-    - nbsphinx
-    - sphinx-copybutton
-    - git+https://github.com/sphinx-gallery/sphinx-gallery.git@master
     - xeofs
