@@ -360,14 +360,9 @@ class MCA(_BaseCrossModel):
         Note
         ----
         It is important to differentiate the CF from the squared covariance fraction (SCF). While the SCF is an invariant quantity in MCA, the CF is not.
-        Therefore, the SCF is used to assess the relative importance of each mode. Cheng and Dunkerton (1995) [1]_ introduced the CF in the context of
+        Therefore, the SCF is used to assess the relative importance of each mode. Cheng and Dunkerton (1995) introduced the CF in the context of
         Varimax-rotated MCA to compare the relative importance of each mode before and after rotation. In the special case of both data fields in MCA being identical,
         the CF is equivalent to the explained variance ratio in EOF analysis.
-
-        References
-        ----------
-        .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
-
 
         """
         # Check how sensitive the CF is to the number of modes
@@ -553,7 +548,7 @@ class MCA(_BaseCrossModel):
 class ComplexMCA(MCA):
     """Complex Maximum Covariance Analysis (MCA).
 
-    Complex MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017)[1]_,
+    Complex MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
     enhances traditional MCA by accommodating both amplitude and phase information.
     It achieves this by utilizing the Hilbert transform to preprocess the data,
     thus allowing for a more comprehensive analysis in the subsequent MCA computation.
@@ -615,7 +610,8 @@ class ComplexMCA(MCA):
 
     References
     ----------
-    [1]_: Elipot, S., Frajka-Williams, E., Hughes, C.W., Olhede, S., Lankhorst, M., 2017. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054. https://doi.org/10.1175/JCLI-D-16-0664.1
+    .. [1] Elipot, S., Frajka-Williams, E., Hughes, C. W., Olhede, S. & Lankhorst, M. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054 (2017).
+
 
 
     Examples

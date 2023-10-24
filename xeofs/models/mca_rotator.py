@@ -36,13 +36,13 @@ class MCARotator(MCA):
         the combined vectors are loaded with the singular values (termed "squared loadings"),
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
-        singular values, following the method described by Cheng & Dunkerton [1]_.
+        singular values, following the method described by Cheng & Dunkerton.
     compute : bool, default=True
         Whether to compute the decomposition immediately.
 
     References
     ----------
-    .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
+    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
 
     Examples
     --------
@@ -398,8 +398,8 @@ class MCARotator(MCA):
 class ComplexMCARotator(MCARotator, ComplexMCA):
     """Rotate a solution obtained from ``xe.models.ComplexMCA``.
 
-    Complex Rotated MCA extends the MCA by incorporating both amplitude and phase information
-    using a Hilbert transform prior to performing the MCA and subsequent Varimax or Promax rotation.
+    Complex Rotated MCA [1]_ [2]_ [3]_ extends MCA by incorporating both amplitude and phase information
+    using a Hilbert transform prior to performing MCA and subsequent Varimax or Promax rotation.
     This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation
     of complex relationships within the data, particularly useful when analyzing oscillatory data.
 
@@ -421,13 +421,14 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
         the combined vectors are loaded with the singular values (termed "squared loadings"),
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
-        singular values, following the method described by Cheng & Dunkerton [1]_.
+        singular values, following the method described by Cheng & Dunkerton.
 
     References
     ----------
-    .. [1] Cheng, X., Dunkerton, T.J., 1995. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643. https://doi.org/10.1175/1520-0442(1995)008<2631:OROSPD>2.0.CO;2
-    .. [2] Elipot, S., Frajka-Williams, E., Hughes, C.W., Olhede, S., Lankhorst, M., 2017. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054. https://doi.org/10.1175/JCLI-D-16-0664.1
-    .. [3] Rieger, N., Corral, Á., Olmedo, E., Turiel, A., 2021. Lagged Teleconnections of Climate Variables Identified via Complex Rotated Maximum Covariance Analysis. Journal of Climate 34, 9861–9878. https://doi.org/10.1175/JCLI-D-21-0244.1
+    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
+    .. [2] Elipot, S., Frajka-Williams, E., Hughes, C. W., Olhede, S. & Lankhorst, M. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054 (2017).
+    .. [3] Rieger, N., Corral, Á., Olmedo, E. & Turiel, A. Lagged Teleconnections of Climate Variables Identified via Complex Rotated Maximum Covariance Analysis. Journal of Climate 34, 9861–9878 (2021).
+
 
 
     Examples
