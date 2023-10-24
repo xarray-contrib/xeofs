@@ -311,7 +311,7 @@ class MCA(_BaseCrossModel):
         as follows:
 
         .. math::
-        SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{m} \\sigma_i^2}
+            SCF_i = \\frac{\\sigma_i^2}{\\sum_{i=1}^{m} \\sigma_i^2}
 
         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
 
@@ -348,12 +348,14 @@ class MCA(_BaseCrossModel):
         Cheng and Dunkerton (1995) define the CF as follows:
 
         .. math::
-        CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
+            CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
 
-        where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
+        where `m` is the total number of modes and :math:`\\sigma_i` is the
+        `ith` singular value of the covariance matrix.
 
-        In this implementation the sum of singular values is estimated from the first `n` modes, therefore one should aim to
-        retain as many modes as possible to get a good estimate of the covariance fraction.
+        In this implementation the sum of singular values is estimated from
+        the first `n` modes, therefore one should aim to retain as many
+        modes as possible to get a good estimate of the covariance fraction.
 
         Note
         ----

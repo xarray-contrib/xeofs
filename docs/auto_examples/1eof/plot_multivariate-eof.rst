@@ -38,7 +38,7 @@ Multivariate EOF analysis.
     from xeofs.models import EOF
 
     # Create four different dataarrayss
-    sst = xr.tutorial.open_dataset('ersstv5')['sst']
+    sst = xr.tutorial.open_dataset("ersstv5")["sst"]
     subset1 = sst.isel(lon=slice(0, 45))
     subset2 = sst.isel(lon=slice(46, 90))
     subset3 = sst.isel(lon=slice(91, 135))
@@ -61,8 +61,8 @@ Perform the actual analysis
 .. code-block:: default
 
 
-    pca = EOF(standardize=False, use_coslat=True)
-    pca.fit(multivariate_data, dim='time')
+    pca = EOF(n_modes=10, standardize=False, use_coslat=True)
+    pca.fit(multivariate_data, dim="time")
     components = pca.components()
     scores = pca.scores()
 
@@ -85,11 +85,11 @@ Plot mode 1
     mode = 5
     proj = PlateCarree()
     kwargs = {
-        'cmap' : 'RdBu',
-        'vmin' : -.05,
-        'vmax': .05,
-        'transform': proj,
-        'add_colorbar': False
+        "cmap": "RdBu",
+        "vmin": -0.05,
+        "vmax": 0.05,
+        "transform": proj,
+        "add_colorbar": False,
     }
 
     fig = plt.figure(figsize=(7.3, 6))
@@ -100,21 +100,21 @@ Plot mode 1
 
     # PC
     scores.sel(mode=mode).plot(ax=ax_pc)
-    ax_pc.set_xlabel('')
-    ax_pc.set_title('')
+    ax_pc.set_xlabel("")
+    ax_pc.set_title("")
 
     # EOFs
     for i, (a, comps) in enumerate(zip(ax, components)):
-        a.coastlines(color='.5')
+        a.coastlines(color=".5")
         comps.sel(mode=mode).plot(ax=a, **kwargs)
         a.set_xticks([])
         a.set_yticks([])
-        a.set_xlabel('')
-        a.set_ylabel('')
-        a.set_title('Subset {:}'.format(i+1))
-    ax[0].set_ylabel('EOFs')
-    fig.suptitle('Mode {:}'.format(mode))
-    plt.savefig('multivariate-eof-analysis.jpg')
+        a.set_xlabel("")
+        a.set_ylabel("")
+        a.set_title("Subset {:}".format(i + 1))
+    ax[0].set_ylabel("EOFs")
+    fig.suptitle("Mode {:}".format(mode))
+    plt.savefig("multivariate-eof-analysis.jpg")
 
 
 
@@ -130,7 +130,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  2.172 seconds)
+   **Total running time of the script:** (0 minutes 2.311 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1eof_plot_multivariate-eof.py:
