@@ -26,9 +26,9 @@ from ..utils.kernels import kernel_weights_nb, VALID_KERNELS
 
 
 class GWPCA(_BaseModel):
-    """Geographically weighted PCA (GWPCA).
+    """Geographically weighted PCA.
 
-    GWPCA [1]_ uses a geographically weighted approach to perform PCA for
+    Geographically weighted PCA (GWPCA) [1]_ uses a geographically weighted approach to perform PCA for
     each observation in the dataset based on its local neighbors.
 
     The neighbors for each observation are determined based on the provided

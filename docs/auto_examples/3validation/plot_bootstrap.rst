@@ -10,7 +10,7 @@
     .. note::
         :class: sphx-glr-download-link-note
 
-        Click :ref:`here <sphx_glr_download_auto_examples_3validation_plot_bootstrap.py>`
+        :ref:`Go to the end <sphx_glr_download_auto_examples_3validation_plot_bootstrap.py>`
         to download the full example code
 
 .. rst-class:: sphx-glr-example-title
@@ -52,7 +52,7 @@ for both EOFs and PCs.
 .. code-block:: default
 
 
-    t2m = xr.tutorial.load_dataset('air_temperature')['air']
+    t2m = xr.tutorial.load_dataset("air_temperature")["air"]
 
 
 
@@ -70,8 +70,8 @@ Perform EOF analysis
 .. code-block:: default
 
 
-    model = EOF(n_modes=5, standardize=False, dim='time')
-    model.fit(t2m, dim='time')
+    model = EOF(n_modes=5, standardize=False)
+    model.fit(t2m, dim="time")
     expvar = model.explained_variance_ratio()
     components = model.components()
     scores = model.scores()
@@ -91,7 +91,7 @@ We perform 50 bootstraps.
 Note - if computationallly feasible - you typically want to choose higher
 numbers of bootstraps e.g. 1000.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-54
+.. GENERATED FROM PYTHON SOURCE LINES 39-56
 
 .. code-block:: default
 
@@ -101,14 +101,16 @@ numbers of bootstraps e.g. 1000.
     bs = EOFBootstrapper(n_bootstraps=n_boot)
     bs.fit(model)
     bs_expvar = bs.explained_variance()
-    ci_expvar = bs_expvar.quantile([0.025, 0.975], 'n')  # 95% confidence intervals
+    ci_expvar = bs_expvar.quantile([0.025, 0.975], "n")  # 95% confidence intervals
 
     q025 = ci_expvar.sel(quantile=0.025)
     q975 = ci_expvar.sel(quantile=0.975)
 
-    is_significant = q025 - q975.shift({'mode': -1}) > 0
-    n_significant_modes = is_significant.where(is_significant==True).cumsum(skipna=False).max().fillna(0)
-    print('{:} modes are significant at alpha=0.05'.format(n_significant_modes.values))
+    is_significant = q025 - q975.shift({"mode": -1}) > 0
+    n_significant_modes = (
+        is_significant.where(is_significant == True).cumsum(skipna=False).max().fillna(0)
+    )
+    print("{:} modes are significant at alpha=0.05".format(n_significant_modes.values))
 
 
 
@@ -116,33 +118,29 @@ numbers of bootstraps e.g. 1000.
 
 .. rst-class:: sphx-glr-script-out
 
- Out:
-
  .. code-block:: none
 
-      0%|          | 0/50 [00:00<?, ?it/s]      2%|2         | 1/50 [00:01<00:50,  1.02s/it]      4%|4         | 2/50 [00:01<00:44,  1.07it/s]      6%|6         | 3/50 [00:02<00:38,  1.21it/s]      8%|8         | 4/50 [00:03<00:34,  1.32it/s]     10%|#         | 5/50 [00:04<00:40,  1.12it/s]     12%|#2        | 6/50 [00:05<00:36,  1.21it/s]     14%|#4        | 7/50 [00:06<00:44,  1.03s/it]     16%|#6        | 8/50 [00:07<00:39,  1.06it/s]     18%|#8        | 9/50 [00:07<00:33,  1.22it/s]     20%|##        | 10/50 [00:08<00:30,  1.33it/s]     22%|##2       | 11/50 [00:09<00:29,  1.34it/s]     24%|##4       | 12/50 [00:09<00:24,  1.52it/s]     26%|##6       | 13/50 [00:10<00:23,  1.59it/s]     28%|##8       | 14/50 [00:10<00:23,  1.56it/s]     30%|###       | 15/50 [00:11<00:20,  1.68it/s]     32%|###2      | 16/50 [00:11<00:19,  1.75it/s]     34%|###4      | 17/50 [00:12<00:19,  1.71it/s]     36%|###6      | 18/50 [00:13<00:20,  1.58it/s]     38%|###8      | 19/50 [00:13<00:19,  1.62it/s]     40%|####      | 20/50 [00:14<00:18,  1.62it/s]     42%|####2     | 21/50 [00:14<00:16,  1.78it/s]     44%|####4     | 22/50 [00:15<00:15,  1.77it/s]     46%|####6     | 23/50 [00:16<00:16,  1.61it/s]     48%|####8     | 24/50 [00:16<00:16,  1.54it/s]     50%|#####     | 25/50 [00:17<00:17,  1.45it/s]     52%|#####2    | 26/50 [00:18<00:14,  1.60it/s]     54%|#####4    | 27/50 [00:18<00:14,  1.58it/s]     56%|#####6    | 28/50 [00:19<00:14,  1.54it/s]     58%|#####8    | 29/50 [00:20<00:13,  1.54it/s]     60%|######    | 30/50 [00:20<00:12,  1.66it/s]     62%|######2   | 31/50 [00:21<00:11,  1.71it/s]     64%|######4   | 32/50 [00:21<00:10,  1.77it/s]     66%|######6   | 33/50 [00:22<00:08,  1.89it/s]     68%|######8   | 34/50 [00:22<00:08,  1.84it/s]     70%|#######   | 35/50 [00:23<00:07,  1.89it/s]     72%|#######2  | 36/50 [00:23<00:07,  1.80it/s]     74%|#######4  | 37/50 [00:24<00:07,  1.81it/s]     76%|#######6  | 38/50 [00:24<00:06,  1.82it/s]     78%|#######8  | 39/50 [00:25<00:05,  1.94it/s]     80%|########  | 40/50 [00:25<00:05,  1.92it/s]     82%|########2 | 41/50 [00:26<00:04,  1.97it/s]     84%|########4 | 42/50 [00:26<00:04,  1.96it/s]     86%|########6 | 43/50 [00:27<00:03,  1.92it/s]     88%|########8 | 44/50 [00:28<00:03,  1.71it/s]     90%|######### | 45/50 [00:28<00:02,  1.78it/s]     92%|#########2| 46/50 [00:29<00:02,  1.72it/s]     94%|#########3| 47/50 [00:30<00:02,  1.47it/s]     96%|#########6| 48/50 [00:30<00:01,  1.57it/s]     98%|#########8| 49/50 [00:31<00:00,  1.59it/s]    100%|##########| 50/50 [00:31<00:00,  1.63it/s]    100%|##########| 50/50 [00:31<00:00,  1.57it/s]
+      0%|          | 0/50 [00:00<?, ?it/s]      2%|▏         | 1/50 [00:00<00:42,  1.15it/s]      4%|▍         | 2/50 [00:01<00:32,  1.50it/s]      6%|▌         | 3/50 [00:01<00:28,  1.63it/s]      8%|▊         | 4/50 [00:02<00:29,  1.57it/s]     10%|█         | 5/50 [00:03<00:31,  1.41it/s]     12%|█▏        | 6/50 [00:04<00:29,  1.50it/s]     14%|█▍        | 7/50 [00:04<00:27,  1.57it/s]     16%|█▌        | 8/50 [00:05<00:27,  1.52it/s]     18%|█▊        | 9/50 [00:06<00:29,  1.39it/s]     20%|██        | 10/50 [00:06<00:28,  1.40it/s]     22%|██▏       | 11/50 [00:07<00:26,  1.49it/s]     24%|██▍       | 12/50 [00:08<00:24,  1.56it/s]     26%|██▌       | 13/50 [00:08<00:22,  1.63it/s]     28%|██▊       | 14/50 [00:09<00:21,  1.69it/s]     30%|███       | 15/50 [00:09<00:20,  1.72it/s]     32%|███▏      | 16/50 [00:10<00:19,  1.73it/s]     34%|███▍      | 17/50 [00:10<00:18,  1.78it/s]     36%|███▌      | 18/50 [00:11<00:17,  1.80it/s]     38%|███▊      | 19/50 [00:11<00:17,  1.78it/s]     40%|████      | 20/50 [00:12<00:17,  1.74it/s]     42%|████▏     | 21/50 [00:13<00:16,  1.73it/s]     44%|████▍     | 22/50 [00:13<00:16,  1.73it/s]     46%|████▌     | 23/50 [00:14<00:17,  1.58it/s]     48%|████▊     | 24/50 [00:14<00:15,  1.65it/s]     50%|█████     | 25/50 [00:15<00:15,  1.62it/s]     52%|█████▏    | 26/50 [00:16<00:16,  1.47it/s]     54%|█████▍    | 27/50 [00:17<00:16,  1.43it/s]     56%|█████▌    | 28/50 [00:17<00:14,  1.54it/s]     58%|█████▊    | 29/50 [00:18<00:12,  1.64it/s]     60%|██████    | 30/50 [00:18<00:11,  1.71it/s]     62%|██████▏   | 31/50 [00:19<00:10,  1.75it/s]     64%|██████▍   | 32/50 [00:19<00:10,  1.78it/s]     66%|██████▌   | 33/50 [00:20<00:09,  1.81it/s]     68%|██████▊   | 34/50 [00:20<00:08,  1.81it/s]     70%|███████   | 35/50 [00:21<00:09,  1.56it/s]     72%|███████▏  | 36/50 [00:22<00:08,  1.57it/s]     74%|███████▍  | 37/50 [00:22<00:08,  1.61it/s]     76%|███████▌  | 38/50 [00:24<00:09,  1.30it/s]     78%|███████▊  | 39/50 [00:24<00:08,  1.37it/s]     80%|████████  | 40/50 [00:25<00:06,  1.44it/s]     82%|████████▏ | 41/50 [00:25<00:05,  1.55it/s]     84%|████████▍ | 42/50 [00:26<00:05,  1.45it/s]     86%|████████▌ | 43/50 [00:27<00:04,  1.48it/s]     88%|████████▊ | 44/50 [00:28<00:04,  1.36it/s]     90%|█████████ | 45/50 [00:29<00:03,  1.25it/s]     92%|█████████▏| 46/50 [00:29<00:03,  1.28it/s]     94%|█████████▍| 47/50 [00:30<00:02,  1.13it/s]     96%|█████████▌| 48/50 [00:32<00:01,  1.07it/s]     98%|█████████▊| 49/50 [00:32<00:00,  1.17it/s]    100%|██████████| 50/50 [00:33<00:00,  1.29it/s]    100%|██████████| 50/50 [00:33<00:00,  1.50it/s]
     3.0 modes are significant at alpha=0.05
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-58
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 The bootstrapping procedure identifies 3 significant modes. We can also
 compute the 95 % confidence intervals of the EOFs/PCs and mask out
 insignificant elements of the obtained EOFs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-65
+.. GENERATED FROM PYTHON SOURCE LINES 60-67
 
 .. code-block:: default
 
 
-    ci_components = bs.components().quantile([0.025, 0.975], 'n')
-    ci_scores = bs.scores().quantile([0.025, 0.975], 'n')
+    ci_components = bs.components().quantile([0.025, 0.975], "n")
+    ci_scores = bs.scores().quantile([0.025, 0.975], "n")
 
-    is_sig_comps = (np.sign(ci_components).prod('quantile') > 0)
-
-
+    is_sig_comps = np.sign(ci_components).prod("quantile") > 0
 
 
 
@@ -150,11 +148,13 @@ insignificant elements of the obtained EOFs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-67
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 68-69
 
 Summarize the results in a figure.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-94
+.. GENERATED FROM PYTHON SOURCE LINES 69-98
 
 .. code-block:: default
 
@@ -162,9 +162,7 @@ Summarize the results in a figure.
 
     lons, lats = np.meshgrid(is_sig_comps.lon.values, is_sig_comps.lat.values)
     proj = Orthographic(central_latitude=30, central_longitude=-80)
-    kwargs = {
-        'cmap' : 'RdBu', 'vmin' : -.05, 'vmax': .05, 'transform': PlateCarree()
-    }
+    kwargs = {"cmap": "RdBu", "vmin": -0.05, "vmax": 0.05, "transform": PlateCarree()}
 
     fig = plt.figure(figsize=(10, 16))
     gs = GridSpec(5, 2)
@@ -172,19 +170,23 @@ Summarize the results in a figure.
     ax2 = [fig.add_subplot(gs[i, 1]) for i in range(5)]
 
     for i, (a1, a2) in enumerate(zip(ax1, ax2)):
-        a1.coastlines(color='.5')
+        a1.coastlines(color=".5")
         components.isel(mode=i).plot(ax=a1, **kwargs)
         a1.scatter(
-            lons, lats, is_sig_comps.isel(mode=i).values * .5,
-            color='k', alpha=.5, transform=PlateCarree()
+            lons,
+            lats,
+            is_sig_comps.isel(mode=i).values * 0.5,
+            color="k",
+            alpha=0.5,
+            transform=PlateCarree(),
         )
-        ci_scores.isel(mode=i, quantile=0).plot(ax=a2, color='.3', lw='.5', label='2.5%')
-        ci_scores.isel(mode=i, quantile=1).plot(ax=a2, color='.3', lw='.5', label='97.5%')
-        scores.isel(mode=i).plot(ax=a2, lw='.5', alpha=.5, label='PC')
+        ci_scores.isel(mode=i, quantile=0).plot(ax=a2, color=".3", lw=".5", label="2.5%")
+        ci_scores.isel(mode=i, quantile=1).plot(ax=a2, color=".3", lw=".5", label="97.5%")
+        scores.isel(mode=i).plot(ax=a2, lw=".5", alpha=0.5, label="PC")
         a2.legend(loc=2)
 
     plt.tight_layout()
-    plt.savefig('bootstrap.jpg')
+    plt.savefig("bootstrap.jpg")
 
 
 
@@ -200,28 +202,25 @@ Summarize the results in a figure.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  36.801 seconds)
+   **Total running time of the script:** (0 minutes 37.867 seconds)
 
 
 .. _sphx_glr_download_auto_examples_3validation_plot_bootstrap.py:
 
+.. only:: html
 
-.. only :: html
-
- .. container:: sphx-glr-footer
-    :class: sphx-glr-footer-example
+  .. container:: sphx-glr-footer sphx-glr-footer-example
 
 
 
-  .. container:: sphx-glr-download sphx-glr-download-python
 
-     :download:`Download Python source code: plot_bootstrap.py <plot_bootstrap.py>`
+    .. container:: sphx-glr-download sphx-glr-download-python
 
+      :download:`Download Python source code: plot_bootstrap.py <plot_bootstrap.py>`
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-  .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-     :download:`Download Jupyter notebook: plot_bootstrap.ipynb <plot_bootstrap.ipynb>`
+      :download:`Download Jupyter notebook: plot_bootstrap.ipynb <plot_bootstrap.ipynb>`
 
 
 .. only:: html

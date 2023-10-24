@@ -11,9 +11,10 @@ from ..utils.xarray_utils import total_variance as compute_total_variance
 
 
 class EOF(_BaseModel):
-    """Empirical Orthogonal Functions (EOF) analysis.
+    """EOF analysis.
 
-    More commonly known as Principal Component Analysis (PCA).
+    Empirical Orthogonal Functions (EOF) analysis, more commonly known
+    as Principal Component Analysis (PCA).
 
     Parameters
     ----------
@@ -236,7 +237,7 @@ class EOF(_BaseModel):
 
 
 class ComplexEOF(EOF):
-    """Complex Empirical Orthogonal Functions (Complex EOF) analysis.
+    """Complex EOF analysis.
 
     The Complex EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
     to the data before performing the standard EOF analysis.
@@ -260,26 +261,26 @@ class ComplexEOF(EOF):
         A smaller value (e.g. 0.05) is recommended for
         data with high variability, while a larger value (e.g. 0.2) is recommended
         for data with low variability. Default is 0.2.
-        center: bool, default=True
-            Whether to center the input data.
-        standardize : bool
-            Whether to standardize the input data.
-        use_coslat : bool
-            Whether to use cosine of latitude for scaling.
-        sample_name: str, default="sample"
-            Name of the sample dimension.
-        feature_name: str, default="feature"
-            Name of the feature dimension.
-        compute: bool, default=True
-            Whether to compute the decomposition immediately. This is recommended
-            if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-            boosts computational efficiency compared to deferring the computation.
-        solver: {"auto", "full", "randomized"}, default="auto"
-            Solver to use for the SVD computation.
-        solver_kwargs: dict, default={}
-            Additional keyword arguments to be passed to the SVD solver.
-        solver_kwargs : dict, optional
-            Additional keyword arguments to be passed to the SVD solver.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize : bool
+        Whether to standardize the input data.
+    use_coslat : bool
+        Whether to use cosine of latitude for scaling.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
+    compute: bool, default=True
+        Whether to compute the decomposition immediately. This is recommended
+        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
+        boosts computational efficiency compared to deferring the computation.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to be passed to the SVD solver.
+    solver_kwargs : dict, optional
+        Additional keyword arguments to be passed to the SVD solver.
 
     References
     ----------
@@ -378,7 +379,7 @@ class ComplexEOF(EOF):
         The amplitude of the components are defined as
 
         .. math::
-            A_ij = |C_ij|
+            A_{ij} = |C_{ij}|
 
         where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
         :math:`|\\cdot|` denotes the absolute value.
@@ -421,7 +422,7 @@ class ComplexEOF(EOF):
         The amplitude of the scores are defined as
 
         .. math::
-            A_ij = |S_ij|
+            A_{ij} = |S_{ij}|
 
         where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
         :math:`|\\cdot|` denotes the absolute value.

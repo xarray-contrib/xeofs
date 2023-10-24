@@ -260,8 +260,8 @@ class EOFRotator(EOF):
 class ComplexEOFRotator(EOFRotator, ComplexEOF):
     """Rotate a solution obtained from ``xe.models.ComplexEOF``.
 
-    Complex Rotated EOF analysis ([1]_, [2]_]) extends the EOF analysis by incorporating both amplitude and phase information
-    using a Hilbert transform prior to performing the MCA and subsequent Varimax or Promax rotation.
+    Complex Rotated EOF analysis [1]_ [2]_ [3]_ extends EOF analysis by incorporating both amplitude and phase information
+    using a Hilbert transform prior to performing MCA and subsequent Varimax or Promax rotation.
     This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation
     of complex relationships within the data, particularly useful when analyzing oscillatory data.
 

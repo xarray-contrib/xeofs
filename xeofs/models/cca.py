@@ -218,13 +218,11 @@ class CCABaseModel(BaseEstimator):
 
 
 class CCA(CCABaseModel):
-    r"""Canonical Correlation Analysis (CCA) model.
+    r"""Canonical Correlation Analysis.
     
-    Regularised CCA (canonical ridge) model. 
-    
-    CCA identifies linear combinations of variables from multiple datasets that 
-    maximize their mutual correlations. An optional regularisation parameter can be used to
-    improve the conditioning of the covariance matrix.
+    Canonical Correlation Analysis (CCA) identifies linear combinations of variables from multiple datasets that 
+    maximize their mutual correlations. An optional regularisation parameter (ridge regression)
+    can be used to improve the conditioning of the covariance matrix.
 
     The objective function of (regularised) CCA is:
 

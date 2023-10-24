@@ -17,6 +17,7 @@ dependencies:
   - cartopy
   - ipython
   - ipykernel
+  - rpy2
   - pip:
     - pydata-sphinx-theme
     - sphinx-gallery
