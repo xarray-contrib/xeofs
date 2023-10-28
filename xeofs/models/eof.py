@@ -34,6 +34,10 @@ class EOF(_BaseModel):
         Whether to compute the decomposition immediately. This is recommended
         if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
         boosts computational efficiency compared to deferring the computation.
+    verbose: bool, default=False
+        Whether to show a progress bar when computing the decomposition.
+    random_state : Optional[int], default=None
+        Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -56,6 +60,7 @@ class EOF(_BaseModel):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
+        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -69,6 +74,7 @@ class EOF(_BaseModel):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
+            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
@@ -275,6 +281,10 @@ class ComplexEOF(EOF):
         Whether to compute the decomposition immediately. This is recommended
         if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
         boosts computational efficiency compared to deferring the computation.
+    verbose: bool, default=False
+        Whether to show a progress bar when computing the decomposition.
+    random_state : Optional[int], default=None
+        Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -286,8 +296,8 @@ class ComplexEOF(EOF):
     ----------
     .. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).
     .. [2] Barnett, T. P. Interaction of the Monsoon and Pacific Trade Wind System at Interannual Time Scales Part I: The Equatorial Zone. Monthly Weather Review 111, 756–773 (1983).
-    .. [3] Horel, J., 1984. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673. https://doi.org/10.1175/1520-0450(1984)023<1660:CPCATA>2.0.CO;2
-    .. [4] Hannachi, A., Jolliffe, I., Stephenson, D., 2007. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152. https://doi.org/10.1002/joc.1499
+    .. [3] Horel, J. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673 (1984).
+    .. [4] Hannachi, A., Jolliffe, I. & Stephenson, D. Empirical orthogonal functions and related techniques in atmospheric science: A review. International Journal of Climatology 27, 1119–1152 (2007).
 
     Examples
     --------
@@ -307,6 +317,7 @@ class ComplexEOF(EOF):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
+        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -319,6 +330,7 @@ class ComplexEOF(EOF):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
+            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,

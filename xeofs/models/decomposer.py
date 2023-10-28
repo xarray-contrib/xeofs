@@ -32,6 +32,8 @@ class Decomposer:
         and optionally truncated afterwards.
     random_state : Optional[int], default=None
         Seed for the random number generator.
+    verbose: bool, default=False
+        Whether to show a progress bar when computing the decomposition.
     **kwargs
         Additional keyword arguments passed to the SVD solver.
     """
@@ -43,11 +45,13 @@ class Decomposer:
         compute: bool = True,
         solver: str = "auto",
         random_state: Optional[int] = None,
+        verbose: bool = False,
         **kwargs,
     ):
         self.n_modes = n_modes
         self.flip_signs = flip_signs
         self.compute = compute
+        self.verbose = verbose
         self.solver = solver
         self.random_state = random_state
         self.solver_kwargs = kwargs
@@ -229,9 +233,18 @@ class Decomposer:
         VT : DataArray
             Right singular vectors.
         """
-        if self.compute:
-            with ProgressBar():
-                U = U.compute()
-                s = s.compute()
-                VT = VT.compute()
+        match self.compute:
+            case False:
+                pass
+            case True:
+                match self.verbose:
+                    case True:
+                        with ProgressBar():
+                            U = U.compute()
+                            s = s.compute()
+                            VT = VT.compute()
+                    case False:
+                        U = U.compute()
+                        s = s.compute()
+                        VT = VT.compute()
         return U, s, VT
