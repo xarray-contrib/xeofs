@@ -11,6 +11,7 @@ documentation = "https://xeofs.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
+poetry = "^1.6"
 numpy = "~1.24"
 pandas = ">=1.4.1"
 xarray = ">=0.21.1"
@@ -23,22 +24,28 @@ netCDF4 = "^1.5.7"
 numba = "^0.57"
 typing-extensions = "^4.8.0"
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
-flake8 = {version = "^4.0", optional = true}
-pytest = {version = "^7.0", optional = true}
-coverage = {version = "^6.3", optional = true}
-black = {version = "~23.7.0", optional = true} 
-pre-commit = {version = "^3.3", optional = true}
+flake8 = "^4.0"
+pytest = "^7.0"
+coverage = "^6.3"
+black = "~23.7.0" 
+pre-commit = "^3.3"
+
+[tool.poetry.group.docs]
+optional = true
 
 [tool.poetry.group.docs.dependencies]
-rpy2 = {version = ">=3.5", optional = true}
-sphinx-gallery = {version = "^0.14", optional = true}
-sphinx-design = {version = "^0.5", optional = true}
-sphinx-copybutton = {version = "^0.5", optional = true}
-nbsphinx = {version = "^0.9", optional = true}
-pydata-sphinx-theme = {version = "^0.14", optional = true}
-sphinx = {version = "^7.2", optional = true}
-nbconvert = {version = "^7.9", optional = true}
+rpy2 = ">=3.5"
+sphinx-gallery = "^0.14"
+sphinx-design = "^0.5"
+sphinx-copybutton = "^0.5"
+nbsphinx = "^0.9"
+pydata-sphinx-theme = "^0.14"
+sphinx = "^7.2"
+nbconvert = "^7.9"
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]
