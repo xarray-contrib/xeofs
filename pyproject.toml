@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xeofs"
-version = "1.2.0"
+version = "1.2.1"
 description = "Collection of EOF analysis and related techniques for climate science"
 authors = ["Niclas Rieger <niclasrieger@gmail.com>"]
 license = "MIT"
