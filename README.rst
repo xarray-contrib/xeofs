@@ -141,10 +141,10 @@ In order to get started with ``xeofs``, follow these simple steps:
    rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)
 
 
-To further explore the capabilities of ``xeofs``, check the available documentation_ and examples_.
-For a full list of currently available methods, see the methods_ section.
+To further explore the capabilities of ``xeofs``, check out the available documentation_ and examples_.
+For a full list of currently available methods, see the `Reference API`_.
 
-.. _methods: https://xeofs.readthedocs.io/en/latest/models.html
+.. _`Reference API`: https://xeofs.readthedocs.io/en/latest/api.html
 
 
 
