@@ -2,21 +2,17 @@
 
 .. image:: logos/xeofs_logo.png
   :align: center
-  :width: 800
+  :width: 1000
   :alt: logo of xeofs
 
 #############################################################
 Advanced EOF Analysis in Python
 #############################################################
-|
-``xeofs`` is a toolbox designed to handle multi-dimensional EOF analysis and related methods
-for Earth system sciences, leveraging the power of packages like ``xarray`` for 
-labeled, multi-dimensional analysis and 
-``dask`` for scalability. It supports various forms of 
-EOF analysis including standard, rotated, and multivariate analysis. 
-The overall goal of ``xeofs`` is to unify and extend existing EOF implementations, 
-thereby enhancing their application in the broader scientific community.
 
+``xeofs`` is a dedicated Python package for dimensionality reduction in the realm of climate science, 
+offering methods like PCA, known as EOF analysis within the field, and related variants. 
+Seamlessly integrated with ``xarray`` and ``Dask``, it's tailored for easy handling and scalable 
+computation on large, multi-dimensional datasets, making advanced climate data analysis both accessible and efficient.
 
 .. grid:: 2
 
@@ -25,7 +21,7 @@ thereby enhancing their application in the broader scientific community.
       :link-type: doc
 
 
-      Get an idea of what `xeofs` is all about.
+      Get an idea of what ``xeofs`` is all about.
 
     .. grid-item-card::  Quickstart
       :link: quickstart
@@ -36,11 +32,11 @@ thereby enhancing their application in the broader scientific community.
 
 .. grid:: 2
 
-    .. grid-item-card::  Methods
-      :link: models
+    .. grid-item-card::  API Reference
+      :link: api
       :link-type: doc
 
-      Check what methods are available.
+      Check out what methods are available.
 
     .. grid-item-card::  Examples
       :link: auto_examples/index
@@ -50,8 +46,7 @@ thereby enhancing their application in the broader scientific community.
 
 
 
-.. admonition:: Note
-    :class: info
+.. info:: 
 
     Work in progress.
   
@@ -63,6 +58,5 @@ thereby enhancing their application in the broader scientific community.
    overview
    installation
    quickstart
-   models
-   auto_examples/index
    api
+   auto_examples/index

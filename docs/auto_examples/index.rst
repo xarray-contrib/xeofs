@@ -4,8 +4,7 @@
 Examples
 ==================
 
-.. note:: More examples will follow soon.
-
+Here you can find some examples of how to use the library.
 
 
 .. raw:: html
@@ -17,8 +16,8 @@ Examples
 
     </div>
 
-1 | EOF analysis
-==================
+1 | Single-Set Analysis
+=======================
 
 
 
@@ -33,10 +32,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eeof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_eeof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_eeof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_eeof.py`
 
 .. raw:: html
 
@@ -50,10 +49,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_eof-tmode_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_eof-tmode.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_eof-tmode.py`
 
 .. raw:: html
 
@@ -63,14 +62,31 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.  This met...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_complex_eof_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Complex/Hilbert EOF analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in S-mode maximises the temporal variance.">
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_eof-smode_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_eof-smode_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_eof-smode.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_eof-smode.py`
 
 .. raw:: html
 
@@ -84,10 +100,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_multivariate-eof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_multivariate-eof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_multivariate-eof.py`
 
 .. raw:: html
 
@@ -101,10 +117,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_mreof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_mreof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_mreof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_mreof.py`
 
 .. raw:: html
 
@@ -118,10 +134,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_rotated_eof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_rotated_eof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_rotated_eof.py`
 
 .. raw:: html
 
@@ -135,10 +151,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_weighted-eof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_weighted-eof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_weighted-eof.py`
 
 .. raw:: html
 
@@ -152,10 +168,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/1eof/images/thumb/sphx_glr_plot_gwpca_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_gwpca_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1eof_plot_gwpca.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_gwpca.py`
 
 .. raw:: html
 
@@ -167,7 +183,7 @@ Examples
 
     </div>
 
-2 | MCA
+2 | Multi-Set Analysis
 ========================
 
 
@@ -179,14 +195,31 @@ Examples
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we&#x27;re going to perform a Canonical Correlation Analysis (CCA)  on three datase...">
+
+.. only:: html
+
+  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_cca_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_2multi_plot_cca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Canonical Correlation Analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
 
 .. only:: html
 
-  .. image:: /auto_examples/2mca/images/thumb/sphx_glr_plot_mca_thumb.png
+  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_mca_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_2mca_plot_mca.py`
+  :ref:`sphx_glr_auto_examples_2multi_plot_mca.py`
 
 .. raw:: html
 
@@ -200,10 +233,10 @@ Examples
 
 .. only:: html
 
-  .. image:: /auto_examples/2mca/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
+  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_2mca_plot_rotated_mca.py`
+  :ref:`sphx_glr_auto_examples_2multi_plot_rotated_mca.py`
 
 .. raw:: html
 
@@ -251,8 +284,8 @@ Examples
    :includehidden:
 
 
-   /auto_examples/1eof/index.rst
-   /auto_examples/2mca/index.rst
+   /auto_examples/1single/index.rst
+   /auto_examples/2multi/index.rst
    /auto_examples/3validation/index.rst
 
 

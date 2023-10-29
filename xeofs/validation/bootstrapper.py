@@ -91,7 +91,7 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
             expvar = bst_model.data["explained_variance"]
             totvar = bst_model.data["total_variance"]
             components = bst_model.data["components"]
-            scores = bst_model.transform(input_data)
+            scores = bst_model.transform(input_data, normalized=False)
             bst_expvar.append(expvar)
             bst_total_variance.append(totvar)
             bst_components.append(components)

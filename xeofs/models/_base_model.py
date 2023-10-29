@@ -49,6 +49,10 @@ class _BaseModel(ABC):
         Whether to compute the decomposition immediately. This is recommended
         if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
         boosts computational efficiency compared to deferring the computation.
+    verbose: bool, default=False
+        Whether to show a progress bar when computing the decomposition.
+    random_state: Optional[int], default=None
+        Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
@@ -65,6 +69,7 @@ class _BaseModel(ABC):
         sample_name="sample",
         feature_name="feature",
         compute=True,
+        verbose=False,
         random_state=None,
         solver="auto",
         solver_kwargs={},
@@ -82,12 +87,18 @@ class _BaseModel(ABC):
             "sample_name": sample_name,
             "feature_name": feature_name,
             "random_state": random_state,
+            "verbose": verbose,
             "compute": compute,
             "solver": solver,
         }
         self._solver_kwargs = solver_kwargs
         self._solver_kwargs.update(
-            {"solver": solver, "random_state": random_state, "compute": compute}
+            {
+                "solver": solver,
+                "random_state": random_state,
+                "compute": compute,
+                "verbose": verbose,
+            }
         )
 
         # Define analysis-relevant meta data
