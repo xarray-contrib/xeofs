@@ -15,7 +15,7 @@ There are numerous advantages of using ``xeofs``, including:
 
 
 
-Working with Labeled & Multi-Dimensional Data
+Labeled & Multi-Dimensional
 ---------------------------------------------
 
 ``xeofs`` is specifically designed for ``xarray`` objects. This design choice enables you 
@@ -42,7 +42,7 @@ dimensions are *feature* dimensions to be expressed as latent variables.
 
     Multiple *sample* dimensions can be specified as long as at least one *feature* dimension remains.
 
-Support for Dask
+Dask Support
 ----------------
 
 If you handle large datasets that exceed memory capacity, you can pass a ``Dask`` ``xarray`` object to ``xeofs``. 
@@ -124,7 +124,7 @@ Model Evaluation
 ``xeofs`` is dedicated to providing a user-friendly interface for model evaluations using bootstrapping. Currently, only bootstrapping for PCA/EOF analysis is supported 
 (for a practical example, see :doc:`auto_examples/3validation/index`).
 
-Achieving Computational Efficiency
+Computationally Efficient
 ----------------------------------
 
 Regardless of whether you're dealing with in-memory or out-of-memory data, ``xeofs`` ensures computational efficiency. 
@@ -340,6 +340,6 @@ toolkit for dimensionality reduction techniques.
 .. _pyEOF: https://github.com/zhonghua-zheng/pyEOF
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _eofs: https://github.com/ajdawson/eofs
-.. _sklearn docs on PCA: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+.. _`sklearn documentation on PCA`: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 .. _`GitHub`: https://github.com/nicrie/xeofs/issues
 

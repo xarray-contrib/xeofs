@@ -41,9 +41,9 @@ Load packages and data:
 
     from xeofs.models import EOF
 
-    sns.set_context('paper')
+    sns.set_context("paper")
 
-    t2m = xr.tutorial.load_dataset('air_temperature')['air']
+    t2m = xr.tutorial.load_dataset("air_temperature")["air"]
 
 
 
@@ -65,22 +65,22 @@ Perform the actual analysis
     scores = []
     # (1) Based on covariance matrix
     model_cov = EOF(n_modes=5, standardize=False, use_coslat=False)
-    model_cov.fit(t2m, 'time')
+    model_cov.fit(t2m, "time")
     components.append(model_cov.components())
     scores.append(model_cov.scores())
     # (2) Based on coslat weighted covariance matrix
     model_lat = EOF(n_modes=5, standardize=False, use_coslat=True)
-    model_lat.fit(t2m, 'time')
+    model_lat.fit(t2m, "time")
     components.append(model_lat.components())
     scores.append(model_lat.scores())
     # (3) Based on correlation matrix
     model_cor = EOF(n_modes=5, standardize=True, use_coslat=False)
-    model_cor.fit(t2m, 'time')
+    model_cor.fit(t2m, "time")
     components.append(model_cor.components())
     scores.append(model_cor.scores())
     # (4) Based on coslat weighted correlation matrix
     model_cor_lat = EOF(n_modes=5, standardize=True, use_coslat=True)
-    model_cor_lat.fit(t2m, 'time')
+    model_cor_lat.fit(t2m, "time")
     components.append(model_cor_lat.components())
     scores.append(model_cor_lat.scores())
 
@@ -96,18 +96,22 @@ Perform the actual analysis
 
 Create figure showing the first mode for all 4 cases
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-84
+.. GENERATED FROM PYTHON SOURCE LINES 54-88
 
 .. code-block:: default
 
 
     proj = Orthographic(central_latitude=30, central_longitude=-80)
     kwargs = {
-        'cmap' : 'mako', 'transform': PlateCarree(), 'vmin': 0,
+        "cmap": "mako",
+        "transform": PlateCarree(),
+        "vmin": 0,
     }
     titles = [
-        '(1) Covariances', '(2) Covariances + coslat',
-        '(3) Correlation', '(4) Correlation + coslat',
+        "(1) Covariances",
+        "(2) Covariances + coslat",
+        "(3) Correlation",
+        "(4) Correlation + coslat",
     ]
     fig = plt.figure(figsize=(10, 12))
     gs = GridSpec(4, 2)
@@ -115,13 +119,13 @@ Create figure showing the first mode for all 4 cases
     ax_eofs = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(4)]
 
     for i, (a1, a2) in enumerate(zip(ax_eofs, ax_pcs)):
-        a1.coastlines(color='.5')
+        a1.coastlines(color=".5")
         components[i].sel(mode=1).plot(ax=a1, **kwargs)
-        scores[i].sel(mode=1).plot(ax=a2, color='darkred')
-        a2.set_xlabel('')
-        a1.set_title('', loc='center')
-        a2.set_title('', loc='center')
-        a2.set_title(titles[i], loc='left', weight='bold')
+        scores[i].sel(mode=1).plot(ax=a2, color="darkred")
+        a2.set_xlabel("")
+        a1.set_title("", loc="center")
+        a2.set_title("", loc="center")
+        a2.set_title(titles[i], loc="left", weight="bold")
         if i < 3:
             a2.set_xticks([])
             sns.despine(ax=a2, trim=True, bottom=True)
@@ -129,7 +133,7 @@ Create figure showing the first mode for all 4 cases
             sns.despine(ax=a2, trim=True, bottom=False)
 
     plt.tight_layout()
-    plt.savefig('weighted_eof.jpg', dpi=200)
+    plt.savefig("weighted_eof.jpg", dpi=200)
 
 
 
@@ -145,7 +149,7 @@ Create figure showing the first mode for all 4 cases
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.428 seconds)
+   **Total running time of the script:** (0 minutes 5.606 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_weighted-eof.py:

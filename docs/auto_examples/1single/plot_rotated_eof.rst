@@ -53,9 +53,9 @@ We'll start by loading the necessary packages and data:
     from xeofs.models import EOF, EOFRotator
 
 
-    sns.set_context('paper')
+    sns.set_context("paper")
 
-    sst = xr.tutorial.open_dataset('ersstv5')['sst']
+    sst = xr.tutorial.open_dataset("ersstv5")["sst"]
 
 
 
@@ -78,7 +78,7 @@ Perform the actual analysis
     scores = []
     # (1) Standard EOF without regularization
     model = EOF(n_modes=100, standardize=True, use_coslat=True)
-    model.fit(sst, dim='time')
+    model.fit(sst, dim="time")
     components.append(model.components())
     scores.append(model.scores())
     # (2) Varimax-rotated EOF analysis
@@ -108,16 +108,18 @@ solution exhibit dipole and tripole-like patterns. Under Varimax and Promax
 rotation, these structures completely disappear suggesting that these patterns
 were mere artifacts due to the orthogonality.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-96
+.. GENERATED FROM PYTHON SOURCE LINES 66-98
 
 .. code-block:: default
 
 
     proj = Robinson(central_longitude=180)
     kwargs = {
-        'cmap' : 'RdBu', 'transform': PlateCarree(), 'vmin': -.03, 'vmax': +.03,
-        'add_colorbar': False
-
+        "cmap": "RdBu",
+        "transform": PlateCarree(),
+        "vmin": -0.03,
+        "vmax": +0.03,
+        "add_colorbar": False,
     }
 
     fig = plt.figure(figsize=(10, 5))
@@ -128,20 +130,20 @@ were mere artifacts due to the orthogonality.
 
     for i, (a0, a1, a2) in enumerate(zip(ax_std, ax_var, ax_pro)):
         mode = i + 1
-        a0.coastlines(color='.5')
-        a1.coastlines(color='.5')
-        a2.coastlines(color='.5')
+        a0.coastlines(color=".5")
+        a1.coastlines(color=".5")
+        a2.coastlines(color=".5")
         components[0].sel(mode=mode).plot(ax=a0, **kwargs)
         components[1].sel(mode=mode).plot(ax=a1, **kwargs)
         components[2].sel(mode=mode).plot(ax=a2, **kwargs)
 
-    title_kwargs = dict(rotation=90, va='center', weight='bold')
-    ax_std[0].text(-.1, .5, 'Standard', transform=ax_std[0].transAxes, **title_kwargs)
-    ax_var[0].text(-.1, .5, 'Varimax', transform=ax_var[0].transAxes, **title_kwargs)
-    ax_pro[0].text(-.1, .5, 'Promax', transform=ax_pro[0].transAxes, **title_kwargs)
+    title_kwargs = dict(rotation=90, va="center", weight="bold")
+    ax_std[0].text(-0.1, 0.5, "Standard", transform=ax_std[0].transAxes, **title_kwargs)
+    ax_var[0].text(-0.1, 0.5, "Varimax", transform=ax_var[0].transAxes, **title_kwargs)
+    ax_pro[0].text(-0.1, 0.5, "Promax", transform=ax_pro[0].transAxes, **title_kwargs)
 
     plt.tight_layout()
-    plt.savefig('rotated_eof.jpg', dpi=200)
+    plt.savefig("rotated_eof.jpg", dpi=200)
 
 
 
@@ -157,7 +159,7 @@ were mere artifacts due to the orthogonality.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 17.268 seconds)
+   **Total running time of the script:** (0 minutes 18.587 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_rotated_eof.py:

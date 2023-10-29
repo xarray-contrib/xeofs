@@ -8,15 +8,11 @@
 #############################################################
 Advanced EOF Analysis in Python
 #############################################################
-|
-``xeofs`` is a toolbox designed to handle multi-dimensional EOF analysis and related methods
-for Earth system sciences, leveraging the power of packages like ``xarray`` for 
-labeled, multi-dimensional analysis and 
-``dask`` for scalability. It supports various forms of 
-EOF analysis including standard, rotated, and multivariate analysis. 
-The overall goal of ``xeofs`` is to unify and extend existing EOF implementations, 
-thereby enhancing their application in the broader scientific community.
 
+``xeofs`` is a dedicated Python package for dimensionality reduction in the realm of climate science, 
+offering methods like PCA, known as EOF analysis within the field, and related variants. 
+Seamlessly integrated with ``xarray`` and ``Dask``, it's tailored for easy handling and scalable 
+computation on large, multi-dimensional datasets, making advanced climate data analysis both accessible and efficient.
 
 .. grid:: 2
 

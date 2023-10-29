@@ -4,7 +4,7 @@ Overview_
 
 If you are new to ``xeofs``, that's the place to start.
 
-.. grid:: 3
+.. grid:: 1
 
     .. grid-item-card::  Why xeofs?
       :link: overview_1_why
@@ -12,12 +12,15 @@ If you are new to ``xeofs``, that's the place to start.
 
       Understand the motivation behind ``xeofs``.
 
+.. grid:: 1
+
     .. grid-item-card::  Key Features
       :link: overview_2_features
       :link-type: doc
 
       What can ``xeofs`` do for you?
 
+.. grid:: 1
 
     .. grid-item-card::  Contributing
       :link: overview_3_contributing
