@@ -2,7 +2,7 @@
 
 .. image:: logos/xeofs_logo.png
   :align: center
-  :width: 800
+  :width: 1000
   :alt: logo of xeofs
 
 #############################################################
@@ -25,7 +25,7 @@ thereby enhancing their application in the broader scientific community.
       :link-type: doc
 
 
-      Get an idea of what `xeofs` is all about.
+      Get an idea of what ``xeofs`` is all about.
 
     .. grid-item-card::  Quickstart
       :link: quickstart
@@ -36,11 +36,11 @@ thereby enhancing their application in the broader scientific community.
 
 .. grid:: 2
 
-    .. grid-item-card::  Methods
-      :link: models
+    .. grid-item-card::  API Reference
+      :link: api
       :link-type: doc
 
-      Check what methods are available.
+      Check out what methods are available.
 
     .. grid-item-card::  Examples
       :link: auto_examples/index
@@ -50,8 +50,7 @@ thereby enhancing their application in the broader scientific community.
 
 
 
-.. admonition:: Note
-    :class: info
+.. info:: 
 
     Work in progress.
   
@@ -63,6 +62,5 @@ thereby enhancing their application in the broader scientific community.
    overview
    installation
    quickstart
-   models
-   auto_examples/index
    api
+   auto_examples/index
