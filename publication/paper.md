@@ -40,7 +40,7 @@ reduction techniques like Empirical Orthogonal Functions (EOF) analysis-often
 called Principal Component Analysis (PCA) in other domains. 
 Integrating seamlessly with `xarray` objects [@hoyer2017xarray], `xeofs` 
 makes it easier to analyze large, labeled, multi-dimensional datasets.
-By harnessing `Dask`'s capabilities [@dask_2016], it scales computations efficiently
+By harnessing `Dask`'s capabilities [@dask2016], it scales computations efficiently
 across multiple cores or clusters, apt for extensive climate data applications.
 
 
@@ -62,7 +62,7 @@ of missing values and dimension coordinates, which can be cumbersome and prone t
 increasing the workload, especially for smaller-scale projects. Furthermore, the size 
 of climate datasets often necessitates out-of-memory processing.
 
-While `xMCA` [@xmca_yefee] and `eofs` [@dawson2016eofs] have addressed some of these 
+While `xMCA` [@xmca_yefee] and `eofs` [@dawson_eofs_2016] have addressed some of these 
 issues by offering analysis tools compatible with `xarray` and `Dask`, `xeofs` 
 expands on these by including a broader range of techniques such as 
 rotated [@kaiser_varimax_1958], complex/Hilbert [@rasmusson_biennial_1981], and 
