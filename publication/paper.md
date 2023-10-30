@@ -70,7 +70,7 @@ extended [@weare_examples_1982] PCA/EOF analysis. `xeofs` operates natively
 with `xarray` objects, preserving data labels and structure, and handles 
 datasets with missing values adeptly. It also integrates seamlessly with `Dask`
 and shows improved performance in particular for larger datasets 
-\autoref{fig:computation_times} due to its usage of randomized 
+(\autoref{fig:computation_times}) due to its usage of randomized 
 Singular Value Decomposition (SVD) [@halko_finding_2011].
 
 ![Comparison of computation times of PCA for varying number of features between `xeofs` and `eofs`.\label{fig:computation_times}](../docs/img/timings_light.png){ width=100% }
@@ -94,7 +94,7 @@ At the time of publication, `xeofs` provides the following methods:
 | Rotated PCA                   | -                                                               | [@kaiser_varimax_1958; @hendrickson_promax_1964]                                      |
 | Complex PCA                   | Hilbert EOF (HEOF) analysis                                     | [@rasmusson_biennial_1981; @barnett_interaction_1983; @horel_complex_1984]            |
 | Complex Rotated PCA           | -                                                               | [@horel_complex_1984]                                                                 |
-| Extended PCA                  | EEOF analysis / Multichannel Singular Spectrum Analysis (M-SSA) | [@weare_examples_1982; broomhead_extracting_1986]                                     |
+| Extended PCA                  | EEOF analysis / Multichannel Singular Spectrum Analysis (M-SSA) | [@weare_examples_1982; @broomhead_extracting_1986]                                     |
 | Optimal Persistence Analysis  | OPA                                                             | [@delsole_optimally_2001; @delsole_low-frequency_2006]                                |
 | Geographically-Weighted PCA   | GWPCA                                                           | [@harris_geographically_2011]                                                         |
 | Maximum Covariance Analysis   | MCA, SVD analysis                                               | [@bretherton_intercomparison_1992]                                                    |
