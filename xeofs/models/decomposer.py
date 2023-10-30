@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+import dask
 from dask.array import Array as DaskArray  # type: ignore
 from dask.diagnostics.progress import ProgressBar
 from numpy.linalg import svd
@@ -240,11 +241,7 @@ class Decomposer:
                 match self.verbose:
                     case True:
                         with ProgressBar():
-                            U = U.compute()
-                            s = s.compute()
-                            VT = VT.compute()
+                            U, s, VT = dask.compute(U, s, VT)
                     case False:
-                        U = U.compute()
-                        s = s.compute()
-                        VT = VT.compute()
+                        U, s, VT = dask.compute(U, s, VT)
         return U, s, VT
