@@ -1,7 +1,3 @@
-# Meta data file
-
-generate a [meta data file](https://gist.github.com/arfon/478b2ed49e11f984d6fb) and add it to the repo
-
 ---
 title: 'xeofs: Dimensionality reduction in xarray'
 tags:
@@ -49,8 +45,8 @@ across multiple cores or clusters, apt for extensive climate data applications.
 
 
 # Statement of Need
-
-Climate science routinely deals with analyzing large, multi-dimensional datasets that 
+Climate science routinely deals with analyzing large, multi-dimensional datasets,
+whose complexity mirros the intricate dynamics of the climate system itself. 
 are dense with complex physical process information. The extraction of meaningful 
 insights from such vast datasets is challenging and often requires the application
 of dimensionality reduction techniques like EOF analysis (PCA outside climate science). 
@@ -75,20 +71,18 @@ with `xarray` objects, preserving data labels and structure, and handles
 datasets with missing values adeptly. It also integrates seamlessly with `Dask`
 and shows improved performance in particular for larger datasets 
 \autoref{fig:computation_times} due to its usage of randomized 
-Singular Value Decomposition (SVD) [@halko_randomized_2011].
+Singular Value Decomposition (SVD) [@halko_finding_2011].
 
 ![Comparison of computation times of PCA for varying number of features between `xeofs` and `eofs`.\label{fig:computation_times}](../docs/img/timings_light.png){ width=100% }
 
 
 # Implementation
-Methods in `xeofs` are implemented in a way that they loosly follow `scikit-learn`
-conventions, providing a user-friendly interface with a each method being a class
-with a `fit` method. In addition, when appropriate a `transform` and `inverse_transform` 
-method are provided. Furthermore, `xeofs` allows the user to easily add their own
-dimensionality reduction techniques by providing a low-level entry point to the
-internal processing pipeline.
-Finally, `xeofs` provides a bootstrapping module for model evaluation which currently
-supports a straightforward way to bootstrap a PCA model.
+`xeofs` adopts the familiar `scikit-learn` style, delivering an intuitive interface 
+where each method is a class with standard `fit`, and when applicable, `transform` 
+and `inverse_transform` methods. It also offers flexibility by allowing users to 
+introduce custom dimensionality reduction methods via a streamlined entry point 
+to its internal pipeline. Additionally, the package includes a bootstrapping 
+module for straightforward PCA model evaluation.
 
 # Available Methods
 
@@ -109,14 +103,14 @@ At the time of publication, `xeofs` provides the following methods:
 | Complex Rotated MCA           | -                                                               | [@rieger_lagged_2021]                                                                 |
 | Canonical Correlation Analysis| CCA                                                             | [@hotelling_relations_1936; @vinod_canonical_1976; @bretherton_intercomparison_1992]  |
 
-However, we note that we plan to implement more methods in the future, including ROCK-PCA and spectral, rotated PCA.
-
+Additionally, we are actively developing further enhancements to `xeofs`, with plans to incorporate advanced methods 
+such as ROCK-PCA and spectral, rotated PCA in upcoming releases.
 
 
 # Acknowledgements
-We extend our gratitude to those who have improved the software by reporting issues and providing feedback.
+We express our sincere thanks to the individuals who have enhanced our software through their valuable issue reports and insightful feedback.
 
-This work contributes to the Climate Advanced Forecasting of sub-seasonal Extremes (CAFE) project and was conducted as part of the Physics doctoral program at the Autonomous University of Barcelona. NR acknowledges the European Union’s Horizon 2020 research and innovation program for funding under the Marie Skłodowska-Curie grant agreement No 813844.
+This work forms part of the Climate Advanced Forecasting of sub-seasonal Extremes (CAFE) project, undertaken within the Physics doctoral program at the Autonomous University of Barcelona. NR acknowledges the support of the European Union’s Horizon 2020 research and innovation program, which has funded this work under the Marie Skłodowska-Curie grant (agreement No 813844).
 
 
 # References
