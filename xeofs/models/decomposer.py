@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+import dask
 from dask.array import Array as DaskArray  # type: ignore
 from dask.diagnostics.progress import ProgressBar
 from numpy.linalg import svd
@@ -135,6 +136,7 @@ class Decomposer:
         # Use dask SVD for large, real-valued, delayed data sets
         elif (not use_complex) and use_dask:
             self.solver_kwargs.update({"k": self.n_modes, "seed": self.random_state})
+            self.solver_kwargs.setdefault("compute", True)
             U, s, VT = self._svd(X, dims, dask_svd, self.solver_kwargs)
             U, s, VT = self._compute_svd_result(U, s, VT)
         else:
@@ -240,11 +242,7 @@ class Decomposer:
                 match self.verbose:
                     case True:
                         with ProgressBar():
-                            U = U.compute()
-                            s = s.compute()
-                            VT = VT.compute()
+                            U, s, VT = dask.compute(U, s, VT)
                     case False:
-                        U = U.compute()
-                        s = s.compute()
-                        VT = VT.compute()
+                        U, s, VT = dask.compute(U, s, VT)
         return U, s, VT

@@ -241,9 +241,11 @@ class Preprocessor:
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         """Inverse transform the scores.
 
+        This should be used for scores obtained from the fitted data.
+
         Parameters:
         -------------
-        data: xr.DataArray or list of xarray.DataArray
+        X: xr.DataArray
             Input data.
 
         Returns
@@ -252,14 +254,39 @@ class Preprocessor:
             The inverse transformed scores.
 
         """
-        X_list = self.concatenator.inverse_transform_scores(X)
-        X_list = self.sanitizer.inverse_transform_scores(X_list)
-        X_list = self.postconverter.inverse_transform_scores(X_list)
-        X_list_ND = self.stacker.inverse_transform_scores(X_list)
-        X_list_ND = self.preconverter.inverse_transform_scores(X_list_ND)
-        X_list_ND = self.renamer.inverse_transform_scores(X_list_ND)
-        X_list_ND = self.scaler.inverse_transform_scores(X_list_ND)
-        return X_list_ND
+        X = self.concatenator.inverse_transform_scores(X)
+        X = self.sanitizer.inverse_transform_scores(X)
+        X = self.postconverter.inverse_transform_scores(X)
+        X = self.stacker.inverse_transform_scores(X)
+        X = self.preconverter.inverse_transform_scores(X)
+        X = self.renamer.inverse_transform_scores(X)
+        X = self.scaler.inverse_transform_scores(X)
+        return X
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        """Inverse transform the scores.
+
+        This should be used for scores obtained from new data.
+
+        Parameters:
+        -------------
+        X: xr.DataArray
+            Input data.
+
+        Returns
+        -------
+        xr.DataArray
+            The inverse transformed scores.
+
+        """
+        X = self.concatenator.inverse_transform_scores_unseen(X)
+        X = self.sanitizer.inverse_transform_scores_unseen(X)
+        X = self.postconverter.inverse_transform_scores_unseen(X)
+        X = self.stacker.inverse_transform_scores_unseen(X)
+        X = self.preconverter.inverse_transform_scores_unseen(X)
+        X = self.renamer.inverse_transform_scores_unseen(X)
+        X = self.scaler.inverse_transform_scores_unseen(X)
+        return X
 
     def _process_output(self, X: List[Data]) -> List[Data] | Data:
         if self.return_list:

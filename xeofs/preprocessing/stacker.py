@@ -114,21 +114,6 @@ class Stacker(Transformer):
             The reshaped 2d-data.
         """
 
-    @abstractmethod
-    def _unstack(self, X: DataArray) -> Data:
-        """Unstack 2D DataArray to its original dimensions.
-
-        Parameters
-        ----------
-        data : DataArray
-            The data to be unstacked.
-
-        Returns
-        -------
-        data_unstacked : DataArray
-            The unstacked data.
-        """
-
     def _reorder_dims(self, X: DataVarBound) -> DataVarBound:
         """Reorder dimensions to original order; catch ('mode') dimensions via ellipsis"""
         order_input_dims = [
@@ -219,6 +204,7 @@ class Stacker(Transformer):
     ) -> DataArray:
         return self.fit(X, sample_dims, feature_dims).transform(X)
 
+    @abstractmethod
     def inverse_transform_data(self, X: DataArray) -> Data:
         """Reshape the 2D data (sample x feature) back into its original dimensions.
 
@@ -233,10 +219,8 @@ class Stacker(Transformer):
             The reshaped data.
 
         """
-        Xnd = self._unstack(X)
-        Xnd = self._reorder_dims(Xnd)
-        return Xnd
 
+    @abstractmethod
     def inverse_transform_components(self, X: DataArray) -> Data:
         """Reshape the 2D components (sample x feature) back into its original dimensions.
 
@@ -251,10 +235,8 @@ class Stacker(Transformer):
             The reshaped data.
 
         """
-        Xnd = self._unstack(X)
-        Xnd = self._reorder_dims(Xnd)
-        return Xnd
 
+    @abstractmethod
     def inverse_transform_scores(self, data: DataArray) -> DataArray:
         """Reshape the 2D scores (sample x feature) back into its original dimensions.
 
@@ -269,9 +251,10 @@ class Stacker(Transformer):
             The reshaped data.
 
         """
-        data = self._unstack(data)  # type: ignore
-        data = self._reorder_dims(data)
-        return data
+
+    @abstractmethod
+    def inverse_transform_scores_unseen(self, data: DataArray) -> DataArray:
+        pass
 
 
 class DataArrayStacker(Stacker):
@@ -371,6 +354,24 @@ class DataArrayStacker(Stacker):
             pass
 
         return data
+
+    def inverse_transform_data(self, X: DataArray) -> Data:
+        Xnd = self._unstack(X)
+        Xnd = self._reorder_dims(Xnd)
+        return Xnd
+
+    def inverse_transform_components(self, X: DataArray) -> Data:
+        Xnd = self._unstack(X)
+        Xnd = self._reorder_dims(Xnd)
+        return Xnd
+
+    def inverse_transform_scores(self, data: DataArray) -> DataArray:
+        data = self._unstack(data)  # type: ignore
+        data = self._reorder_dims(data)
+        return data
+
+    def inverse_transform_scores_unseen(self, data: DataArray) -> DataArray:
+        return self.inverse_transform_scores(data)
 
 
 class DataSetStacker(Stacker):
@@ -493,6 +494,9 @@ class DataSetStacker(Stacker):
         """Reshape the 2D scores (sample x feature) back into its original shape."""
         X = self._unstack_scores(X)
         return X
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        return self.inverse_transform_scores(X)
 
 
 class StackerFactory:
