@@ -145,7 +145,7 @@ class GWPCA(_BaseModel):
         valid_y_names = VALID_CARTESIAN_Y_NAMES + VALID_LATITUDE_NAMES
         n_sample_dims = len(self.sample_dims)
         if n_sample_dims == 1:
-            indexes = self.preprocessor.preconverter.transformers[0].original_indexes
+            indexes = self.preprocessor.preconverter.transformers[0].coords_from_fit
             sample_dims = self.preprocessor.renamer.transformers[0].sample_dims_after
             xy = None
             for dim in sample_dims:
@@ -158,7 +158,7 @@ class GWPCA(_BaseModel):
             if xy is None:
                 raise ValueError("Cannot find sample coordinates.")
         elif n_sample_dims == 2:
-            indexes = self.preprocessor.postconverter.transformers[0].original_indexes
+            indexes = self.preprocessor.postconverter.transformers[0].coords_from_fit
             xy = np.asarray([*indexes[self.sample_name].values])
 
         else:

@@ -116,3 +116,7 @@ class Concatenator(Transformer):
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         """Reshape the 2D scores (sample x mode) back into its original shape."""
         return X
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        """Reshape the 2D scores (sample x mode) back into its original shape."""
+        return X

@@ -197,7 +197,7 @@ class _BaseModel(ABC):
         if normalized:
             data2D = data2D / self.data["norms"]
             data2D.name = "scores"
-        return self.preprocessor.inverse_transform_scores(data2D)
+        return self.preprocessor.inverse_transform_scores_unseen(data2D)
 
     @abstractmethod
     def _transform_algorithm(self, data: DataArray) -> DataArray:

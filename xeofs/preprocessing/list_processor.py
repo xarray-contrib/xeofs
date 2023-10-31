@@ -103,3 +103,6 @@ class GenericListTransformer(Generic[T]):
 
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         return self.transformers[0].inverse_transform_scores(X)
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        return self.transformers[0].inverse_transform_scores_unseen(X)
