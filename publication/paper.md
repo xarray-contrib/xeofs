@@ -1,5 +1,5 @@
 ---
-title: 'xeofs: Dimensionality reduction in xarray'
+title: 'xeofs: Comprehensive EOF analysis in Python with xarray'
 tags:
   - Python
   - climate science
