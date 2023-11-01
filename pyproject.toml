@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "xeofs"
 version = "1.2.2"
-description = "Collection of EOF analysis and related techniques for climate science"
+description = "Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis"
 authors = ["Niclas Rieger <niclasrieger@gmail.com>"]
 license = "MIT"
 readme = "README.rst"
