@@ -128,21 +128,30 @@ Computationally Efficient
 ----------------------------------
 
 Regardless of whether you're dealing with in-memory or out-of-memory data, ``xeofs`` ensures computational efficiency. 
-This is achieved using randomized SVD, a swift method for large matrix decomposition. For an in-depth understanding, 
+This is achieved using randomized SVD which tends to be faster for large matrices than a full SVD. For more details
 you can refer to the `sklearn documentation on PCA`_.
 
-To illustrate, a comparison between the computational times of ``xeofs`` (randomized SVD) and ``eofs`` (full SVD) 
-for a 3D dataset with dimensions (time, lon, lat) with a varying number features. For comparison, the number of samples is kept fixed to 1000.
-It reveals that ``xeofs`` generally outperforms for datasets with over ~500 features both with and without ``Dask``. 
-For datasets with fewer than ~500 features, ``eofs`` tends to be quicker, probably because the computational overhead of ``xeofs`` is too large for small datasets.
+A comparative analysis demonstrates the performance of ``xeofs`` against ``eofs`` 
+on a standard laptop using a 3D dataset with time, longitude, and latitude 
+dimensions. Results indicate that ``xeofs`` computes moderate datasets 
+(10,000 samples by 100,000 features) in under a minute. While ``eofs`` is 
+faster for smaller datasets, ``xeofs`` excels with larger datasets, offering 
+significant speed advantages. The dashed line marks data sets with about 3 MiB; 
+``xeofs`` outpaces ``eofs`` above this size, whereas ``eofs`` is preferable for smaller data sets.
 
-.. image:: img/timings_dark.png
-   :height: 400px
-   :width: 800px
+.. image:: perf/timings_dark.png
+   :height: 300px
+   :width: 750px
    :alt: Comparison of computational times between xeofs and eofs for data sets of varying sizes
    :align: center
 
 
+.. note::
+
+    You can find the script to run the performance tests here_.
+
+
+.. _here: www.github.com/nicrie/xeofs/docs/perf/
 
 Implement Your Own Model
 -------------------------

@@ -171,6 +171,9 @@ class Scaler(Transformer):
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         return X
 
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        return X
+
 
 # class DataListScaler(Scaler):
 #     """Scale a list of xr.DataArray along sample dimensions.

@@ -74,6 +74,8 @@ class Sanitizer(Transformer):
         # Check if input has the correct coordinates
         self._check_input_coords(X)
 
+        # Store sample coordinates for inverse transform
+        self.sample_coords_transform = X.coords[self.sample_name]
         # Remove NaN entries; only consider full-dimensional NaNs
         # We already know valid features from the fitted dataset
         X = X.isel({self.feature_name: self.is_valid_feature})
@@ -81,6 +83,8 @@ class Sanitizer(Transformer):
         # have different samples
         is_valid_sample = ~X.isnull().all(self.feature_name).compute()
         X = X.isel({self.sample_name: is_valid_sample})
+        # Store valid sample locations for inverse transform
+        self.is_valid_sample_transform = is_valid_sample
 
         return X
 
@@ -110,3 +114,14 @@ class Sanitizer(Transformer):
             return X
         else:
             return X.reindex({self.sample_name: self.sample_coords.values})
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        # Reindex only if sample coordinates are different
+        coords_are_equal = X.coords[self.sample_name].identical(
+            self.sample_coords_transform
+        )
+
+        if coords_are_equal:
+            return X
+        else:
+            return X.reindex({self.sample_name: self.sample_coords_transform.values})

@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Optional
 from typing_extensions import Self
 from abc import abstractmethod
@@ -7,7 +8,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from ..utils.data_types import Dims, DataVar, DataArray, DataSet, Data, DataVarBound
 
 
-class Transformer(BaseEstimator, TransformerMixin):
+class Transformer(BaseEstimator, TransformerMixin, ABC):
     """
     Abstract base class to transform an xarray DataArray/Dataset.
 
@@ -65,4 +66,8 @@ class Transformer(BaseEstimator, TransformerMixin):
 
     @abstractmethod
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
+        return X
+
+    @abstractmethod
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
         return X

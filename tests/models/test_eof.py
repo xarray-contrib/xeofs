@@ -363,16 +363,16 @@ def test_get_params():
 )
 def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
+    data = mock_data_array.isel({dim[0]: slice(0, 3)})
+    new_data = mock_data_array.isel({dim[0]: slice(4, 5)})
 
     # Create a xarray DataArray with random data
-    model = EOF(n_modes=5, solver="full")
-    model.fit(mock_data_array, dim)
+    model = EOF(n_modes=2, solver="full")
+    model.fit(data, dim)
     scores = model.scores()
 
-    # Create a new xarray DataArray with random data
-    new_data = mock_data_array
-
-    projections = model.transform(new_data)
+    # Project data onto the components
+    projections = model.transform(data)
 
     # Check that the projection has the right dimensions
     assert projections.dims == scores.dims, "Projection has wrong dimensions"  # type: ignore
@@ -389,6 +389,23 @@ def test_transform(dim, mock_data_array):
     np.testing.assert_allclose(
         scores.sel(mode=slice(1, 3)), projections.sel(mode=slice(1, 3)), rtol=1e-3
     )
+
+    # Project unseen data onto the components
+    new_projections = model.transform(new_data)
+
+    # Check that the projection has the right dimensions
+    assert new_projections.dims == scores.dims, "Projection has wrong dimensions"  # type: ignore
+
+    # Check that the projection has the right data type
+    assert isinstance(new_projections, xr.DataArray), "Projection is not a DataArray"
+
+    # Check that the projection has the right name
+    assert new_projections.name == "scores", "Projection has wrong name: {}".format(
+        new_projections.name
+    )
+
+    # Ensure that the new projections are not NaNs
+    assert np.all(new_projections.notnull().values), "New projections contain NaNs"
 
 
 @pytest.mark.parametrize(

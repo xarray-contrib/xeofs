@@ -59,3 +59,6 @@ class DimensionRenamer(Transformer):
 
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         return self._inverse_transform(X)
+
+    def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
+        return self._inverse_transform(X)
