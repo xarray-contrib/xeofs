@@ -42,8 +42,7 @@ across multiple cores or clusters, apt for extensive climate data applications.
 
 # Statement of Need
 Climate science routinely deals with analyzing large, multi-dimensional datasets,
-whose complexity mirrors the intricate dynamics of the climate system itself, and
-are dense with complex physical process information. The extraction of meaningful 
+whose complexity mirrors the intricate dynamics of the climate system itself. The extraction of meaningful 
 insights from such vast datasets is challenging and often requires the application
 of dimensionality reduction techniques like EOF analysis (PCA outside climate science). 
 Packages such as `scikit-learn` [@pedregosa_scikit-learn_2011]
