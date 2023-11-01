@@ -13,7 +13,7 @@ authors:
     orcid: 0000-0003-3357-1742
     affiliation: "1, 2, 3"
   - name: Samuel J. Levang
-    affiliation: 3
+    affiliation: 4
 affiliations:
   - name: Centre de Recerca Matemàtica (CRM), Bellaterra, Spain
     index: 1
@@ -21,7 +21,7 @@ affiliations:
     index: 2
   - name: Instituto de Ciencias del Mar (ICM) - CSIC, Barcelona, Spain
     index: 3
-  - name: TBF
+  - name: Salient Predictions, Cambridge, MA, USA
     index: 4
 date: 1 November 2023
 bibliography: paper.bib
@@ -42,13 +42,13 @@ across multiple cores or clusters, apt for extensive climate data applications.
 
 # Statement of Need
 Climate science routinely deals with analyzing large, multi-dimensional datasets,
-whose complexity mirros the intricate dynamics of the climate system itself. 
+whose complexity mirrors the intricate dynamics of the climate system itself, and
 are dense with complex physical process information. The extraction of meaningful 
 insights from such vast datasets is challenging and often requires the application
 of dimensionality reduction techniques like EOF analysis (PCA outside climate science). 
 Packages such as `scikit-learn` [@pedregosa_scikit-learn_2011]
 offer a range of reduction techniques, yet they often fall short of meeting the 
-specific needs of climate scientists who work with variants of PCA [@@hannachi_patterns_2021] 
+specific needs of climate scientists who work with variants of PCA [@hannachi_patterns_2021] 
 including ROCK-PCA [@bueso_nonlinear_2020] and spectral, rotated PCA [@guilloteau_rotated_2020].
 
 Climate datasets are inherently multi-dimensional, usually involving time, longitude
@@ -69,7 +69,7 @@ and shows improved performance in particular for larger datasets
 (\autoref{fig:computation_times}) due to its usage of randomized 
 Singular Value Decomposition (SVD) [@halko_finding_2011].
 
-![(A) Evaluation of xeofs computation times for processing 3D data sets of varying sizes. (B) Performance comparison between `xeofs` and `eofs` across different data set dimensions. Dashed black line indicates the countour of datasets approximately 3 MiB in size. Tests conducted [^1] on an Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, 12 threads (6 cores), with 16GB DDR4 RAM at 2667 MT/s. \label{fig:computation_times}](../docs/perf/timings_light.png){ width=100% }
+![(A) Evaluation of xeofs computation times for processing 3D data sets of varying sizes. (B) Performance comparison between `xeofs` and `eofs` across different data set dimensions. Dashed black line indicates the contour of datasets approximately 3 MiB in size. Tests conducted [^1] on an Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, 12 threads (6 cores), with 16GB DDR4 RAM at 2667 MT/s. \label{fig:computation_times}](../docs/perf/timings_light.png){ width=100% }
 
 [^1]: The script used to generate these results is available at https://github.com/nicrie/xeofs/blob/main/docs/perf/ .
 
