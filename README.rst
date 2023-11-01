@@ -43,7 +43,7 @@
     :alt: Test Coverage
 
 .. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg
-   :target: https://doi.org/10.5281/zenodo.6323012
+   :target: https://doi.org/10.5281/10.5281/zenodo.6323011
    :alt: DOI - Zenodo
 
 .. |license| image:: https://img.shields.io/pypi/l/xeofs
@@ -201,15 +201,16 @@ Credits
 
 How to cite?
 ----------------------
-When utilizing ``xeofs``, kindly remember to cite the original creators of the methods employed in your work. Additionally, if ``xeofs`` is proving useful in your research, I'd appreciate if you could acknowledge its use with the following citation:
+When using ``xeofs``, kindly remember to cite the original references of the methods employed in your work. 
+Additionally, if ``xeofs`` is proving useful in your research, we'd appreciate if you could acknowledge its use with the following citation:
 
 .. code-block:: bibtex
 
    @software{rieger_xeofs_2023,
-     title = {xeofs: Multi-dimensional {EOF} analysis and variants in xarray},
+     title = {xeofs: Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis},
      url = {https://github.com/nicrie/xeofs}
-     version = {1.x.y},
-     author = {Rieger, Niclas},
+     version = {x.y.z},
+     author = {Rieger, N. and Levang, S. J.},
      date = {2023},
      doi = {10.5281/zenodo.6323011}
    }
