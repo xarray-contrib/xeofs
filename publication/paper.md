@@ -73,8 +73,9 @@ and shows improved performance in particular for larger datasets
 (\autoref{fig:computation_times}) due to its usage of randomized 
 Singular Value Decomposition (SVD) [@halko_finding_2011].
 
-![Comparison of computation times of PCA for varying number of features between `xeofs` and `eofs`.\label{fig:computation_times}](../docs/img/timings_light.png){ width=100% }
+![(A) Evaluation of xeofs computation times for processing 3D data sets of varying sizes. (B) Performance comparison between xeofs and eofs across different data set dimensions. Tests conducted [^1] on an Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, 12 threads (6 cores), with 16GB DDR4 RAM at 2667 MT/s. \label{fig:computation_times}](../docs/perf/timings_light.png){ width=100% }
 
+[^1]: The script used to generate these results is available at https://github.com/nicrie/xeofs/blob/main/docs/perf/ .
 
 # Implementation
 `xeofs` adopts the familiar `scikit-learn` style, delivering an intuitive interface 
@@ -104,7 +105,7 @@ At the time of publication, `xeofs` provides the following methods:
 | Canonical Correlation Analysis| CCA                                                             | [@hotelling_relations_1936; @vinod_canonical_1976; @bretherton_intercomparison_1992]  |
 
 Additionally, we are actively developing further enhancements to `xeofs`, with plans to incorporate advanced methods 
-such as ROCK-PCA and spectral, rotated PCA in upcoming releases.
+such as ROCK-PCA [@bueso_nonlinear_2020] and spectral, rotated PCA [@guilloteau_rotated_2020] in upcoming releases.
 
 
 # Acknowledgements
