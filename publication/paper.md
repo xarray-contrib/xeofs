@@ -14,8 +14,6 @@ authors:
     affiliation: "1, 2, 3"
   - name: Samuel J. Levang
     affiliation: 3
-  - name: Aaron Spring
-    affiliation: 4
 affiliations:
   - name: Centre de Recerca Matemàtica (CRM), Bellaterra, Spain
     index: 1
@@ -25,9 +23,7 @@ affiliations:
     index: 3
   - name: TBF
     index: 4
-  - name: TBF
-    index: 5
-date: 30 October 2023
+date: 1 November 2023
 bibliography: paper.bib
 
 ---
@@ -73,13 +69,13 @@ and shows improved performance in particular for larger datasets
 (\autoref{fig:computation_times}) due to its usage of randomized 
 Singular Value Decomposition (SVD) [@halko_finding_2011].
 
-![(A) Evaluation of xeofs computation times for processing 3D data sets of varying sizes. (B) Performance comparison between xeofs and eofs across different data set dimensions. Tests conducted [^1] on an Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, 12 threads (6 cores), with 16GB DDR4 RAM at 2667 MT/s. \label{fig:computation_times}](../docs/perf/timings_light.png){ width=100% }
+![(A) Evaluation of xeofs computation times for processing 3D data sets of varying sizes. (B) Performance comparison between `xeofs` and `eofs` across different data set dimensions. Dashed black line indicates the countour of datasets approximately 3 MiB in size. Tests conducted [^1] on an Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, 12 threads (6 cores), with 16GB DDR4 RAM at 2667 MT/s. \label{fig:computation_times}](../docs/perf/timings_light.png){ width=100% }
 
 [^1]: The script used to generate these results is available at https://github.com/nicrie/xeofs/blob/main/docs/perf/ .
 
 # Implementation
 `xeofs` adopts the familiar `scikit-learn` style, delivering an intuitive interface 
-where each method is a class with standard `fit`, and when applicable, `transform` 
+where each method is a class with `fit`, and when applicable, `transform` 
 and `inverse_transform` methods. It also offers flexibility by allowing users to 
 introduce custom dimensionality reduction methods via a streamlined entry point 
 to its internal pipeline. Additionally, the package includes a bootstrapping 
