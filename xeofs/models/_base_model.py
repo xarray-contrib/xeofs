@@ -1,5 +1,15 @@
 import warnings
-from typing import Optional, Sequence, Hashable, Dict, Any, List, TypeVar, Tuple
+from typing import (
+    Optional,
+    Sequence,
+    Hashable,
+    Dict,
+    Any,
+    List,
+    TypeVar,
+    Tuple,
+    Literal,
+)
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -10,6 +20,7 @@ import xarray as xr
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
 from ..utils.data_types import DataObject, Data, DataArray, DataSet, DataList, Dims
+from ..utils.io import save_to_file, load_from_file
 from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
     convert_to_dim_type,
@@ -221,7 +232,7 @@ class _BaseModel(ABC):
         data: List[Data] | Data,
         dim: Sequence[Hashable] | Hashable,
         weights: Optional[List[Data] | Data] = None,
-        **kwargs
+        **kwargs,
     ) -> DataArray:
         """Fit the model to the input data and project the data onto the components.
 
@@ -322,3 +333,112 @@ class _BaseModel(ABC):
     def get_params(self) -> Dict[str, Any]:
         """Get the model parameters."""
         return self._params
+
+    def save(
+        self,
+        path: str,
+        storage_format: Literal["netcdf", "zarr"] = "netcdf",
+        save_data: bool = False,
+        **kwargs,
+    ):
+        """Save the model.
+
+        Parameters
+        ----------
+        path : str
+            Path to save the model.
+        storage_format : str
+            Storage format of the saved model, one of 'netcdf' or 'zarr'.
+        save_data : str
+            Whether or not to save the full input data along with the fitted components.
+
+        """
+        data = {}
+        for key, x in self.data.items():
+            if self.data._allow_compute[key] or save_data:
+                data[key] = x.assign_attrs(
+                    {"allow_compute": self.data._allow_compute[key]}
+                )
+            else:
+                # create an empty placeholder array
+                data[key] = xr.DataArray().assign_attrs(
+                    {"allow_compute": False, "placeholder": True}
+                )
+
+        # Store the DataContainer items as data_vars, and the model parameters as global attrs
+        ds_model = xr.Dataset(data, attrs=self.get_params())
+
+        # TODO:
+        # # Store the necessary preprocessor objects as arrays also
+        # ds_preprocessor = self.preprocessor.serialize()
+
+        # # Merge the model and preprocessor datasets
+        # ds = xr.merge([ds_model, ds_preprocessor])
+
+        save_to_file(ds_model, path, storage_format=storage_format, **kwargs)
+
+    @classmethod
+    def load(
+        cls, path: str, storage_format: Literal["netcdf", "zarr"] = "netcdf", **kwargs
+    ):
+        """Load a saved model.
+
+        Parameters
+        ----------
+        path : str
+            Path to the saved model.
+        storage_format : str
+            Storage format of the saved model, one of 'netcdf' or 'zarr'.
+
+        Returns
+        -------
+        model : BaseModel
+            The loaded model.
+
+        """
+        ds = load_from_file(path, storage_format=storage_format, **kwargs)
+
+        # Recreate the model with parameters set by global attrs
+        model = cls(**ds.attrs)
+
+        # Create the DataContainer from the data_vars
+        model.data = DataContainer({k: ds[k] for k in ds.data_vars})
+        for key in model.data.keys():
+            model.data._allow_compute[key] = model.data[key].attrs["allow_compute"]
+            if model.data[key].attrs.get("placeholder"):
+                warnings.warn(
+                    f"The input data field '{key}' was not saved, which may limit functionality."
+                    " You can load this from it's original source by calling 'load_data()'."
+                )
+
+        return model
+
+    # def load_data(self, input_data_path: str):
+    #     """Load the input data.
+
+    #     Parameters
+    #     ----------
+    #     input_data : str
+    #         Path to the input data.
+
+    #     """
+    #     input_data = xr.open_dataset(input_data_path)
+    #     input_data = self.preprocess_input_data(input_data)
+    #     self.data.add(input_data, "input_data", allow_compute=False)
+
+    # @abstractmethod
+    # def preprocess_input_data(self, input_data: DataArray) -> DataArray:
+    #     """Preprocess the input data.
+
+    #     Parameters
+    #     ----------
+    #     input_data : DataArray
+    #         Input data.
+
+    #     Returns
+    #     -------
+    #     input_data : DataArray
+    #         Preprocessed input data.
+
+    #     """
+    #     raise NotImplementedError

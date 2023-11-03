@@ -442,3 +442,53 @@ def test_inverse_transform(dim, mock_data_array):
 
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+# TODO: Should we declare zarr as an optional dependency?
+@pytest.mark.parametrize("storage_format", ["netcdf"])  # , "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, storage_format):
+    """Test save/load methods in EOF class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original = EOF()
+    original.fit(mock_data_array, dim)
+
+    # Save the EOF model
+    original.save(tmp_path / f"eof.{storage_format}", storage_format=storage_format)
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / f"eof.{storage_format}").exists()
+
+    # Recreate the model from saved file
+    loaded = EOF.load(tmp_path / f"eof.{storage_format}", storage_format=storage_format)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    assert all(
+        [
+            loaded.data._allow_compute[key] == original.data._allow_compute[key]
+            for key in original.data
+        ]
+    )
+
+    # Test that the recreated model can be used to transform new data
+    # TODO: need to fit the preprocessor on the original data until we also
+    # serialize the preprocessor transformers
+    loaded.preprocessor.fit(mock_data_array, dim)
+    assert np.allclose(original.scores(), loaded.transform(mock_data_array), rtol=1e-2)
+
+    # Enhancement: the loaded model should also be able to inverse_transform new data
+    # assert np.allclose(
+    #     original.inverse_transform(original.scores()),
+    #     loaded.inverse_transform(loaded.scores()),
+    #     rtol=1e-2,
+    # )
