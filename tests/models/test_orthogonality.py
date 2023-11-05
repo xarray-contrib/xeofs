@@ -461,7 +461,7 @@ def test_eof_transform(dim, use_coslat, mock_data_array):
         n_modes=5,
         standardize=True,
         use_coslat=use_coslat,
-        solver_kwargs={"random_state": 5},
+        random_state=5,
     )
     model.fit(mock_data_array, dim=dim)
     scores = model.scores()
@@ -503,12 +503,7 @@ def test_ceof_transform(dim, use_coslat, mock_data_array):
 )
 def test_reof_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
-    model = EOF(
-        n_modes=5,
-        standardize=True,
-        use_coslat=use_coslat,
-        solver_kwargs={"random_state": 0},
-    )
+    model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat, random_state=5)
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)

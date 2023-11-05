@@ -1,14 +1,16 @@
-from typing import Optional, Sequence, Hashable, List, Tuple, Any, Type
+from typing import Optional, List, Tuple
+from typing_extensions import Self
 
 import numpy as np
 
 from .list_processor import GenericListTransformer
 from .dimension_renamer import DimensionRenamer
 from .scaler import Scaler
-from .stacker import StackerFactory, Stacker
+from .stacker import Stacker
 from .multi_index_converter import MultiIndexConverter
 from .sanitizer import Sanitizer
 from .concatenator import Concatenator
+from .transformer import Transformer
 from ..utils.xarray_utils import (
     get_dims,
     unwrap_singleton_list,
@@ -19,9 +21,6 @@ from ..utils.xarray_utils import (
 from ..utils.data_types import (
     DataArray,
     Data,
-    DataVar,
-    DataVarBound,
-    DataList,
     Dims,
     DimsList,
 )
@@ -52,14 +51,17 @@ def extract_new_dim_names(X: List[DimensionRenamer]) -> Tuple[Dims, DimsList]:
     return new_sample_dims, new_feature_dims
 
 
-class Preprocessor:
-    """Scale and stack the data along sample dimensions.
+class Preprocessor(Transformer):
+    """Preprocess xarray objects (DataArray, Dataset).
 
-    Scaling includes (i) removing the mean and, optionally, (ii) dividing by the standard deviation,
-    (iii) multiplying by the square root of cosine of latitude weights (area weighting; coslat weighting),
-    and (iv) multiplying by additional user-defined weights.
-
-    Stacking includes (i) stacking the data along the sample dimensions and (ii) stacking the data along the feature dimensions.
+    Preprocessing includes
+        (i) Feature-wise scaling (e.g. removing mean, dividing by standard deviation, applying (latitude) weights
+        (ii) Renaming dimensions (to avoid conflicts with sample and feature dimensions)
+        (iii) Converting MultiIndexes to regular Indexes (MultiIndexes cannot be stacked)
+        (iv) Stacking the data into 2D DataArray
+        (v) Converting MultiIndexes introduced by stacking into regular Indexes
+        (vi) Removing NaNs
+        (vii) Concatenating the 2D DataArrays into one 2D DataArray
 
     Parameters
     ----------
@@ -76,7 +78,8 @@ class Preprocessor:
     with_weights : bool, default=False
         If True, the data is multiplied by additional user-defined weights.
     return_list : bool, default=True
-        If True, the output is returned as a list of DataArrays. If False, the output is returned as a single DataArray if possible.
+        If True, inverse_transform methods returns always a list of DataArray(s).
+        If False, the output is returned as a single DataArray if possible.
 
     """
 
@@ -97,12 +100,55 @@ class Preprocessor:
         self.with_coslat = with_coslat
         self.return_list = return_list
 
+        dim_names_as_kwargs = {
+            "sample_name": self.sample_name,
+            "feature_name": self.feature_name,
+        }
+
+        # Initialize transformers
+        # 1 | Center, scale and weigh the data
+        scaler_kwargs = {
+            "with_center": self.with_center,
+            "with_std": self.with_std,
+            "with_coslat": self.with_coslat,
+        }
+        self.scaler = GenericListTransformer(Scaler, **scaler_kwargs)
+        # 2 | Rename dimensions
+        self.renamer = GenericListTransformer(DimensionRenamer)
+        # 3 | Convert MultiIndexes (before stacking)
+        self.preconverter = GenericListTransformer(MultiIndexConverter)
+        # 4 | Stack the data to 2D DataArray
+        self.stacker = GenericListTransformer(Stacker, **dim_names_as_kwargs)
+        # 5 | Convert MultiIndexes (after stacking)
+        self.postconverter = GenericListTransformer(MultiIndexConverter)
+        # 6 | Remove NaNs
+        self.sanitizer = GenericListTransformer(Sanitizer, **dim_names_as_kwargs)
+        # 7 | Concatenate into one 2D DataArray
+        self.concatenator = Concatenator(**dim_names_as_kwargs)
+
     def fit(
         self,
         X: List[Data] | Data,
         sample_dims: Dims,
         weights: Optional[List[Data] | Data] = None,
-    ):
+    ) -> Self:
+        """Fit the preprocessor to the data.
+
+        Parameters
+        ----------
+        X : xarray objects or list of xarray objects
+            Input data.
+        sample_dims : tuple of str
+            Sample dimensions.
+        weights : xr.DataArray or list of xr.DataArray, optional
+            Weights to be applied to the data.
+
+        Returns
+        -------
+        self : Preprocessor
+            The fitted preprocessor.
+
+        """
         self._set_return_list(X)
         X = convert_to_list(X)
         self.n_data = len(X)
@@ -121,52 +167,47 @@ class Preprocessor:
         weights = process_parameter("weights", weights, None, self.n_data)
 
         # 1 | Center, scale and weigh the data
-        scaler_kwargs = {
-            "with_center": self.with_center,
-            "with_std": self.with_std,
-            "with_coslat": self.with_coslat,
-        }
-        scaler_ikwargs = {
-            "weights": weights,
-        }
-        self.scaler = GenericListTransformer(Scaler, **scaler_kwargs)
-        X = self.scaler.fit_transform(X, sample_dims, feature_dims, scaler_ikwargs)
+        scaler_iterkwargs = {"weights": weights}
+        X = self.scaler.fit_transform(
+            X=X,
+            sample_dims=sample_dims,
+            feature_dims=feature_dims,
+            iter_kwargs=scaler_iterkwargs,
+        )
 
         # 2 | Rename dimensions
-        self.renamer = GenericListTransformer(DimensionRenamer)
         X = self.renamer.fit_transform(X, sample_dims, feature_dims)
         sample_dims, feature_dims = extract_new_dim_names(self.renamer.transformers)
 
         # 3 | Convert MultiIndexes (before stacking)
-        self.preconverter = GenericListTransformer(MultiIndexConverter)
         X = self.preconverter.fit_transform(X, sample_dims, feature_dims)
 
         # 4 | Stack the data to 2D DataArray
-        stacker_kwargs = {
-            "sample_name": self.sample_name,
-            "feature_name": self.feature_name,
-        }
-        stack_type: Type[Stacker] = StackerFactory.create(X[0])
-        self.stacker = GenericListTransformer(stack_type, **stacker_kwargs)
         X = self.stacker.fit_transform(X, sample_dims, feature_dims)
         # 5 | Convert MultiIndexes (after stacking)
-        self.postconverter = GenericListTransformer(MultiIndexConverter)
         X = self.postconverter.fit_transform(X, sample_dims, feature_dims)
         # 6 | Remove NaNs
-        sanitizer_kwargs = {
-            "sample_name": self.sample_name,
-            "feature_name": self.feature_name,
-        }
-        self.sanitizer = GenericListTransformer(Sanitizer, **sanitizer_kwargs)
         X = self.sanitizer.fit_transform(X, sample_dims, feature_dims)
 
         # 7 | Concatenate into one 2D DataArray
-        self.concatenator = Concatenator(self.sample_name, self.feature_name)
         self.concatenator.fit(X)  # type: ignore
 
         return self
 
     def transform(self, X: List[Data] | Data) -> DataArray:
+        """Transform the data.
+
+        Parameters
+        ----------
+        X : xarray objects or list of xarray objects
+            Input data.
+
+        Returns
+        -------
+        xr.DataArray
+            The transformed data.
+
+        """
         X = convert_to_list(X)
 
         if len(X) != self.n_data:
