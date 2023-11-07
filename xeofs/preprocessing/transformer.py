@@ -1,15 +1,12 @@
-from __future__ import annotations
 from abc import ABC
-from typing import Optional, Dict, TYPE_CHECKING
+from typing import Optional, Dict
 from typing_extensions import Self
 from abc import abstractmethod
 
 import pandas as pd
 import xarray as xr
+from datatree import DataTree
 from sklearn.base import BaseEstimator, TransformerMixin
-
-if TYPE_CHECKING:
-    from datatree import DataTree
 
 from ..utils.data_types import Dims, DataVar, DataArray, DataSet, Data, DataVarBound
 
@@ -115,8 +112,6 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
     def serialize(self) -> DataTree:
         """Serialize a transformer to a DataTree."""
-        from datatree import DataTree
-
         dt = DataTree()
         params = self.get_params()
         attrs = self.get_serialization_attrs()

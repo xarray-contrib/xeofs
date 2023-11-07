@@ -1,4 +1,3 @@
-from __future__ import annotations
 import warnings
 from typing import (
     Optional,
@@ -9,7 +8,6 @@ from typing import (
     List,
     TypeVar,
     Tuple,
-    TYPE_CHECKING,
 )
 from typing_extensions import Self
 from abc import ABC, abstractmethod
@@ -17,9 +15,7 @@ from datetime import datetime
 
 import numpy as np
 import xarray as xr
-
-if TYPE_CHECKING:
-    from datatree import DataTree
+from datatree import DataTree, open_datatree
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
@@ -339,8 +335,6 @@ class _BaseModel(ABC):
 
     def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a complete model with its preprocessor."""
-        from datatree import DataTree
-
         data = {}
         for key, x in self.data.items():
             if self.data._allow_compute[key] or save_data:
@@ -422,8 +416,6 @@ class _BaseModel(ABC):
             The loaded model.
 
         """
-        from datatree import open_datatree
-
         dt = open_datatree(path, engine="zarr", **kwargs)
 
         model = cls.deserialize(dt)

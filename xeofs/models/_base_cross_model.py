@@ -1,13 +1,10 @@
-from __future__ import annotations
-from typing import Tuple, Hashable, Sequence, Dict, Optional, List, TYPE_CHECKING
+from typing import Tuple, Hashable, Sequence, Dict, Optional, List
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import xarray as xr
-
-if TYPE_CHECKING:
-    from datatree import DataTree
+from datatree import DataTree, open_datatree
 
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
@@ -257,8 +254,6 @@ class _BaseCrossModel(ABC):
 
     def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a complete model with its preprocessors."""
-        from datatree import DataTree
-
         data = {}
         for key, x in self.data.items():
             if self.data._allow_compute[key] or save_data:
@@ -343,8 +338,6 @@ class _BaseCrossModel(ABC):
             The loaded model.
 
         """
-        from datatree import open_datatree
-
         dt = open_datatree(path, engine="zarr", **kwargs)
 
         model = cls.deserialize(dt)

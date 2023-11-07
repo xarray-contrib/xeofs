@@ -1,12 +1,9 @@
-from __future__ import annotations
-from typing import Optional, List, Tuple, Dict, TYPE_CHECKING
+from typing import Optional, List, Tuple, Dict
 from typing_extensions import Self
 
 import numpy as np
 import xarray as xr
-
-if TYPE_CHECKING:
-    from datatree import DataTree
+from datatree import DataTree
 
 from .list_processor import GenericListTransformer
 from .dimension_renamer import DimensionRenamer
@@ -348,8 +345,6 @@ class Preprocessor(Transformer):
     def serialize_all(self) -> DataTree:
         """Serialize the necessary attributes of the fitted pre-processor
         and all transformers to a Dataset."""
-        from datatree import DataTree
-
         # Serialize the preprocessor as the root node
         dt = self.serialize()
         dt.name = "preprocessor"
