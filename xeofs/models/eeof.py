@@ -163,5 +163,5 @@ class ExtendedEOF(EOF):
     def _transform_algorithm(self, X):
         raise NotImplementedError("EEOF does currently not support transform")
 
-    def _inverse_transform_algorithm(self, X):
+    def _inverse_transform_algorithm(self, scores):
         raise NotImplementedError("EEOF does currently not support inverse transform")

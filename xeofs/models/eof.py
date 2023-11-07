@@ -127,17 +127,15 @@ class EOF(_BaseModel):
 
         return projections
 
-    def _inverse_transform_algorithm(self, mode) -> DataArray:
+    def _inverse_transform_algorithm(self, scores: DataObject) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        mode: integer, a list of integers, or a slice object.
-            The mode(s) used to reconstruct the data. If a scalar is given,
-            the data will be reconstructed using the given mode. If a slice
-            is given, the data will be reconstructed using the modes in the
-            given slice. If a list of integers is given, the data will be reconstructed
-            using the modes in the given list.
+        scores: DataObject
+            Transformed data to be reconstructed. This could be a subset
+            of the `scores` data of a fitted model, or unseen data. Must
+            have a 'mode' dimension.
 
         Returns
         -------
@@ -146,8 +144,8 @@ class EOF(_BaseModel):
 
         """
         # Reconstruct the data
-        comps = self.data["components"].sel(mode=mode)
-        scores = self.data["scores"].sel(mode=mode)
+        comps = self.data["components"].sel(mode=scores.mode)
+
         reconstructed_data = xr.dot(comps.conj(), scores)
         reconstructed_data.name = "reconstructed_data"
 

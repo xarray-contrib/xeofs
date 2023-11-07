@@ -81,7 +81,8 @@ def test_transform(eof_model, mock_data_array):
 def test_inverse_transform(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
-    Xrec = eof_rotator.inverse_transform(mode=1)
+    scores = eof_rotator.data["scores"].sel(mode=1)
+    Xrec = eof_rotator.inverse_transform(scores)
 
     assert isinstance(Xrec, xr.DataArray)
 

@@ -264,7 +264,7 @@ class OPA(_BaseModel):
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("OPA does not (yet) support transform()")
 
-    def _inverse_transform_algorithm(self, mode) -> DataObject:
+    def _inverse_transform_algorithm(self, scores) -> DataObject:
         raise NotImplementedError("OPA does not (yet) support inverse_transform()")
 
     def components(self) -> DataObject:

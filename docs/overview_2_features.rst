@@ -260,7 +260,7 @@ we'll merely indicate their absence for this example.
   def _transform_algorithm(self, data):
       raise NotImplementedError("This model does not support transform.")
 
-  def _inverse_transform_algorithm(self, data):
+  def _inverse_transform_algorithm(self, scores):
       raise NotImplementedError("This model does not support inverse transform.")
 
 

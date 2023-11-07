@@ -117,7 +117,9 @@ def test_transform(mca_model, mock_data_array, dim):
 def test_inverse_transform(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     # Assuming mode as 1 for simplicity
-    Xrec1, Xrec2 = mca_model.inverse_transform(1)
+    scores1 = mca_model.data["scores1"].isel(mode=1)
+    scores2 = mca_model.data["scores2"].isel(mode=1)
+    Xrec1, Xrec2 = mca_model.inverse_transform(scores1, scores2)
     assert isinstance(Xrec1, xr.DataArray)
     assert isinstance(Xrec2, xr.DataArray)
 
