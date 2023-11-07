@@ -1,3 +1,4 @@
+from typing import Dict
 from typing_extensions import Self
 
 import pandas as pd
@@ -46,9 +47,17 @@ class Stacker(Transformer):
         self.dims_out = tuple((sample_name, feature_name))
         self.dims_mapping = {}
         self.dims_mapping.update({d: tuple() for d in self.dims_out})
-
         self.coords_in = {}
         self.coords_out = {}
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            dims_in=self.dims_in,
+            dims_out=self.dims_out,
+            dims_mapping=self.dims_mapping,
+            coords_in=self.coords_in,
+            coords_out=self.coords_out,
+        )
 
     def _validate_data_type(self, X: Data):
         """Check that the data type is either DataArray or Dataset."""

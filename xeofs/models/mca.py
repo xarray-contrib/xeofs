@@ -1,3 +1,4 @@
+import warnings
 from typing import Tuple, Optional, Sequence, Dict
 from typing_extensions import Self
 
@@ -543,6 +544,17 @@ class MCA(_BaseCrossModel):
         pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         return (patterns1, patterns2), (pvals1, pvals2)
+
+    def _validate_loaded_data(self, data: xr.DataArray):
+        if data.attrs.get("placeholder"):
+            warnings.warn(
+                f"The input data field '{data.name}' was not saved, which will produce"
+                " empty results when calling `homogeneous_patterns()` or "
+                "`heterogeneous_patterns()`. To avoid this warning, you can save the"
+                " model with `save_data=True`, or add the data manually by running"
+                " it through the model's `preprocessor.transform()` method and then"
+                " attaching it with `data.add()`."
+            )
 
 
 class ComplexMCA(MCA):

@@ -1,7 +1,12 @@
-from typing import Optional, List, Tuple
+from __future__ import annotations
+from typing import Optional, List, Tuple, Dict, TYPE_CHECKING
 from typing_extensions import Self
 
 import numpy as np
+import xarray as xr
+
+if TYPE_CHECKING:
+    from datatree import DataTree
 
 from .list_processor import GenericListTransformer
 from .dimension_renamer import DimensionRenamer
@@ -100,6 +105,8 @@ class Preprocessor(Transformer):
         self.with_coslat = with_coslat
         self.return_list = return_list
 
+        self.n_data = None
+
         dim_names_as_kwargs = {
             "sample_name": self.sample_name,
             "feature_name": self.feature_name,
@@ -125,6 +132,27 @@ class Preprocessor(Transformer):
         self.sanitizer = GenericListTransformer(Sanitizer, **dim_names_as_kwargs)
         # 7 | Concatenate into one 2D DataArray
         self.concatenator = Concatenator(**dim_names_as_kwargs)
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(n_data=self.n_data)
+
+    def transformer_types(self):
+        """Ordered list of transformer operations."""
+        return dict(
+            scaler=Scaler,
+            renamer=DimensionRenamer,
+            preconverter=MultiIndexConverter,
+            stacker=Stacker,
+            postconverter=MultiIndexConverter,
+            sanitizer=Sanitizer,
+            concatenator=Concatenator,
+        )
+
+    def get_transformers(self, inverse: bool = False):
+        transformers = [getattr(self, t) for t in self.transformer_types().keys()]
+        if inverse:
+            transformers = transformers[::-1]
+        return transformers
 
     def fit(
         self,
@@ -154,13 +182,7 @@ class Preprocessor(Transformer):
         self.n_data = len(X)
         sample_dims, feature_dims = get_dims(X, sample_dims)
 
-        # Set sample and feature dimensions
-        self.dims = {
-            self.sample_name: sample_dims,
-            self.feature_name: feature_dims,
-        }
-
-        # However, for each DataArray a list of feature dimensions must be provided
+        # For each DataArray a list of feature dimensions must be provided
         _check_parameter_number("feature_dims", feature_dims, self.n_data)
 
         # Ensure that weights are provided as a list
@@ -174,21 +196,17 @@ class Preprocessor(Transformer):
             feature_dims=feature_dims,
             iter_kwargs=scaler_iterkwargs,
         )
-
         # 2 | Rename dimensions
         X = self.renamer.fit_transform(X, sample_dims, feature_dims)
         sample_dims, feature_dims = extract_new_dim_names(self.renamer.transformers)
-
         # 3 | Convert MultiIndexes (before stacking)
         X = self.preconverter.fit_transform(X, sample_dims, feature_dims)
-
         # 4 | Stack the data to 2D DataArray
         X = self.stacker.fit_transform(X, sample_dims, feature_dims)
         # 5 | Convert MultiIndexes (after stacking)
         X = self.postconverter.fit_transform(X, sample_dims, feature_dims)
         # 6 | Remove NaNs
         X = self.sanitizer.fit_transform(X, sample_dims, feature_dims)
-
         # 7 | Concatenate into one 2D DataArray
         self.concatenator.fit(X)  # type: ignore
 
@@ -217,13 +235,11 @@ class Preprocessor(Transformer):
                 f"len(data objects used for fitting)={self.n_data}"
             )
 
-        X = self.scaler.transform(X)
-        X = self.renamer.transform(X)
-        X = self.preconverter.transform(X)
-        X = self.stacker.transform(X)
-        X = self.postconverter.transform(X)
-        X = self.sanitizer.transform(X)
-        return self.concatenator.transform(X)  # type: ignore
+        X_t = X.copy()
+        for transformer in self.get_transformers():
+            X_t = transformer.transform(X_t)  # type: ignore
+
+        return X_t
 
     def fit_transform(
         self,
@@ -247,14 +263,11 @@ class Preprocessor(Transformer):
             The inverse transformed data.
 
         """
-        X_list = self.concatenator.inverse_transform_data(X)
-        X_list = self.sanitizer.inverse_transform_data(X_list)  # type: ignore
-        X_list = self.postconverter.inverse_transform_data(X_list)
-        X_list_ND = self.stacker.inverse_transform_data(X_list)
-        X_list_ND = self.preconverter.inverse_transform_data(X_list_ND)
-        X_list_ND = self.renamer.inverse_transform_data(X_list_ND)
-        X_list_ND = self.scaler.inverse_transform_data(X_list_ND)
-        return self._process_output(X_list_ND)
+        X_it = X.copy()
+        for transformer in self.get_transformers(inverse=True):
+            X_it = transformer.inverse_transform_data(X_it)
+
+        return self._process_output(X_it)
 
     def inverse_transform_components(self, X: DataArray) -> List[Data] | Data:
         """Inverse transform the components.
@@ -270,14 +283,11 @@ class Preprocessor(Transformer):
             The inverse transformed components.
 
         """
-        X_list = self.concatenator.inverse_transform_components(X)
-        X_list = self.sanitizer.inverse_transform_components(X_list)  # type: ignore
-        X_list = self.postconverter.inverse_transform_components(X_list)
-        X_list_ND = self.stacker.inverse_transform_components(X_list)
-        X_list_ND = self.preconverter.inverse_transform_components(X_list_ND)
-        X_list_ND = self.renamer.inverse_transform_components(X_list_ND)
-        X_list_ND = self.scaler.inverse_transform_components(X_list_ND)
-        return self._process_output(X_list_ND)
+        X_it = X.copy()
+        for transformer in self.get_transformers(inverse=True):
+            X_it = transformer.inverse_transform_components(X_it)
+
+        return self._process_output(X_it)
 
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         """Inverse transform the scores.
@@ -295,14 +305,11 @@ class Preprocessor(Transformer):
             The inverse transformed scores.
 
         """
-        X = self.concatenator.inverse_transform_scores(X)
-        X = self.sanitizer.inverse_transform_scores(X)
-        X = self.postconverter.inverse_transform_scores(X)
-        X = self.stacker.inverse_transform_scores(X)
-        X = self.preconverter.inverse_transform_scores(X)
-        X = self.renamer.inverse_transform_scores(X)
-        X = self.scaler.inverse_transform_scores(X)
-        return X
+        X_it = X.copy()
+        for transformer in self.get_transformers(inverse=True):
+            X_it = transformer.inverse_transform_scores(X_it)
+
+        return X_it
 
     def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
         """Inverse transform the scores.
@@ -320,14 +327,11 @@ class Preprocessor(Transformer):
             The inverse transformed scores.
 
         """
-        X = self.concatenator.inverse_transform_scores_unseen(X)
-        X = self.sanitizer.inverse_transform_scores_unseen(X)
-        X = self.postconverter.inverse_transform_scores_unseen(X)
-        X = self.stacker.inverse_transform_scores_unseen(X)
-        X = self.preconverter.inverse_transform_scores_unseen(X)
-        X = self.renamer.inverse_transform_scores_unseen(X)
-        X = self.scaler.inverse_transform_scores_unseen(X)
-        return X
+        X_it = X.copy()
+        for transformer in self.get_transformers(inverse=True):
+            X_it = transformer.inverse_transform_scores_unseen(X_it)
+
+        return X_it
 
     def _process_output(self, X: List[Data]) -> List[Data] | Data:
         if self.return_list:
@@ -340,3 +344,58 @@ class Preprocessor(Transformer):
             self.return_list = True
         else:
             self.return_list = False
+
+    def serialize_all(self) -> DataTree:
+        """Serialize the necessary attributes of the fitted pre-processor
+        and all transformers to a Dataset."""
+        from datatree import DataTree
+
+        # Serialize the preprocessor as the root node
+        dt = self.serialize()
+        dt.name = "preprocessor"
+
+        # Serialize all transformers
+        names = list(self.transformer_types().keys())
+        transformers = self.get_transformers()
+
+        for name, transformer_obj in zip(names, transformers):
+            dt_transformer = DataTree()
+            if isinstance(transformer_obj, GenericListTransformer):
+                # Loop through list transformer objects and assign a dummy key
+                for i, transformer in enumerate(transformer_obj.transformers):
+                    dt_transformer[str(i)] = transformer.serialize()
+            else:
+                dt_transformer = transformer_obj.serialize()
+            # Place the serialized transformer in the tree
+            dt[name] = dt_transformer
+            dt[name].parent = dt
+
+        return dt
+
+    @classmethod
+    def deserialize_all(cls, dt: DataTree) -> Self:
+        """Deserialize from a DataTree representation of the preprocessor
+        and all attached Transformers."""
+        # Create the parent preprocessor
+        preprocessor = cls.deserialize(dt)
+
+        # Loop through all transformers and deserialize
+        names = list(preprocessor.transformer_types().keys())
+        transformers = preprocessor.get_transformers()
+
+        for name, transformer_obj in zip(names, transformers):
+            if isinstance(transformer_obj, GenericListTransformer):
+                # Recreate list transformers sequentially
+                for transformer in dt[name].values():
+                    deserialized = preprocessor.transformer_types()[name].deserialize(
+                        transformer
+                    )
+                    transformer_obj.transformers.append(deserialized)
+            else:
+                # Recreate single transformer
+                deserialized = preprocessor.transformer_types()[name].deserialize(
+                    dt[name]
+                )
+                setattr(preprocessor, name, deserialized)
+
+        return preprocessor

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 from typing_extensions import Self
 
 import numpy as np
@@ -39,6 +39,19 @@ class Scaler(Transformer):
         self.with_center = with_center
         self.with_std = with_std
         self.with_coslat = with_coslat
+
+        self.mean_ = xr.DataArray(name="mean_")
+        self.std_ = xr.DataArray(name="std_")
+        self.coslat_weights_ = xr.DataArray(name="coslat_weights_")
+        self.weights_ = xr.DataArray(name="weights_")
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            mean_=self.mean_,
+            std_=self.std_,
+            coslat_weights_=self.coslat_weights_,
+            weights_=self.weights_,
+        )
 
     def _verify_input(self, X, name: str):
         if not isinstance(X, (xr.DataArray, xr.Dataset)):

@@ -38,7 +38,7 @@ jobs:
         run: poetry --version
 
       - name: Install Project Dependencies
-        run: python -m poetry install --with dev
+        run: python -m poetry install --with dev,io
 
       - name: Lint Codebase with flake8
         run: |

@@ -452,9 +452,7 @@ def test_inverse_transform(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
-# TODO: Should we declare zarr as an optional dependency?
-@pytest.mark.parametrize("storage_format", ["netcdf"])  # , "zarr"])
-def test_save_load(dim, mock_data_array, tmp_path, storage_format):
+def test_save_load(dim, mock_data_array, tmp_path):
     """Test save/load methods in EOF class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
@@ -462,13 +460,13 @@ def test_save_load(dim, mock_data_array, tmp_path, storage_format):
     original.fit(mock_data_array, dim)
 
     # Save the EOF model
-    original.save(tmp_path / f"eof.{storage_format}", storage_format=storage_format)
+    original.save(tmp_path / "eof.zarr")
 
     # Check that the EOF model has been saved
-    assert (tmp_path / f"eof.{storage_format}").exists()
+    assert (tmp_path / "eof.zarr").exists()
 
     # Recreate the model from saved file
-    loaded = EOF.load(tmp_path / f"eof.{storage_format}", storage_format=storage_format)
+    loaded = EOF.load(tmp_path / "eof.zarr")
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
@@ -481,14 +479,14 @@ def test_save_load(dim, mock_data_array, tmp_path, storage_format):
     )
 
     # Test that the recreated model can be used to transform new data
-    # TODO: need to fit the preprocessor on the original data until we also
-    # serialize the preprocessor transformers
-    loaded.preprocessor.fit(mock_data_array, dim)
-    assert np.allclose(original.scores(), loaded.transform(mock_data_array), rtol=1e-2)
+    assert np.allclose(
+        original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
+    )
 
     # Enhancement: the loaded model should also be able to inverse_transform new data
     # assert np.allclose(
     #     original.inverse_transform(original.scores()),
     #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-2,
+    #     rtol=1e-3,
+    #     atol=1e-3,
     # )
