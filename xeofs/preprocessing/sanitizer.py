@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 from typing_extensions import Self
 import xarray as xr
 
@@ -14,6 +14,17 @@ class Sanitizer(Transformer):
 
     def __init__(self, sample_name="sample", feature_name="feature"):
         super().__init__(sample_name=sample_name, feature_name=feature_name)
+
+        self.feature_coords = xr.DataArray()
+        self.sample_coords = xr.DataArray()
+        self.is_valid_feature = xr.DataArray()
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            feature_coords=self.feature_coords,
+            sample_coords=self.sample_coords,
+            is_valid_feature=self.is_valid_feature,
+        )
 
     def _check_input_type(self, X) -> None:
         if not isinstance(X, xr.DataArray):

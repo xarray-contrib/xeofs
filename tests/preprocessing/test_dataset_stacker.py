@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.preprocessing.stacker import DataSetStacker
+from xeofs.preprocessing import Stacker
 from xeofs.utils.data_types import DataSet, DataArray
 from ..conftest import generate_synthetic_dataset
 from ..utilities import (
@@ -56,7 +56,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataset(*data_params)
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker(sample_name=sample_name, feature_name=feature_name)
+    stacker = Stacker(sample_name=sample_name, feature_name=feature_name)
     stacker.fit(data, sample_dims, feature_dims)
     stacked_data = stacker.transform(data)
     reconstructed_data = stacker.inverse_transform_data(stacked_data)
@@ -81,7 +81,7 @@ def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataset(*data_params)
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker(sample_name=sample_name, feature_name=feature_name)
+    stacker = Stacker(sample_name=sample_name, feature_name=feature_name)
 
     with pytest.raises(ValueError):
         stacker.fit(data, sample_dims, feature_dims)
@@ -96,7 +96,7 @@ def test_fit(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
 
 
@@ -109,7 +109,7 @@ def test_transform(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
     transformed_data = stacker.transform(data)
     transformed_data2 = stacker.transform(data)
@@ -133,7 +133,7 @@ def test_transform_invalid(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
     with pytest.raises(ValueError):
         stacker.transform(data.isel(feature0=slice(0, 2)))
@@ -148,7 +148,7 @@ def test_fit_transform(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     transformed_data = stacker.fit_transform(data, sample_dims, feature_dims)
 
     is_dask_before = data_is_dask(data)
@@ -169,7 +169,7 @@ def test_invserse_transform_data(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
     stacked_data = stacker.transform(data)
     unstacked_data = stacker.inverse_transform_data(stacked_data)
@@ -194,7 +194,7 @@ def test_invserse_transform_components(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
 
     stacked_data = stacker.transform(data)
@@ -222,7 +222,7 @@ def test_invserse_transform_scores(synthetic_dataset):
     data = synthetic_dataset
     all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
-    stacker = DataSetStacker()
+    stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
 
     stacked_data = stacker.transform(data)

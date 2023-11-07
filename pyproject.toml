@@ -24,6 +24,14 @@ netCDF4 = "^1.5.7"
 numba = "^0.57"
 typing-extensions = "^4.8.0"
 
+
+[tool.poetry.group.io]
+optional = false
+
+[tool.poetry.group.io.dependencies]
+zarr = ">=2.0.0"
+xarray-datatree = ">=0.0.5"
+
 [tool.poetry.group.dev]
 optional = true
 
