@@ -86,6 +86,13 @@ Refer to the :doc:`api` section to discover the methods currently available.
     Please note that ``xeofs`` is in its developmental phase. If there's a specific method 
     you'd like to see included, we encourage you to open an issue on `GitHub`_.
 
+Model Serialization
+-------------------
+
+``xeofs`` models offer convenient ``save()`` and ``load()`` methods for serializing
+fitted models to a portable format. Serialization requires two optional dependencies:
+``xarray-datatree`` and ``zarr``.
+
 Input Data Compatibility
 ------------------------
 
