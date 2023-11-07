@@ -80,7 +80,8 @@ def test_transform_not_implemented(ceof_model, mock_data_array):
 def test_inverse_transform(ceof_model):
     ceof_rotator = ComplexEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
-    Xrec = ceof_rotator.inverse_transform(mode=1)
+    scores = ceof_rotator.data["scores"].isel(mode=1)
+    Xrec = ceof_rotator.inverse_transform(scores)
 
     assert isinstance(Xrec, xr.DataArray)
 

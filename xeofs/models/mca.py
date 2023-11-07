@@ -1,3 +1,4 @@
+import warnings
 from typing import Tuple, Optional, Sequence, Dict
 from typing_extensions import Self
 
@@ -249,17 +250,19 @@ class MCA(_BaseCrossModel):
 
         return results
 
-    def inverse_transform(self, mode):
+    def inverse_transform(self, scores1: DataObject, scores2: DataObject):
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        mode: scalars, slices or array of tick labels.
-            The mode(s) used to reconstruct the data. If a scalar is given,
-            the data will be reconstructed using the given mode. If a slice
-            is given, the data will be reconstructed using the modes in the
-            given slice. If a array is given, the data will be reconstructed
-            using the modes in the given array.
+        scores1: DataObject
+            Transformed left field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+        scores2: DataObject
+            Transformed right field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
 
         Returns
         -------
@@ -270,16 +273,12 @@ class MCA(_BaseCrossModel):
 
         """
         # Singular vectors
-        comps1 = self.data["components1"].sel(mode=mode)
-        comps2 = self.data["components2"].sel(mode=mode)
-
-        # Scores = projections
-        scores1 = self.data["scores1"].sel(mode=mode)
-        scores2 = self.data["scores2"].sel(mode=mode)
+        comps1 = self.data["components1"].sel(mode=scores1.mode)
+        comps2 = self.data["components2"].sel(mode=scores2.mode)
 
         # Norms
-        norm1 = self.data["norm1"].sel(mode=mode)
-        norm2 = self.data["norm2"].sel(mode=mode)
+        norm1 = self.data["norm1"].sel(mode=scores1.mode)
+        norm2 = self.data["norm2"].sel(mode=scores2.mode)
 
         # Reconstruct the data
         data1 = xr.dot(scores1, comps1.conj() * norm1, dims="mode")
@@ -543,6 +542,17 @@ class MCA(_BaseCrossModel):
         pvals2 = self.preprocessor2.inverse_transform_components(pvals2)
 
         return (patterns1, patterns2), (pvals1, pvals2)
+
+    def _validate_loaded_data(self, data: xr.DataArray):
+        if data.attrs.get("placeholder"):
+            warnings.warn(
+                f"The input data field '{data.name}' was not saved, which will produce"
+                " empty results when calling `homogeneous_patterns()` or "
+                "`heterogeneous_patterns()`. To avoid this warning, you can save the"
+                " model with `save_data=True`, or add the data manually by running"
+                " it through the model's `preprocessor.transform()` method and then"
+                " attaching it with `data.add()`."
+            )
 
 
 class ComplexMCA(MCA):

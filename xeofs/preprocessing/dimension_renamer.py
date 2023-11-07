@@ -1,3 +1,4 @@
+from typing import Dict
 from typing_extensions import Self
 
 from .transformer import Transformer
@@ -21,6 +22,11 @@ class DimensionRenamer(Transformer):
         self.base = base
         self.start = start
         self.dim_mapping = {}
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            dim_mapping=self.dim_mapping,
+        )
 
     def fit(self, X: Data, sample_dims: Dims, feature_dims: Dims, **kwargs) -> Self:
         self.sample_dims_before = sample_dims

@@ -461,7 +461,7 @@ def test_eof_transform(dim, use_coslat, mock_data_array):
         n_modes=5,
         standardize=True,
         use_coslat=use_coslat,
-        solver_kwargs={"random_state": 5},
+        random_state=5,
     )
     model.fit(mock_data_array, dim=dim)
     scores = model.scores()
@@ -503,12 +503,7 @@ def test_ceof_transform(dim, use_coslat, mock_data_array):
 )
 def test_reof_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
-    model = EOF(
-        n_modes=5,
-        standardize=True,
-        use_coslat=use_coslat,
-        solver_kwargs={"random_state": 0},
-    )
+    model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat, random_state=5)
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
@@ -697,7 +692,8 @@ def test_eof_inverse_transform(dim, use_coslat, mock_data_array):
     data = mock_data_array
     model = EOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
-    data_rec = model.inverse_transform(mode=slice(1, None))
+    scores = model.data["scores"]
+    data_rec = model.inverse_transform(scores)
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -718,7 +714,8 @@ def test_ceof_inverse_transform(dim, use_coslat, mock_data_array):
     data = mock_data_array
     model = ComplexEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
-    data_rec = model.inverse_transform(mode=slice(1, None)).real
+    scores = model.data["scores"]
+    data_rec = model.inverse_transform(scores).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -744,7 +741,8 @@ def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array):
     model.fit(data, dim=dim)
     rot = EOFRotator(n_modes=19, power=power)
     rot.fit(model)
-    data_rec = rot.inverse_transform(mode=slice(1, None)).real
+    scores = rot.data["scores"]
+    data_rec = rot.inverse_transform(scores).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -772,7 +770,8 @@ def test_creof_inverse_transform(dim, use_coslat, power, mock_data_array):
     model.fit(data, dim=dim)
     rot = ComplexEOFRotator(n_modes=19, power=power)
     rot.fit(model)
-    data_rec = rot.inverse_transform(mode=slice(1, None)).real
+    scores = rot.data["scores"]
+    data_rec = rot.inverse_transform(scores).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -796,7 +795,9 @@ def test_mca_inverse_transform(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    data1_rec, data2_rec = model.inverse_transform(mode=slice(1, None))
+    scores1 = model.data["scores1"]
+    scores2 = model.data["scores2"]
+    data1_rec, data2_rec = model.inverse_transform(scores1, scores2)
     r2_1 = r2_score(data1, data1_rec, dim=dim)
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()
@@ -825,7 +826,9 @@ def test_cmca_inverse_transform(dim, use_coslat, mock_data_array):
     data2 = data1.copy() ** 2
     model = ComplexMCA(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    data1_rec, data2_rec = model.inverse_transform(mode=slice(1, None))
+    scores1 = model.data["scores1"]
+    scores2 = model.data["scores2"]
+    data1_rec, data2_rec = model.inverse_transform(scores1, scores2)
     r2_1 = r2_score(data1, data1_rec, dim=dim)
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()
@@ -867,7 +870,9 @@ def test_rmca_inverse_transform(
     model.fit(data1, data2, dim=dim)
     rot = MCARotator(n_modes=10, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    data1_rec, data2_rec = rot.inverse_transform(mode=slice(1, None))
+    scores1 = rot.data["scores1"]
+    scores2 = rot.data["scores2"]
+    data1_rec, data2_rec = rot.inverse_transform(scores1, scores2)
     r2_1 = r2_score(data1, data1_rec, dim=dim)
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()
@@ -913,7 +918,9 @@ def test_crmca_inverse_transform(
     model.fit(data1, data2, dim=dim)
     rot = ComplexMCARotator(n_modes=10, power=power, squared_loadings=squared_loadings)
     rot.fit(model)
-    data1_rec, data2_rec = rot.inverse_transform(mode=slice(1, None))
+    scores1 = rot.data["scores1"]
+    scores2 = rot.data["scores2"]
+    data1_rec, data2_rec = rot.inverse_transform(scores1, scores2)
     r2_1 = r2_score(data1, data1_rec, dim=dim)
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()

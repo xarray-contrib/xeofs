@@ -1,11 +1,21 @@
 import warnings
-from typing import Optional, Sequence, Hashable, Dict, Any, List, TypeVar, Tuple
+from typing import (
+    Optional,
+    Sequence,
+    Hashable,
+    Dict,
+    Any,
+    List,
+    TypeVar,
+    Tuple,
+)
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import numpy as np
 import xarray as xr
+from datatree import DataTree, open_datatree
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
@@ -221,7 +231,7 @@ class _BaseModel(ABC):
         data: List[Data] | Data,
         dim: Sequence[Hashable] | Hashable,
         weights: Optional[List[Data] | Data] = None,
-        **kwargs
+        **kwargs,
     ) -> DataArray:
         """Fit the model to the input data and project the data onto the components.
 
@@ -245,17 +255,15 @@ class _BaseModel(ABC):
         """
         return self.fit(data, dim, weights).transform(data, **kwargs)
 
-    def inverse_transform(self, mode) -> DataObject:
+    def inverse_transform(self, scores: DataObject) -> DataObject:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        mode: integer, a list of integers, or a slice object.
-            The mode(s) used to reconstruct the data. If a scalar is given,
-            the data will be reconstructed using the given mode. If a slice
-            is given, the data will be reconstructed using the modes in the
-            given slice. If a list of integers is given, the data will be reconstructed
-            using the modes in the given list.
+        scores: DataObject
+            Transformed data to be reconstructed. This could be a subset
+            of the `scores` data of a fitted model, or unseen data. Must
+            have a 'mode' dimension.
 
         Returns
         -------
@@ -263,21 +271,19 @@ class _BaseModel(ABC):
             Reconstructed data.
 
         """
-        data_reconstructed = self._inverse_transform_algorithm(mode)
+        data_reconstructed = self._inverse_transform_algorithm(scores)
         return self.preprocessor.inverse_transform_data(data_reconstructed)
 
     @abstractmethod
-    def _inverse_transform_algorithm(self, mode) -> DataArray:
+    def _inverse_transform_algorithm(self, scores: DataObject) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        mode: integer, a list of integers, or a slice object.
-            The mode(s) used to reconstruct the data. If a scalar is given,
-            the data will be reconstructed using the given mode. If a slice
-            is given, the data will be reconstructed using the modes in the
-            given slice. If a list of integers is given, the data will be reconstructed
-            using the modes in the given list.
+        scores: DataObject
+            Transformed data to be reconstructed. This could be a subset
+            of the `scores` data of a fitted model, or unseen data. Must
+            have a 'mode' dimension.
 
         Returns
         -------
@@ -322,3 +328,106 @@ class _BaseModel(ABC):
     def get_params(self) -> Dict[str, Any]:
         """Get the model parameters."""
         return self._params
+
+    def serialize(self, save_data: bool = False) -> DataTree:
+        """Serialize a complete model with its preprocessor."""
+        data = {}
+        for key, x in self.data.items():
+            if self.data._allow_compute[key] or save_data:
+                data[key] = x.assign_attrs(
+                    {"allow_compute": self.data._allow_compute[key]}
+                )
+            else:
+                # create an empty placeholder array
+                data[key] = xr.DataArray().assign_attrs(
+                    {"allow_compute": False, "placeholder": True}
+                )
+
+        # Store the DataContainer items as data_vars, and the model parameters as global attrs
+        ds_model = xr.Dataset(data, attrs=dict(params=self.get_params()))
+        # Set as the root node of the tree
+        dt = DataTree(data=ds_model, name=type(self).__name__)
+
+        # Retrieve the tree representation of the preprocessor
+        dt["preprocessor"] = self.preprocessor.serialize_all()
+        dt.preprocessor.parent = dt
+
+        return dt
+
+    def save(
+        self,
+        path: str,
+        save_data: bool = False,
+        **kwargs,
+    ):
+        """Save the model to zarr.
+
+        Parameters
+        ----------
+        path : str
+            Path to save the model zarr store.
+        save_data : str
+            Whether or not to save the full input data along with the fitted components.
+        **kwargs
+            Additional keyword arguments to pass to `DataTree.to_zarr()`.
+
+        """
+        dt = self.serialize(save_data=save_data)
+
+        # Handle rotator models by separately serializing the original model
+        # and attaching as a child of the rotator model
+        if hasattr(self, "model"):
+            dt["model"] = self.model.serialize(save_data=save_data)
+
+        dt.to_zarr(path, **kwargs)
+
+    @classmethod
+    def deserialize(cls, dt: DataTree) -> Self:
+        """Deserialize the model and its preprocessors from a DataTree."""
+        # Recreate the model with parameters set by root level attrs
+        model = cls(**dt.attrs["params"])
+
+        # Recreate the Preprocessor from its tree
+        model.preprocessor = Preprocessor.deserialize_all(dt.preprocessor)
+
+        # Create the model's DataContainer from the root level data_vars
+        model.data = DataContainer({k: dt[k] for k in dt.data_vars})
+
+        return model
+
+    @classmethod
+    def load(cls, path: str, **kwargs) -> Self:
+        """Load a saved model from zarr.
+
+        Parameters
+        ----------
+        path : str
+            Path to the saved model zarr store.
+        **kwargs
+            Additional keyword arguments to pass to `open_datatree()`.
+
+        Returns
+        -------
+        model : _BaseModel
+            The loaded model.
+
+        """
+        dt = open_datatree(path, engine="zarr", **kwargs)
+
+        model = cls.deserialize(dt)
+
+        # Rebuild any attached model
+        if dt.get("model") is not None:
+            # Recreate the original model from its tree, assuming we should
+            # use the first base class of the current model
+            model.model = cls.__bases__[0].deserialize(dt.model)
+
+        for key in model.data.keys():
+            model.data._allow_compute[key] = model.data[key].attrs["allow_compute"]
+            model._validate_loaded_data(model.data[key])
+
+        return model
+
+    def _validate_loaded_data(self, data: DataArray):
+        """Optionally check the loaded data for placeholders."""
+        pass

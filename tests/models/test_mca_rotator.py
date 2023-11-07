@@ -76,7 +76,10 @@ def test_inverse_transform(mca_model):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
-    reconstructed_data = mca_rotator.inverse_transform(mode=slice(1, 3))
+    scores1 = mca_rotator.data["scores1"].sel(mode=slice(1, 3))
+    scores2 = mca_rotator.data["scores2"].sel(mode=slice(1, 3))
+
+    reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
     assert isinstance(reconstructed_data, tuple)
     assert len(reconstructed_data) == 2
@@ -249,3 +252,57 @@ def test_compute(mca_model_delayed, compute):
         assert data_is_dask(mca_rotator.data["norm1"])
         assert data_is_dask(mca_rotator.data["norm2"])
         assert data_is_dask(mca_rotator.data["modes_sign"])
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_save_load(dim, mock_data_array, tmp_path):
+    """Test save/load methods in MCA class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original_unrotated = MCA()
+    original_unrotated.fit(mock_data_array, mock_data_array, dim)
+
+    original = MCARotator()
+    original.fit(original_unrotated)
+
+    # Save the EOF model
+    original.save(tmp_path / "mca.zarr")
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "mca.zarr").exists()
+
+    # Recreate the model from saved file
+    loaded = MCARotator.load(tmp_path / "mca.zarr")
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    assert all(
+        [
+            loaded.data._allow_compute[key] == original.data._allow_compute[key]
+            for key in original.data
+        ]
+    )
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.scores(),
+        loaded.transform(data1=mock_data_array, data2=mock_data_array),
+        rtol=1e-3,
+        atol=1e-3,
+    )
+
+    # Enhancement: the loaded model should also be able to inverse_transform new data
+    # assert np.allclose(
+    #     original.inverse_transform(original.scores()),
+    #     loaded.inverse_transform(loaded.scores()),
+    #     rtol=1e-3,
+    #     atol=1e-3,
+    # )

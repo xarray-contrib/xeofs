@@ -3,10 +3,13 @@ from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+import xarray as xr
+from datatree import DataTree, open_datatree
+
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, DataArray
+from ..utils.data_types import DataObject, DataArray, DataSet
 from ..utils.xarray_utils import convert_to_dim_type
 from ..utils.sanity_checks import validate_input_type
 from .._version import __version__
@@ -209,7 +212,9 @@ class _BaseCrossModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(self, mode) -> Tuple[DataObject, DataObject]:
+    def inverse_transform(
+        self, scores1: DataObject, scores2: DataObject
+    ) -> Tuple[DataObject, DataObject]:
         raise NotImplementedError
 
     def components(self) -> Tuple[DataObject, DataObject]:
@@ -248,3 +253,109 @@ class _BaseCrossModel(ABC):
     def get_params(self) -> Dict:
         """Get the model parameters."""
         return self._params
+
+    def serialize(self, save_data: bool = False) -> DataTree:
+        """Serialize a complete model with its preprocessors."""
+        data = {}
+        for key, x in self.data.items():
+            if self.data._allow_compute[key] or save_data:
+                data[key] = x.assign_attrs(
+                    {"allow_compute": self.data._allow_compute[key]}
+                )
+            else:
+                # create an empty placeholder array
+                data[key] = xr.DataArray().assign_attrs(
+                    {"allow_compute": False, "placeholder": True}
+                )
+
+        # Store the DataContainer items as data_vars, and the model parameters as global attrs
+        ds_model = xr.Dataset(data, attrs=dict(params=self.get_params()))
+        # Set as the root node of the tree
+        dt = DataTree(data=ds_model, name=type(self).__name__)
+
+        # Retrieve the tree representation of the preprocessor
+        dt["preprocessor1"] = self.preprocessor1.serialize_all()
+        dt["preprocessor2"] = self.preprocessor2.serialize_all()
+        dt.preprocessor1.parent = dt
+        dt.preprocessor2.parent = dt
+
+        return dt
+
+    def save(
+        self,
+        path: str,
+        save_data: bool = False,
+        **kwargs,
+    ):
+        """Save the model to zarr.
+
+        Parameters
+        ----------
+        path : str
+            Path to save the model zarr store.
+        save_data : str
+            Whether or not to save the full input data along with the fitted components.
+        **kwargs
+            Additional keyword arguments to pass to `DataTree.to_zarr()`.
+
+        """
+        dt = self.serialize(save_data=save_data)
+
+        # Handle rotator models by separately serializing the original model
+        # and attaching as a child of the rotator model
+        if hasattr(self, "model"):
+            dt["model"] = self.model.serialize()
+
+        dt.to_zarr(path, **kwargs)
+
+    @classmethod
+    def deserialize(cls, dt: DataTree) -> Self:
+        """Deserialize the model and its preprocessors from a DataTree."""
+        # Recreate the model with parameters set by root level attrs
+        model = cls(**dt.attrs["params"])
+
+        # Recreate the Preprocessors from their trees
+        model.preprocessor1 = Preprocessor.deserialize_all(dt.preprocessor1)
+        model.preprocessor2 = Preprocessor.deserialize_all(dt.preprocessor2)
+
+        # Create the model's DataContainer from the root level data_vars
+        model.data = DataContainer({k: dt[k] for k in dt.data_vars})
+
+        return model
+
+    @classmethod
+    def load(cls, path: str, **kwargs) -> Self:
+        """Load a saved model from zarr.
+
+        Parameters
+        ----------
+        path : str
+            Path to the saved model zarr store.
+        **kwargs
+            Additional keyword arguments to pass to `open_datatree()`.
+
+        Returns
+        -------
+        model : _BaseCrossModel
+            The loaded model.
+
+        """
+        dt = open_datatree(path, engine="zarr", **kwargs)
+
+        model = cls.deserialize(dt)
+
+        # Rebuild any attached model
+        if dt.get("model") is not None:
+            # Recreate the original model from its tree, assuming we should
+            # use the first base class of the current model
+            model.model = cls.__bases__[0].deserialize(dt.model)
+
+        for key in model.data.keys():
+            model.data._allow_compute[key] = model.data[key].attrs["allow_compute"]
+            model._validate_loaded_data(model.data[key])
+
+        return model
+
+    def _validate_loaded_data(self, data: DataArray):
+        """Optionally check the loaded data for placeholders."""
+        pass

@@ -86,6 +86,24 @@ Refer to the :doc:`api` section to discover the methods currently available.
     Please note that ``xeofs`` is in its developmental phase. If there's a specific method 
     you'd like to see included, we encourage you to open an issue on `GitHub`_.
 
+Model Serialization
+-------------------
+
+``xeofs`` models offer convenient ``save()`` and ``load()`` methods for serializing
+fitted models to a portable format. 
+
+.. code-block:: python
+
+  from xeofs.models import EOF
+
+  model = EOF()
+  model.fit(data, dim="time")
+  model.save("my_model.zarr")
+
+  # Later, you can load the model
+  loaded_model = EOF.load("my_model.zarr")
+
+
 Input Data Compatibility
 ------------------------
 
@@ -260,7 +278,7 @@ we'll merely indicate their absence for this example.
   def _transform_algorithm(self, data):
       raise NotImplementedError("This model does not support transform.")
 
-  def _inverse_transform_algorithm(self, data):
+  def _inverse_transform_algorithm(self, scores):
       raise NotImplementedError("This model does not support inverse transform.")
 
 

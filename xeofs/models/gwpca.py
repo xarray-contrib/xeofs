@@ -251,7 +251,7 @@ class GWPCA(_BaseModel):
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("GWPCA does not support transform() yet.")
 
-    def _inverse_transform_algorithm(self, data: DataArray) -> DataArray:
+    def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
         raise NotImplementedError("GWPCA does not support inverse_transform() yet.")
 
 

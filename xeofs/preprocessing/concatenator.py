@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from typing_extensions import Self
 
 import pandas as pd
@@ -26,7 +26,16 @@ class Concatenator(Transformer):
     def __init__(self, sample_name: str = "sample", feature_name: str = "feature"):
         super().__init__(sample_name, feature_name)
 
-        self.stackers = []
+        self.n_data = None
+        self.n_features = []
+        self.coords_in = {}
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            n_data=self.n_data,
+            n_features=self.n_features,
+            coords_in=self.coords_in,
+        )
 
     def fit(
         self,
@@ -48,9 +57,11 @@ class Concatenator(Transformer):
 
         self.n_data = len(X)
 
-        # Set input feature coordinates
-        self.coords_in = [data.coords[self.feature_name] for data in X]
-        self.n_features = [coord.size for coord in self.coords_in]
+        # Set input feature coordinates, using dict for easier serialization
+        self.coords_in = {
+            str(i): data.coords[self.feature_name] for i, data in enumerate(X)
+        }
+        self.n_features = [coord.size for coord in self.coords_in.values()]
 
         return self
 
@@ -62,22 +73,17 @@ class Concatenator(Transformer):
             )
 
         reindexed_data_list: List[DataArray] = []
-        dummy_feature_coords = []
 
         idx_range = np.cumsum([0] + self.n_features)
         for i, data in enumerate(X):
             # Create dummy feature coordinates for DataArray
             new_coords = np.arange(idx_range[i], idx_range[i + 1])
 
-            # Replace original feature coordiantes with dummy coordinates
+            # Replace original feature coordinates with dummy coordinates
             data = data.drop_vars(self.feature_name)
             reindexed = data.assign_coords({self.feature_name: new_coords})
 
-            # Store dummy feature coordinates
-            dummy_feature_coords.append(new_coords)
             reindexed_data_list.append(reindexed)
-
-        self._dummy_feature_coords = dummy_feature_coords
 
         X_concat: DataArray = xr.concat(reindexed_data_list, dim=self.feature_name)
         self.coords_out = X_concat.coords[self.feature_name]
@@ -96,7 +102,10 @@ class Concatenator(Transformer):
         feature_name = self.feature_name
         data_list: List[DataArray] = []
 
-        for coords, features in zip(self.coords_in, self._dummy_feature_coords):
+        idx_range = np.cumsum([0] + self.n_features)
+        for i, coords in enumerate(self.coords_in.values()):
+            # Create dummy feature coordinates for DataArray
+            features = np.arange(idx_range[i], idx_range[i + 1])
             # Select the features corresponding to the current DataArray
             sub_selection = data.sel({feature_name: features})
             # Replace dummy feature coordinates with original feature coordinates

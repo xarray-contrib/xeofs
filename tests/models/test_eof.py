@@ -425,20 +425,63 @@ def test_inverse_transform(dim, mock_data_array):
     # fit the EOF model
     eof.fit(mock_data_array, dim=dim)
 
-    # Test with scalar
-    mode = 1
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with single mode
+    scores = eof.data["scores"].sel(mode=1)
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
-    # Test with slice
-    mode = slice(1, 2)
-    reconstructed_data = eof.inverse_transform(mode)
-    assert isinstance(reconstructed_data, xr.DataArray)
-
-    # Test with array of tick labels
-    mode = np.array([1, 3])
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with all modes
+    scores = eof.data["scores"]
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_save_load(dim, mock_data_array, tmp_path):
+    """Test save/load methods in EOF class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original = EOF()
+    original.fit(mock_data_array, dim)
+
+    # Save the EOF model
+    original.save(tmp_path / "eof.zarr")
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "eof.zarr").exists()
+
+    # Recreate the model from saved file
+    loaded = EOF.load(tmp_path / "eof.zarr")
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    assert all(
+        [
+            loaded.data._allow_compute[key] == original.data._allow_compute[key]
+            for key in original.data
+        ]
+    )
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
+    )
+
+    # Enhancement: the loaded model should also be able to inverse_transform new data
+    # assert np.allclose(
+    #     original.inverse_transform(original.scores()),
+    #     loaded.inverse_transform(loaded.scores()),
+    #     rtol=1e-3,
+    #     atol=1e-3,
+    # )
