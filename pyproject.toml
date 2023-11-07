@@ -26,7 +26,7 @@ typing-extensions = "^4.8.0"
 
 
 [tool.poetry.group.io]
-optional = true
+optional = false
 
 [tool.poetry.group.io.dependencies]
 zarr = ">=2.0.0"
