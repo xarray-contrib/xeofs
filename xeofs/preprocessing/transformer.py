@@ -147,7 +147,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return dt
 
-    def _deserialize_data_node(self, key: str, ds: xr.Dataset) -> Data:
+    def _deserialize_data_node(self, key: str, ds: xr.Dataset) -> DataArray:
         # Rebuild multiindexes
         ds = ds.set_index(ds.attrs.get("multiindexes", {}))
         # Extract the DataArray or coord from the Dataset

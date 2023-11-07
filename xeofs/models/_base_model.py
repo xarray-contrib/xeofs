@@ -337,7 +337,7 @@ class _BaseModel(ABC):
         """Get the model parameters."""
         return self._params
 
-    def serialize(self, save_data: bool = False) -> DataSet:
+    def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a complete model with its preprocessor."""
         from datatree import DataTree
 
@@ -356,7 +356,7 @@ class _BaseModel(ABC):
         # Store the DataContainer items as data_vars, and the model parameters as global attrs
         ds_model = xr.Dataset(data, attrs=dict(params=self.get_params()))
         # Set as the root node of the tree
-        dt = DataTree(data=ds_model)
+        dt = DataTree(data=ds_model, name=type(self).__name__)
 
         # Retrieve the tree representation of the preprocessor
         dt["preprocessor"] = self.preprocessor.serialize_all()
