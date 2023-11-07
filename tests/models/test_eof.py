@@ -425,19 +425,14 @@ def test_inverse_transform(dim, mock_data_array):
     # fit the EOF model
     eof.fit(mock_data_array, dim=dim)
 
-    # Test with scalar
-    mode = 1
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with single mode
+    scores = eof.data["scores"].sel(mode=1)
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
-    # Test with slice
-    mode = slice(1, 2)
-    reconstructed_data = eof.inverse_transform(mode)
-    assert isinstance(reconstructed_data, xr.DataArray)
-
-    # Test with array of tick labels
-    mode = np.array([1, 3])
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with all modes
+    scores = eof.data["scores"]
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data

@@ -76,7 +76,10 @@ def test_inverse_transform(mca_model):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
-    reconstructed_data = mca_rotator.inverse_transform(mode=slice(1, 3))
+    scores1 = mca_rotator.data["scores1"].sel(mode=slice(1, 3))
+    scores2 = mca_rotator.data["scores2"].sel(mode=slice(1, 3))
+
+    reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
     assert isinstance(reconstructed_data, tuple)
     assert len(reconstructed_data) == 2

@@ -209,7 +209,9 @@ class _BaseCrossModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(self, mode) -> Tuple[DataObject, DataObject]:
+    def inverse_transform(
+        self, scores1: DataObject, scores2: DataObject
+    ) -> Tuple[DataObject, DataObject]:
         raise NotImplementedError
 
     def components(self) -> Tuple[DataObject, DataObject]:
