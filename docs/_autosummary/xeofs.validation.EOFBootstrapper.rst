@@ -19,13 +19,17 @@
       ~EOFBootstrapper.__init__
       ~EOFBootstrapper.components
       ~EOFBootstrapper.compute
+      ~EOFBootstrapper.deserialize
       ~EOFBootstrapper.explained_variance
       ~EOFBootstrapper.explained_variance_ratio
       ~EOFBootstrapper.fit
       ~EOFBootstrapper.fit_transform
       ~EOFBootstrapper.get_params
       ~EOFBootstrapper.inverse_transform
+      ~EOFBootstrapper.load
+      ~EOFBootstrapper.save
       ~EOFBootstrapper.scores
+      ~EOFBootstrapper.serialize
       ~EOFBootstrapper.singular_values
       ~EOFBootstrapper.transform
    

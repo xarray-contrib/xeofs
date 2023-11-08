@@ -19,6 +19,7 @@
       ~GWPCA.__init__
       ~GWPCA.components
       ~GWPCA.compute
+      ~GWPCA.deserialize
       ~GWPCA.explained_variance
       ~GWPCA.explained_variance_ratio
       ~GWPCA.fit
@@ -26,7 +27,10 @@
       ~GWPCA.get_params
       ~GWPCA.inverse_transform
       ~GWPCA.largest_locally_weighted_components
+      ~GWPCA.load
+      ~GWPCA.save
       ~GWPCA.scores
+      ~GWPCA.serialize
       ~GWPCA.transform
    
    
