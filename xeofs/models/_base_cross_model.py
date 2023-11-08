@@ -284,6 +284,7 @@ class _BaseCrossModel(ABC):
     def save(
         self,
         path: str,
+        overwrite: bool = False,
         save_data: bool = False,
         **kwargs,
     ):
@@ -293,6 +294,8 @@ class _BaseCrossModel(ABC):
         ----------
         path : str
             Path to save the model zarr store.
+        overwrite: bool, default=False
+            Whether or not to overwrite the existing path if it already exists.
         save_data : str
             Whether or not to save the full input data along with the fitted components.
         **kwargs
@@ -306,7 +309,9 @@ class _BaseCrossModel(ABC):
         if hasattr(self, "model"):
             dt["model"] = self.model.serialize()
 
-        dt.to_zarr(path, **kwargs)
+        write_mode = "w" if overwrite else "w-"
+
+        dt.to_zarr(path, mode=write_mode, **kwargs)
 
     @classmethod
     def deserialize(cls, dt: DataTree) -> Self:
