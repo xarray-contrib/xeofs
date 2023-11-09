@@ -9,6 +9,8 @@ from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
 from typing import Optional
 
+from ..utils.xarray_utils import get_deterministic_sign_multiplier
+
 
 class Decomposer:
     """Decomposes a data object using Singular Value Decomposition (SVD).
@@ -155,17 +157,9 @@ class Decomposer:
         VT.name = "V"
 
         if self.flip_signs:
-            # Flip signs of components to ensure deterministic output
-            # Carefully avoid idexing ops so we can execute this lazily on dask arrays
-            min_max = xr.concat([VT.max(dims[1]), VT.min(dims[1])], dim="sign")
-            min_max = min_max.assign_coords(sign=[1, -1])
-            flip_signs = np.abs(min_max).idxmax("sign")
-            # Drop all dimensions except 'mode' so that the index is clean
-            for dim, coords in flip_signs.coords.items():
-                if dim != "mode":
-                    flip_signs = flip_signs.drop(dim)
-            VT *= flip_signs
-            U *= flip_signs
+            sign_multiplier = get_deterministic_sign_multiplier(VT, dims[1])
+            VT *= sign_multiplier
+            U *= sign_multiplier
 
         self.U_ = U
         self.s_ = s

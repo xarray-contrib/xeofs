@@ -7,6 +7,7 @@ from .eof import EOF, ComplexEOF
 from ..data_container import DataContainer
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from .._version import __version__
 
 
@@ -32,6 +33,9 @@ class EOFRotator(EOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
+    sort : bool, default=True
+        Whether to sort the modes according to their variance explained. Note: this will
+        trigger computation of the model for dask-backed data.
     compute: bool, default=True
         Whether to compute the decomposition immediately.
 
@@ -55,6 +59,7 @@ class EOFRotator(EOF):
         power: int = 1,
         max_iter: int = 1000,
         rtol: float = 1e-8,
+        sort: bool = True,
         compute: bool = True,
     ):
         # Define model parameters
@@ -63,6 +68,7 @@ class EOFRotator(EOF):
             "power": power,
             "max_iter": max_iter,
             "rtol": rtol,
+            "sort": sort,
             "compute": compute,
         }
 
@@ -128,15 +134,14 @@ class EOFRotator(EOF):
 
         # Reorder according to variance
         expvar = (abs(rot_loadings) ** 2).sum(self.feature_name)
-        # NOTE: For delayed objects, the index must be computed.
-        # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_sort = expvar.compute().argsort()[::-1]
+        idx_sort = argsort_dask(expvar, "mode")[::-1]
         idx_sort.coords.update(expvar.coords)
 
-        expvar = expvar.isel(mode=idx_sort.values).assign_coords(mode=expvar.mode)
-        rot_loadings = rot_loadings.isel(mode=idx_sort.values).assign_coords(
-            mode=rot_loadings.mode
-        )
+        if self._params["sort"]:
+            expvar = expvar.isel(mode=idx_sort.values).assign_coords(mode=expvar.mode)
+            rot_loadings = rot_loadings.isel(mode=idx_sort.values).assign_coords(
+                mode=rot_loadings.mode
+            )
 
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
@@ -166,14 +171,9 @@ class EOFRotator(EOF):
         scores = scores * norms
 
         # Ensure consistent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax(self.feature_name).compute()
-        modes_sign = xr.apply_ufunc(
-            np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
+        modes_sign = get_deterministic_sign_multiplier(
+            rot_components, self.feature_name
         )
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in modes_sign.coords.items():
-            if dim != "mode":
-                modes_sign = modes_sign.drop(dim)
         rot_components = rot_components * modes_sign
         scores = scores * modes_sign
 

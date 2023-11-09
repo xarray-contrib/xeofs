@@ -416,6 +416,38 @@ def test_transform(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
+def test_transform_nan_feature(dim, mock_data_array):
+    """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
+    data = mock_data_array.isel()
+
+    # Create a xarray DataArray with random data
+    model = EOF(n_modes=2, solver="full")
+    model.fit(data, dim)
+
+    # Set a new feature to NaN and attempt to project data onto the components
+    feature_dims = list(set(data.dims) - set(dim))
+    data_missing = data.copy()
+    data_missing.loc[{feature_dims[0]: data[feature_dims[0]][0].values}] = np.nan
+
+    # transform should fail if any new features are NaN, but we expect different
+    # error messages for a dask array because we skip the explicit sanity check
+    with pytest.raises(ValueError) as e:
+        model.transform(data_missing)
+    assert "Input data had NaN features" in str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        model.transform(data_missing.chunk())
+    assert "conflicting sizes" in str(e.value)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
 def test_inverse_transform(dim, mock_data_array):
     """Test inverse_transform method in EOF class."""
 

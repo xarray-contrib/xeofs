@@ -16,9 +16,6 @@ class Sanitizer(Transformer):
     def __init__(self, sample_name="sample", feature_name="feature"):
         super().__init__(sample_name=sample_name, feature_name=feature_name)
 
-        # Set a flag so that we don't sanitize the feature dimension on first run
-        self.has_run = False
-
         self.feature_coords = xr.DataArray()
         self.sample_coords = xr.DataArray()
         self.is_valid_feature = xr.DataArray()
@@ -92,24 +89,21 @@ class Sanitizer(Transformer):
         X = X.dropna(dim=self.sample_name, how="all")
         X = X.dropna(dim=self.feature_name, how="all")
 
-        # For new data only, validate that NaN features match the original
-        if self.has_run:
+        # Only carry out isolated NaN check for non-dask-backed data
+        if not data_is_dask(X):
+            # Validate that NaN features match the original from .fit()
             if not X_valid_features.equals(self.is_valid_feature):
                 raise ValueError(
                     "Input data had NaN features in different locations than"
                     " than the original data."
                 )
 
-        # Only carry out isolated NaN check for non-dask-backed data
-        if not data_is_dask(X):
+            # Isolated nan check: dropna will remove any full-nan features/samples
             if X.isnull().any():
                 raise ValueError(
                     "Input data contains partial NaN entries, which will cause the"
                     " the SVD to fail."
                 )
-
-        # On future runs, run the feature NaN check
-        self.has_run = True
 
         return X
 

@@ -6,6 +6,7 @@ from typing import List
 from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ..data_container import DataContainer
 from .._version import __version__
 
@@ -37,6 +38,9 @@ class MCARotator(MCA):
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
+    sort : bool, default=True
+        Whether to sort the modes according to their variance explained. Note: this will
+        trigger computation of the model for dask-backed data.
     compute : bool, default=True
         Whether to compute the decomposition immediately.
 
@@ -61,6 +65,7 @@ class MCARotator(MCA):
         max_iter: int = 1000,
         rtol: float = 1e-8,
         squared_loadings: bool = False,
+        sort: bool = True,
         compute: bool = True,
     ):
         self._compute = compute
@@ -71,6 +76,7 @@ class MCARotator(MCA):
             "max_iter": max_iter,
             "rtol": rtol,
             "squared_loadings": squared_loadings,
+            "sort": sort,
         }
 
         # Define analysis-relevant meta data
@@ -221,28 +227,27 @@ class MCARotator(MCA):
         squared_covariance = (norm1_rot * norm2_rot) ** 2
 
         # Reorder according to squared covariance
-        # NOTE: For delayed objects, the index must be computed.
-        # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_modes_sorted = squared_covariance.compute().argsort()[::-1]
+        idx_modes_sorted = argsort_dask(squared_covariance, "mode")[::-1]
         idx_modes_sorted.coords.update(squared_covariance.coords)
 
-        squared_covariance = squared_covariance.isel(
-            mode=idx_modes_sorted.values
-        ).assign_coords(mode=squared_covariance.mode)
+        if self._params["sort"]:
+            squared_covariance = squared_covariance.isel(
+                mode=idx_modes_sorted.values
+            ).assign_coords(mode=squared_covariance.mode)
 
-        norm1_rot = norm1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=norm1_rot.mode
-        )
-        norm2_rot = norm2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=norm2_rot.mode
-        )
+            norm1_rot = norm1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
+                mode=norm1_rot.mode
+            )
+            norm2_rot = norm2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
+                mode=norm2_rot.mode
+            )
 
-        comps1_rot = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=comps1_rot.mode
-        )
-        comps2_rot = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=comps2_rot.mode
-        )
+            comps1_rot = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
+                mode=comps1_rot.mode
+            )
+            comps2_rot = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
+                mode=comps2_rot.mode
+            )
 
         # Rotate scores using rotation matrix
         scores1 = self.model.data["scores1"].sel(mode=slice(1, n_modes))
@@ -267,14 +272,7 @@ class MCARotator(MCA):
         )
 
         # Ensure consitent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax(feature_name).compute()
-        modes_sign = xr.apply_ufunc(
-            np.sign, rot_loadings.isel({feature_name: idx_max_value}), dask="allowed"
-        )
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in modes_sign.coords.items():
-            if dim != "mode":
-                modes_sign = modes_sign.drop(dim)
+        modes_sign = get_deterministic_sign_multiplier(rot_loadings, feature_name)
         comps1_rot = comps1_rot * modes_sign
         comps2_rot = comps2_rot * modes_sign
         scores1_rot = scores1_rot * modes_sign

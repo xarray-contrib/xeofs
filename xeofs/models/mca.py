@@ -11,6 +11,7 @@ from ..utils.data_types import DataObject, DataArray
 from ..utils.statistics import pearson_correlation
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.dimension_renamer import DimensionRenamer
+from ..utils.xarray_utils import argsort_dask
 
 
 class MCA(_BaseCrossModel):
@@ -179,7 +180,7 @@ class MCA(_BaseCrossModel):
         norm2 = np.sqrt(singular_values)
 
         # Index of the sorted squared covariance
-        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes = argsort_dask(squared_covariance, "mode")[::-1]
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
@@ -748,7 +749,7 @@ class ComplexMCA(MCA):
         norm2 = np.sqrt(singular_values)
 
         # Index of the sorted squared covariance
-        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes = argsort_dask(squared_covariance, "mode")[::-1]
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
