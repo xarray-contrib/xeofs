@@ -7,6 +7,7 @@ from .sanity_checks import convert_to_dim_type
 from .data_types import (
     Dims,
     DimsList,
+    DaskArray,
     Data,
     DataVar,
     DataArray,
@@ -23,6 +24,25 @@ def unwrap_singleton_list(input_list: List[T]) -> T | List[T]:
         return input_list[0]
     else:
         return input_list
+
+
+def data_is_dask(data: DataArray | DataSet | DataList) -> bool:
+    """Check if the given data is backed by a dask array."""
+
+    # If data is a DataArray, check its underlying data type
+    if isinstance(data, DataArray):
+        return isinstance(data.data, DaskArray)
+
+    # If data is a DataSet, recursively check all contained DataArrays
+    if isinstance(data, DataSet):
+        return all(data_is_dask(da) for da in data.data_vars.values())
+
+    # If data is a list, recursively check each element in the list
+    if isinstance(data, list):
+        return all(data_is_dask(da) for da in data)
+
+    # If none of the above, the data type is unrecognized
+    raise ValueError("unrecognized data type.")
 
 
 def process_parameter(

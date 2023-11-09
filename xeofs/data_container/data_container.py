@@ -1,4 +1,6 @@
 from typing import Dict
+
+import dask
 from dask.diagnostics.progress import ProgressBar
 
 from ..utils.data_types import DataArray
@@ -27,13 +29,14 @@ class DataContainer(dict):
             )
 
     def compute(self, verbose=False):
-        for k, v in self.items():
-            if self._allow_compute[k]:
-                if verbose:
-                    with ProgressBar():
-                        self[k] = v.compute()
-                else:
-                    self[k] = v.compute()
+        computed_data = {k: v for k, v in self.items() if self._allow_compute[k]}
+        if verbose:
+            with ProgressBar():
+                computed_data = dask.compute(computed_data)[0]
+        else:
+            computed_data = dask.compute(computed_data)[0]
+        for k, v in computed_data.items():
+            self[k] = v
 
     def _validate_attrs(self, attrs: Dict) -> Dict:
         """Convert any boolean and None values to strings"""

@@ -30,6 +30,22 @@ VALID_TEST_DATA = [
     for dask in DASK_POLICY
 ]
 
+ISOLATED_NAN_NO_DASK = [
+    (ns, nf, index, "isolated", "no_dask")
+    for ns in N_SAMPLE_DIMS
+    for nf in N_FEATURE_DIMS
+    for index in INDEX_POLICY
+    for dask in DASK_POLICY
+]
+
+ISOLATED_NAN_DASK = [
+    (ns, nf, index, "isolated", "dask")
+    for ns in N_SAMPLE_DIMS
+    for nf in N_FEATURE_DIMS
+    for index in INDEX_POLICY
+    for dask in DASK_POLICY
+]
+
 
 # TESTS
 # =============================================================================
@@ -211,3 +227,58 @@ def test_invserse_transform_scores(synthetic_dataarray):
     assert_expected_coords(data, unstacked_data, policy="sample")
     # inverse transform should not change dask-ness
     assert is_dask_before == is_dask_after
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    ISOLATED_NAN_NO_DASK,
+    indirect=["synthetic_dataarray"],
+)
+def test_isolated_nans_no_dask(synthetic_dataarray):
+    data = synthetic_dataarray
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    sanitizer = Sanitizer()
+    sanitizer.fit(data)
+
+    # Want the sanitizer to raise an error for isolated NaNs in numpy-backed data
+    with pytest.raises(ValueError):
+        sanitizer.transform(data)
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    ISOLATED_NAN_DASK,
+    indirect=["synthetic_dataarray"],
+)
+def test_isolated_nans_dask(synthetic_dataarray):
+    data = synthetic_dataarray
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    sanitizer = Sanitizer()
+    sanitizer.fit(data)
+    transformed_data = sanitizer.transform(data)
+
+    # Want the sanitizer to skip the isolated NaN check for dask-backed data
+    # transformed data should have some NaNs and some non-NaNs
+    assert transformed_data.notnull().any()
+    assert transformed_data.isnull().any()
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    VALID_TEST_DATA,
+    indirect=["synthetic_dataarray"],
+)
+def test_feature_nan_transform(synthetic_dataarray):
+    data = synthetic_dataarray
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    sanitizer = Sanitizer()
+    sanitizer.fit(data)
+    sanitizer.transform(data)
+
+    # Pass through new data with NaNs in a different location
+    data.loc[{"feature": 1}] = np.nan
+    with pytest.raises(ValueError):
+        sanitizer.transform(data)

@@ -363,8 +363,8 @@ def test_get_params():
 )
 def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
-    data = mock_data_array.isel({dim[0]: slice(0, 3)})
-    new_data = mock_data_array.isel({dim[0]: slice(4, 5)})
+    data = mock_data_array.isel({dim[0]: slice(1, None)})
+    new_data = mock_data_array.isel({dim[0]: slice(0, 1)})
 
     # Create a xarray DataArray with random data
     model = EOF(n_modes=2, solver="full")

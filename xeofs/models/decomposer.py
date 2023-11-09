@@ -156,9 +156,10 @@ class Decomposer:
 
         if self.flip_signs:
             # Flip signs of components to ensure deterministic output
-            idx_sign = abs(VT).argmax(dims[1]).compute()
-            flip_signs = np.sign(VT.isel({dims[1]: idx_sign}))
-            flip_signs = flip_signs.compute()
+            # Carefully avoid idexing ops so we can execute this lazily on dask arrays
+            min_max = xr.concat([VT.max(dims[1]), VT.min(dims[1])], dim="sign")
+            min_max = min_max.assign_coords(sign=[1, -1])
+            flip_signs = np.abs(min_max).idxmax("sign")
             # Drop all dimensions except 'mode' so that the index is clean
             for dim, coords in flip_signs.coords.items():
                 if dim != "mode":
@@ -207,8 +208,8 @@ class Decomposer:
                 dask="allowed",
             )
             return U, s, VT
-        except ValueError:
-            raise ValueError(
+        except np.linalg.LinAlgError:
+            raise np.linalg.LinAlgError(
                 "SVD failed. This may be due to isolated NaN values in the data. Please consider the following steps:\n"
                 "1. Check for and remove any isolated NaNs in your dataset.\n"
                 "2. If the error persists, please raise an issue at https://github.com/nicrie/xeofs/issues."

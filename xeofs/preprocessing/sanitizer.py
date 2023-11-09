@@ -4,6 +4,7 @@ import xarray as xr
 
 from .transformer import Transformer
 from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar
+from ..utils.xarray_utils import data_is_dask
 
 
 class Sanitizer(Transformer):
@@ -14,6 +15,9 @@ class Sanitizer(Transformer):
 
     def __init__(self, sample_name="sample", feature_name="feature"):
         super().__init__(sample_name=sample_name, feature_name=feature_name)
+
+        # Set a flag so that we don't sanitize the feature dimension on first run
+        self.has_run = False
 
         self.feature_coords = xr.DataArray()
         self.sample_coords = xr.DataArray()
@@ -44,6 +48,12 @@ class Sanitizer(Transformer):
                 "Cannot transform data. Feature coordinates are different."
             )
 
+    def _get_valid_features(self, X: Data) -> Data:
+        return X.notnull().any(self.sample_name)
+
+    def _get_valid_samples(self, X: Data) -> Data:
+        return X.notnull().any(self.feature_name)
+
     def fit(
         self,
         X: Data,
@@ -61,17 +71,8 @@ class Sanitizer(Transformer):
         self.sample_coords = X.coords[self.sample_name]
 
         # Identify NaN locations
-        self.is_valid_feature = ~X.isnull().all(self.sample_name).compute()
-        # NOTE: We must also consider the presence of valid samples. For
-        # instance, when PCA is applied with "longitude" and "latitude" as
-        # sample dimensions, certain grid cells may be masked (e.g., due to
-        # ocean areas). To ensure correct reconstruction of scores,
-        # we need to identify the sample positions of NaNs in the fitted
-        # dataset. Keep in mind that when transforming new data,
-        # we have to recheck for valid samples, as the new dataset may have
-        # different samples.
-        X_valid = X.sel({self.feature_name: self.is_valid_feature})
-        self.is_valid_sample = ~X_valid.isnull().all(self.feature_name).compute()
+        self.is_valid_feature = self._get_valid_features(X)
+        self.is_valid_sample = self._get_valid_samples(X)
 
         return self
 
@@ -85,17 +86,30 @@ class Sanitizer(Transformer):
         # Check if input has the correct coordinates
         self._check_input_coords(X)
 
-        # Store sample coordinates for inverse transform
-        self.sample_coords_transform = X.coords[self.sample_name]
-        # Remove NaN entries; only consider full-dimensional NaNs
-        # We already know valid features from the fitted dataset
-        X = X.isel({self.feature_name: self.is_valid_feature})
-        # However, we need to recheck for valid samples, as the new dataset may
-        # have different samples
-        is_valid_sample = ~X.isnull().all(self.feature_name).compute()
-        X = X.isel({self.sample_name: is_valid_sample})
-        # Store valid sample locations for inverse transform
-        self.is_valid_sample_transform = is_valid_sample
+        X_valid_features = self._get_valid_features(X)
+
+        # Remove full-dimensional NaN entries
+        X = X.dropna(dim=self.sample_name, how="all")
+        X = X.dropna(dim=self.feature_name, how="all")
+
+        # For new data only, validate that NaN features match the original
+        if self.has_run:
+            if not X_valid_features.equals(self.is_valid_feature):
+                raise ValueError(
+                    "Input data had NaN features in different locations than"
+                    " than the original data."
+                )
+
+        # Only carry out isolated NaN check for non-dask-backed data
+        if not data_is_dask(X):
+            if X.isnull().any():
+                raise ValueError(
+                    "Input data contains partial NaN entries, which will cause the"
+                    " the SVD to fail."
+                )
+
+        # On future runs, run the feature NaN check
+        self.has_run = True
 
         return X
 
@@ -127,12 +141,5 @@ class Sanitizer(Transformer):
             return X.reindex({self.sample_name: self.sample_coords.values})
 
     def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
-        # Reindex only if sample coordinates are different
-        coords_are_equal = X.coords[self.sample_name].identical(
-            self.sample_coords_transform
-        )
-
-        if coords_are_equal:
-            return X
-        else:
-            return X.reindex({self.sample_name: self.sample_coords_transform.values})
+        # Don't check sample coords for unseen data
+        return X
