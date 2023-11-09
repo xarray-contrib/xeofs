@@ -164,4 +164,13 @@ class ExtendedEOF(EOF):
         raise NotImplementedError("EEOF does currently not support transform")
 
     def _inverse_transform_algorithm(self, scores):
-        raise NotImplementedError("EEOF does currently not support inverse transform")
+        # Reconstruct the data
+        comps = self.data["components"].sel(mode=scores.mode, embedding=0, drop=True)
+
+        reconstructed_data = xr.dot(comps.conj(), scores, optimize=True)
+        reconstructed_data.name = "reconstructed_data"
+
+        # Enforce real output
+        reconstructed_data = reconstructed_data.real
+
+        return reconstructed_data
