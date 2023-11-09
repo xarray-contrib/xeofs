@@ -6,10 +6,10 @@
 
 Computation times
 =================
-**00:23.776** total execution time for **auto_examples_1single** files:
+**00:28.072** total execution time for **auto_examples_1single** files:
 
 +-----------------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_1single_plot_eeof trend.py` (``plot_eeof trend.py``)             | 00:23.776 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_1single_plot_eeof_trend.py` (``plot_eeof_trend.py``)             | 00:28.072 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py` (``plot_complex_eof.py``)           | 00:00.000 | 0.0 MB |
 +-----------------------------------------------------------------------------------------------+-----------+--------+
