@@ -2,6 +2,7 @@ from datetime import datetime
 import numpy as np
 import xarray as xr
 from typing import List
+from typing_extensions import Self
 
 from .mca import MCA, ComplexMCA
 from ..utils.rotation import promax
@@ -65,7 +66,6 @@ class MCARotator(MCA):
         max_iter: int = 1000,
         rtol: float = 1e-8,
         squared_loadings: bool = False,
-        sort: bool = True,
         compute: bool = True,
     ):
         self._compute = compute
@@ -76,7 +76,7 @@ class MCARotator(MCA):
             "max_iter": max_iter,
             "rtol": rtol,
             "squared_loadings": squared_loadings,
-            "sort": sort,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -119,15 +119,23 @@ class MCARotator(MCA):
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix
 
-    def fit(self, model: MCA | ComplexMCA):
-        """Fit the model.
+    def fit(self, model: MCA) -> Self:
+        """Rotate the solution obtained from ``xe.models.MCA``.
 
         Parameters
         ----------
-        model : xe.models.MCA
-            A MCA model solution.
+        model : ``xe.models.MCA``
+            The EOF model to be rotated.
 
         """
+        fitted_model = self._fit_algorithm(model)
+
+        if fitted_model._params["compute"]:
+            fitted_model.compute()
+
+        return fitted_model
+
+    def _fit_algorithm(self, model) -> Self:
         self.model = model
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
@@ -230,25 +238,6 @@ class MCARotator(MCA):
         idx_modes_sorted = argsort_dask(squared_covariance, "mode")[::-1]
         idx_modes_sorted.coords.update(squared_covariance.coords)
 
-        if self._params["sort"]:
-            squared_covariance = squared_covariance.isel(
-                mode=idx_modes_sorted.values
-            ).assign_coords(mode=squared_covariance.mode)
-
-            norm1_rot = norm1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-                mode=norm1_rot.mode
-            )
-            norm2_rot = norm2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-                mode=norm2_rot.mode
-            )
-
-            comps1_rot = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-                mode=comps1_rot.mode
-            )
-            comps2_rot = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-                mode=comps2_rot.mode
-            )
-
         # Rotate scores using rotation matrix
         scores1 = self.model.data["scores1"].sel(mode=slice(1, n_modes))
         scores2 = self.model.data["scores2"].sel(mode=slice(1, n_modes))
@@ -262,14 +251,6 @@ class MCARotator(MCA):
         RinvT = RinvT.rename({"mode_n": "mode"})
         scores1_rot = xr.dot(scores1, RinvT, dims="mode_m")
         scores2_rot = xr.dot(scores2, RinvT, dims="mode_m")
-
-        # Reorder scores _rotaccording to variance
-        scores1_rot = scores1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=scores1_rot.mode
-        )
-        scores2_rot = scores2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=scores2_rot.mode
-        )
 
         # Ensure consitent signs for deterministic output
         modes_sign = get_deterministic_sign_multiplier(rot_loadings, feature_name)
@@ -303,6 +284,22 @@ class MCARotator(MCA):
 
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+
+        return self
+
+    def _post_compute(self):
+        """Leave sorting until after compute because it can't be done lazily."""
+        self._sort_by_variance()
+
+    def _sort_by_variance(self):
+        """Re-sort the mode dimension of all data variables by variance explained."""
+        for key in self.data.keys():
+            if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                self.data[key] = (
+                    self.data[key]
+                    .isel(mode=self.data["idx_modes_sorted"].values)
+                    .assign_coords(mode=self.data[key].mode)
+                )
 
     def transform(self, **kwargs) -> DataArray | List[DataArray]:
         """Project new "unseen" data onto the rotated singular vectors.

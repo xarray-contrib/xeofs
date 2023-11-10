@@ -59,7 +59,6 @@ class EOFRotator(EOF):
         power: int = 1,
         max_iter: int = 1000,
         rtol: float = 1e-8,
-        sort: bool = True,
         compute: bool = True,
     ):
         # Define model parameters
@@ -68,7 +67,6 @@ class EOFRotator(EOF):
             "power": power,
             "max_iter": max_iter,
             "rtol": rtol,
-            "sort": sort,
             "compute": compute,
         }
 
@@ -95,7 +93,12 @@ class EOFRotator(EOF):
             The EOF model to be rotated.
 
         """
-        return self._fit_algorithm(model)
+        fitted_model = self._fit_algorithm(model)
+
+        if fitted_model._params["compute"]:
+            fitted_model.compute()
+
+        return fitted_model
 
     def _fit_algorithm(self, model) -> Self:
         self.model = model
@@ -134,14 +137,8 @@ class EOFRotator(EOF):
 
         # Reorder according to variance
         expvar = (abs(rot_loadings) ** 2).sum(self.feature_name)
-        idx_sort = argsort_dask(expvar, "mode")[::-1]
-        idx_sort.coords.update(expvar.coords)
-
-        if self._params["sort"]:
-            expvar = expvar.isel(mode=idx_sort.values).assign_coords(mode=expvar.mode)
-            rot_loadings = rot_loadings.isel(mode=idx_sort.values).assign_coords(
-                mode=rot_loadings.mode
-            )
+        idx_modes_sorted = argsort_dask(expvar, "mode")[::-1]
+        idx_modes_sorted.coords.update(expvar.coords)
 
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
@@ -164,9 +161,6 @@ class EOFRotator(EOF):
         RinvT = RinvT.rename({"mode_n": "mode"})
         scores = xr.dot(scores, RinvT, dims="mode_m")
 
-        # Reorder according to variance
-        scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
-
         # Scale scores by "pseudo" norms
         scores = scores * norms
 
@@ -184,14 +178,29 @@ class EOFRotator(EOF):
         self.data.add(norms, "norms")
         self.data.add(expvar, "explained_variance")
         self.data.add(model.data["total_variance"], "total_variance")
-        self.data.add(idx_sort, "idx_modes_sorted")
+        self.data.add(idx_modes_sorted, "idx_modes_sorted")
         self.data.add(rot_matrix, "rotation_matrix")
         self.data.add(phi_matrix, "phi_matrix")
         self.data.add(modes_sign, "modes_sign")
 
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+
         return self
+
+    def _post_compute(self):
+        """Leave sorting until after compute because it can't be done lazily."""
+        self._sort_by_variance()
+
+    def _sort_by_variance(self):
+        """Re-sort the mode dimension of all data variables by variance explained."""
+        for key in self.data.keys():
+            if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                self.data[key] = (
+                    self.data[key]
+                    .isel(mode=self.data["idx_modes_sorted"].values)
+                    .assign_coords(mode=self.data[key].mode)
+                )
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]

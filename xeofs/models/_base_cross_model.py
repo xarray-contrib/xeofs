@@ -157,7 +157,12 @@ class _BaseCrossModel(ABC):
         # Preprocess data2
         data2 = self.preprocessor2.fit_transform(data2, self.sample_dims, weights2)
 
-        return self._fit_algorithm(data1, data2)
+        fitted_model = self._fit_algorithm(data1, data2)
+
+        if self._params["compute"]:
+            fitted_model.compute()
+
+        return fitted_model
 
     def transform(
         self, data1: Optional[DataObject] = None, data2: Optional[DataObject] = None
@@ -249,6 +254,10 @@ class _BaseCrossModel(ABC):
 
         """
         self.data.compute(verbose=verbose)
+        self._post_compute()
+
+    def _post_compute(self):
+        pass
 
     def get_params(self) -> Dict:
         """Get the model parameters."""

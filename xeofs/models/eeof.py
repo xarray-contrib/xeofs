@@ -1,4 +1,5 @@
 from typing import Optional
+from typing_extensions import Self
 
 import numpy as np
 import xarray as xr
@@ -110,7 +111,7 @@ class ExtendedEOF(EOF):
             else None
         )
 
-    def _fit_algorithm(self, X: DataArray):
+    def _fit_algorithm(self, X: DataArray) -> Self:
         self.data.add(X.copy(), "input_data", allow_compute=False)
 
         # Preprocess the data using PCA
@@ -159,6 +160,8 @@ class ExtendedEOF(EOF):
             )
 
         self.data.set_attrs(self.attrs)
+
+        return self
 
     def _transform_algorithm(self, X):
         raise NotImplementedError("EEOF does currently not support transform")

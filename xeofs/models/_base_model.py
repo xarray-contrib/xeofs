@@ -165,7 +165,12 @@ class _BaseModel(ABC):
             X, self.sample_dims, weights
         )
 
-        return self._fit_algorithm(data2D)
+        fitted_model = self._fit_algorithm(data2D)
+
+        if self._params["compute"]:
+            fitted_model.compute()
+
+        return fitted_model
 
     @abstractmethod
     def _fit_algorithm(self, data: DataArray) -> Self:
@@ -324,6 +329,10 @@ class _BaseModel(ABC):
 
         """
         self.data.compute(verbose=verbose)
+        self._post_compute()
+
+    def _post_compute(self):
+        pass
 
     def get_params(self) -> Dict[str, Any]:
         """Get the model parameters."""
