@@ -4,7 +4,6 @@ import xarray as xr
 
 from .transformer import Transformer
 from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar
-from ..utils.xarray_utils import data_is_dask
 
 
 class Sanitizer(Transformer):
@@ -13,8 +12,10 @@ class Sanitizer(Transformer):
 
     """
 
-    def __init__(self, sample_name="sample", feature_name="feature"):
+    def __init__(self, sample_name="sample", feature_name="feature", check_nans=True):
         super().__init__(sample_name=sample_name, feature_name=feature_name)
+
+        self.check_nans = check_nans
 
         self.feature_coords = xr.DataArray()
         self.sample_coords = xr.DataArray()
@@ -85,13 +86,13 @@ class Sanitizer(Transformer):
 
         X_valid_features = self._get_valid_features(X)
 
-        # Remove full-dimensional NaN entries
-        X = X.dropna(dim=self.sample_name, how="all")
-        X = X.dropna(dim=self.feature_name, how="all")
+        # Optionally skip NaN checks to preserve lazy computation for dask arrays
+        if self.check_nans:
+            # Remove full-dimensional NaN entries
+            X = X.dropna(dim=self.sample_name, how="all")
+            X = X.dropna(dim=self.feature_name, how="all")
 
-        # Only carry out isolated NaN check for non-dask-backed data
-        if not data_is_dask(X):
-            # Validate that NaN features match the original from .fit()
+            # Validate that non-NaN features match the original from .fit()
             if not X_valid_features.equals(self.is_valid_feature):
                 raise ValueError(
                     "Input data had NaN features in different locations than"

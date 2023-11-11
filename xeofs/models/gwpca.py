@@ -99,6 +99,7 @@ class GWPCA(_BaseModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
     ):
@@ -107,6 +108,7 @@ class GWPCA(_BaseModel):
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
         )

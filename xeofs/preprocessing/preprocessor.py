@@ -82,6 +82,12 @@ class Preprocessor(Transformer):
     return_list : bool, default=True
         If True, inverse_transform methods returns always a list of DataArray(s).
         If False, the output is returned as a single DataArray if possible.
+    check_nans : bool, default=True
+        If True, remove full-dimensional NaN features from the data, check to ensure
+        that NaN features match the original fit data during transform, and check
+        for isolated NaNs. Note: this forces eager computation of dask arrays.
+        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
+        or filled prior to fitting, or SVD will fail.
 
     """
 
@@ -93,6 +99,7 @@ class Preprocessor(Transformer):
         with_std: bool = False,
         with_coslat: bool = False,
         return_list: bool = True,
+        check_nans: bool = True,
     ):
         # Set parameters
         self.sample_name = sample_name
@@ -101,6 +108,7 @@ class Preprocessor(Transformer):
         self.with_std = with_std
         self.with_coslat = with_coslat
         self.return_list = return_list
+        self.check_nans = check_nans
 
         self.n_data = None
 
@@ -126,7 +134,9 @@ class Preprocessor(Transformer):
         # 5 | Convert MultiIndexes (after stacking)
         self.postconverter = GenericListTransformer(MultiIndexConverter)
         # 6 | Remove NaNs
-        self.sanitizer = GenericListTransformer(Sanitizer, **dim_names_as_kwargs)
+        self.sanitizer = GenericListTransformer(
+            Sanitizer, check_nans=self.check_nans, **dim_names_as_kwargs
+        )
         # 7 | Concatenate into one 2D DataArray
         self.concatenator = Concatenator(**dim_names_as_kwargs)
 

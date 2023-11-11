@@ -138,7 +138,7 @@ class Decomposer:
         # Use dask SVD for large, real-valued, delayed data sets
         elif (not use_complex) and use_dask:
             self.solver_kwargs.update({"k": self.n_modes, "seed": self.random_state})
-            self.solver_kwargs.setdefault("compute", True)
+            self.solver_kwargs.setdefault("compute", self.compute)
             U, s, VT = self._svd(X, dims, dask_svd, self.solver_kwargs)
             U, s, VT = self._compute_svd_result(U, s, VT)
         else:

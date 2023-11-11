@@ -230,7 +230,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_compute(mca_model_delayed, compute):
     """Test the compute method of the MCARotator class."""
 
-    mca_rotator = MCARotator(n_modes=4, compute=compute, rtol=1e-5)
+    mca_rotator = MCARotator(n_modes=4, compute=compute, max_iter=20, rtol=1e-4)
     mca_rotator.fit(mca_model_delayed)
 
     if compute:
@@ -299,10 +299,10 @@ def test_save_load(dim, mock_data_array, tmp_path):
         atol=1e-3,
     )
 
-    # Enhancement: the loaded model should also be able to inverse_transform new data
-    # assert np.allclose(
-    #     original.inverse_transform(original.scores()),
-    #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-3,
-    #     atol=1e-3,
-    # )
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(*original.scores()),
+        loaded.inverse_transform(*loaded.scores()),
+        rtol=1e-3,
+        atol=1e-3,
+    )

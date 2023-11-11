@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
+from dask.array import Array as DaskArray  # type: ignore
 from numpy.testing import assert_allclose
 
 from xeofs.models.eof import EOF
@@ -429,15 +429,16 @@ def test_transform_nan_feature(dim, mock_data_array):
     data_missing = data.copy()
     data_missing.loc[{feature_dims[0]: data[feature_dims[0]][0].values}] = np.nan
 
-    # transform should fail if any new features are NaN, but we expect different
-    # error messages for a dask array because we skip the explicit sanity check
-    with pytest.raises(ValueError) as e:
+    # with nan checking, transform should fail if any new features are NaN
+    with pytest.raises(ValueError):
         model.transform(data_missing)
-    assert "Input data had NaN features" in str(e.value)
 
-    with pytest.raises(ValueError) as e:
-        model.transform(data_missing.chunk())
-    assert "conflicting sizes" in str(e.value)
+    # without nan checking, transform will succeed but be all nan
+    model = EOF(n_modes=2, solver="full", check_nans=False)
+    model.fit(data, dim)
+
+    data_transformed = model.transform(data_missing)
+    assert data_transformed.isnull().all()
 
 
 @pytest.mark.parametrize(
@@ -510,10 +511,28 @@ def test_save_load(dim, mock_data_array, tmp_path):
         original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
     )
 
-    # Enhancement: the loaded model should also be able to inverse_transform new data
-    # assert np.allclose(
-    #     original.inverse_transform(original.scores()),
-    #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-3,
-    #     atol=1e-3,
-    # )
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(original.scores()),
+        loaded.inverse_transform(loaded.scores()),
+        rtol=1e-3,
+        atol=1e-3,
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_lazy_execution(dim, mock_data_array, tmp_path):
+    """Test the model in "lazy mode", where we are fitting on dask data
+    and skip nan checks. There is no obvious way to identify that nothing
+    was computed, but we can at least check that the final outputs are still
+    dask."""
+    model = EOF(check_nans=False, compute=False)
+    model.fit(mock_data_array.chunk({d: 2 for d in mock_data_array.dims}), dim)
+    assert isinstance(model.scores().data, DaskArray)

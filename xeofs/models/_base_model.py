@@ -51,6 +51,12 @@ class _BaseModel(ABC):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
+    check_nans : bool, default=True
+        If True, remove full-dimensional NaN features from the data, check to ensure
+        that NaN features match the original fit data during transform, and check
+        for isolated NaNs. Note: this forces eager computation of dask arrays.
+        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
+        or filled prior to fitting, or SVD will fail.
     sample_name: str, default="sample"
         Name of the sample dimension.
     feature_name: str, default="feature"
@@ -76,6 +82,7 @@ class _BaseModel(ABC):
         center=True,
         standardize=False,
         use_coslat=False,
+        check_nans=True,
         sample_name="sample",
         feature_name="feature",
         compute=True,
@@ -94,6 +101,7 @@ class _BaseModel(ABC):
             "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
+            "check_nans": check_nans,
             "sample_name": sample_name,
             "feature_name": feature_name,
             "random_state": random_state,
@@ -129,6 +137,7 @@ class _BaseModel(ABC):
             with_center=center,
             with_std=standardize,
             with_coslat=use_coslat,
+            check_nans=check_nans,
         )
         # Initialize the data container that stores the results
         self.data = DataContainer()
@@ -359,7 +368,11 @@ class _BaseModel(ABC):
 
         # Retrieve the tree representation of the preprocessor
         dt["preprocessor"] = self.preprocessor.serialize_all()
-        dt.preprocessor.parent = dt
+
+        # Handle rotator models by separately serializing the original model
+        # and attaching as a child of the rotator model
+        if hasattr(self, "model"):
+            dt["model"] = self.model.serialize(save_data=save_data)
 
         return dt
 
@@ -385,14 +398,7 @@ class _BaseModel(ABC):
 
         """
         dt = self.serialize(save_data=save_data)
-
-        # Handle rotator models by separately serializing the original model
-        # and attaching as a child of the rotator model
-        if hasattr(self, "model"):
-            dt["model"] = self.model.serialize(save_data=save_data)
-
         write_mode = "w" if overwrite else "w-"
-
         dt.to_zarr(path, mode=write_mode, **kwargs)
 
     @classmethod

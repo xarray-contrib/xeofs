@@ -27,9 +27,11 @@ class EOFRotator(EOF):
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
         in a Varimax rotation.
-    max_iter : int, default=1000
+    max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
-        rotation matrix.
+        rotation matrix. If not specified, defaults to 1000 if ``compute=True``
+        and 100 if ``compute=False``, since we can't terminate a lazy computation
+        based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
@@ -57,10 +59,13 @@ class EOFRotator(EOF):
         self,
         n_modes: int = 2,
         power: int = 1,
-        max_iter: int = 1000,
+        max_iter: int | None = None,
         rtol: float = 1e-8,
         compute: bool = True,
     ):
+        if max_iter is None:
+            max_iter = 1000 if compute else 100
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -105,6 +110,7 @@ class EOFRotator(EOF):
         self.preprocessor = model.preprocessor
         self.sample_name = model.sample_name
         self.feature_name = model.feature_name
+        self.sorted = False
 
         n_modes = self._params.get("n_modes")
         power = self._params.get("power")
@@ -194,13 +200,15 @@ class EOFRotator(EOF):
 
     def _sort_by_variance(self):
         """Re-sort the mode dimension of all data variables by variance explained."""
-        for key in self.data.keys():
-            if "mode" in self.data[key].dims and key != "idx_modes_sorted":
-                self.data[key] = (
-                    self.data[key]
-                    .isel(mode=self.data["idx_modes_sorted"].values)
-                    .assign_coords(mode=self.data[key].mode)
-                )
+        if not self.sorted:
+            for key in self.data.keys():
+                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                    self.data[key] = (
+                        self.data[key]
+                        .isel(mode=self.data["idx_modes_sorted"].values)
+                        .assign_coords(mode=self.data[key].mode)
+                    )
+        self.sorted = True
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]

@@ -29,6 +29,12 @@ class _BaseCrossModel(ABC):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
+    check_nans : bool, default=True
+        If True, remove full-dimensional NaN features from the data, check to ensure
+        that NaN features match the original fit data during transform, and check
+        for isolated NaNs. Note: this forces eager computation of dask arrays.
+        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
+        or filled prior to fitting, or SVD will fail.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
     compute : bool, default=True
@@ -50,6 +56,7 @@ class _BaseCrossModel(ABC):
         center=True,
         standardize=False,
         use_coslat=False,
+        check_nans=True,
         n_pca_modes=None,
         compute=True,
         sample_name="sample",
@@ -68,6 +75,7 @@ class _BaseCrossModel(ABC):
             "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
+            "check_nans": check_nans,
             "n_pca_modes": n_pca_modes,
             "compute": compute,
             "sample_name": sample_name,
@@ -86,6 +94,7 @@ class _BaseCrossModel(ABC):
             "with_center": center,
             "with_std": standardize,
             "with_coslat": use_coslat,
+            "check_nans": check_nans,
         }
 
         # Define analysis-relevant meta data
@@ -285,8 +294,11 @@ class _BaseCrossModel(ABC):
         # Retrieve the tree representation of the preprocessor
         dt["preprocessor1"] = self.preprocessor1.serialize_all()
         dt["preprocessor2"] = self.preprocessor2.serialize_all()
-        dt.preprocessor1.parent = dt
-        dt.preprocessor2.parent = dt
+
+        # Handle rotator models by separately serializing the original model
+        # and attaching as a child of the rotator model
+        if hasattr(self, "model"):
+            dt["model"] = self.model.serialize(save_data=save_data)
 
         return dt
 
@@ -312,14 +324,7 @@ class _BaseCrossModel(ABC):
 
         """
         dt = self.serialize(save_data=save_data)
-
-        # Handle rotator models by separately serializing the original model
-        # and attaching as a child of the rotator model
-        if hasattr(self, "model"):
-            dt["model"] = self.model.serialize()
-
         write_mode = "w" if overwrite else "w-"
-
         dt.to_zarr(path, mode=write_mode, **kwargs)
 
     @classmethod

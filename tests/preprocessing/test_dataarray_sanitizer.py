@@ -30,35 +30,21 @@ VALID_TEST_DATA = [
     for dask in DASK_POLICY
 ]
 
-FULL_NAN_NO_DASK = [
-    (ns, nf, index, "fulldim", "no_dask")
+FULL_NAN = [
+    (ns, nf, index, nan, dask)
     for ns in N_SAMPLE_DIMS
     for nf in N_FEATURE_DIMS
     for index in INDEX_POLICY
+    for nan in ["fulldim"]
     for dask in DASK_POLICY
 ]
 
-FULL_NAN_DASK = [
-    (ns, nf, index, "fulldim", "dask")
+ISOLATED_NAN = [
+    (ns, nf, index, nan, dask)
     for ns in N_SAMPLE_DIMS
     for nf in N_FEATURE_DIMS
     for index in INDEX_POLICY
-    for dask in DASK_POLICY
-]
-
-ISOLATED_NAN_NO_DASK = [
-    (ns, nf, index, "isolated", "no_dask")
-    for ns in N_SAMPLE_DIMS
-    for nf in N_FEATURE_DIMS
-    for index in INDEX_POLICY
-    for dask in DASK_POLICY
-]
-
-ISOLATED_NAN_DASK = [
-    (ns, nf, index, "isolated", "dask")
-    for ns in N_SAMPLE_DIMS
-    for nf in N_FEATURE_DIMS
-    for index in INDEX_POLICY
+    for nan in ["isolated"]
     for dask in DASK_POLICY
 ]
 
@@ -247,46 +233,31 @@ def test_invserse_transform_scores(synthetic_dataarray):
 
 @pytest.mark.parametrize(
     "synthetic_dataarray",
-    ISOLATED_NAN_NO_DASK,
+    ISOLATED_NAN,
     indirect=["synthetic_dataarray"],
 )
-def test_isolated_nans_no_dask(synthetic_dataarray):
+def test_isolated_nans(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
     sanitizer = Sanitizer()
     sanitizer.fit(data)
 
-    # Want the sanitizer to raise an error for isolated NaNs in numpy-backed data
+    # By default want the sanitizer to raise for isolated NaNs
     with pytest.raises(ValueError):
         sanitizer.transform(data)
 
-
-@pytest.mark.parametrize(
-    "synthetic_dataarray",
-    ISOLATED_NAN_DASK,
-    indirect=["synthetic_dataarray"],
-)
-def test_isolated_nans_dask(synthetic_dataarray):
-    data = synthetic_dataarray
-    data = data.rename({"sample0": "sample", "feature0": "feature"})
-
-    sanitizer = Sanitizer()
-    sanitizer.fit(data)
-    transformed_data = sanitizer.transform(data)
-
-    # Want the sanitizer to skip the isolated NaN check for dask-backed data
-    # transformed data should have some NaNs and some non-NaNs
-    assert transformed_data.notnull().any()
-    assert transformed_data.isnull().any()
+    # But allow this check to be disabled
+    sanitizer.check_nans = False
+    sanitizer.transform(data)
 
 
 @pytest.mark.parametrize(
     "synthetic_dataarray",
-    FULL_NAN_NO_DASK,
+    FULL_NAN,
     indirect=["synthetic_dataarray"],
 )
-def test_feature_nan_transform_no_dask(synthetic_dataarray):
+def test_feature_nan_transform(synthetic_dataarray):
     data = synthetic_dataarray
     data = data.rename({"sample0": "sample", "feature0": "feature"})
 
@@ -296,24 +267,10 @@ def test_feature_nan_transform_no_dask(synthetic_dataarray):
 
     # Pass through new data with NaNs in a different location
     data.loc[{"feature": 1}] = np.nan
+    # By default want the sanitizer to raise on transform for new NaN features
     with pytest.raises(ValueError):
         sanitizer.transform(data)
 
-
-@pytest.mark.parametrize(
-    "synthetic_dataarray",
-    FULL_NAN_DASK,
-    indirect=["synthetic_dataarray"],
-)
-def test_feature_nan_transform_dask(synthetic_dataarray):
-    data = synthetic_dataarray
-    data = data.rename({"sample0": "sample", "feature0": "feature"})
-
-    sanitizer = Sanitizer()
-    sanitizer.fit(data)
-    sanitizer.transform(data)
-
-    # Pass through new data with NaNs in a different location
-    data.loc[{"feature": 1}] = np.nan
-    # Sanitizer should skip feature checks on dask data
+    # But allow this check to be disabled
+    sanitizer.check_nans = False
     sanitizer.transform(data)

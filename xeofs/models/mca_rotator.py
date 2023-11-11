@@ -27,9 +27,11 @@ class MCARotator(MCA):
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
         in a Varimax rotation.
-    max_iter : int, default=1000
+    max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
-        rotation matrix.
+        rotation matrix. If not specified, defaults to 1000 if ``compute=True``
+        and 100 if ``compute=False``, since we can't terminate a lazy computation
+        based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
@@ -63,12 +65,14 @@ class MCARotator(MCA):
         self,
         n_modes: int = 10,
         power: int = 1,
-        max_iter: int = 1000,
+        max_iter: int | None = None,
         rtol: float = 1e-8,
         squared_loadings: bool = False,
         compute: bool = True,
     ):
-        self._compute = compute
+        if max_iter is None:
+            max_iter = 1000 if compute else 100
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -139,9 +143,9 @@ class MCARotator(MCA):
         self.model = model
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
-
-        sample_name = self.model.sample_name
-        feature_name = self.model.feature_name
+        self.sample_name = self.model.sample_name
+        self.feature_name = self.model.feature_name
+        self.sorted = False
 
         n_modes = self._params["n_modes"]
         power = self._params["power"]
@@ -171,14 +175,14 @@ class MCARotator(MCA):
 
         comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
         comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
-        loadings = xr.concat([comps1, comps2], dim=feature_name) * scaling
+        loadings = xr.concat([comps1, comps2], dim=self.feature_name) * scaling
 
         # Rotate loadings
         promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
         rot_loadings, rot_matrix, phi_matrix = promax(
             loadings=loadings,
-            feature_dim=feature_name,
-            compute=self._compute,
+            feature_dim=self.feature_name,
+            compute=self._params["compute"],
             **promax_kwargs
         )
 
@@ -194,19 +198,19 @@ class MCARotator(MCA):
 
         # Rotated (loaded) singular vectors
         comps1_rot = rot_loadings.isel(
-            {feature_name: slice(0, comps1.coords[feature_name].size)}
+            {self.feature_name: slice(0, comps1.coords[self.feature_name].size)}
         )
         comps2_rot = rot_loadings.isel(
-            {feature_name: slice(comps1.coords[feature_name].size, None)}
+            {self.feature_name: slice(comps1.coords[self.feature_name].size, None)}
         )
 
         # Normalization factor of singular vectors
         norm1_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps1_rot,
-            input_core_dims=[[feature_name, "mode"]],
+            input_core_dims=[[self.feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={feature_name},
+            exclude_dims={self.feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -214,9 +218,9 @@ class MCARotator(MCA):
         norm2_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps2_rot,
-            input_core_dims=[[feature_name, "mode"]],
+            input_core_dims=[[self.feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={feature_name},
+            exclude_dims={self.feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -253,7 +257,7 @@ class MCARotator(MCA):
         scores2_rot = xr.dot(scores2, RinvT, dims="mode_m")
 
         # Ensure consitent signs for deterministic output
-        modes_sign = get_deterministic_sign_multiplier(rot_loadings, feature_name)
+        modes_sign = get_deterministic_sign_multiplier(rot_loadings, self.feature_name)
         comps1_rot = comps1_rot * modes_sign
         comps2_rot = comps2_rot * modes_sign
         scores1_rot = scores1_rot * modes_sign
@@ -293,13 +297,15 @@ class MCARotator(MCA):
 
     def _sort_by_variance(self):
         """Re-sort the mode dimension of all data variables by variance explained."""
-        for key in self.data.keys():
-            if "mode" in self.data[key].dims and key != "idx_modes_sorted":
-                self.data[key] = (
-                    self.data[key]
-                    .isel(mode=self.data["idx_modes_sorted"].values)
-                    .assign_coords(mode=self.data[key].mode)
-                )
+        if not self.sorted:
+            for key in self.data.keys():
+                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                    self.data[key] = (
+                        self.data[key]
+                        .isel(mode=self.data["idx_modes_sorted"].values)
+                        .assign_coords(mode=self.data[key].mode)
+                    )
+        self.sorted = True
 
     def transform(self, **kwargs) -> DataArray | List[DataArray]:
         """Project new "unseen" data onto the rotated singular vectors.

@@ -57,6 +57,7 @@ class EOF(_BaseModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans=True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
@@ -71,6 +72,7 @@ class EOF(_BaseModel):
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
@@ -312,6 +314,7 @@ class ComplexEOF(EOF):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
@@ -319,12 +322,14 @@ class ComplexEOF(EOF):
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
@@ -332,6 +337,7 @@ class ComplexEOF(EOF):
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "Complex EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})

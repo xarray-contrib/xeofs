@@ -71,24 +71,28 @@ class ExtendedEOF(EOF):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
         solver: str = "auto",
         random_state: Optional[int] = None,
         solver_kwargs: dict = {},
+        **kwargs
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs
         )
         self.attrs.update({"model": "Extended EOF Analysis"})
         self._params.update(

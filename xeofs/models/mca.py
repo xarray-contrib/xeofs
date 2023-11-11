@@ -74,6 +74,7 @@ class MCA(_BaseCrossModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         n_pca_modes: Optional[int] = None,
         compute: bool = True,
         sample_name: str = "sample",
@@ -81,12 +82,14 @@ class MCA(_BaseCrossModel):
         solver: str = "auto",
         random_state: Optional[int] = None,
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             n_pca_modes=n_pca_modes,
             compute=compute,
             sample_name=sample_name,
@@ -94,6 +97,7 @@ class MCA(_BaseCrossModel):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "MCA"})
 
@@ -640,6 +644,7 @@ class ComplexMCA(MCA):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         n_pca_modes: Optional[int] = None,
         compute: bool = True,
         sample_name: str = "sample",
@@ -647,12 +652,14 @@ class ComplexMCA(MCA):
         solver: str = "auto",
         random_state: Optional[bool] = None,
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             n_pca_modes=n_pca_modes,
             compute=compute,
             sample_name=sample_name,
@@ -660,6 +667,7 @@ class ComplexMCA(MCA):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "Complex MCA"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
