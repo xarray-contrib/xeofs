@@ -97,6 +97,7 @@ class _BaseCrossModel(ABC):
             "with_std": standardize,
             "with_coslat": use_coslat,
             "check_nans": check_nans,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -323,10 +324,13 @@ class _BaseCrossModel(ABC):
         ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
         dt = DataTree(data=ds_root, name=type(self).__name__)
 
-        # Retrieve the tree representation of each attached object
+        # Retrieve the tree representation of each attached object, or set basic attrs
         for key, attr in self.get_serialization_attrs().items():
-            dt[key] = attr.serialize(save_data=save_data)
-            dt.attrs[key] = "_is_tree"
+            if hasattr(attr, "serialize"):
+                dt[key] = attr.serialize(save_data=save_data)
+                dt.attrs[key] = "_is_tree"
+            else:
+                dt.attrs[key] = attr
 
         return dt
 

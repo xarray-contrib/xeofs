@@ -100,6 +100,7 @@ class Preprocessor(Transformer):
         with_coslat: bool = False,
         return_list: bool = True,
         check_nans: bool = True,
+        compute: bool = True,
     ):
         # Set parameters
         self.sample_name = sample_name
@@ -109,6 +110,7 @@ class Preprocessor(Transformer):
         self.with_coslat = with_coslat
         self.return_list = return_list
         self.check_nans = check_nans
+        self.compute = compute
 
         self.n_data = None
 
@@ -124,7 +126,9 @@ class Preprocessor(Transformer):
             "with_std": self.with_std,
             "with_coslat": self.with_coslat,
         }
-        self.scaler = GenericListTransformer(Scaler, **scaler_kwargs)
+        self.scaler = GenericListTransformer(
+            Scaler, compute=self.compute, **scaler_kwargs
+        )
         # 2 | Rename dimensions
         self.renamer = GenericListTransformer(DimensionRenamer)
         # 3 | Convert MultiIndexes (before stacking)

@@ -101,12 +101,15 @@ class MCARotator(MCA):
         self.data = DataContainer()
         self.model = MCA()
 
+        self.sorted = False
+
     def get_serialization_attrs(self) -> Dict:
         return dict(
             data=self.data,
             preprocessor1=self.preprocessor1,
             preprocessor2=self.preprocessor2,
             model=self.model,
+            sorted=self.sorted,
         )
 
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:

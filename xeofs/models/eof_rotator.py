@@ -94,11 +94,14 @@ class EOFRotator(EOF):
         self.data = DataContainer()
         self.model = EOF()
 
+        self.sorted = False
+
     def get_serialization_attrs(self) -> Dict:
         return dict(
             data=self.data,
             preprocessor=self.preprocessor,
             model=self.model,
+            sorted=self.sorted,
         )
 
     def fit(self, model) -> Self:
