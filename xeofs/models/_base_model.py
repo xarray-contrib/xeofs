@@ -13,9 +13,11 @@ from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+import dask
 import numpy as np
 import xarray as xr
 from datatree import DataTree, open_datatree
+from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
@@ -28,6 +30,7 @@ from ..utils.xarray_utils import (
     convert_to_list,
     process_parameter,
     _check_parameter_number,
+    data_is_dask,
 )
 from .._version import __version__
 
@@ -141,6 +144,12 @@ class _BaseModel(ABC):
         )
         # Initialize the data container that stores the results
         self.data = DataContainer()
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor=self.preprocessor,
+        )
 
     def fit(
         self,
@@ -337,7 +346,41 @@ class _BaseModel(ABC):
             Whether or not to provide additional information about the computing progress.
 
         """
-        self.data.compute(verbose=verbose)
+        dt = self.serialize()
+        data_objs = {
+            k: v
+            for k, v in dt.to_dict().items()
+            if data_is_dask(v) and v.attrs.get("allow_compute", True)
+        }
+
+        if verbose:
+            with ProgressBar():
+                (data_objs,) = dask.compute(data_objs)
+        else:
+            (data_objs,) = dask.compute(data_objs)
+
+        for key, data in data_objs.items():
+            path_elems = key.strip("/").split("/")
+            parent = self
+            for elem in path_elems[:-1]:
+                if elem.isdigit():
+                    parent = parent[int(elem)]
+                else:
+                    parent = getattr(parent, elem)
+
+            if isinstance(data, xr.Dataset):
+                mapping = data.attrs.get("name_map", {}).get(
+                    path_elems[-1], path_elems[-1]
+                )
+                da = data[mapping]
+            else:
+                da = data
+
+            if isinstance(parent, dict):
+                parent[path_elems[-1]] = da
+            else:
+                setattr(parent, path_elems[-1], da)
+
         self._post_compute()
 
     def _post_compute(self):
@@ -349,30 +392,14 @@ class _BaseModel(ABC):
 
     def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a complete model with its preprocessor."""
-        data = {}
-        for key, x in self.data.items():
-            if self.data._allow_compute[key] or save_data:
-                data[key] = x.assign_attrs(
-                    {"allow_compute": self.data._allow_compute[key]}
-                )
-            else:
-                # create an empty placeholder array
-                data[key] = xr.DataArray().assign_attrs(
-                    {"allow_compute": False, "placeholder": True}
-                )
+        # Create a root node for this object with its params as attrs
+        ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
+        dt = DataTree(data=ds_root, name=type(self).__name__)
 
-        # Store the DataContainer items as data_vars, and the model parameters as global attrs
-        ds_model = xr.Dataset(data, attrs=dict(params=self.get_params()))
-        # Set as the root node of the tree
-        dt = DataTree(data=ds_model, name=type(self).__name__)
-
-        # Retrieve the tree representation of the preprocessor
-        dt["preprocessor"] = self.preprocessor.serialize_all()
-
-        # Handle rotator models by separately serializing the original model
-        # and attaching as a child of the rotator model
-        if hasattr(self, "model"):
-            dt["model"] = self.model.serialize(save_data=save_data)
+        # Retrieve the tree representation of each attached object
+        for key, attr in self.get_serialization_attrs().items():
+            dt[key] = attr.serialize(save_data=save_data)
+            dt.attrs[key] = "_is_tree"
 
         return dt
 
@@ -397,6 +424,7 @@ class _BaseModel(ABC):
             Additional keyword arguments to pass to `DataTree.to_zarr()`.
 
         """
+        self.compute()
         dt = self.serialize(save_data=save_data)
         write_mode = "w" if overwrite else "w-"
         dt.to_zarr(path, mode=write_mode, **kwargs)
@@ -405,13 +433,14 @@ class _BaseModel(ABC):
     def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize the model and its preprocessors from a DataTree."""
         # Recreate the model with parameters set by root level attrs
-        model = cls(**dt.attrs["params"])
-
-        # Recreate the Preprocessor from its tree
-        model.preprocessor = Preprocessor.deserialize_all(dt.preprocessor)
-
-        # Create the model's DataContainer from the root level data_vars
-        model.data = DataContainer({k: dt[k] for k in dt.data_vars})
+        params = dt.attrs.pop("params")
+        model = cls(**params)
+        for key, attr in dt.attrs.items():
+            if attr == "_is_tree":
+                deserialized_obj = getattr(model, key).deserialize(dt[key])
+            else:
+                deserialized_obj = attr
+            setattr(model, key, deserialized_obj)
 
         return model
 
@@ -433,19 +462,7 @@ class _BaseModel(ABC):
 
         """
         dt = open_datatree(path, engine="zarr", **kwargs)
-
         model = cls.deserialize(dt)
-
-        # Rebuild any attached model
-        if dt.get("model") is not None:
-            # Recreate the original model from its tree, assuming we should
-            # use the first base class of the current model
-            model.model = cls.__bases__[0].deserialize(dt.model)
-
-        for key in model.data.keys():
-            model.data._allow_compute[key] = model.data[key].attrs["allow_compute"]
-            model._validate_loaded_data(model.data[key])
-
         return model
 
     def _validate_loaded_data(self, data: DataArray):

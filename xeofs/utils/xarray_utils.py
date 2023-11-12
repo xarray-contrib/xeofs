@@ -35,11 +35,11 @@ def data_is_dask(data: DataArray | DataSet | DataList) -> bool:
 
     # If data is a DataSet, recursively check all contained DataArrays
     if isinstance(data, DataSet):
-        return all(data_is_dask(da) for da in data.data_vars.values())
+        return any(data_is_dask(da) for da in data.data_vars.values())
 
     # If data is a list, recursively check each element in the list
     if isinstance(data, list):
-        return all(data_is_dask(da) for da in data)
+        return any(data_is_dask(da) for da in data)
 
     # If none of the above, the data type is unrecognized
     raise ValueError("unrecognized data type.")

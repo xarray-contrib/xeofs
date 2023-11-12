@@ -1,10 +1,11 @@
 from datetime import datetime
 import numpy as np
 import xarray as xr
-from typing import List
+from typing import List, Dict
 from typing_extensions import Self
 
 from .mca import MCA, ComplexMCA
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
@@ -94,8 +95,19 @@ class MCARotator(MCA):
             }
         )
 
-        # Define data container to store the rotated solution
+        # Attach empty objects
+        self.preprocessor1 = Preprocessor()
+        self.preprocessor2 = Preprocessor()
         self.data = DataContainer()
+        self.model = MCA()
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor1=self.preprocessor1,
+            preprocessor2=self.preprocessor2,
+            model=self.model,
+        )
 
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
         """Compute the inverse transpose of the rotation matrix.
@@ -132,12 +144,12 @@ class MCARotator(MCA):
             The EOF model to be rotated.
 
         """
-        fitted_model = self._fit_algorithm(model)
+        self._fit_algorithm(model)
 
-        if fitted_model._params["compute"]:
-            fitted_model.compute()
+        if self._params["compute"]:
+            self.compute()
 
-        return fitted_model
+        return self
 
     def _fit_algorithm(self, model) -> Self:
         self.model = model
@@ -445,6 +457,7 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.attrs.update({"model": "Complex Rotated MCA"})
+        self.model = ComplexMCA()
 
     def transform(self, **kwargs):
         # Here we make use of the Method Resolution Order (MRO) to call the

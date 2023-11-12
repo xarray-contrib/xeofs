@@ -110,8 +110,14 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return ds
 
-    def serialize(self) -> DataTree:
+    def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a transformer to a DataTree."""
+        return self._serialize(save_data=save_data)
+
+    def _serialize(self, save_data: bool = False) -> DataTree:
+        """Serialize a transformer to a DataTree. Use an internal
+        method so we can override the public one in subclasesses but
+        still use this."""
         dt = DataTree()
         params = self.get_params()
         attrs = self.get_serialization_attrs()
@@ -153,6 +159,13 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
     @classmethod
     def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize a saved transformer from a DataTree."""
+        return cls._deserialize(dt)
+
+    @classmethod
+    def _deserialize(cls, dt: DataTree) -> Self:
+        """Deserialize a saved transformer from a DataTree. Use an internal
+        method so we can override the public one in subclasesses but
+        still use this."""
         # Create the object from params
         params = dt.attrs.pop("params")
         transformer = cls(**params)

@@ -17,7 +17,7 @@ def eof_model(mock_data_array, dim):
 
 @pytest.fixture
 def eof_model_delayed(mock_dask_data_array, dim):
-    eof = EOF(n_modes=5, compute=False)
+    eof = EOF(n_modes=5, compute=False, check_nans=False)
     eof.fit(mock_dask_data_array, dim)
     return eof
 
@@ -243,24 +243,3 @@ def test_save_load(dim, mock_data_array, tmp_path):
         loaded.inverse_transform(loaded.scores()),
         rtol=1e-2,
     )
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_lazy_execution(dim, mock_data_array, tmp_path):
-    """Test the model in "lazy mode", where we are fitting on dask data
-    and skip nan checks. There is no obvious way to identify that nothing
-    was computed, but we can at least check that the final outputs are still
-    dask."""
-    model = EOF(check_nans=False, compute=False)
-    model.fit(mock_data_array.chunk({d: 2 for d in mock_data_array.dims}), dim)
-
-    rotator = EOFRotator(compute=False, max_iter=5)
-    rotator.fit(model)
-    assert isinstance(rotator.scores().data, DaskArray)

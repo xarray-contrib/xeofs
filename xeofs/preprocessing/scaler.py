@@ -99,18 +99,18 @@ class Scaler(Transformer):
 
         # Scaling parameters are computed along sample dimensions
         if params["with_center"]:
-            self.mean_: DataVar = X.mean(self.sample_dims)
+            self.mean_: DataVar = X.mean(self.sample_dims).rename("mean_")
 
         if params["with_std"]:
-            self.std_: DataVar = X.std(self.sample_dims)
+            self.std_: DataVar = X.std(self.sample_dims).rename("std_")
 
         if params["with_coslat"]:
             self.coslat_weights_: DataVar = compute_sqrt_cos_lat_weights(
                 data=X, feature_dims=self.feature_dims
-            )
+            ).rename("coslat_weights_")
 
         # Convert None weights to ones
-        self.weights_: DataVar = self._process_weights(X, weights)
+        self.weights_: DataVar = self._process_weights(X, weights).rename("weights_")
 
         return self
 

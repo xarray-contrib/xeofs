@@ -17,7 +17,7 @@ def mca_model(mock_data_array, dim):
 
 @pytest.fixture
 def mca_model_delayed(mock_dask_data_array, dim):
-    mca = MCA(n_modes=5, compute=False)
+    mca = MCA(n_modes=5, compute=False, check_nans=False)
     mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
 

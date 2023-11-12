@@ -352,11 +352,11 @@ class Preprocessor(Transformer):
         else:
             self.return_list = False
 
-    def serialize_all(self) -> DataTree:
+    def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize the necessary attributes of the fitted pre-processor
         and all transformers to a Dataset."""
         # Serialize the preprocessor as the root node
-        dt = self.serialize()
+        dt = self._serialize(save_data=save_data)
         dt.name = "preprocessor"
 
         # Serialize all transformers
@@ -366,9 +366,10 @@ class Preprocessor(Transformer):
         for name, transformer_obj in zip(names, transformers):
             dt_transformer = DataTree()
             if isinstance(transformer_obj, GenericListTransformer):
+                dt_transformer["transformers"] = DataTree()
                 # Loop through list transformer objects and assign a dummy key
                 for i, transformer in enumerate(transformer_obj.transformers):
-                    dt_transformer[str(i)] = transformer.serialize()
+                    dt_transformer.transformers[str(i)] = transformer.serialize()
             else:
                 dt_transformer = transformer_obj.serialize()
             # Place the serialized transformer in the tree
@@ -378,11 +379,11 @@ class Preprocessor(Transformer):
         return dt
 
     @classmethod
-    def deserialize_all(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize from a DataTree representation of the preprocessor
         and all attached Transformers."""
         # Create the parent preprocessor
-        preprocessor = cls.deserialize(dt)
+        preprocessor = cls._deserialize(dt)
 
         # Loop through all transformers and deserialize
         names = list(preprocessor.transformer_types().keys())
@@ -391,7 +392,7 @@ class Preprocessor(Transformer):
         for name, transformer_obj in zip(names, transformers):
             if isinstance(transformer_obj, GenericListTransformer):
                 # Recreate list transformers sequentially
-                for transformer in dt[name].values():
+                for transformer in dt[name].transformers.values():
                     deserialized = preprocessor.transformer_types()[name].deserialize(
                         transformer
                     )

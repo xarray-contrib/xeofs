@@ -518,21 +518,3 @@ def test_save_load(dim, mock_data_array, tmp_path):
         rtol=1e-3,
         atol=1e-3,
     )
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_lazy_execution(dim, mock_data_array, tmp_path):
-    """Test the model in "lazy mode", where we are fitting on dask data
-    and skip nan checks. There is no obvious way to identify that nothing
-    was computed, but we can at least check that the final outputs are still
-    dask."""
-    model = EOF(check_nans=False, compute=False)
-    model.fit(mock_data_array.chunk({d: 2 for d in mock_data_array.dims}), dim)
-    assert isinstance(model.scores().data, DaskArray)

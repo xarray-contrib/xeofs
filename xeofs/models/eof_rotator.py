@@ -1,10 +1,13 @@
 from datetime import datetime
+from typing import Dict
+
 import numpy as np
 import xarray as xr
 from typing_extensions import Self
 
 from .eof import EOF, ComplexEOF
 from ..data_container import DataContainer
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
@@ -86,8 +89,17 @@ class EOFRotator(EOF):
             }
         )
 
-        # Define data container
+        # Attach empty objects
+        self.preprocessor = Preprocessor()
         self.data = DataContainer()
+        self.model = EOF()
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor=self.preprocessor,
+            model=self.model,
+        )
 
     def fit(self, model) -> Self:
         """Rotate the solution obtained from ``xe.models.EOF``.
@@ -98,12 +110,12 @@ class EOFRotator(EOF):
             The EOF model to be rotated.
 
         """
-        fitted_model = self._fit_algorithm(model)
+        self._fit_algorithm(model)
 
-        if fitted_model._params["compute"]:
-            fitted_model.compute()
+        if self._params["compute"]:
+            self.compute()
 
-        return fitted_model
+        return self
 
     def _fit_algorithm(self, model) -> Self:
         self.model = model
@@ -327,6 +339,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
             n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
         )
         self.attrs.update({"model": "Rotated Complex EOF analysis"})
+        self.model = ComplexEOF()
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         # Here we leverage the Method Resolution Order (MRO) to invoke the
