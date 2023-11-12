@@ -359,6 +359,9 @@ class _BaseModel(ABC):
         else:
             (data_objs,) = dask.compute(data_objs)
 
+        # This feels pretty fragile with all the casing, would be
+        # best to homogenize certain aspects of how we store data
+        # across different classes
         for key, data in data_objs.items():
             path_elems = key.strip("/").split("/")
             parent = self
