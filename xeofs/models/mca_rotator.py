@@ -42,9 +42,6 @@ class MCARotator(MCA):
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
-    sort : bool, default=True
-        Whether to sort the modes according to their variance explained. Note: this will
-        trigger computation of the model for dask-backed data.
     compute : bool, default=True
         Whether to compute the decomposition immediately.
 
@@ -144,7 +141,7 @@ class MCARotator(MCA):
         Parameters
         ----------
         model : ``xe.models.MCA``
-            The EOF model to be rotated.
+            The MCA model to be rotated.
 
         """
         self._fit_algorithm(model)

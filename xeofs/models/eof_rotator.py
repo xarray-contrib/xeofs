@@ -38,9 +38,6 @@ class EOFRotator(EOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
-    sort : bool, default=True
-        Whether to sort the modes according to their variance explained. Note: this will
-        trigger computation of the model for dask-backed data.
     compute: bool, default=True
         Whether to compute the decomposition immediately.
 
