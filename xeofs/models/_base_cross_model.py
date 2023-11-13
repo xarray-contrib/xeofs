@@ -39,8 +39,10 @@ class _BaseCrossModel(ABC):
         or filled prior to fitting, or SVD will fail.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
-    compute : bool, default=True
-        Whether to compute the decomposition immediately.
+    compute: bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, the model's preprocessor scaler properties will be computed, followed
+        by the SVD decomposition, followed by the scores and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -176,12 +178,12 @@ class _BaseCrossModel(ABC):
         # Preprocess data2
         data2 = self.preprocessor2.fit_transform(data2, self.sample_dims, weights2)
 
-        fitted_model = self._fit_algorithm(data1, data2)
+        self._fit_algorithm(data1, data2)
 
         if self._params["compute"]:
-            fitted_model.compute()
+            self.data.compute()
 
-        return fitted_model
+        return self
 
     def transform(
         self, data1: Optional[DataObject] = None, data2: Optional[DataObject] = None

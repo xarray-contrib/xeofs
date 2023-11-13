@@ -43,7 +43,7 @@ class MCARotator(MCA):
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
     compute : bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -435,6 +435,8 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
+    compute: bool, default=True
+        Whether to compute the rotation immediately.
 
     References
     ----------

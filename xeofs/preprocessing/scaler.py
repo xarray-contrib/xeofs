@@ -1,6 +1,7 @@
 from typing import Optional, Dict
 from typing_extensions import Self
 
+import dask
 import numpy as np
 import xarray as xr
 
@@ -117,10 +118,12 @@ class Scaler(Transformer):
         self.weights_: DataVar = self._process_weights(X, weights)
 
         if self.get_params()["compute"]:
-            self.mean_ = self.mean_.compute()
-            self.std_ = self.std_.compute()
-            self.coslat_weights_ = self.coslat_weights_.compute()
-            self.weights_ = self.weights_.compute()
+            (self.mean_, self.std_, self.coslat_weights_, self.weights_) = dask.compute(
+                self.mean_,
+                self.std_,
+                self.coslat_weights_,
+                self.weights_,
+            )
 
         return self
 

@@ -39,7 +39,7 @@ class EOFRotator(EOF):
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
     compute: bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -308,7 +308,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
     compute: bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute the rotation immediately.
 
     References
     ----------

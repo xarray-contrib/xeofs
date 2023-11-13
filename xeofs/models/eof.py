@@ -31,9 +31,9 @@ class EOF(_BaseModel):
     feature_name: str, default="feature"
         Name of the feature dimension.
     compute: bool, default=True
-        Whether to compute the decomposition immediately. This is recommended
-        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-        boosts computational efficiency compared to deferring the computation.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, the model's preprocessor scaler properties will be computed, followed
+        by the SVD decomposition, followed by the scores and components.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
@@ -278,9 +278,9 @@ class ComplexEOF(EOF):
     feature_name: str, default="feature"
         Name of the feature dimension.
     compute: bool, default=True
-        Whether to compute the decomposition immediately. This is recommended
-        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-        boosts computational efficiency compared to deferring the computation.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, the model's preprocessor scaler properties will be computed, followed
+        by the SVD decomposition, followed by the scores and components.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None

@@ -38,7 +38,9 @@ class MCA(_BaseCrossModel):
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
     compute: bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, the model's preprocessor scaler properties will be computed, followed
+        by the SVD decomposition, followed by the scores and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -601,7 +603,9 @@ class ComplexMCA(MCA):
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
     compute: bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, the model's preprocessor scaler properties will be computed, followed
+        by the SVD decomposition, followed by the scores and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
