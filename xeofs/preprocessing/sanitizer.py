@@ -1,5 +1,7 @@
 from typing import Optional, Dict
 from typing_extensions import Self
+
+import dask
 import xarray as xr
 
 from .transformer import Transformer
@@ -52,6 +54,12 @@ class Sanitizer(Transformer):
     def _get_valid_samples(self, X: Data) -> Data:
         return X.notnull().any(self.feature_name)
 
+    def _get_valid_features_per_sample(self, X: Data) -> Data:
+        """Isolated NaN check that an be constructed lazily, where we check that
+        either that the number of valid features is the same for every sample, with
+        the exception of all-NaN samples."""
+        return X.notnull().sum(self.feature_name)
+
     def fit(
         self,
         X: Data,
@@ -85,12 +93,22 @@ class Sanitizer(Transformer):
         self._check_input_coords(X)
 
         X_valid_features = self._get_valid_features(X)
+        X_valid_samples = self._get_valid_samples(X)
+        X_valid_features_per_sample = self._get_valid_features_per_sample(X)
 
         # Optionally skip NaN checks to preserve lazy computation for dask arrays
         if self.check_nans:
-            # Remove full-dimensional NaN entries
-            X = X.dropna(dim=self.sample_name, how="all")
-            X = X.dropna(dim=self.feature_name, how="all")
+            (
+                self.is_valid_feature,
+                X_valid_features,
+                X_valid_samples,
+                X_isolated_nan,
+            ) = dask.compute(
+                self.is_valid_feature,
+                X_valid_features,
+                X_valid_samples,
+                X_valid_features_per_sample,
+            )
 
             # Validate that non-NaN features match the original from .fit()
             if not X_valid_features.equals(self.is_valid_feature):
@@ -99,12 +117,16 @@ class Sanitizer(Transformer):
                     " than the original data."
                 )
 
-            # Isolated nan check: dropna will remove any full-nan features/samples
-            if X.isnull().any():
+            isolated_nans = ~X_valid_features_per_sample.isin(
+                [0, X_valid_features.sum().values]
+            )
+            if isolated_nans.any():
                 raise ValueError(
                     "Input data contains partial NaN entries, which will cause the"
                     " the SVD to fail."
                 )
+
+            X = X.where(X_valid_features & X_valid_samples, drop=True)
 
         return X
 

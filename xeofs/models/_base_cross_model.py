@@ -41,8 +41,9 @@ class _BaseCrossModel(ABC):
         Number of PCA modes to calculate.
     compute: bool, default=True
         Whether to compute elements of the model eagerly, or to defer computation.
-        If True, the model's preprocessor scaler properties will be computed, followed
-        by the SVD decomposition, followed by the scores and components.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"

@@ -38,7 +38,7 @@ class EOFRotator(EOF):
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
-    compute: bool, default=True
+    compute : bool, default=True
         Whether to compute the rotation immediately.
 
     References

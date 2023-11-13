@@ -37,10 +37,11 @@ class MCA(_BaseCrossModel):
         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
-    compute: bool, default=True
+    compute : bool, default=True
         Whether to compute elements of the model eagerly, or to defer computation.
-        If True, the model's preprocessor scaler properties will be computed, followed
-        by the SVD decomposition, followed by the scores and components.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -602,10 +603,11 @@ class ComplexMCA(MCA):
         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
-    compute: bool, default=True
+    compute : bool, default=True
         Whether to compute elements of the model eagerly, or to defer computation.
-        If True, the model's preprocessor scaler properties will be computed, followed
-        by the SVD decomposition, followed by the scores and components.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"

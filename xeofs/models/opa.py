@@ -32,7 +32,10 @@ class OPA(_BaseModel):
     n_pca_modes : int
         Number of modes to be computed in the pre-processing step using EOF.
     compute : bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name : str, default="sample"
         Name of the sample dimension.
     feature_name : str, default="feature"
