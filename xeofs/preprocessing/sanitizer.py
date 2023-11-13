@@ -102,7 +102,7 @@ class Sanitizer(Transformer):
                 self.is_valid_feature,
                 X_valid_features,
                 X_valid_samples,
-                X_isolated_nan,
+                X_valid_features_per_sample,
             ) = dask.compute(
                 self.is_valid_feature,
                 X_valid_features,
