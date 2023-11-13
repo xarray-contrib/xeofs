@@ -339,14 +339,15 @@ class _BaseModel(ABC):
             scores.name = "scores"
         return self.preprocessor.inverse_transform_scores(scores)
 
-    def compute(self, verbose: bool = False):
+    def compute(self, verbose: bool = False, **kwargs):
         """Compute and load delayed model results.
 
         Parameters
         ----------
         verbose : bool
             Whether or not to provide additional information about the computing progress.
-
+        **kwargs
+            Additional keyword arguments to pass to `dask.compute()`.
         """
         dt = self.serialize()
         data_objs = {
@@ -357,9 +358,9 @@ class _BaseModel(ABC):
 
         if verbose:
             with ProgressBar():
-                (data_objs,) = dask.compute(data_objs)
+                (data_objs,) = dask.compute(data_objs, **kwargs)
         else:
-            (data_objs,) = dask.compute(data_objs)
+            (data_objs,) = dask.compute(data_objs, **kwargs)
 
         # This feels pretty fragile with all the casing, would be
         # best to homogenize certain aspects of how we store data

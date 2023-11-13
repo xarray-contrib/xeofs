@@ -272,14 +272,15 @@ class _BaseCrossModel(ABC):
         scores2: DataArray = self.preprocessor2.inverse_transform_scores(scores2)
         return scores1, scores2
 
-    def compute(self, verbose: bool = False):
+    def compute(self, verbose: bool = False, **kwargs):
         """Compute and load delayed model results.
 
         Parameters
         ----------
         verbose : bool
             Whether or not to provide additional information about the computing progress.
-
+        **kwargs
+            Additional keyword arguments to pass to `dask.compute()`.
         """
         dt = self.serialize()
         data_objs = {
@@ -291,9 +292,9 @@ class _BaseCrossModel(ABC):
         # Compute all dask collections simultaneously
         if verbose:
             with ProgressBar():
-                (data_objs,) = dask.compute(data_objs)
+                (data_objs,) = dask.compute(data_objs, **kwargs)
         else:
-            (data_objs,) = dask.compute(data_objs)
+            (data_objs,) = dask.compute(data_objs, **kwargs)
 
         # Reassign all computed arrays
         for key, data in data_objs.items():

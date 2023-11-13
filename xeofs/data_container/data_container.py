@@ -56,13 +56,13 @@ class DataContainer(dict):
             container._allow_compute[key] = node[key].attrs["allow_compute"]
         return container
 
-    def compute(self, verbose=False):
+    def compute(self, verbose=False, **kwargs):
         computed_data = {k: v for k, v in self.items() if self._allow_compute[k]}
         if verbose:
             with ProgressBar():
-                computed_data = dask.compute(computed_data)[0]
+                (computed_data,) = dask.compute(computed_data, **kwargs)
         else:
-            computed_data = dask.compute(computed_data)[0]
+            (computed_data,) = dask.compute(computed_data, **kwargs)
         for k, v in computed_data.items():
             self[k] = v
 
