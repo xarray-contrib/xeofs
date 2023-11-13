@@ -75,7 +75,7 @@ class _BaseModel(ABC):
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
-        Additional keyword arguments to pass to the solver.
+        Additional keyword arguments to pass to the SVD solver function.
 
     """
 
@@ -111,16 +111,16 @@ class _BaseModel(ABC):
             "verbose": verbose,
             "compute": compute,
             "solver": solver,
+            "solver_kwargs": solver_kwargs,
         }
-        self._solver_kwargs = solver_kwargs
-        self._solver_kwargs.update(
-            {
-                "solver": solver,
-                "random_state": random_state,
-                "compute": compute,
-                "verbose": verbose,
-            }
-        )
+        self._decomposer_kwargs = {
+            "n_modes": n_modes,
+            "solver": solver,
+            "random_state": random_state,
+            "compute": compute,
+            "verbose": verbose,
+            "solver_kwargs": solver_kwargs,
+        }
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseModel"}

@@ -55,7 +55,9 @@ def test_fit_full(mock_data_array):
 
 
 def test_fit_full_matrices(mock_data_array):
-    decomposer = Decomposer(n_modes=2, solver="full", full_matrices=False)
+    decomposer = Decomposer(
+        n_modes=2, solver="full", solver_kwargs={"full_matrices": False}
+    )
     decomposer.fit(mock_data_array)
     assert "U_" in decomposer.__dict__
     assert "s_" in decomposer.__dict__
@@ -103,8 +105,10 @@ def test_fit_dask_full(mock_dask_data_array):
 @pytest.mark.parametrize("compute", [True, False])
 def test_fit_dask_randomized(mock_dask_data_array, compute):
     # The Dask SVD solver has no parameter 'random_state' but 'seed' instead,
-    # so let's create a new decomposer for this case
-    decomposer = Decomposer(n_modes=2, solver="randomized", compute=compute, seed=42)
+    # so this should be automatically converted depending on the solver
+    decomposer = Decomposer(
+        n_modes=2, solver="randomized", compute=compute, random_state=42
+    )
     decomposer.fit(mock_dask_data_array)
     assert "U_" in decomposer.__dict__
     assert "s_" in decomposer.__dict__

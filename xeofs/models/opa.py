@@ -137,7 +137,7 @@ class OPA(_BaseModel):
             solver=self._params["solver"],
             compute=self._params["compute"],
             random_state=self._params["random_state"],
-            solver_kwargs=self._solver_kwargs,
+            solver_kwargs=self._params["solver_kwargs"],
         )
         pca.fit(data, dim=sample_name)
         n_samples = data.coords[sample_name].size

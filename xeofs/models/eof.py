@@ -92,9 +92,7 @@ class EOF(_BaseModel):
         total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the data
-        n_modes = self._params["n_modes"]
-
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
         decomposer.fit(data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
@@ -360,9 +358,7 @@ class ComplexEOF(EOF):
         total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the complex data
-        n_modes = self._params["n_modes"]
-
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
         decomposer.fit(data)
 
         singular_values = decomposer.s_

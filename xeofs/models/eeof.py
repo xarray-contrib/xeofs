@@ -110,6 +110,7 @@ class ExtendedEOF(EOF):
                 compute=self._params["compute"],
                 sample_name=self.sample_name,
                 feature_name=self.feature_name,
+                solver_kwargs=self._params["solver_kwargs"],
             )
             if n_pca_modes
             else None
@@ -147,7 +148,7 @@ class ExtendedEOF(EOF):
             sample_name=self.sample_name,
             feature_name=self.feature_name,
             solver=self._params["solver"],
-            solver_kwargs=self._solver_kwargs,
+            solver_kwargs=self._params["solver_kwargs"],
         )
         model.fit(X_extended, dim=self.sample_name)
 

@@ -50,7 +50,7 @@ class MCA(_BaseCrossModel):
     random_state: int, default=None
         Seed for the random number generator.
     solver_kwargs: dict, default={}
-        Additional keyword arguments passed to the SVD solver.
+        Additional keyword arguments passed to the SVD solver function.
 
     Notes
     -----
@@ -126,7 +126,7 @@ class MCA(_BaseCrossModel):
         feature_name = self.feature_name
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
@@ -687,7 +687,7 @@ class ComplexMCA(MCA):
         }
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):

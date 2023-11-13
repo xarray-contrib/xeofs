@@ -50,7 +50,7 @@ class _BaseCrossModel(ABC):
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
-        Additional keyword arguments to pass to the solver.
+        Additional keyword arguments to passed to the SVD solver function.
 
     """
 
@@ -63,6 +63,7 @@ class _BaseCrossModel(ABC):
         check_nans=True,
         n_pca_modes=None,
         compute=True,
+        verbose=False,
         sample_name="sample",
         feature_name="feature",
         solver="auto",
@@ -86,12 +87,17 @@ class _BaseCrossModel(ABC):
             "feature_name": feature_name,
             "solver": solver,
             "random_state": random_state,
+            "solver_kwargs": solver_kwargs,
         }
 
-        self._solver_kwargs = solver_kwargs
-        self._solver_kwargs.update(
-            {"solver": solver, "random_state": random_state, "compute": compute}
-        )
+        self._decomposer_kwargs = {
+            "n_modes": n_modes,
+            "solver": solver,
+            "random_state": random_state,
+            "compute": compute,
+            "verbose": verbose,
+            "solver_kwargs": solver_kwargs,
+        }
         self._preprocessor_kwargs = {
             "sample_name": sample_name,
             "feature_name": feature_name,
