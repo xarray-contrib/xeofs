@@ -188,6 +188,15 @@ class Preprocessor(Transformer):
             The fitted preprocessor.
 
         """
+        self, X = self._fit_algorithm(X, sample_dims, weights)
+        return self
+
+    def _fit_algorithm(
+        self,
+        X: List[Data] | Data,
+        sample_dims: Dims,
+        weights: Optional[List[Data] | Data] = None,
+    ) -> Tuple[Self, Data]:
         self._set_return_list(X)
         X = convert_to_list(X)
         self.n_data = len(X)
@@ -219,9 +228,9 @@ class Preprocessor(Transformer):
         # 6 | Remove NaNs
         X = self.sanitizer.fit_transform(X, sample_dims, feature_dims)
         # 7 | Concatenate into one 2D DataArray
-        self.concatenator.fit(X)  # type: ignore
+        X = self.concatenator.fit_transform(X)  # type: ignore
 
-        return self
+        return self, X
 
     def transform(self, X: List[Data] | Data) -> DataArray:
         """Transform the data.
@@ -258,7 +267,10 @@ class Preprocessor(Transformer):
         sample_dims: Dims,
         weights: Optional[List[Data] | Data] = None,
     ) -> DataArray:
-        return self.fit(X, sample_dims, weights).transform(X)
+        # Take advantage of the fact that `.fit()` already transforms the data
+        # to avoid duplicate computation
+        self, X = self._fit_algorithm(X, sample_dims, weights)
+        return X
 
     def inverse_transform_data(self, X: DataArray) -> List[Data] | Data:
         """Inverse transform the data.
