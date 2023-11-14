@@ -114,7 +114,7 @@ class Sanitizer(Transformer):
             if not X_valid_features.equals(self.is_valid_feature):
                 raise ValueError(
                     "Input data had NaN features in different locations than"
-                    " than the original data."
+                    " the original data."
                 )
 
             isolated_nans = ~X_valid_features_per_sample.isin(
