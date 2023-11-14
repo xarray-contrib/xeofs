@@ -129,12 +129,12 @@ class _BaseCrossModel(ABC):
 
         # Initialize PCA objects
         self.pca1 = (
-            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"], check_nans=False)
             if n_pca_modes
             else None
         )
         self.pca2 = (
-            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"], check_nans=False)
             if n_pca_modes
             else None
         )
