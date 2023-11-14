@@ -82,6 +82,12 @@ class Preprocessor(Transformer):
     return_list : bool, default=True
         If True, inverse_transform methods returns always a list of DataArray(s).
         If False, the output is returned as a single DataArray if possible.
+    check_nans : bool, default=True
+        If True, remove full-dimensional NaN features from the data, check to ensure
+        that NaN features match the original fit data during transform, and check
+        for isolated NaNs. Note: this forces eager computation of dask arrays.
+        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
+        or filled prior to fitting, or SVD will fail.
 
     """
 
@@ -93,6 +99,8 @@ class Preprocessor(Transformer):
         with_std: bool = False,
         with_coslat: bool = False,
         return_list: bool = True,
+        check_nans: bool = True,
+        compute: bool = True,
     ):
         # Set parameters
         self.sample_name = sample_name
@@ -101,6 +109,8 @@ class Preprocessor(Transformer):
         self.with_std = with_std
         self.with_coslat = with_coslat
         self.return_list = return_list
+        self.check_nans = check_nans
+        self.compute = compute
 
         self.n_data = None
 
@@ -116,7 +126,9 @@ class Preprocessor(Transformer):
             "with_std": self.with_std,
             "with_coslat": self.with_coslat,
         }
-        self.scaler = GenericListTransformer(Scaler, **scaler_kwargs)
+        self.scaler = GenericListTransformer(
+            Scaler, compute=self.compute, **scaler_kwargs
+        )
         # 2 | Rename dimensions
         self.renamer = GenericListTransformer(DimensionRenamer)
         # 3 | Convert MultiIndexes (before stacking)
@@ -126,7 +138,9 @@ class Preprocessor(Transformer):
         # 5 | Convert MultiIndexes (after stacking)
         self.postconverter = GenericListTransformer(MultiIndexConverter)
         # 6 | Remove NaNs
-        self.sanitizer = GenericListTransformer(Sanitizer, **dim_names_as_kwargs)
+        self.sanitizer = GenericListTransformer(
+            Sanitizer, check_nans=self.check_nans, **dim_names_as_kwargs
+        )
         # 7 | Concatenate into one 2D DataArray
         self.concatenator = Concatenator(**dim_names_as_kwargs)
 
@@ -174,6 +188,15 @@ class Preprocessor(Transformer):
             The fitted preprocessor.
 
         """
+        self, X = self._fit_algorithm(X, sample_dims, weights)
+        return self
+
+    def _fit_algorithm(
+        self,
+        X: List[Data] | Data,
+        sample_dims: Dims,
+        weights: Optional[List[Data] | Data] = None,
+    ) -> Tuple[Self, Data]:
         self._set_return_list(X)
         X = convert_to_list(X)
         self.n_data = len(X)
@@ -205,9 +228,9 @@ class Preprocessor(Transformer):
         # 6 | Remove NaNs
         X = self.sanitizer.fit_transform(X, sample_dims, feature_dims)
         # 7 | Concatenate into one 2D DataArray
-        self.concatenator.fit(X)  # type: ignore
+        X = self.concatenator.fit_transform(X)  # type: ignore
 
-        return self
+        return self, X
 
     def transform(self, X: List[Data] | Data) -> DataArray:
         """Transform the data.
@@ -244,7 +267,10 @@ class Preprocessor(Transformer):
         sample_dims: Dims,
         weights: Optional[List[Data] | Data] = None,
     ) -> DataArray:
-        return self.fit(X, sample_dims, weights).transform(X)
+        # Take advantage of the fact that `.fit()` already transforms the data
+        # to avoid duplicate computation
+        self, X = self._fit_algorithm(X, sample_dims, weights)
+        return X
 
     def inverse_transform_data(self, X: DataArray) -> List[Data] | Data:
         """Inverse transform the data.
@@ -342,11 +368,11 @@ class Preprocessor(Transformer):
         else:
             self.return_list = False
 
-    def serialize_all(self) -> DataTree:
+    def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize the necessary attributes of the fitted pre-processor
         and all transformers to a Dataset."""
         # Serialize the preprocessor as the root node
-        dt = self.serialize()
+        dt = self._serialize(save_data=save_data)
         dt.name = "preprocessor"
 
         # Serialize all transformers
@@ -356,9 +382,10 @@ class Preprocessor(Transformer):
         for name, transformer_obj in zip(names, transformers):
             dt_transformer = DataTree()
             if isinstance(transformer_obj, GenericListTransformer):
+                dt_transformer["transformers"] = DataTree()
                 # Loop through list transformer objects and assign a dummy key
                 for i, transformer in enumerate(transformer_obj.transformers):
-                    dt_transformer[str(i)] = transformer.serialize()
+                    dt_transformer.transformers[str(i)] = transformer.serialize()
             else:
                 dt_transformer = transformer_obj.serialize()
             # Place the serialized transformer in the tree
@@ -368,11 +395,11 @@ class Preprocessor(Transformer):
         return dt
 
     @classmethod
-    def deserialize_all(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize from a DataTree representation of the preprocessor
         and all attached Transformers."""
         # Create the parent preprocessor
-        preprocessor = cls.deserialize(dt)
+        preprocessor = cls._deserialize(dt)
 
         # Loop through all transformers and deserialize
         names = list(preprocessor.transformer_types().keys())
@@ -381,7 +408,7 @@ class Preprocessor(Transformer):
         for name, transformer_obj in zip(names, transformers):
             if isinstance(transformer_obj, GenericListTransformer):
                 # Recreate list transformers sequentially
-                for transformer in dt[name].values():
+                for transformer in dt[name].transformers.values():
                     deserialized = preprocessor.transformer_types()[name].deserialize(
                         transformer
                     )

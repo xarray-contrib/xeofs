@@ -17,7 +17,7 @@ def eof_model(mock_data_array, dim):
 
 @pytest.fixture
 def eof_model_delayed(mock_dask_data_array, dim):
-    eof = EOF(n_modes=5, compute=False)
+    eof = EOF(n_modes=5, compute=False, check_nans=False)
     eof.fit(mock_dask_data_array, dim)
     return eof
 
@@ -181,7 +181,7 @@ def test_scores(eof_model):
     ],
 )
 def test_compute(eof_model_delayed, compute):
-    eof_rotator = EOFRotator(n_modes=5, compute=compute)
+    eof_rotator = EOFRotator(n_modes=5, compute=compute, max_iter=20, rtol=1e-4)
     eof_rotator.fit(eof_model_delayed)
 
     if compute:
@@ -237,9 +237,9 @@ def test_save_load(dim, mock_data_array, tmp_path):
         original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
     )
 
-    # Enhancement: the loaded model should also be able to inverse_transform new data
-    # assert np.allclose(
-    #     original.inverse_transform(original.scores()),
-    #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-2,
-    # )
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(original.scores()),
+        loaded.inverse_transform(loaded.scores()),
+        rtol=1e-2,
+    )

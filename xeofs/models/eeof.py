@@ -1,4 +1,5 @@
 from typing import Optional
+from typing_extensions import Self
 
 import numpy as np
 import xarray as xr
@@ -70,24 +71,28 @@ class ExtendedEOF(EOF):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
         solver: str = "auto",
         random_state: Optional[int] = None,
         solver_kwargs: dict = {},
+        **kwargs
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs
         )
         self.attrs.update({"model": "Extended EOF Analysis"})
         self._params.update(
@@ -103,14 +108,16 @@ class ExtendedEOF(EOF):
                 standardize=False,
                 use_coslat=False,
                 compute=self._params["compute"],
+                check_nans=False,
                 sample_name=self.sample_name,
                 feature_name=self.feature_name,
+                solver_kwargs=self._params["solver_kwargs"],
             )
             if n_pca_modes
             else None
         )
 
-    def _fit_algorithm(self, X: DataArray):
+    def _fit_algorithm(self, X: DataArray) -> Self:
         self.data.add(X.copy(), "input_data", allow_compute=False)
 
         # Preprocess the data using PCA
@@ -139,10 +146,11 @@ class ExtendedEOF(EOF):
             standardize=False,
             use_coslat=False,
             compute=self._params["compute"],
+            check_nans=False,
             sample_name=self.sample_name,
             feature_name=self.feature_name,
             solver=self._params["solver"],
-            solver_kwargs=self._solver_kwargs,
+            solver_kwargs=self._params["solver_kwargs"],
         )
         model.fit(X_extended, dim=self.sample_name)
 
@@ -160,8 +168,19 @@ class ExtendedEOF(EOF):
 
         self.data.set_attrs(self.attrs)
 
+        return self
+
     def _transform_algorithm(self, X):
         raise NotImplementedError("EEOF does currently not support transform")
 
     def _inverse_transform_algorithm(self, scores):
-        raise NotImplementedError("EEOF does currently not support inverse transform")
+        # Reconstruct the data
+        comps = self.data["components"].sel(mode=scores.mode, embedding=0, drop=True)
+
+        reconstructed_data = xr.dot(comps.conj(), scores, optimize=True)
+        reconstructed_data.name = "reconstructed_data"
+
+        # Enforce real output
+        reconstructed_data = reconstructed_data.real
+
+        return reconstructed_data

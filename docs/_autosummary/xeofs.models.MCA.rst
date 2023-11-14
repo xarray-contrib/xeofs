@@ -20,12 +20,16 @@
       ~MCA.components
       ~MCA.compute
       ~MCA.covariance_fraction
+      ~MCA.deserialize
       ~MCA.fit
       ~MCA.get_params
       ~MCA.heterogeneous_patterns
       ~MCA.homogeneous_patterns
       ~MCA.inverse_transform
+      ~MCA.load
+      ~MCA.save
       ~MCA.scores
+      ~MCA.serialize
       ~MCA.singular_values
       ~MCA.squared_covariance
       ~MCA.squared_covariance_fraction

@@ -1,10 +1,11 @@
+import dask.array
 import numpy as np
 import xarray as xr
 
 from .data_types import DataArray
 
 
-def promax(loadings: DataArray, feature_dim, compute=True, **kwargs):
+def promax(loadings: DataArray, feature_dim, **kwargs):
     rotated, rot_mat, phi_mat = xr.apply_ufunc(
         _promax,
         loadings,
@@ -17,14 +18,17 @@ def promax(loadings: DataArray, feature_dim, compute=True, **kwargs):
         kwargs=kwargs,
         dask="allowed",
     )
-    if compute:
-        rotated = rotated.compute()
-        rot_mat = rot_mat.compute()
-        phi_mat = phi_mat.compute()
+
     return rotated, rot_mat, phi_mat
 
 
-def _promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1e-8):
+def _promax(
+    X: np.ndarray,
+    power: int = 1,
+    max_iter: int = 1000,
+    rtol: float = 1e-8,
+    compute: bool = True,
+):
     """
     Perform (oblique) Promax rotation.
 
@@ -45,6 +49,12 @@ def _promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1
     rtol:
         The relative tolerance for the rotation process to achieve
         (the default is 1e-8).
+    compute: bool
+        Whether to eagerly compute the rotation matrix. If ``True``, then
+        the rotation algorithm will check for convergence at each iteration
+        and stop once reached. If ``False``, then the rotation algorithm
+        can build the matrix lazily, but it will not check for convergence
+        and will run all of ``max_iter``.
 
     Returns
     -------
@@ -61,12 +71,12 @@ def _promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1
     X = X.copy()
 
     # Perform varimax rotation
-    X, rot_mat = _varimax(X=X, max_iter=max_iter, rtol=rtol)
+    X, rot_mat = _varimax(X=X, max_iter=max_iter, rtol=rtol, compute=compute)
 
     # Pre-normalization by communalities (sum of squared rows)
     h = np.sqrt(np.sum(X * X.conj(), axis=1))
     # Add a stabilizer to avoid zero communalities
-    eps = 1e-9
+    eps = np.finfo(X.dtype).eps
     X = (1.0 / (h + eps))[:, np.newaxis] * X
 
     # Max-normalisation of columns
@@ -101,7 +111,13 @@ def _promax(X: np.ndarray, power: int = 1, max_iter: int = 1000, rtol: float = 1
     return Xrot, rot_mat, phi
 
 
-def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float = 1e-8):
+def _varimax(
+    X: np.ndarray,
+    gamma: float = 1,
+    max_iter: int = 1000,
+    rtol: float = 1e-8,
+    compute: bool = True,
+):
     """
     Perform (orthogonal) Varimax rotation.
 
@@ -120,6 +136,12 @@ def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float 
     rtol : float
         Relative tolerance at which iteration process terminates.
         The default is 1e-8.
+    compute: bool
+        Whether to eagerly compute the rotation matrix. If ``True``, then
+        the rotation algorithm will check for convergence at each iteration
+        and stop once reached. If ``False``, then the rotation algorithm
+        can build the matrix lazily, but it will not check for convergence
+        and will run all of ``max_iter``.
 
     Returns
     -------
@@ -131,6 +153,14 @@ def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float 
     """
     X = X.copy()
     n_samples, n_modes = X.shape
+
+    if isinstance(X, dask.array.Array):
+        # Use svd_compressed if dask to allow chunking in both dimensions
+        svd_func = dask.array.linalg.svd_compressed
+        svd_args = (n_modes,)
+    else:
+        svd_func = np.linalg.svd
+        svd_args = ()
 
     if n_modes < 2:
         err_msg = "Cannot rotate {:} modes (columns), but must be 2 or more."
@@ -145,12 +175,11 @@ def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float 
     # A = np.diag(1./h) @ A
 
     # Add a stabilizer to avoid zero communalities
-    eps = 1e-9
+    eps = np.finfo(X.dtype).eps
     X = (1.0 / (h + eps))[:, np.newaxis] * X
 
     # Seek for rotation matrix based on varimax criteria
     delta = 0.0
-    converged = False
     for i in range(max_iter):
         delta_old = delta
         basis = X @ R
@@ -161,14 +190,13 @@ def _varimax(X: np.ndarray, gamma: float = 1, max_iter: int = 1000, rtol: float 
         alpha = gamma / n_samples
 
         transformed = X.conj().T @ (basis3 - (alpha * basis @ W))
-        U, svals, VT = np.linalg.svd(transformed)
+        U, svals, VT = svd_func(transformed, *svd_args)
         R = U @ VT
         delta = np.sum(svals)
-        if (abs(delta - delta_old) / delta) < rtol:
-            converged = True
+        if compute and (abs(delta - delta_old) / delta) < rtol:
             break
 
-    if not converged:
+    if compute and (abs(delta - delta_old) / delta) > rtol:
         raise RuntimeError("Rotation process did not converge.")
 
     # De-normalize

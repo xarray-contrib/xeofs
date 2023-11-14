@@ -7,6 +7,7 @@ from .sanity_checks import convert_to_dim_type
 from .data_types import (
     Dims,
     DimsList,
+    DaskArray,
     Data,
     DataVar,
     DataArray,
@@ -23,6 +24,25 @@ def unwrap_singleton_list(input_list: List[T]) -> T | List[T]:
         return input_list[0]
     else:
         return input_list
+
+
+def data_is_dask(data: DataArray | DataSet | DataList) -> bool:
+    """Check if the given data is backed by a dask array."""
+
+    # If data is a DataArray, check its underlying data type
+    if isinstance(data, DataArray):
+        return isinstance(data.data, DaskArray)
+
+    # If data is a DataSet, recursively check all contained DataArrays
+    if isinstance(data, DataSet):
+        return any(data_is_dask(da) for da in data.data_vars.values())
+
+    # If data is a list, recursively check each element in the list
+    if isinstance(data, list):
+        return any(data_is_dask(da) for da in data)
+
+    # If none of the above, the data type is unrecognized
+    raise ValueError("unrecognized data type.")
 
 
 def process_parameter(
@@ -249,3 +269,64 @@ def _np_sqrt_cos_lat_weights(data):
 
     """
     return np.sqrt(np.cos(np.deg2rad(data)).clip(0, 1))
+
+
+def get_deterministic_sign_multiplier(data: DataArray, dim: str) -> DataArray:
+    """Compute a sign multiplier that ensures deterministic output.
+
+    Uses a method standard to other SVD implementations where we ensure that
+    the maximum absolute value in the passed data matrix is positive
+    when multipled by the sign multiplier. This creates deterministic output.
+
+    Parameters:
+    ------------
+    data: DataArray
+        Input data to determine sorting order.
+    dim: str
+        Dimension along which to compute the sign multiplier.
+
+    Returns:
+    ---------
+    sign_multiplier: DataArray
+        Sign multiplier that ensures deterministic output.
+    """
+    # This method is carefully constructed to avoid idexing ops
+    # so we can execute this lazily on dask arrays
+    min_max = xr.concat([data.max(dim), data.min(dim)], dim="sign")
+    min_max = min_max.assign_coords(sign=[1, -1])
+    sign_multiplier = np.abs(min_max).idxmax("sign")
+    # Drop all dimensions except 'mode' so that the index is clean
+    for dim, coords in sign_multiplier.coords.items():
+        if dim != "mode":
+            sign_multiplier = sign_multiplier.drop(dim)
+    return sign_multiplier
+
+
+def argsort_dask(data: Data, dim: str) -> Data:
+    """Apply argsort to a dask-backed array.
+
+    This is a workaround because dask does not yet implement a chunk-aware
+    version of argsort. Therefore we have to force rechunking to a single
+    chunk along the sorting dimension and then apply numpy argsort. This
+    should be used with an understanding that it may produce large memory
+    usage if the passed array is chunked finely along the sorting dimension.
+
+    Parameters:
+    ------------
+    data: Data
+        Input data to sort.
+    dim: str
+        Dimension along which to sort.
+
+    Returns:
+    ---------
+    sorted_idx: Data
+        Indices that would sort the data.
+    """
+    return xr.apply_ufunc(
+        np.argsort,
+        data.chunk({dim: -1}),
+        input_core_dims=[[dim]],
+        output_core_dims=[[dim]],
+        dask="parallelized",
+    )

@@ -82,6 +82,23 @@
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This tutorial illustrates the application of Extended EOF (EEOF) analysis to isolate and remove...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_eeof_trend_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1single_plot_eeof_trend.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Removing nonlinear trends with EEOF analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Multivariate EOF analysis.">
 
 .. only:: html
@@ -177,6 +194,7 @@
    /auto_examples/1single/plot_eof-tmode
    /auto_examples/1single/plot_complex_eof
    /auto_examples/1single/plot_eof-smode
+   /auto_examples/1single/plot_eeof_trend
    /auto_examples/1single/plot_multivariate-eof
    /auto_examples/1single/plot_mreof
    /auto_examples/1single/plot_rotated_eof

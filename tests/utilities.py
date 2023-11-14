@@ -2,7 +2,6 @@ from typing import Tuple, List, Hashable
 import numpy as np
 import pandas as pd
 import xarray as xr
-import dask.array as da
 from xeofs.utils.data_types import (
     DataArray,
     DataSet,
@@ -13,6 +12,7 @@ from xeofs.utils.data_types import (
     DimsTuple,
     DimsListTuple,
 )
+from xeofs.utils.xarray_utils import data_is_dask
 
 
 def is_xdata(data):
@@ -55,25 +55,6 @@ def data_has_multiindex(data: DataArray | DataSet | DataList) -> bool:
         return all(data_has_multiindex(da) for da in data)
     else:
         raise ValueError("unrecognized input type")
-
-
-def data_is_dask(data: DataArray | DataSet | DataList) -> bool:
-    """Check if the given data is backed by a dask array."""
-
-    # If data is a DataArray, check its underlying data type
-    if isinstance(data, DataArray):
-        return isinstance(data.data, DaskArray)
-
-    # If data is a DataSet, recursively check all contained DataArrays
-    if isinstance(data, DataSet):
-        return all(data_is_dask(da) for da in data.data_vars.values())
-
-    # If data is a list, recursively check each element in the list
-    if isinstance(data, list):
-        return all(data_is_dask(da) for da in data)
-
-    # If none of the above, the data type is unrecognized
-    raise ValueError("unrecognized data type.")
 
 
 def assert_expected_dims(data1, data2, policy="all"):
