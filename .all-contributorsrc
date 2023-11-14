@@ -1,11 +1,4 @@
 {
   "projectName": "xeofs",
-  "projectOwner": "nicrie",
-  "repoType": "github",
-  "repoHost": "https://github.com",
-  "files": ["README.md"],
-  "imageSize": 100,
-  "contributorsPerLine": 7,
-  "commitConvention": "angular",
-  "commitType": "chore"
+  "projectOwner": "nicrie"
 }
