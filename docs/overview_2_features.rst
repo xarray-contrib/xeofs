@@ -46,7 +46,7 @@ Dask Support
 ----------------
 
 If you handle large datasets that exceed memory capacity, ``xeofs`` is designed to work with ``dask``-backed
-``xarray`` objects from end-to-end. By default, ``xeofs`` computes models eagerly by default, which in some
+``xarray`` objects from end-to-end. By default, ``xeofs`` computes models eagerly, which in some
 cases can lead to better performance. However, it is also possible to build and fit models "lazily", meaning
 no computation will be carried out until the user calls ``.compute()``. To enable lazy computation, specify
 ``compute=False`` when initializing the model.
