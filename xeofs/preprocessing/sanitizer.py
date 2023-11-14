@@ -56,7 +56,7 @@ class Sanitizer(Transformer):
 
     def _get_valid_features_per_sample(self, X: Data) -> Data:
         """Isolated NaN check that an be constructed lazily, where we check that
-        either that the number of valid features is the same for every sample, with
+        the number of valid features is the same for every sample, with
         the exception of all-NaN samples."""
         return X.notnull().sum(self.feature_name)
 
