@@ -90,7 +90,7 @@ For a more comprehensive overview and usage examples, visit the [documentation](
 
 ## Contributing
 
-Contributions are highly welcomed and appreciated. If you're interested in improving `xeofs` or fixing issues, please read our [Contributing Guide](https://xeofs.readthedocs.io/en/latest/overview_3
+Contributions are highly welcomed and appreciated. If you're interested in improving `xeofs` or fixing issues, please read our [Contributing Guide](https://xeofs.readthedocs.io/en/latest/overview_3)
 
 ## License
 
