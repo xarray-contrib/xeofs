@@ -11,6 +11,7 @@ from ..utils.data_types import DataObject, DataArray
 from ..utils.statistics import pearson_correlation
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.dimension_renamer import DimensionRenamer
+from ..utils.xarray_utils import argsort_dask
 
 
 class MCA(_BaseCrossModel):
@@ -36,8 +37,11 @@ class MCA(_BaseCrossModel):
         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -47,7 +51,7 @@ class MCA(_BaseCrossModel):
     random_state: int, default=None
         Seed for the random number generator.
     solver_kwargs: dict, default={}
-        Additional keyword arguments passed to the SVD solver.
+        Additional keyword arguments passed to the SVD solver function.
 
     Notes
     -----
@@ -73,6 +77,7 @@ class MCA(_BaseCrossModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         n_pca_modes: Optional[int] = None,
         compute: bool = True,
         sample_name: str = "sample",
@@ -80,12 +85,14 @@ class MCA(_BaseCrossModel):
         solver: str = "auto",
         random_state: Optional[int] = None,
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             n_pca_modes=n_pca_modes,
             compute=compute,
             sample_name=sample_name,
@@ -93,6 +100,7 @@ class MCA(_BaseCrossModel):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "MCA"})
 
@@ -119,7 +127,7 @@ class MCA(_BaseCrossModel):
         feature_name = self.feature_name
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
@@ -179,7 +187,7 @@ class MCA(_BaseCrossModel):
         norm2 = np.sqrt(singular_values)
 
         # Index of the sorted squared covariance
-        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes = argsort_dask(squared_covariance, "mode")[::-1]
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors
@@ -595,8 +603,11 @@ class ComplexMCA(MCA):
         only the specified number of principal components. This reduction in dimensionality can be especially beneficial
         when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
         intensive or in scenarios where multicollinearity is a concern.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -639,6 +650,7 @@ class ComplexMCA(MCA):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         n_pca_modes: Optional[int] = None,
         compute: bool = True,
         sample_name: str = "sample",
@@ -646,12 +658,14 @@ class ComplexMCA(MCA):
         solver: str = "auto",
         random_state: Optional[bool] = None,
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             n_pca_modes=n_pca_modes,
             compute=compute,
             sample_name=sample_name,
@@ -659,6 +673,7 @@ class ComplexMCA(MCA):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "Complex MCA"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
@@ -674,7 +689,7 @@ class ComplexMCA(MCA):
         }
 
         # Initialize the SVD decomposer
-        decomposer = Decomposer(n_modes=self._params["n_modes"], **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
 
         # Perform SVD on PCA-reduced data
         if (self.pca1 is not None) and (self.pca2 is not None):
@@ -748,7 +763,7 @@ class ComplexMCA(MCA):
         norm2 = np.sqrt(singular_values)
 
         # Index of the sorted squared covariance
-        idx_sorted_modes = squared_covariance.compute().argsort()[::-1]
+        idx_sorted_modes = argsort_dask(squared_covariance, "mode")[::-1]
         idx_sorted_modes.coords.update(squared_covariance.coords)
 
         # Project the data onto the singular vectors

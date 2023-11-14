@@ -49,6 +49,7 @@ class Stacker(Transformer):
         self.dims_mapping.update({d: tuple() for d in self.dims_out})
         self.coords_in = {}
         self.coords_out = {}
+        self.data_type = None
 
     def get_serialization_attrs(self) -> Dict:
         return dict(
@@ -57,6 +58,7 @@ class Stacker(Transformer):
             dims_mapping=self.dims_mapping,
             coords_in=self.coords_in,
             coords_out=self.coords_out,
+            data_type=self.data_type,
         )
 
     def _validate_data_type(self, X: Data):
@@ -119,7 +121,7 @@ class Stacker(Transformer):
 
     def _validate_transform_data_type(self, X: Data):
         """Check that the data type is either DataArray or Dataset."""
-        if not isinstance(X, self.data_type):
+        if self._type_name(X) != self.data_type:
             raise TypeError(f"Expected data type {self.data_type}, got {type(X)}.")
 
     def _validate_transform_dimensions(self, X: Data):
@@ -274,6 +276,10 @@ class Stacker(Transformer):
         ds = self._reorder_dims(ds)
         return ds
 
+    def _type_name(self, X):
+        """Store data type as a str so it is easily serializable."""
+        return type(X).__name__
+
     def fit(self, X: Data, sample_dims: Dims, feature_dims: Dims) -> Self:
         """Fit the stacker.
 
@@ -290,7 +296,7 @@ class Stacker(Transformer):
         """
         self._sanity_check(X, sample_dims, feature_dims)
 
-        self.data_type = type(X)
+        self.data_type = self._type_name(X)
         self.sample_dims = sample_dims
         self.feature_dims = feature_dims
         self.dims_mapping.update(
@@ -372,12 +378,12 @@ class Stacker(Transformer):
 
         """
         match self.data_type:
-            case xr.DataArray:
+            case "DataArray":
                 return self._unstack_to_dataarray(X)
-            case xr.Dataset:
+            case "Dataset":
                 return self._unstack_to_dataset_data(X)
             case _:
-                raise TypeError(f"Invalid data type {type(X)}.")
+                raise TypeError(f"Invalid data type {self._type_name(X)}.")
 
     def inverse_transform_components(self, X: DataArray) -> Data:
         """Reshape the 2D components (feature x mode) back into its original dimensions.
@@ -394,12 +400,12 @@ class Stacker(Transformer):
 
         """
         match self.data_type:
-            case xr.DataArray:
+            case "DataArray":
                 return self._unstack_to_dataarray(X)
-            case xr.Dataset:
+            case "Dataset":
                 return self._unstack_to_dataset_components(X)
             case _:
-                raise TypeError(f"Invalid data type {type(X)}.")
+                raise TypeError(f"Invalid data type {self._type_name(X)}.")
 
     def inverse_transform_scores(self, X: DataArray) -> DataArray:
         """Reshape the 2D scores (sample x mode) back into its original dimensions.

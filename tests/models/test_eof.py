@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
+from dask.array import Array as DaskArray  # type: ignore
 from numpy.testing import assert_allclose
 
 from xeofs.models.eof import EOF
@@ -363,8 +363,8 @@ def test_get_params():
 )
 def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
-    data = mock_data_array.isel({dim[0]: slice(0, 3)})
-    new_data = mock_data_array.isel({dim[0]: slice(4, 5)})
+    data = mock_data_array.isel({dim[0]: slice(1, None)})
+    new_data = mock_data_array.isel({dim[0]: slice(0, 1)})
 
     # Create a xarray DataArray with random data
     model = EOF(n_modes=2, solver="full")
@@ -406,6 +406,39 @@ def test_transform(dim, mock_data_array):
 
     # Ensure that the new projections are not NaNs
     assert np.all(new_projections.notnull().values), "New projections contain NaNs"
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_transform_nan_feature(dim, mock_data_array):
+    """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
+    data = mock_data_array.isel()
+
+    # Create a xarray DataArray with random data
+    model = EOF(n_modes=2, solver="full")
+    model.fit(data, dim)
+
+    # Set a new feature to NaN and attempt to project data onto the components
+    feature_dims = list(set(data.dims) - set(dim))
+    data_missing = data.copy()
+    data_missing.loc[{feature_dims[0]: data[feature_dims[0]][0].values}] = np.nan
+
+    # with nan checking, transform should fail if any new features are NaN
+    with pytest.raises(ValueError):
+        model.transform(data_missing)
+
+    # without nan checking, transform will succeed but be all nan
+    model = EOF(n_modes=2, solver="full", check_nans=False)
+    model.fit(data, dim)
+
+    data_transformed = model.transform(data_missing)
+    assert data_transformed.isnull().all()
 
 
 @pytest.mark.parametrize(
@@ -478,10 +511,10 @@ def test_save_load(dim, mock_data_array, tmp_path):
         original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
     )
 
-    # Enhancement: the loaded model should also be able to inverse_transform new data
-    # assert np.allclose(
-    #     original.inverse_transform(original.scores()),
-    #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-3,
-    #     atol=1e-3,
-    # )
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(original.scores()),
+        loaded.inverse_transform(loaded.scores()),
+        rtol=1e-3,
+        atol=1e-3,
+    )

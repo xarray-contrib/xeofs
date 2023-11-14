@@ -1,6 +1,7 @@
 from typing import Optional, Dict
 from typing_extensions import Self
 
+import dask
 import numpy as np
 import xarray as xr
 
@@ -34,11 +35,13 @@ class Scaler(Transformer):
         with_center: bool = True,
         with_std: bool = False,
         with_coslat: bool = False,
+        compute: bool = True,
     ):
         super().__init__()
         self.with_center = with_center
         self.with_std = with_std
         self.with_coslat = with_coslat
+        self.compute = compute
 
         self.mean_ = xr.DataArray(name="mean_")
         self.std_ = xr.DataArray(name="std_")
@@ -99,18 +102,28 @@ class Scaler(Transformer):
 
         # Scaling parameters are computed along sample dimensions
         if params["with_center"]:
-            self.mean_: DataVar = X.mean(self.sample_dims).compute()
+            self.mean_: DataVar = X.mean(self.sample_dims)
 
         if params["with_std"]:
-            self.std_: DataVar = X.std(self.sample_dims).compute()
+            self.std_: DataVar = X.std(self.sample_dims).clip(
+                min=np.finfo(np.float32).eps
+            )
 
         if params["with_coslat"]:
             self.coslat_weights_: DataVar = compute_sqrt_cos_lat_weights(
                 data=X, feature_dims=self.feature_dims
-            ).compute()
+            )
 
         # Convert None weights to ones
-        self.weights_: DataVar = self._process_weights(X, weights).compute()
+        self.weights_: DataVar = self._process_weights(X, weights)
+
+        if self.get_params()["compute"]:
+            (self.mean_, self.std_, self.coslat_weights_, self.weights_) = dask.compute(
+                self.mean_,
+                self.std_,
+                self.coslat_weights_,
+                self.weights_,
+            )
 
         return self
 

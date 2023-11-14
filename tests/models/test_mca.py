@@ -427,10 +427,10 @@ def test_save_load(dim, mock_data_array, tmp_path):
         atol=1e-3,
     )
 
-    # Enhancement: the loaded model should also be able to inverse_transform new data
-    # assert np.allclose(
-    #     original.inverse_transform(original.scores()),
-    #     loaded.inverse_transform(loaded.scores()),
-    #     rtol=1e-3,
-    #     atol=1e-3,
-    # )
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(*original.scores()),
+        loaded.inverse_transform(*loaded.scores()),
+        rtol=1e-3,
+        atol=1e-3,
+    )

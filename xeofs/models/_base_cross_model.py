@@ -3,14 +3,16 @@ from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+import dask
 import xarray as xr
 from datatree import DataTree, open_datatree
+from dask.diagnostics.progress import ProgressBar
 
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
 from ..utils.data_types import DataObject, DataArray, DataSet
-from ..utils.xarray_utils import convert_to_dim_type
+from ..utils.xarray_utils import convert_to_dim_type, data_is_dask
 from ..utils.sanity_checks import validate_input_type
 from .._version import __version__
 
@@ -29,10 +31,19 @@ class _BaseCrossModel(ABC):
         Whether to standardize the input data.
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
+    check_nans : bool, default=True
+        If True, remove full-dimensional NaN features from the data, check to ensure
+        that NaN features match the original fit data during transform, and check
+        for isolated NaNs. Note: this forces eager computation of dask arrays.
+        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
+        or filled prior to fitting, or SVD will fail.
     n_pca_modes: int, default=None
         Number of PCA modes to calculate.
-    compute : bool, default=True
-        Whether to compute the decomposition immediately.
+    compute: bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
@@ -40,7 +51,7 @@ class _BaseCrossModel(ABC):
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
     solver_kwargs: dict, default={}
-        Additional keyword arguments to pass to the solver.
+        Additional keyword arguments to passed to the SVD solver function.
 
     """
 
@@ -50,8 +61,10 @@ class _BaseCrossModel(ABC):
         center=True,
         standardize=False,
         use_coslat=False,
+        check_nans=True,
         n_pca_modes=None,
         compute=True,
+        verbose=False,
         sample_name="sample",
         feature_name="feature",
         solver="auto",
@@ -68,24 +81,32 @@ class _BaseCrossModel(ABC):
             "center": center,
             "standardize": standardize,
             "use_coslat": use_coslat,
+            "check_nans": check_nans,
             "n_pca_modes": n_pca_modes,
             "compute": compute,
             "sample_name": sample_name,
             "feature_name": feature_name,
             "solver": solver,
             "random_state": random_state,
+            "solver_kwargs": solver_kwargs,
         }
 
-        self._solver_kwargs = solver_kwargs
-        self._solver_kwargs.update(
-            {"solver": solver, "random_state": random_state, "compute": compute}
-        )
+        self._decomposer_kwargs = {
+            "n_modes": n_modes,
+            "solver": solver,
+            "random_state": random_state,
+            "compute": compute,
+            "verbose": verbose,
+            "solver_kwargs": solver_kwargs,
+        }
         self._preprocessor_kwargs = {
             "sample_name": sample_name,
             "feature_name": feature_name,
             "with_center": center,
             "with_std": standardize,
             "with_coslat": use_coslat,
+            "check_nans": check_nans,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -108,14 +129,21 @@ class _BaseCrossModel(ABC):
 
         # Initialize PCA objects
         self.pca1 = (
-            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"], check_nans=False)
             if n_pca_modes
             else None
         )
         self.pca2 = (
-            EOF(n_modes=n_pca_modes, compute=self._params["compute"])
+            EOF(n_modes=n_pca_modes, compute=self._params["compute"], check_nans=False)
             if n_pca_modes
             else None
+        )
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor1=self.preprocessor1,
+            preprocessor2=self.preprocessor2,
         )
 
     def fit(
@@ -157,7 +185,12 @@ class _BaseCrossModel(ABC):
         # Preprocess data2
         data2 = self.preprocessor2.fit_transform(data2, self.sample_dims, weights2)
 
-        return self._fit_algorithm(data1, data2)
+        self._fit_algorithm(data1, data2)
+
+        if self._params["compute"]:
+            self.data.compute()
+
+        return self
 
     def transform(
         self, data1: Optional[DataObject] = None, data2: Optional[DataObject] = None
@@ -239,16 +272,57 @@ class _BaseCrossModel(ABC):
         scores2: DataArray = self.preprocessor2.inverse_transform_scores(scores2)
         return scores1, scores2
 
-    def compute(self, verbose: bool = False):
+    def compute(self, verbose: bool = False, **kwargs):
         """Compute and load delayed model results.
 
         Parameters
         ----------
         verbose : bool
             Whether or not to provide additional information about the computing progress.
-
+        **kwargs
+            Additional keyword arguments to pass to `dask.compute()`.
         """
-        self.data.compute(verbose=verbose)
+        dt = self.serialize()
+        data_objs = {
+            k: v
+            for k, v in dt.to_dict().items()
+            if data_is_dask(v) and v.attrs.get("allow_compute", True)
+        }
+
+        # Compute all dask collections simultaneously
+        if verbose:
+            with ProgressBar():
+                (data_objs,) = dask.compute(data_objs, **kwargs)
+        else:
+            (data_objs,) = dask.compute(data_objs, **kwargs)
+
+        # Reassign all computed arrays
+        for key, data in data_objs.items():
+            path_elems = key.strip("/").split("/")
+            parent = self
+            for elem in path_elems[:-1]:
+                if elem.isdigit():
+                    parent = parent[int(elem)]
+                else:
+                    parent = getattr(parent, elem)
+
+            if isinstance(data, xr.Dataset):
+                mapping = data.attrs.get("name_map", {}).get(
+                    path_elems[-1], path_elems[-1]
+                )
+                da = data[mapping]
+            else:
+                da = data
+
+            if isinstance(parent, dict):
+                parent[path_elems[-1]] = da
+            else:
+                setattr(parent, path_elems[-1], da)
+
+        self._post_compute()
+
+    def _post_compute(self):
+        pass
 
     def get_params(self) -> Dict:
         """Get the model parameters."""
@@ -256,28 +330,17 @@ class _BaseCrossModel(ABC):
 
     def serialize(self, save_data: bool = False) -> DataTree:
         """Serialize a complete model with its preprocessors."""
-        data = {}
-        for key, x in self.data.items():
-            if self.data._allow_compute[key] or save_data:
-                data[key] = x.assign_attrs(
-                    {"allow_compute": self.data._allow_compute[key]}
-                )
+        # Create a root node for this object with its params as attrs
+        ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
+        dt = DataTree(data=ds_root, name=type(self).__name__)
+
+        # Retrieve the tree representation of each attached object, or set basic attrs
+        for key, attr in self.get_serialization_attrs().items():
+            if hasattr(attr, "serialize"):
+                dt[key] = attr.serialize(save_data=save_data)
+                dt.attrs[key] = "_is_tree"
             else:
-                # create an empty placeholder array
-                data[key] = xr.DataArray().assign_attrs(
-                    {"allow_compute": False, "placeholder": True}
-                )
-
-        # Store the DataContainer items as data_vars, and the model parameters as global attrs
-        ds_model = xr.Dataset(data, attrs=dict(params=self.get_params()))
-        # Set as the root node of the tree
-        dt = DataTree(data=ds_model, name=type(self).__name__)
-
-        # Retrieve the tree representation of the preprocessor
-        dt["preprocessor1"] = self.preprocessor1.serialize_all()
-        dt["preprocessor2"] = self.preprocessor2.serialize_all()
-        dt.preprocessor1.parent = dt
-        dt.preprocessor2.parent = dt
+                dt.attrs[key] = attr
 
         return dt
 
@@ -302,29 +365,23 @@ class _BaseCrossModel(ABC):
             Additional keyword arguments to pass to `DataTree.to_zarr()`.
 
         """
+        self.compute()
         dt = self.serialize(save_data=save_data)
-
-        # Handle rotator models by separately serializing the original model
-        # and attaching as a child of the rotator model
-        if hasattr(self, "model"):
-            dt["model"] = self.model.serialize()
-
         write_mode = "w" if overwrite else "w-"
-
         dt.to_zarr(path, mode=write_mode, **kwargs)
 
     @classmethod
     def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize the model and its preprocessors from a DataTree."""
         # Recreate the model with parameters set by root level attrs
-        model = cls(**dt.attrs["params"])
-
-        # Recreate the Preprocessors from their trees
-        model.preprocessor1 = Preprocessor.deserialize_all(dt.preprocessor1)
-        model.preprocessor2 = Preprocessor.deserialize_all(dt.preprocessor2)
-
-        # Create the model's DataContainer from the root level data_vars
-        model.data = DataContainer({k: dt[k] for k in dt.data_vars})
+        params = dt.attrs.pop("params")
+        model = cls(**params)
+        for key, attr in dt.attrs.items():
+            if attr == "_is_tree":
+                deserialized_obj = getattr(model, key).deserialize(dt[key])
+            else:
+                deserialized_obj = attr
+            setattr(model, key, deserialized_obj)
 
         return model
 
@@ -346,19 +403,7 @@ class _BaseCrossModel(ABC):
 
         """
         dt = open_datatree(path, engine="zarr", **kwargs)
-
         model = cls.deserialize(dt)
-
-        # Rebuild any attached model
-        if dt.get("model") is not None:
-            # Recreate the original model from its tree, assuming we should
-            # use the first base class of the current model
-            model.model = cls.__bases__[0].deserialize(dt.model)
-
-        for key in model.data.keys():
-            model.data._allow_compute[key] = model.data[key].attrs["allow_compute"]
-            model._validate_loaded_data(model.data[key])
-
         return model
 
     def _validate_loaded_data(self, data: DataArray):

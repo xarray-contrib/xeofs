@@ -48,6 +48,7 @@ class CCABaseModel(BaseEstimator):
         self,
         n_modes: int = 10,
         use_coslat: bool = False,
+        check_nans: bool = True,
         pca: bool = False,
         variance_fraction: float = 0.99,
         init_pca_modes: int | float = 0.75,
@@ -70,6 +71,7 @@ class CCABaseModel(BaseEstimator):
             "sample_name": sample_name,
             "feature_name": feature_name,
             "with_std": False,
+            "check_nans": check_nans,
         }
 
         # Define analysis-relevant meta data
@@ -281,6 +283,7 @@ class CCA(CCABaseModel):
         self,
         n_modes: int = 2,
         use_coslat: bool = False,
+        check_nans: bool = True,
         c: float = 0,
         pca: bool = True,
         variance_fraction: float = 0.99,
@@ -291,6 +294,7 @@ class CCA(CCABaseModel):
         super().__init__(
             n_modes=n_modes,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             pca=pca,
             compute=compute,
             variance_fraction=variance_fraction,

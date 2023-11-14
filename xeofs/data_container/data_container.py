@@ -1,5 +1,10 @@
 from typing import Dict
+from typing_extensions import Self
+
+import dask
+import xarray as xr
 from dask.diagnostics.progress import ProgressBar
+from datatree import DataTree
 
 from ..utils.data_types import DataArray
 
@@ -26,14 +31,40 @@ class DataContainer(dict):
                 f"Cannot find data '{__key}'. Please fit the model first by calling .fit()."
             )
 
-    def compute(self, verbose=False):
-        for k, v in self.items():
-            if self._allow_compute[k]:
-                if verbose:
-                    with ProgressBar():
-                        self[k] = v.compute()
-                else:
-                    self[k] = v.compute()
+    def serialize(self, save_data: bool = False) -> DataTree:
+        dt = DataTree(name="data")
+        for key, x in self.items():
+            if self._allow_compute[key] or save_data:
+                data = x.assign_attrs({"allow_compute": self._allow_compute[key]})
+            else:
+                # create an empty placeholder array
+                data = xr.DataArray().assign_attrs(
+                    {"allow_compute": False, "placeholder": True}
+                )
+            if not data.name:
+                data.name = key
+            dt[key] = DataTree(data)
+            dt[key].attrs = {key: "_is_node"}
+
+        return dt
+
+    @classmethod
+    def deserialize(cls, dt: DataTree) -> Self:
+        container = cls()
+        for key, node in dt.items():
+            container[key] = node[key]
+            container._allow_compute[key] = node[key].attrs["allow_compute"]
+        return container
+
+    def compute(self, verbose=False, **kwargs):
+        computed_data = {k: v for k, v in self.items() if self._allow_compute[k]}
+        if verbose:
+            with ProgressBar():
+                (computed_data,) = dask.compute(computed_data, **kwargs)
+        else:
+            (computed_data,) = dask.compute(computed_data, **kwargs)
+        for k, v in computed_data.items():
+            self[k] = v
 
     def _validate_attrs(self, attrs: Dict) -> Dict:
         """Convert any boolean and None values to strings"""

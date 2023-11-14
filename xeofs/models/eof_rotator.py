@@ -1,12 +1,16 @@
 from datetime import datetime
+from typing import Dict
+
 import numpy as np
 import xarray as xr
 from typing_extensions import Self
 
 from .eof import EOF, ComplexEOF
 from ..data_container import DataContainer
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from .._version import __version__
 
 
@@ -26,14 +30,16 @@ class EOFRotator(EOF):
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
         in a Varimax rotation.
-    max_iter : int, default=1000
+    max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
-        rotation matrix.
+        rotation matrix. If not specified, defaults to 1000 if ``compute=True``
+        and 100 if ``compute=False``, since we can't terminate a lazy computation
+        based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately.
+    compute : bool, default=True
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -53,10 +59,13 @@ class EOFRotator(EOF):
         self,
         n_modes: int = 2,
         power: int = 1,
-        max_iter: int = 1000,
+        max_iter: int | None = None,
         rtol: float = 1e-8,
         compute: bool = True,
     ):
+        if max_iter is None:
+            max_iter = 1000 if compute else 100
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -77,8 +86,20 @@ class EOFRotator(EOF):
             }
         )
 
-        # Define data container
+        # Attach empty objects
+        self.preprocessor = Preprocessor()
         self.data = DataContainer()
+        self.model = EOF()
+
+        self.sorted = False
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor=self.preprocessor,
+            model=self.model,
+            sorted=self.sorted,
+        )
 
     def fit(self, model) -> Self:
         """Rotate the solution obtained from ``xe.models.EOF``.
@@ -89,13 +110,19 @@ class EOFRotator(EOF):
             The EOF model to be rotated.
 
         """
-        return self._fit_algorithm(model)
+        self._fit_algorithm(model)
+
+        if self._params["compute"]:
+            self.compute()
+
+        return self
 
     def _fit_algorithm(self, model) -> Self:
         self.model = model
         self.preprocessor = model.preprocessor
         self.sample_name = model.sample_name
         self.feature_name = model.feature_name
+        self.sorted = False
 
         n_modes = self._params.get("n_modes")
         power = self._params.get("power")
@@ -128,15 +155,8 @@ class EOFRotator(EOF):
 
         # Reorder according to variance
         expvar = (abs(rot_loadings) ** 2).sum(self.feature_name)
-        # NOTE: For delayed objects, the index must be computed.
-        # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_sort = expvar.compute().argsort()[::-1]
-        idx_sort.coords.update(expvar.coords)
-
-        expvar = expvar.isel(mode=idx_sort.values).assign_coords(mode=expvar.mode)
-        rot_loadings = rot_loadings.isel(mode=idx_sort.values).assign_coords(
-            mode=rot_loadings.mode
-        )
+        idx_modes_sorted = argsort_dask(expvar, "mode")[::-1]
+        idx_modes_sorted.coords.update(expvar.coords)
 
         # Normalize loadings
         rot_components = rot_loadings / np.sqrt(expvar)
@@ -159,21 +179,13 @@ class EOFRotator(EOF):
         RinvT = RinvT.rename({"mode_n": "mode"})
         scores = xr.dot(scores, RinvT, dims="mode_m")
 
-        # Reorder according to variance
-        scores = scores.isel(mode=idx_sort.values).assign_coords(mode=scores.mode)
-
         # Scale scores by "pseudo" norms
         scores = scores * norms
 
         # Ensure consistent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax(self.feature_name).compute()
-        modes_sign = xr.apply_ufunc(
-            np.sign, rot_loadings.isel(feature=idx_max_value), dask="allowed"
+        modes_sign = get_deterministic_sign_multiplier(
+            rot_components, self.feature_name
         )
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in modes_sign.coords.items():
-            if dim != "mode":
-                modes_sign = modes_sign.drop(dim)
         rot_components = rot_components * modes_sign
         scores = scores * modes_sign
 
@@ -184,14 +196,31 @@ class EOFRotator(EOF):
         self.data.add(norms, "norms")
         self.data.add(expvar, "explained_variance")
         self.data.add(model.data["total_variance"], "total_variance")
-        self.data.add(idx_sort, "idx_modes_sorted")
+        self.data.add(idx_modes_sorted, "idx_modes_sorted")
         self.data.add(rot_matrix, "rotation_matrix")
         self.data.add(phi_matrix, "phi_matrix")
         self.data.add(modes_sign, "modes_sign")
 
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+
         return self
+
+    def _post_compute(self):
+        """Leave sorting until after compute because it can't be done lazily."""
+        self._sort_by_variance()
+
+    def _sort_by_variance(self):
+        """Re-sort the mode dimension of all data variables by variance explained."""
+        if not self.sorted:
+            for key in self.data.keys():
+                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                    self.data[key] = (
+                        self.data[key]
+                        .isel(mode=self.data["idx_modes_sorted"].values)
+                        .assign_coords(mode=self.data[key].mode)
+                    )
+        self.sorted = True
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]
@@ -279,7 +308,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
     compute: bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -310,6 +339,7 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
             n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
         )
         self.attrs.update({"model": "Rotated Complex EOF analysis"})
+        self.model = ComplexEOF()
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         # Here we leverage the Method Resolution Order (MRO) to invoke the

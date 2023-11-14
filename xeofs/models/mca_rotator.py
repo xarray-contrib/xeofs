@@ -1,11 +1,14 @@
 from datetime import datetime
 import numpy as np
 import xarray as xr
-from typing import List
+from typing import List, Dict
+from typing_extensions import Self
 
 from .mca import MCA, ComplexMCA
+from ..preprocessing.preprocessor import Preprocessor
 from ..utils.rotation import promax
 from ..utils.data_types import DataArray
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ..data_container import DataContainer
 from .._version import __version__
 
@@ -25,9 +28,11 @@ class MCARotator(MCA):
     power : int, default=1
         Set the power for the Promax rotation. A ``power`` value of 1 results
         in a Varimax rotation.
-    max_iter : int, default=1000
+    max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
-        rotation matrix.
+        rotation matrix. If not specified, defaults to 1000 if ``compute=True``
+        and 100 if ``compute=False``, since we can't terminate a lazy computation
+        based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
@@ -38,7 +43,7 @@ class MCARotator(MCA):
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
     compute : bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -58,12 +63,14 @@ class MCARotator(MCA):
         self,
         n_modes: int = 10,
         power: int = 1,
-        max_iter: int = 1000,
+        max_iter: int | None = None,
         rtol: float = 1e-8,
         squared_loadings: bool = False,
         compute: bool = True,
     ):
-        self._compute = compute
+        if max_iter is None:
+            max_iter = 1000 if compute else 100
+
         # Define model parameters
         self._params = {
             "n_modes": n_modes,
@@ -71,6 +78,7 @@ class MCARotator(MCA):
             "max_iter": max_iter,
             "rtol": rtol,
             "squared_loadings": squared_loadings,
+            "compute": compute,
         }
 
         # Define analysis-relevant meta data
@@ -84,8 +92,22 @@ class MCARotator(MCA):
             }
         )
 
-        # Define data container to store the rotated solution
+        # Attach empty objects
+        self.preprocessor1 = Preprocessor()
+        self.preprocessor2 = Preprocessor()
         self.data = DataContainer()
+        self.model = MCA()
+
+        self.sorted = False
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            data=self.data,
+            preprocessor1=self.preprocessor1,
+            preprocessor2=self.preprocessor2,
+            model=self.model,
+            sorted=self.sorted,
+        )
 
     def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
         """Compute the inverse transpose of the rotation matrix.
@@ -113,21 +135,29 @@ class MCARotator(MCA):
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix
 
-    def fit(self, model: MCA | ComplexMCA):
-        """Fit the model.
+    def fit(self, model: MCA) -> Self:
+        """Rotate the solution obtained from ``xe.models.MCA``.
 
         Parameters
         ----------
-        model : xe.models.MCA
-            A MCA model solution.
+        model : ``xe.models.MCA``
+            The MCA model to be rotated.
 
         """
+        self._fit_algorithm(model)
+
+        if self._params["compute"]:
+            self.compute()
+
+        return self
+
+    def _fit_algorithm(self, model) -> Self:
         self.model = model
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
-
-        sample_name = self.model.sample_name
-        feature_name = self.model.feature_name
+        self.sample_name = self.model.sample_name
+        self.feature_name = self.model.feature_name
+        self.sorted = False
 
         n_modes = self._params["n_modes"]
         power = self._params["power"]
@@ -157,14 +187,14 @@ class MCARotator(MCA):
 
         comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
         comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
-        loadings = xr.concat([comps1, comps2], dim=feature_name) * scaling
+        loadings = xr.concat([comps1, comps2], dim=self.feature_name) * scaling
 
         # Rotate loadings
         promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
         rot_loadings, rot_matrix, phi_matrix = promax(
             loadings=loadings,
-            feature_dim=feature_name,
-            compute=self._compute,
+            feature_dim=self.feature_name,
+            compute=self._params["compute"],
             **promax_kwargs
         )
 
@@ -180,19 +210,19 @@ class MCARotator(MCA):
 
         # Rotated (loaded) singular vectors
         comps1_rot = rot_loadings.isel(
-            {feature_name: slice(0, comps1.coords[feature_name].size)}
+            {self.feature_name: slice(0, comps1.coords[self.feature_name].size)}
         )
         comps2_rot = rot_loadings.isel(
-            {feature_name: slice(comps1.coords[feature_name].size, None)}
+            {self.feature_name: slice(comps1.coords[self.feature_name].size, None)}
         )
 
         # Normalization factor of singular vectors
         norm1_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps1_rot,
-            input_core_dims=[[feature_name, "mode"]],
+            input_core_dims=[[self.feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={feature_name},
+            exclude_dims={self.feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -200,9 +230,9 @@ class MCARotator(MCA):
         norm2_rot = xr.apply_ufunc(
             np.linalg.norm,
             comps2_rot,
-            input_core_dims=[[feature_name, "mode"]],
+            input_core_dims=[[self.feature_name, "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={feature_name},
+            exclude_dims={self.feature_name},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
@@ -221,28 +251,8 @@ class MCARotator(MCA):
         squared_covariance = (norm1_rot * norm2_rot) ** 2
 
         # Reorder according to squared covariance
-        # NOTE: For delayed objects, the index must be computed.
-        # NOTE: The index must be computed before sorting since argsort is not (yet) implemented in dask
-        idx_modes_sorted = squared_covariance.compute().argsort()[::-1]
+        idx_modes_sorted = argsort_dask(squared_covariance, "mode")[::-1]
         idx_modes_sorted.coords.update(squared_covariance.coords)
-
-        squared_covariance = squared_covariance.isel(
-            mode=idx_modes_sorted.values
-        ).assign_coords(mode=squared_covariance.mode)
-
-        norm1_rot = norm1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=norm1_rot.mode
-        )
-        norm2_rot = norm2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=norm2_rot.mode
-        )
-
-        comps1_rot = comps1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=comps1_rot.mode
-        )
-        comps2_rot = comps2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=comps2_rot.mode
-        )
 
         # Rotate scores using rotation matrix
         scores1 = self.model.data["scores1"].sel(mode=slice(1, n_modes))
@@ -258,23 +268,8 @@ class MCARotator(MCA):
         scores1_rot = xr.dot(scores1, RinvT, dims="mode_m")
         scores2_rot = xr.dot(scores2, RinvT, dims="mode_m")
 
-        # Reorder scores _rotaccording to variance
-        scores1_rot = scores1_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=scores1_rot.mode
-        )
-        scores2_rot = scores2_rot.isel(mode=idx_modes_sorted.values).assign_coords(
-            mode=scores2_rot.mode
-        )
-
         # Ensure consitent signs for deterministic output
-        idx_max_value = abs(rot_loadings).argmax(feature_name).compute()
-        modes_sign = xr.apply_ufunc(
-            np.sign, rot_loadings.isel({feature_name: idx_max_value}), dask="allowed"
-        )
-        # Drop all dimensions except 'mode' so that the index is clean
-        for dim, coords in modes_sign.coords.items():
-            if dim != "mode":
-                modes_sign = modes_sign.drop(dim)
+        modes_sign = get_deterministic_sign_multiplier(rot_loadings, self.feature_name)
         comps1_rot = comps1_rot * modes_sign
         comps2_rot = comps2_rot * modes_sign
         scores1_rot = scores1_rot * modes_sign
@@ -305,6 +300,24 @@ class MCARotator(MCA):
 
         # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
+
+        return self
+
+    def _post_compute(self):
+        """Leave sorting until after compute because it can't be done lazily."""
+        self._sort_by_variance()
+
+    def _sort_by_variance(self):
+        """Re-sort the mode dimension of all data variables by variance explained."""
+        if not self.sorted:
+            for key in self.data.keys():
+                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                    self.data[key] = (
+                        self.data[key]
+                        .isel(mode=self.data["idx_modes_sorted"].values)
+                        .assign_coords(mode=self.data[key].mode)
+                    )
+        self.sorted = True
 
     def transform(self, **kwargs) -> DataArray | List[DataArray]:
         """Project new "unseen" data onto the rotated singular vectors.
@@ -422,6 +435,8 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
         conserving the squared covariance under rotation. This allows estimation of mode importance
         after rotation. If False, the combined vectors are loaded with the square root of the
         singular values, following the method described by Cheng & Dunkerton.
+    compute: bool, default=True
+        Whether to compute the rotation immediately.
 
     References
     ----------
@@ -444,6 +459,7 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.attrs.update({"model": "Complex Rotated MCA"})
+        self.model = ComplexMCA()
 
     def transform(self, **kwargs):
         # Here we make use of the Method Resolution Order (MRO) to call the

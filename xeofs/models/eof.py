@@ -30,10 +30,11 @@ class EOF(_BaseModel):
         Name of the sample dimension.
     feature_name: str, default="feature"
         Name of the feature dimension.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately. This is recommended
-        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-        boosts computational efficiency compared to deferring the computation.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
@@ -57,6 +58,7 @@ class EOF(_BaseModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans=True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
@@ -71,6 +73,7 @@ class EOF(_BaseModel):
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
@@ -90,9 +93,7 @@ class EOF(_BaseModel):
         total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the data
-        n_modes = self._params["n_modes"]
-
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
         decomposer.fit(data, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
@@ -275,10 +276,11 @@ class ComplexEOF(EOF):
         Name of the sample dimension.
     feature_name: str, default="feature"
         Name of the feature dimension.
-    compute: bool, default=True
-        Whether to compute the decomposition immediately. This is recommended
-        if the SVD result for the first ``n_modes`` can be accommodated in memory, as it
-        boosts computational efficiency compared to deferring the computation.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
@@ -312,6 +314,7 @@ class ComplexEOF(EOF):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
@@ -319,12 +322,14 @@ class ComplexEOF(EOF):
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
@@ -332,6 +337,7 @@ class ComplexEOF(EOF):
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
+            **kwargs,
         )
         self.attrs.update({"model": "Complex EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
@@ -354,9 +360,7 @@ class ComplexEOF(EOF):
         total_variance = compute_total_variance(data, dim=sample_name)
 
         # Decompose the complex data
-        n_modes = self._params["n_modes"]
-
-        decomposer = Decomposer(n_modes=n_modes, **self._solver_kwargs)
+        decomposer = Decomposer(**self._decomposer_kwargs)
         decomposer.fit(data)
 
         singular_values = decomposer.s_

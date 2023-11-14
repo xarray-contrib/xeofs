@@ -30,6 +30,24 @@ VALID_TEST_DATA = [
     for dask in DASK_POLICY
 ]
 
+FULL_NAN = [
+    (ns, nf, index, nan, dask)
+    for ns in N_SAMPLE_DIMS
+    for nf in N_FEATURE_DIMS
+    for index in INDEX_POLICY
+    for nan in ["fulldim"]
+    for dask in DASK_POLICY
+]
+
+ISOLATED_NAN = [
+    (ns, nf, index, nan, dask)
+    for ns in N_SAMPLE_DIMS
+    for nf in N_FEATURE_DIMS
+    for index in INDEX_POLICY
+    for nan in ["isolated"]
+    for dask in DASK_POLICY
+]
+
 
 # TESTS
 # =============================================================================
@@ -211,3 +229,48 @@ def test_invserse_transform_scores(synthetic_dataarray):
     assert_expected_coords(data, unstacked_data, policy="sample")
     # inverse transform should not change dask-ness
     assert is_dask_before == is_dask_after
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    ISOLATED_NAN,
+    indirect=["synthetic_dataarray"],
+)
+def test_isolated_nans(synthetic_dataarray):
+    data = synthetic_dataarray
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    sanitizer = Sanitizer()
+    sanitizer.fit(data)
+
+    # By default want the sanitizer to raise for isolated NaNs
+    with pytest.raises(ValueError):
+        sanitizer.transform(data)
+
+    # But allow this check to be disabled
+    sanitizer.check_nans = False
+    sanitizer.transform(data)
+
+
+@pytest.mark.parametrize(
+    "synthetic_dataarray",
+    FULL_NAN,
+    indirect=["synthetic_dataarray"],
+)
+def test_feature_nan_transform(synthetic_dataarray):
+    data = synthetic_dataarray
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    sanitizer = Sanitizer()
+    sanitizer.fit(data)
+    sanitizer.transform(data)
+
+    # Pass through new data with NaNs in a different location
+    data.loc[{"feature": 1}] = np.nan
+    # By default want the sanitizer to raise on transform for new NaN features
+    with pytest.raises(ValueError):
+        sanitizer.transform(data)
+
+    # But allow this check to be disabled
+    sanitizer.check_nans = False
+    sanitizer.transform(data)
