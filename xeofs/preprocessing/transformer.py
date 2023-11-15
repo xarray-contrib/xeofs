@@ -110,11 +110,11 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return ds
 
-    def serialize(self, save_data: bool = False) -> DataTree:
+    def serialize(self) -> DataTree:
         """Serialize a transformer to a DataTree."""
-        return self._serialize(save_data=save_data)
+        return self._serialize()
 
-    def _serialize(self, save_data: bool = False) -> DataTree:
+    def _serialize(self) -> DataTree:
         """Serialize a transformer to a DataTree. Use an internal
         method so we can override the public one in subclasesses but
         still use this."""

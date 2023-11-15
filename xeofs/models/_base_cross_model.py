@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 import dask
+import numpy as np
 import xarray as xr
 from datatree import DataTree, open_datatree
 from dask.diagnostics.progress import ProgressBar
@@ -282,42 +283,27 @@ class _BaseCrossModel(ABC):
         **kwargs
             Additional keyword arguments to pass to `dask.compute()`.
         """
+        # find and compute all dask arrays simultaneously to allow dask to optimize the
+        # shared graph and avoid duplicate i/o and computations
         dt = self.serialize()
+
         data_objs = {
             k: v
             for k, v in dt.to_dict().items()
             if data_is_dask(v) and v.attrs.get("allow_compute", True)
         }
 
-        # Compute all dask collections simultaneously
         if verbose:
             with ProgressBar():
                 (data_objs,) = dask.compute(data_objs, **kwargs)
         else:
             (data_objs,) = dask.compute(data_objs, **kwargs)
 
-        # Reassign all computed arrays
-        for key, data in data_objs.items():
-            path_elems = key.strip("/").split("/")
-            parent = self
-            for elem in path_elems[:-1]:
-                if elem.isdigit():
-                    parent = parent[int(elem)]
-                else:
-                    parent = getattr(parent, elem)
+        for k, v in data_objs.items():
+            dt[k] = DataTree(v)
 
-            if isinstance(data, xr.Dataset):
-                mapping = data.attrs.get("name_map", {}).get(
-                    path_elems[-1], path_elems[-1]
-                )
-                da = data[mapping]
-            else:
-                da = data
-
-            if isinstance(parent, dict):
-                parent[path_elems[-1]] = da
-            else:
-                setattr(parent, path_elems[-1], da)
+        # then rebuild the trained model from the computed results
+        self._deserialize_attrs(dt)
 
         self._post_compute()
 
@@ -328,7 +314,7 @@ class _BaseCrossModel(ABC):
         """Get the model parameters."""
         return self._params
 
-    def serialize(self, save_data: bool = False) -> DataTree:
+    def serialize(self) -> DataTree:
         """Serialize a complete model with its preprocessors."""
         # Create a root node for this object with its params as attrs
         ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
@@ -337,7 +323,7 @@ class _BaseCrossModel(ABC):
         # Retrieve the tree representation of each attached object, or set basic attrs
         for key, attr in self.get_serialization_attrs().items():
             if hasattr(attr, "serialize"):
-                dt[key] = attr.serialize(save_data=save_data)
+                dt[key] = attr.serialize()
                 dt.attrs[key] = "_is_tree"
             else:
                 dt.attrs[key] = attr
@@ -366,7 +352,21 @@ class _BaseCrossModel(ABC):
 
         """
         self.compute()
-        dt = self.serialize(save_data=save_data)
+
+        dt = self.serialize()
+
+        # Remove any raw data arrays at this stage
+        for node in dt.subtree:
+            if not node.attrs.get("allow_compute", True) and not save_data:
+                dt[node.path] = DataTree(
+                    xr.Dataset(
+                        data_vars={
+                            node.name: xr.DataArray(np.nan, attrs={"placeholder": True})
+                        },
+                        attrs={"allow_compute": False, "placeholder": True},
+                    )
+                )
+
         write_mode = "w" if overwrite else "w-"
         dt.to_zarr(path, mode=write_mode, **kwargs)
 
@@ -376,14 +376,17 @@ class _BaseCrossModel(ABC):
         # Recreate the model with parameters set by root level attrs
         params = dt.attrs.pop("params")
         model = cls(**params)
+        model._deserialize_attrs(dt)
+        return model
+
+    def _deserialize_attrs(self, dt: DataTree):
+        """Set the necessary attributes of the model from a DataTree."""
         for key, attr in dt.attrs.items():
             if attr == "_is_tree":
-                deserialized_obj = getattr(model, key).deserialize(dt[key])
+                deserialized_obj = getattr(self, key).deserialize(dt[key])
             else:
                 deserialized_obj = attr
-            setattr(model, key, deserialized_obj)
-
-        return model
+            setattr(self, key, deserialized_obj)
 
     @classmethod
     def load(cls, path: str, **kwargs) -> Self:
