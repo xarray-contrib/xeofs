@@ -368,11 +368,11 @@ class Preprocessor(Transformer):
         else:
             self.return_list = False
 
-    def serialize(self, save_data: bool = False) -> DataTree:
+    def serialize(self) -> DataTree:
         """Serialize the necessary attributes of the fitted pre-processor
         and all transformers to a Dataset."""
         # Serialize the preprocessor as the root node
-        dt = self._serialize(save_data=save_data)
+        dt = self._serialize()
         dt.name = "preprocessor"
 
         # Serialize all transformers

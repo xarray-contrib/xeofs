@@ -110,11 +110,11 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return ds
 
-    def serialize(self, save_data: bool = False) -> DataTree:
+    def serialize(self) -> DataTree:
         """Serialize a transformer to a DataTree."""
-        return self._serialize(save_data=save_data)
+        return self._serialize()
 
-    def _serialize(self, save_data: bool = False) -> DataTree:
+    def _serialize(self) -> DataTree:
         """Serialize a transformer to a DataTree. Use an internal
         method so we can override the public one in subclasesses but
         still use this."""
@@ -167,12 +167,13 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
         method so we can override the public one in subclasesses but
         still use this."""
         # Create the object from params
-        params = dt.attrs.pop("params")
-        transformer = cls(**params)
+        transformer = cls(**dt.attrs["params"])
 
         # Set attributes
         for key, attr in dt.attrs.items():
-            if attr == "_is_node":
+            if key == "params":
+                continue
+            elif attr == "_is_node":
                 data = transformer._deserialize_data_node(key, dt[key])
                 setattr(transformer, key, data)
             elif attr == "_is_tree":
