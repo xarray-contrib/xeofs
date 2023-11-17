@@ -412,12 +412,13 @@ def test_save_load(dim, mock_data_array, tmp_path):
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
     assert all([key in loaded.data for key in original.data])
-    assert all(
-        [
-            loaded.data._allow_compute[key] == original.data._allow_compute[key]
-            for key in original.data
-        ]
-    )
+    for key in original.data:
+        if original.data._allow_compute[key]:
+            assert loaded.data[key].equals(original.data[key])
+        else:
+            # but ensure that input data is not saved by default
+            assert loaded.data[key].size <= 1
+            assert loaded.data[key].attrs["placeholder"] is True
 
     # Test that the recreated model can be used to transform new data
     assert np.allclose(

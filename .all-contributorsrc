@@ -1,8 +1,5 @@
 {
   "projectName": "xeofs",
-  "projectOwner": "nicrie",
-  "repoType": "github",
-  "repoHost": "https://github.com",
-  "files": ["README.md"],
-  "imageSize": 100
+  "projectOwner": "nicrie"
 }
+
