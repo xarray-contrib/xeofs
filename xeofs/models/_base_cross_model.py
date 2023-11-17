@@ -374,15 +374,16 @@ class _BaseCrossModel(ABC):
     def deserialize(cls, dt: DataTree) -> Self:
         """Deserialize the model and its preprocessors from a DataTree."""
         # Recreate the model with parameters set by root level attrs
-        params = dt.attrs.pop("params")
-        model = cls(**params)
+        model = cls(**dt.attrs["params"])
         model._deserialize_attrs(dt)
         return model
 
     def _deserialize_attrs(self, dt: DataTree):
         """Set the necessary attributes of the model from a DataTree."""
         for key, attr in dt.attrs.items():
-            if attr == "_is_tree":
+            if key == "params":
+                continue
+            elif attr == "_is_tree":
                 deserialized_obj = getattr(self, key).deserialize(dt[key])
             else:
                 deserialized_obj = attr

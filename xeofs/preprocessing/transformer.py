@@ -167,12 +167,13 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
         method so we can override the public one in subclasesses but
         still use this."""
         # Create the object from params
-        params = dt.attrs.pop("params")
-        transformer = cls(**params)
+        transformer = cls(**dt.attrs["params"])
 
         # Set attributes
         for key, attr in dt.attrs.items():
-            if attr == "_is_node":
+            if key == "params":
+                continue
+            elif attr == "_is_node":
                 data = transformer._deserialize_data_node(key, dt[key])
                 setattr(transformer, key, data)
             elif attr == "_is_tree":
