@@ -242,9 +242,10 @@ class EOFRotator(EOF):
         projections = xr.dot(projections, RinvT, dims="mode_m")
         # Reorder according to variance
         # this must be done in one line: i) select modes according to their variance, ii) replace coords with modes from 1 ... n
-        projections = projections.isel(
-            mode=self.data["idx_modes_sorted"].values
-        ).assign_coords(mode=projections.mode)
+        if self.sorted:
+            projections = projections.isel(
+                mode=self.data["idx_modes_sorted"].values
+            ).assign_coords(mode=projections.mode)
 
         # Scale scores by "pseudo" norms
         projections = projections * pseudo_norms

@@ -363,9 +363,10 @@ class MCARotator(MCA):
             projections1 = projections1.rename({"mode": "mode_m"})
             projections1 = xr.dot(projections1, RinvT, dims="mode_m")
             # Reorder according to variance
-            projections1 = projections1.isel(
-                mode=self.data["idx_modes_sorted"].values
-            ).assign_coords(mode=projections1.mode)
+            if self.sorted:
+                projections1 = projections1.isel(
+                    mode=self.data["idx_modes_sorted"].values
+                ).assign_coords(mode=projections1.mode)
             # Adapt the sign of the scores
             projections1 = projections1 * self.data["modes_sign"]
 
@@ -389,9 +390,10 @@ class MCARotator(MCA):
             projections2 = projections2.rename({"mode": "mode_m"})
             projections2 = xr.dot(projections2, RinvT, dims="mode_m")
             # Reorder according to variance
-            projections2 = projections2.isel(
-                mode=self.data["idx_modes_sorted"].values
-            ).assign_coords(mode=projections2.mode)
+            if self.sorted:
+                projections2 = projections2.isel(
+                    mode=self.data["idx_modes_sorted"].values
+                ).assign_coords(mode=projections2.mode)
             # Determine the sign of the scores
             projections2 = projections2 * self.data["modes_sign"]
 
