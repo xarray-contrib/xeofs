@@ -141,6 +141,7 @@ class Decomposer:
                 "seed": self.random_state,
             }
             solver_kwargs.setdefault("compute", self.compute)
+            solver_kwargs.setdefault("n_power_iter", 4)
             U, s, VT = self._svd(X, dims, dask_svd, solver_kwargs)
             U, s, VT = self._compute_svd_result(U, s, VT)
         else:
