@@ -280,7 +280,9 @@ class _BaseModel(ABC):
         """
         return self.fit(data, dim, weights).transform(data, **kwargs)
 
-    def inverse_transform(self, scores: DataObject) -> DataObject:
+    def inverse_transform(
+        self, scores: DataObject, normalized: bool = True
+    ) -> DataObject:
         """Reconstruct the original data from transformed data.
 
         Parameters
@@ -289,6 +291,8 @@ class _BaseModel(ABC):
             Transformed data to be reconstructed. This could be a subset
             of the `scores` data of a fitted model, or unseen data. Must
             have a 'mode' dimension.
+        normalized: bool, default=True
+            Whether the scores data have been normalized by the L2 norm.
 
         Returns
         -------
@@ -296,6 +300,8 @@ class _BaseModel(ABC):
             Reconstructed data.
 
         """
+        if normalized:
+            scores = scores * self.data["norms"]
         data_reconstructed = self._inverse_transform_algorithm(scores)
         return self.preprocessor.inverse_transform_data(data_reconstructed)
 
