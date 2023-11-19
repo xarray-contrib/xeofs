@@ -262,7 +262,8 @@ def test_compute(mca_model_delayed, compute):
         (("lon", "lat")),
     ],
 )
-def test_save_load(dim, mock_data_array, tmp_path):
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
@@ -273,13 +274,13 @@ def test_save_load(dim, mock_data_array, tmp_path):
     original.fit(original_unrotated)
 
     # Save the EOF model
-    original.save(tmp_path / "mca.zarr")
+    original.save(tmp_path / "mca", engine=engine)
 
     # Check that the EOF model has been saved
-    assert (tmp_path / "mca.zarr").exists()
+    assert (tmp_path / "mca").exists()
 
     # Recreate the model from saved file
-    loaded = MCARotator.load(tmp_path / "mca.zarr")
+    loaded = MCARotator.load(tmp_path / "mca", engine=engine)
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
