@@ -54,11 +54,25 @@ requires = ["setuptools", "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.semantic_release]
-version_variable = [
-    "xeofs/_version.py:__version__",
-    "pyproject.toml:version"
-]
-branch = "main"
-upload_to_pypi = true
-uploade_to_release = true
+version_toml = [ "pyproject.toml:tool.poetry.version" ]
+version_source = "tag"
+commit_message = "chore(release): v{version}"
 build_command = "pip install poetry && poetry build"
+branch = "main"
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "style",
+    "refactor",
+    "test",
+]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
+
