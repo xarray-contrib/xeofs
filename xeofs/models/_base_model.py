@@ -6,6 +6,7 @@ from typing import (
     Dict,
     Any,
     List,
+    Literal,
     TypeVar,
     Tuple,
 )
@@ -16,12 +17,13 @@ from datetime import datetime
 import dask
 import numpy as np
 import xarray as xr
-from datatree import DataTree, open_datatree
+from datatree import DataTree
 from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
 from ..utils.data_types import DataObject, Data, DataArray, DataSet, DataList, Dims
+from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
 from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
     convert_to_dim_type,
@@ -401,20 +403,24 @@ class _BaseModel(ABC):
         path: str,
         overwrite: bool = False,
         save_data: bool = False,
+        engine: Literal["zarr", "netcdf4", "h5netcdf"] = "zarr",
         **kwargs,
     ):
-        """Save the model to zarr.
+        """Save the model.
 
         Parameters
         ----------
         path : str
-            Path to save the model zarr store.
+            Path to save the model.
         overwrite: bool, default=False
             Whether or not to overwrite the existing path if it already exists.
+            Ignored unless `engine="zarr"`.
         save_data : str
             Whether or not to save the full input data along with the fitted components.
+        engine : {"zarr", "netcdf4", "h5netcdf"}, default="zarr"
+            Xarray backend engine to use for writing the saved model.
         **kwargs
-            Additional keyword arguments to pass to `DataTree.to_zarr()`.
+            Additional keyword arguments to pass to `DataTree.to_netcdf()` or `DataTree.to_zarr()`.
 
         """
         self.compute()
@@ -422,19 +428,10 @@ class _BaseModel(ABC):
         dt = self.serialize()
 
         # Remove any raw data arrays at this stage
-        for node in dt.subtree:
-            if not node.attrs.get("allow_compute", True) and not save_data:
-                dt[node.path] = DataTree(
-                    xr.Dataset(
-                        data_vars={
-                            node.name: xr.DataArray(np.nan, attrs={"placeholder": True})
-                        },
-                        attrs={"allow_compute": False, "placeholder": True},
-                    )
-                )
+        if not save_data:
+            dt = insert_placeholders(dt)
 
-        write_mode = "w" if overwrite else "w-"
-        dt.to_zarr(path, mode=write_mode, **kwargs)
+        write_model_tree(dt, path, overwrite=overwrite, engine=engine, **kwargs)
 
     @classmethod
     def deserialize(cls, dt: DataTree) -> Self:
@@ -456,13 +453,20 @@ class _BaseModel(ABC):
             setattr(self, key, deserialized_obj)
 
     @classmethod
-    def load(cls, path: str, **kwargs) -> Self:
-        """Load a saved model from zarr.
+    def load(
+        cls,
+        path: str,
+        engine: Literal["zarr", "netcdf4", "h5netcdf"] = "zarr",
+        **kwargs,
+    ) -> Self:
+        """Load a saved model.
 
         Parameters
         ----------
         path : str
-            Path to the saved model zarr store.
+            Path to the saved model.
+        engine : {"zarr", "netcdf4", "h5netcdf"}, default="zarr"
+            Xarray backend engine to use for reading the saved model.
         **kwargs
             Additional keyword arguments to pass to `open_datatree()`.
 
@@ -472,7 +476,7 @@ class _BaseModel(ABC):
             The loaded model.
 
         """
-        dt = open_datatree(path, engine="zarr", **kwargs)
+        dt = open_model_tree(path, engine=engine, **kwargs)
         model = cls.deserialize(dt)
         return model
 
