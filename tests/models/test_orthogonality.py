@@ -455,7 +455,8 @@ def test_crmca_scores(dim, use_coslat, power, squared_loadings, mock_data_array)
         (("lon", "lat"), False),
     ],
 )
-def test_eof_transform(dim, use_coslat, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_eof_transform(dim, use_coslat, mock_data_array, normalized):
     """Transforming the original data results in the model scores"""
     model = EOF(
         n_modes=5,
@@ -464,8 +465,8 @@ def test_eof_transform(dim, use_coslat, mock_data_array):
         random_state=5,
     )
     model.fit(mock_data_array, dim=dim)
-    scores = model.scores()
-    pseudo_scores = model.transform(mock_data_array)
+    scores = model.scores(normalized=normalized)
+    pseudo_scores = model.transform(mock_data_array, normalized=normalized)
     assert np.allclose(
         scores, pseudo_scores, atol=1e-4
     ), "Transformed data does not match the scores"
@@ -480,13 +481,14 @@ def test_eof_transform(dim, use_coslat, mock_data_array):
         (("lon", "lat"), False),
     ],
 )
-def test_ceof_transform(dim, use_coslat, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_ceof_transform(dim, use_coslat, mock_data_array, normalized):
     """Not implemented yet"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    scores = model.scores()
+    scores = model.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
-        pseudo_scores = model.transform(mock_data_array)
+        pseudo_scores = model.transform(mock_data_array, normalized=normalized)
 
 
 # Rotated EOF
@@ -501,14 +503,15 @@ def test_ceof_transform(dim, use_coslat, mock_data_array):
         (("lon", "lat"), False, 2),
     ],
 )
-def test_reof_transform(dim, use_coslat, power, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_reof_transform(dim, use_coslat, power, mock_data_array, normalized):
     """Transforming the original data results in the model scores"""
     model = EOF(n_modes=5, standardize=True, use_coslat=use_coslat, random_state=5)
     model.fit(mock_data_array, dim=dim)
     rot = EOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    scores = rot.scores()
-    pseudo_scores = rot.transform(mock_data_array)
+    scores = rot.scores(normalized=normalized)
+    pseudo_scores = rot.transform(mock_data_array, normalized=normalized)
     np.testing.assert_allclose(
         scores,
         pseudo_scores,
@@ -529,15 +532,16 @@ def test_reof_transform(dim, use_coslat, power, mock_data_array):
         (("lon", "lat"), False, 2),
     ],
 )
-def test_creof_transform(dim, use_coslat, power, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_creof_transform(dim, use_coslat, power, mock_data_array, normalized):
     """not implemented yet"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
     rot = ComplexEOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    scores = rot.scores()
+    scores = rot.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
-        pseudo_scores = rot.transform(mock_data_array)
+        pseudo_scores = rot.transform(mock_data_array, normalized=normalized)
 
 
 # MCA
@@ -687,13 +691,14 @@ def r2_score(x, y, dim=None):
         (("lon", "lat"), False),
     ],
 )
-def test_eof_inverse_transform(dim, use_coslat, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_eof_inverse_transform(dim, use_coslat, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
     model = EOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
-    scores = model.data["scores"]
-    data_rec = model.inverse_transform(scores)
+    scores = model.scores(normalized=normalized)
+    data_rec = model.inverse_transform(scores, normalized=normalized)
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -709,13 +714,14 @@ def test_eof_inverse_transform(dim, use_coslat, mock_data_array):
         (("lon", "lat"), False),
     ],
 )
-def test_ceof_inverse_transform(dim, use_coslat, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_ceof_inverse_transform(dim, use_coslat, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
     model = ComplexEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
-    scores = model.data["scores"]
-    data_rec = model.inverse_transform(scores).real
+    scores = model.scores(normalized=normalized)
+    data_rec = model.inverse_transform(scores, normalized=normalized).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -734,15 +740,16 @@ def test_ceof_inverse_transform(dim, use_coslat, mock_data_array):
         (("lon", "lat"), False, 2),
     ],
 )
-def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
     model = EOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
     rot = EOFRotator(n_modes=19, power=power)
     rot.fit(model)
-    scores = rot.data["scores"]
-    data_rec = rot.inverse_transform(scores).real
+    scores = rot.scores(normalized=normalized)
+    data_rec = rot.inverse_transform(scores, normalized=normalized).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
@@ -763,15 +770,16 @@ def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array):
         (("lon", "lat"), False, 2),
     ],
 )
-def test_creof_inverse_transform(dim, use_coslat, power, mock_data_array):
+@pytest.mark.parametrize("normalized", [True, False])
+def test_creof_inverse_transform(dim, use_coslat, power, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
     model = ComplexEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
     rot = ComplexEOFRotator(n_modes=19, power=power)
     rot.fit(model)
-    scores = rot.data["scores"]
-    data_rec = rot.inverse_transform(scores).real
+    scores = rot.scores(normalized=normalized)
+    data_rec = rot.inverse_transform(scores, normalized=normalized).real
     r2 = r2_score(data, data_rec, dim=dim)
     r2 = r2.mean()
     # Choose a threshold of 0.95; a bit arbitrary
