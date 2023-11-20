@@ -203,7 +203,8 @@ def test_compute(eof_model_delayed, compute):
         (("lon", "lat")),
     ],
 )
-def test_save_load(dim, mock_data_array, tmp_path):
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in EOF class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
@@ -214,13 +215,13 @@ def test_save_load(dim, mock_data_array, tmp_path):
     original.fit(original_unrotated)
 
     # Save the EOF model
-    original.save(tmp_path / "eof.zarr")
+    original.save(tmp_path / "eof", engine=engine)
 
     # Check that the EOF model has been saved
-    assert (tmp_path / "eof.zarr").exists()
+    assert (tmp_path / "eof").exists()
 
     # Recreate the model from saved file
-    loaded = EOFRotator.load(tmp_path / "eof.zarr")
+    loaded = EOFRotator.load(tmp_path / "eof", engine=engine)
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
@@ -235,12 +236,11 @@ def test_save_load(dim, mock_data_array, tmp_path):
 
     # Test that the recreated model can be used to transform new data
     assert np.allclose(
-        original.scores(), loaded.transform(mock_data_array), rtol=1e-3, atol=1e-3
+        original.transform(mock_data_array), loaded.transform(mock_data_array)
     )
 
     # The loaded model should also be able to inverse_transform new data
     assert np.allclose(
         original.inverse_transform(original.scores()),
         loaded.inverse_transform(loaded.scores()),
-        rtol=1e-2,
     )
