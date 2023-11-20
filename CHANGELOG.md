@@ -2,6 +2,17 @@
 
 
 
+## v2.2.1 (2023-11-20)
+
+### Ci
+
+* ci: add password input for PyPI token ([`600b43e`](https://github.com/nicrie/xeofs/commit/600b43ec432ff58ab0c0eb27799a0726801fcd1b))
+
+### Fix
+
+* fix: trigger new release ([`58250b9`](https://github.com/nicrie/xeofs/commit/58250b948bf1d2316a589b3872a44d3d7ecb7ec9))
+
+
 ## v2.2.0 (2023-11-20)
 
 ### Chore
