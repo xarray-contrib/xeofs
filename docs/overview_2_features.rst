@@ -193,7 +193,7 @@ significant speed advantages. The dashed line marks data sets with about 3 MiB;
     You can find the script to run the performance tests here_.
 
 
-.. _here: www.github.com/nicrie/xeofs/docs/perf/
+.. _here: https://github.com/nicrie/xeofs/tree/main/docs/perf
 
 Implement Your Own Model
 -------------------------
