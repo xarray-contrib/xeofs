@@ -47,7 +47,7 @@ jobs:
 
       - name: Execute Tests with pytest and Coverage
         run: |
-          python -m poetry run coverage run -m pytest
+          python -m poetry run coverage run -m pytest --doctest-glob="README.md"
           python -m poetry run coverage report -m
           python -m poetry run coverage xml
 
