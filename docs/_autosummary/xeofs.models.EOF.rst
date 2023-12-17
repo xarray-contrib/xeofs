@@ -25,6 +25,7 @@
       ~EOF.fit
       ~EOF.fit_transform
       ~EOF.get_params
+      ~EOF.get_serialization_attrs
       ~EOF.inverse_transform
       ~EOF.load
       ~EOF.save

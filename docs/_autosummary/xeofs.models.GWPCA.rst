@@ -25,6 +25,7 @@
       ~GWPCA.fit
       ~GWPCA.fit_transform
       ~GWPCA.get_params
+      ~GWPCA.get_serialization_attrs
       ~GWPCA.inverse_transform
       ~GWPCA.largest_locally_weighted_components
       ~GWPCA.load
