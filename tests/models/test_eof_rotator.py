@@ -244,3 +244,45 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
         original.inverse_transform(original.scores()),
         loaded.inverse_transform(loaded.scores()),
     )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = EOF()
+    model.fit(mock_data_array, dim)
+    rotator = EOFRotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = EOFRotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_data_array), rebuilt_rotator.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = EOF()
+    model.fit(mock_dataset, dim)
+    rotator = EOFRotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = EOFRotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_dataset), rebuilt_rotator.transform(mock_dataset)
+    )
