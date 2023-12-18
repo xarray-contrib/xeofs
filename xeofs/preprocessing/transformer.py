@@ -88,25 +88,28 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
     def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
         return X
 
-    def _serialize_data(self, key: str, data: DataArray) -> DataSet:
-        # Make sure the DataArray has some name so we can create a string mapping
-        if data.name is None:
-            data.name = key
-
+    def _serialize_data(self, key: str, data: Data) -> DataSet:
         multiindexes = {}
-        if data.name in data.coords:
-            # Create coords-based datasets and note multiindexes
-            if isinstance(data.to_index(), pd.MultiIndex):
-                multiindexes[data.name] = [n for n in data.to_index().names]
-            ds = xr.Dataset(coords={data.name: data})
+        name_map = None
+        if isinstance(data, xr.Dataset):
+            # Keep Dataset as is
+            ds = data
         else:
-            # Create data-based datasets
+            # Convert DataArray to Dataset
+            if data.name in data.coords:
+                # Convert a coord-like DataArray to Dataset and note multiindexes
+                if isinstance(data.to_index(), pd.MultiIndex):
+                    multiindexes[data.name] = [n for n in data.to_index().names]
+            # Make sure the DataArray has some name so we can create a string mapping
+            elif data.name is None:
+                data.name = key
             ds = xr.Dataset(data_vars={data.name: data})
+            name_map = data.name
 
         # Drop multiindexes and record for later
         ds = ds.reset_index(list(multiindexes.keys()))
         ds.attrs["multiindexes"] = multiindexes
-        ds.attrs["name_map"] = {key: data.name}
+        ds.attrs["name_map"] = {key: name_map}
 
         return ds
 
@@ -127,7 +130,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         # Serialize each transformer attribute
         for key, attr in attrs.items():
-            if isinstance(attr, xr.DataArray):
+            if isinstance(attr, (xr.DataArray, xr.Dataset)):
                 # attach data to data_vars or coords
                 ds = self._serialize_data(key, attr)
                 dt[key] = DataTree(name=key, data=ds)
@@ -148,13 +151,15 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return dt
 
-    def _deserialize_data_node(self, key: str, ds: xr.Dataset) -> DataArray:
+    def _deserialize_data_node(self, key: str, dt: DataTree) -> DataArray:
         # Rebuild multiindexes
-        ds = ds.set_index(ds.attrs.get("multiindexes", {}))
+        dt = dt.set_index(dt.attrs.get("multiindexes", {}))
         # Extract the DataArray or coord from the Dataset
-        data_key = ds.attrs["name_map"][key]
-        data = ds[data_key]
-        return data
+        data_key = dt.attrs["name_map"][key]
+        if data_key is not None:
+            return dt[data_key]
+        else:
+            return dt.ds
 
     @classmethod
     def deserialize(cls, dt: DataTree) -> Self:
