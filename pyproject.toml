@@ -35,6 +35,7 @@ pytest = "^7.0"
 coverage = "^6.3"
 black = "~23.7.0" 
 pre-commit = "^3.3"
+nbstripout = "^0.6"
 
 [tool.poetry.group.docs]
 optional = true

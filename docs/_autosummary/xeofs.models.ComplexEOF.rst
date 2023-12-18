@@ -27,6 +27,7 @@
       ~ComplexEOF.fit
       ~ComplexEOF.fit_transform
       ~ComplexEOF.get_params
+      ~ComplexEOF.get_serialization_attrs
       ~ComplexEOF.inverse_transform
       ~ComplexEOF.load
       ~ComplexEOF.save

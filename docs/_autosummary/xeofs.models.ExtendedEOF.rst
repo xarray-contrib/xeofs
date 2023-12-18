@@ -25,6 +25,7 @@
       ~ExtendedEOF.fit
       ~ExtendedEOF.fit_transform
       ~ExtendedEOF.get_params
+      ~ExtendedEOF.get_serialization_attrs
       ~ExtendedEOF.inverse_transform
       ~ExtendedEOF.load
       ~ExtendedEOF.save

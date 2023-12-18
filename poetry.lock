@@ -1395,6 +1395,20 @@ sphinx = ">=1.8"
 traitlets = ">=5"
 
 [[package]]
+name = "nbstripout"
+version = "0.6.1"
+description = "Strips outputs from Jupyter and IPython notebooks"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "nbstripout-0.6.1-py2.py3-none-any.whl", hash = "sha256:5ff6eb0debbcd656c4a64db8e082a24fabcfc753a9e8c9f6d786971e8f29e110"},
+    {file = "nbstripout-0.6.1.tar.gz", hash = "sha256:9065bcdd1488b386e4f3c081ffc1d48f4513a2f8d8bf4d0d9a28208c5dafe9d3"},
+]
+
+[package.dependencies]
+nbformat = "*"
+
+[[package]]
 name = "netcdf4"
 version = "1.6.5"
 description = "Provides an object-oriented python interface to the netCDF version 4 library"
@@ -3273,4 +3287,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "cf6b2ff8e7b74a1f5717b3fbbdee87a228c471b3565eff0bd37ce64446c7f4bb"
+content-hash = "bc43e276a5376c47b37e4e8f6f455eadc7bf8c13da28bd5caf94e71feb84d176"
