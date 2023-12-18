@@ -95,6 +95,7 @@ Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated 
 
 >>> comps1, comps2 = mca.components()  # Singular vectors (spatial patterns)
 >>> scores1, scores2 = mca.scores()  # Expansion coefficients (temporal patterns)
+
 ```
 
 **Varimax-rotated MCA**
@@ -106,6 +107,7 @@ Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated 
 
 >>> rot_comps = rotator.components()  # Rotated singular vectors (spatial patterns)
 >>> rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)
+
 ```
 
 To further explore the capabilities of `xeofs`, check out the [available documentation](https://xeofs.readthedocs.io/en/latest/) and [examples](https://xeofs.readthedocs.io/en/latest/auto_examples/index.html).
