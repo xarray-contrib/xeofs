@@ -6,7 +6,7 @@
 | Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)                           |
 | Documentation              | ![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)                          |
 | Citation & Licensing       | ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
-| User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs) [![All Contributors](https://img.shields.io/github/all-contributors/nicrie/xeofs?color=ee8449&style=flat-square)](#contributors)                                            |
+| User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs)                                          |
 
 ## Overview
 
@@ -42,43 +42,72 @@ In order to get started with `xeofs`, follow these simple steps:
 **Import the package**
     
 ```python
-import xeofs as xe
+>>> import xarray as xr  # for example data only
+>>> import xeofs as xe
+
+```
+
+**Load example data**
+
+```python
+>>> t2m = xr.tutorial.open_dataset("air_temperature")
+>>> t2m_west = t2m.isel(lon=slice(None, 20))
+>>> t2m_east = t2m.isel(lon=slice(21, None))
+
 ```
 
 **EOF analysis**
+Initiate and fit the EOF/PCA model to the data
 
 ```python
-model = xe.models.EOF(n_modes=10)
-model.fit(data, dim="time")
-comps = model.components()  # EOFs (spatial patterns)
-scores = model.scores()  # PCs (temporal patterns)
+>>> eof = xe.models.EOF(n_modes=10)
+>>> eof.fit(t2m, dim="time")  # doctest: +ELLIPSIS
+<xeofs.models.eof.EOF object at ...>
+
+```
+Now, you can access the model's EOF components and PC scores:
+
+```py
+>>> comps = eof.components()  # EOFs (spatial patterns)
+>>> scores = eof.scores()  # PCs (temporal patterns)
+
 ```
 
 **Varimax-rotated EOF analysis**
+Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated EOF analysis
 
 ```python
-rotator = xe.models.EOFRotator(n_modes=10)
-rotator.fit(model)
-rot_comps = rotator.components()  # Rotated EOFs (spatial patterns)
-rot_scores = rotator.scores()  # Rotated PCs (temporal patterns)
+>>> rotator = xe.models.EOFRotator(n_modes=3)
+>>> rotator.fit(eof) # doctest: +ELLIPSIS
+<xeofs.models.eof_rotator.EOFRotator object at ...>
+
+>>> rot_comps = rotator.components()  # Rotated EOFs (spatial patterns)
+>>> rot_scores = rotator.scores()  # Rotated PCs (temporal patterns)
+
 ```
 
 **Maximum Covariance Analysis (MCA)**
 
 ```python
-model = xe.models.MCA(n_modes=10)
-model.fit(data1, data2, dim="time")
-comps1, comps2 = model.components()  # Singular vectors (spatial patterns)
-scores1, scores2 = model.scores()  # Expansion coefficients (temporal patterns)
+>>> mca = xe.models.MCA(n_modes=10)
+>>> mca.fit(t2m_west, t2m_east, dim="time")  # doctest: +ELLIPSIS
+<xeofs.models.mca.MCA object at ...>
+
+>>> comps1, comps2 = mca.components()  # Singular vectors (spatial patterns)
+>>> scores1, scores2 = mca.scores()  # Expansion coefficients (temporal patterns)
+
 ```
 
 **Varimax-rotated MCA**
 
 ```python
-rotator = xe.models.MCARotator(n_modes=10)
-rotator.fit(model)
-rot_comps = rotator.components()  # Rotated singular vectors (spatial patterns)
-rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)
+>>> rotator = xe.models.MCARotator(n_modes=10)
+>>> rotator.fit(mca)  # doctest: +ELLIPSIS
+<xeofs.models.mca_rotator.MCARotator object at ...>
+
+>>> rot_comps = rotator.components()  # Rotated singular vectors (spatial patterns)
+>>> rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)
+
 ```
 
 To further explore the capabilities of `xeofs`, check out the [available documentation](https://xeofs.readthedocs.io/en/latest/) and [examples](https://xeofs.readthedocs.io/en/latest/auto_examples/index.html).
@@ -124,11 +153,4 @@ doi = {10.5281/zenodo.6323011}
 
 ## Contributors
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+[![Contributors](https://contrib.rocks/image?repo=nicrie/xeofs)](https://github.com/nicrie/xeofs/graphs/contributors)
