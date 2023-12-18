@@ -6,7 +6,7 @@
 | Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)                           |
 | Documentation              | ![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)                          |
 | Citation & Licensing       | ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
-| User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs) [![All Contributors](https://img.shields.io/github/all-contributors/nicrie/xeofs?color=ee8449&style=flat-square)](#contributors)                                            |
+| User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs)                                          |
 
 ## Overview
 
@@ -124,11 +124,4 @@ doi = {10.5281/zenodo.6323011}
 
 ## Contributors
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+[![Contributors](https://contrib.rocks/image?repo=nicrie/xeofs)](https://github.com/nicrie/xeofs/graphs/contributors)
