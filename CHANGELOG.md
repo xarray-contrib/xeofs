@@ -2,9 +2,46 @@
 
 
 
+## v2.2.3 (2023-12-18)
+
+### Documentation
+
+* docs: show contributors in readme (#140) ([`0c12fa5`](https://github.com/nicrie/xeofs/commit/0c12fa5385e807e2cd45599e6fc0f10b3a520119))
+
+* docs: remove all-contributor config file ([`f5234fc`](https://github.com/nicrie/xeofs/commit/f5234fc3895f3bcd8893ae684ea23a0ebe001db4))
+
+* docs: add required dependencies (#138) ([`7ec694f`](https://github.com/nicrie/xeofs/commit/7ec694f41d6aca0509782096cbabbcd19264180a))
+
+* docs: add required dependencies ([`ce6b93a`](https://github.com/nicrie/xeofs/commit/ce6b93ab31da6ab10ebc70e9444f1b9956ec02b2))
+
+* docs: fix link to perf scripts (#131) ([`e2b3276`](https://github.com/nicrie/xeofs/commit/e2b32762bd6bb3111c973bbd571b56367a496eba))
+
+* docs: Update link to contributing guide (#129) ([`21b8d3d`](https://github.com/nicrie/xeofs/commit/21b8d3dd3cf46fb631f7c2fe28fdf95246cd4153))
+
+* docs: show contributors in README ([`049e654`](https://github.com/nicrie/xeofs/commit/049e6544637d4c396d40ffcb1b29b7a710c584de))
+
+### Fix
+
+* fix: serialization for dataset (#139) ([`93fce38`](https://github.com/nicrie/xeofs/commit/93fce38ca170b1c6c9adb32b345a4531f2db6fdf))
+
+* fix: test serialization roundtrip with dataset ([`ff9a1be`](https://github.com/nicrie/xeofs/commit/ff9a1bea1441e0c742ca049750352b110b6376b1))
+
+* fix: handle preprocessor serialization for dataset ([`5bcdf5c`](https://github.com/nicrie/xeofs/commit/5bcdf5c95cdf2d0cf4206c386268b4ffd0fed053))
+
+### Unknown
+
+* Merge branch &#39;main&#39; into contrib-rocks ([`e8ba057`](https://github.com/nicrie/xeofs/commit/e8ba0571c1a2c023d9cacc07d0bc5188e6ead70a))
+
+* Fix link to perf scripts ([`38ba677`](https://github.com/nicrie/xeofs/commit/38ba6770a5c502708c59f4ae3000fc46fb302f4b))
+
+* Update link to contributing guide ([`11c1208`](https://github.com/nicrie/xeofs/commit/11c120881c9dbe93a47043be1ec87365279cd6ec))
+
+
 ## v2.2.2 (2023-11-20)
 
 ### Chore
+
+* chore(release): v2.2.2 ([`a58d0ad`](https://github.com/nicrie/xeofs/commit/a58d0adb8fbb27c8008189beec51161300f97277))
 
 * chore(release): update PSR version ([`0f5524f`](https://github.com/nicrie/xeofs/commit/0f5524fddafbd5aa71df5de40006f5ace75561bf))
 
