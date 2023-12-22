@@ -124,7 +124,7 @@ html_theme_options = {
             # Label for this link
             "name": "GitHub",
             # URL where the link will redirect
-            "url": "https://github.com/nicrie/xeofs",  # required
+            "url": "https://github.com/xarray-contrib/xeofs",  # required
             # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
             "icon": "fa-brands fa-square-github",
             # The type of image to be used (see below for details)

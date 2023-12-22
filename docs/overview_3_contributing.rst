@@ -35,7 +35,7 @@ Next, clone your fork to your computer:
 
     git clone https://github.com/your-user-name/xeofs.git
     cd xeofs
-    git remote add upstream https://github.com/nicrie/xeofs.git
+    git remote add upstream https://github.com/xarray-contrib/xeofs.git
 
 This command sequence creates a local directory named *xeofs* and links your version to the primary xeofs project.
 
