@@ -2,10 +2,10 @@
 
 | Versions                   | ![PyPI](https://img.shields.io/pypi/v/xeofs) ![Conda](https://img.shields.io/conda/vn/conda-forge/xeofs) |
 |----------------------------|:---------------------------------------------------------------------------------------------:|
-| Build & Testing            | ![Build](https://img.shields.io/github/actions/workflow/status/nicrie/xeofs/ci.yml?branch=main) ![Coverage](https://codecov.io/gh/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7) |
+| Build & Testing            | ![Build](https://img.shields.io/github/actions/workflow/status/xarray-contrib/xeofs/ci.yml?branch=main) ![Coverage](https://codecov.io/gh/xarray-contrib/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7) |
 | Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)                           |
 | Documentation              | ![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)                          |
-| Citation & Licensing       | ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
+| Citation & Licensing       | [![JOSS](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180/status.svg)](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180) ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
 | User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs)                                          |
 
 ## Overview
@@ -123,11 +123,11 @@ Contributions are highly welcomed and appreciated. If you're interested in impro
 
 ## License
 
-This project is licensed under the terms of the [MIT license](https://github.com/nicrie/xeofs/blob/main/LICENSE).
+This project is licensed under the terms of the [MIT license](https://github.com/xarray-contrib/xeofs/blob/main/LICENSE).
 
 ## Contact
 
-For questions or support, please open a [Github issue](https://github.com/nicrie/xeofs/issues).
+For questions or support, please open a [Github issue](https://github.com/xarray-contrib/xeofs/issues).
 
 ## Credits
 
@@ -144,7 +144,7 @@ When using `xeofs`, kindly remember to cite the original references of the metho
 ```bibtex
 @software{rieger_xeofs_2023,
 title = {xeofs: Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis},
-url = {https://github.com/nicrie/xeofs}
+url = {https://github.com/xarray-contrib/xeofs}
 version = {x.y.z},
 author = {Rieger, N. and Levang, S. J.},
 date = {2023},
@@ -153,4 +153,4 @@ doi = {10.5281/zenodo.6323011}
 
 ## Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=nicrie/xeofs)](https://github.com/nicrie/xeofs/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=xarray-contrib/xeofs)](https://github.com/xarray-contrib/xeofs/graphs/contributors)

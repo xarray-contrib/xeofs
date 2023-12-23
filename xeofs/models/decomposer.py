@@ -209,7 +209,7 @@ class Decomposer:
             raise np.linalg.LinAlgError(
                 "SVD failed. This may be due to isolated NaN values in the data. Please consider the following steps:\n"
                 "1. Check for and remove any isolated NaNs in your dataset.\n"
-                "2. If the error persists, please raise an issue at https://github.com/nicrie/xeofs/issues."
+                "2. If the error persists, please raise an issue at https://github.com/xarray-contrib/xeofs/issues."
             )
 
     def _compute_svd_result(self, U, s, VT):
