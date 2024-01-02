@@ -17,7 +17,7 @@ def eof_model(mock_data_array, dim):
 
 @pytest.fixture
 def eof_model_delayed(mock_dask_data_array, dim):
-    eof = EOF(n_modes=5, compute=False)
+    eof = EOF(n_modes=5, compute=False, check_nans=False)
     eof.fit(mock_dask_data_array, dim)
     return eof
 
@@ -81,7 +81,8 @@ def test_transform(eof_model, mock_data_array):
 def test_inverse_transform(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
-    Xrec = eof_rotator.inverse_transform(mode=1)
+    scores = eof_rotator.data["scores"].sel(mode=1)
+    Xrec = eof_rotator.inverse_transform(scores)
 
     assert isinstance(Xrec, xr.DataArray)
 
@@ -180,7 +181,7 @@ def test_scores(eof_model):
     ],
 )
 def test_compute(eof_model_delayed, compute):
-    eof_rotator = EOFRotator(n_modes=5, compute=compute)
+    eof_rotator = EOFRotator(n_modes=5, compute=compute, max_iter=20, rtol=1e-4)
     eof_rotator.fit(eof_model_delayed)
 
     if compute:
@@ -192,3 +193,96 @@ def test_compute(eof_model_delayed, compute):
         assert data_is_dask(eof_rotator.data["explained_variance"])
         assert data_is_dask(eof_rotator.data["components"])
         assert data_is_dask(eof_rotator.data["rotation_matrix"])
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
+    """Test save/load methods in EOF class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original_unrotated = EOF()
+    original_unrotated.fit(mock_data_array, dim)
+
+    original = EOFRotator()
+    original.fit(original_unrotated)
+
+    # Save the EOF model
+    original.save(tmp_path / "eof", engine=engine)
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "eof").exists()
+
+    # Recreate the model from saved file
+    loaded = EOFRotator.load(tmp_path / "eof", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        if original.data._allow_compute[key]:
+            assert loaded.data[key].equals(original.data[key])
+        else:
+            # but ensure that input data is not saved by default
+            assert loaded.data[key].size <= 1
+            assert loaded.data[key].attrs["placeholder"] is True
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.transform(mock_data_array), loaded.transform(mock_data_array)
+    )
+
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(original.scores()),
+        loaded.inverse_transform(loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = EOF()
+    model.fit(mock_data_array, dim)
+    rotator = EOFRotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = EOFRotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_data_array), rebuilt_rotator.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = EOF()
+    model.fit(mock_dataset, dim)
+    rotator = EOFRotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = EOFRotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_dataset), rebuilt_rotator.transform(mock_dataset)
+    )

@@ -414,26 +414,26 @@ def test_inverse_transform(dim, mock_data_array):
     """Test inverse_transform method in ExtendedEOF class."""
 
     # instantiate the ExtendedEOF class with necessary parameters
-    eof = ExtendedEOF(n_modes=5, tau=2, embedding=2)
+    eeof = ExtendedEOF(n_modes=5, tau=2, embedding=2)
 
     # fit the ExtendedEOF model
-    eof.fit(mock_data_array, dim=dim)
+    eeof.fit(mock_data_array, dim=dim)
+    scores = eeof.scores()
 
     # Test with scalar
     mode = 1
-    with pytest.raises(NotImplementedError):
-        reconstructed_data = eof.inverse_transform(mode)
-    # assert isinstance(reconstructed_data, xr.DataArray)
+    reconstructed_data = eeof.inverse_transform(scores.sel(mode=mode))
+    assert isinstance(reconstructed_data, xr.DataArray)
 
-    # # Test with slice
-    # mode = slice(1, 2)
-    # reconstructed_data = eof.inverse_transform(mode)
-    # assert isinstance(reconstructed_data, xr.DataArray)
+    # Test with slice
+    mode = slice(1, 2)
+    reconstructed_data = eeof.inverse_transform(scores.sel(mode=mode))
+    assert isinstance(reconstructed_data, xr.DataArray)
 
-    # # Test with array of tick labels
-    # mode = np.array([1, 3])
-    # reconstructed_data = eof.inverse_transform(mode)
-    # assert isinstance(reconstructed_data, xr.DataArray)
+    # Test with array of tick labels
+    mode = np.array([1, 3])
+    reconstructed_data = eeof.inverse_transform(scores.sel(mode=mode))
+    assert isinstance(reconstructed_data, xr.DataArray)
 
-    # # Check that the reconstructed data has the same dimensions as the original data
-    # assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+    # Check that the reconstructed data has the same dimensions as the original data
+    assert set(reconstructed_data.dims) == set(mock_data_array.dims)

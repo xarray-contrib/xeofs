@@ -117,7 +117,9 @@ def test_transform(mca_model, mock_data_array, dim):
 def test_inverse_transform(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     # Assuming mode as 1 for simplicity
-    Xrec1, Xrec2 = mca_model.inverse_transform(1)
+    scores1 = mca_model.data["scores1"].isel(mode=1)
+    scores2 = mca_model.data["scores2"].isel(mode=1)
+    Xrec1, Xrec2 = mca_model.inverse_transform(scores1, scores2)
     assert isinstance(Xrec1, xr.DataArray)
     assert isinstance(Xrec2, xr.DataArray)
 
@@ -381,3 +383,90 @@ def test_compute(mock_dask_data_array, dim, compute):
         assert data_is_dask(mca_model.data["squared_covariance"])
         assert data_is_dask(mca_model.data["components1"])
         assert data_is_dask(mca_model.data["components2"])
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
+    """Test save/load methods in MCA class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original = MCA()
+    original.fit(mock_data_array, mock_data_array, dim)
+
+    # Save the EOF model
+    original.save(tmp_path / "mca", engine=engine)
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "mca").exists()
+
+    # Recreate the model from saved file
+    loaded = MCA.load(tmp_path / "mca", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        if original.data._allow_compute[key]:
+            assert loaded.data[key].equals(original.data[key])
+        else:
+            # but ensure that input data is not saved by default
+            assert loaded.data[key].size <= 1
+            assert loaded.data[key].attrs["placeholder"] is True
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.transform(mock_data_array, mock_data_array),
+        loaded.transform(mock_data_array, mock_data_array),
+    )
+
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(*original.scores()),
+        loaded.inverse_transform(*loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = MCA()
+    model.fit(mock_data_array, mock_data_array, dim)
+    dt = model.serialize()
+    rebuilt_model = MCA.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = MCA()
+    model.fit(mock_dataset, mock_dataset, dim)
+    dt = model.serialize()
+    rebuilt_model = MCA.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
+    )

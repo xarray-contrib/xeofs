@@ -1,7 +1,9 @@
+from copy import deepcopy
+
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
+from dask.array import Array as DaskArray  # type: ignore
 from numpy.testing import assert_allclose
 
 from xeofs.models.eof import EOF
@@ -363,8 +365,8 @@ def test_get_params():
 )
 def test_transform(dim, mock_data_array):
     """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
-    data = mock_data_array.isel({dim[0]: slice(0, 3)})
-    new_data = mock_data_array.isel({dim[0]: slice(4, 5)})
+    data = mock_data_array.isel({dim[0]: slice(1, None)})
+    new_data = mock_data_array.isel({dim[0]: slice(0, 1)})
 
     # Create a xarray DataArray with random data
     model = EOF(n_modes=2, solver="full")
@@ -416,6 +418,39 @@ def test_transform(dim, mock_data_array):
         (("lon", "lat")),
     ],
 )
+def test_transform_nan_feature(dim, mock_data_array):
+    """Test projecting new unseen data onto the components (EOFs/eigenvectors)"""
+    data = mock_data_array.isel()
+
+    # Create a xarray DataArray with random data
+    model = EOF(n_modes=2, solver="full")
+    model.fit(data, dim)
+
+    # Set a new feature to NaN and attempt to project data onto the components
+    feature_dims = list(set(data.dims) - set(dim))
+    data_missing = data.copy()
+    data_missing.loc[{feature_dims[0]: data[feature_dims[0]][0].values}] = np.nan
+
+    # with nan checking, transform should fail if any new features are NaN
+    with pytest.raises(ValueError):
+        model.transform(data_missing)
+
+    # without nan checking, transform will succeed but be all nan
+    model = EOF(n_modes=2, solver="full", check_nans=False)
+    model.fit(data, dim)
+
+    data_transformed = model.transform(data_missing)
+    assert data_transformed.isnull().all()
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
 def test_inverse_transform(dim, mock_data_array):
     """Test inverse_transform method in EOF class."""
 
@@ -425,20 +460,101 @@ def test_inverse_transform(dim, mock_data_array):
     # fit the EOF model
     eof.fit(mock_data_array, dim=dim)
 
-    # Test with scalar
-    mode = 1
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with single mode
+    scores = eof.data["scores"].sel(mode=1)
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
-    # Test with slice
-    mode = slice(1, 2)
-    reconstructed_data = eof.inverse_transform(mode)
-    assert isinstance(reconstructed_data, xr.DataArray)
-
-    # Test with array of tick labels
-    mode = np.array([1, 3])
-    reconstructed_data = eof.inverse_transform(mode)
+    # Test with all modes
+    scores = eof.data["scores"]
+    reconstructed_data = eof.inverse_transform(scores)
     assert isinstance(reconstructed_data, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data
     assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
+    """Test save/load methods in EOF class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original = EOF()
+    original.fit(mock_data_array, dim)
+
+    # Save the EOF model
+    original.save(tmp_path / "eof", engine=engine)
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "eof").exists()
+
+    # Recreate the model from saved file
+    loaded = EOF.load(tmp_path / "eof", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        if original.data._allow_compute[key]:
+            assert loaded.data[key].equals(original.data[key])
+        else:
+            # but ensure that input data is not saved by default
+            assert loaded.data[key].size <= 1
+            assert loaded.data[key].attrs["placeholder"] is True
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.transform(mock_data_array), loaded.transform(mock_data_array)
+    )
+
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(original.scores()),
+        loaded.inverse_transform(loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = EOF()
+    model.fit(mock_data_array, dim)
+    dt = model.serialize()
+    rebuilt_model = EOF.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = EOF()
+    model.fit(mock_dataset, dim)
+    dt = model.serialize()
+    rebuilt_model = EOF.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
+    )

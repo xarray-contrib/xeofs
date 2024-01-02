@@ -32,7 +32,10 @@ class OPA(_BaseModel):
     n_pca_modes : int
         Number of modes to be computed in the pre-processing step using EOF.
     compute : bool, default=True
-        Whether to compute the decomposition immediately.
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
     sample_name : str, default="sample"
         Name of the sample dimension.
     feature_name : str, default="feature"
@@ -70,6 +73,7 @@ class OPA(_BaseModel):
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
+        check_nans: bool = True,
         n_pca_modes: int = 100,
         compute: bool = True,
         sample_name: str = "sample",
@@ -87,6 +91,7 @@ class OPA(_BaseModel):
             center=center,
             standardize=standardize,
             use_coslat=use_coslat,
+            check_nans=check_nans,
             compute=compute,
             sample_name=sample_name,
             feature_name=feature_name,
@@ -135,7 +140,8 @@ class OPA(_BaseModel):
             solver=self._params["solver"],
             compute=self._params["compute"],
             random_state=self._params["random_state"],
-            solver_kwargs=self._solver_kwargs,
+            check_nans=False,
+            solver_kwargs=self._params["solver_kwargs"],
         )
         pca.fit(data, dim=sample_name)
         n_samples = data.coords[sample_name].size
@@ -264,7 +270,7 @@ class OPA(_BaseModel):
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("OPA does not (yet) support transform()")
 
-    def _inverse_transform_algorithm(self, mode) -> DataObject:
+    def _inverse_transform_algorithm(self, scores) -> DataObject:
         raise NotImplementedError("OPA does not (yet) support inverse_transform()")
 
     def components(self) -> DataObject:

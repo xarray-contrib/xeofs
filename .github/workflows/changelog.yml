@@ -1,0 +1,20 @@
+name: Update CHANGELOG
+on:
+  release:
+    types: [created, edited]
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: BobAnkh/auto-generate-changelog@v1.2.5
+      with:
+        REPO_NAME: 'xarray-contrib/xeofs'
+        ACCESS_TOKEN: ${{ secrets.CHANGELOG_TOKEN }}
+        PATH: 'CHANGELOG.md'
+        COMMIT_MESSAGE: 'docs(CHANGELOG): update release notes'
+        TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'

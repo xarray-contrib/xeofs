@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from typing_extensions import Self
 import pandas as pd
 
@@ -14,6 +14,13 @@ class MultiIndexConverter(Transformer):
         self.modified_dimensions = []
         self.coords_from_fit = {}
         self.coords_from_transform = {}
+
+    def get_serialization_attrs(self) -> Dict:
+        return dict(
+            modified_dimensions=self.modified_dimensions,
+            coords_from_fit=self.coords_from_fit,
+            coords_from_transform=self.coords_from_transform,
+        )
 
     def fit(
         self,

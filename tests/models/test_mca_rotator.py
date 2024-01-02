@@ -17,7 +17,7 @@ def mca_model(mock_data_array, dim):
 
 @pytest.fixture
 def mca_model_delayed(mock_dask_data_array, dim):
-    mca = MCA(n_modes=5, compute=False)
+    mca = MCA(n_modes=5, compute=False, check_nans=False)
     mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
 
@@ -76,7 +76,10 @@ def test_inverse_transform(mca_model):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
-    reconstructed_data = mca_rotator.inverse_transform(mode=slice(1, 3))
+    scores1 = mca_rotator.data["scores1"].sel(mode=slice(1, 3))
+    scores2 = mca_rotator.data["scores2"].sel(mode=slice(1, 3))
+
+    reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
     assert isinstance(reconstructed_data, tuple)
     assert len(reconstructed_data) == 2
@@ -227,7 +230,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_compute(mca_model_delayed, compute):
     """Test the compute method of the MCARotator class."""
 
-    mca_rotator = MCARotator(n_modes=4, compute=compute, rtol=1e-5)
+    mca_rotator = MCARotator(n_modes=4, compute=compute, max_iter=20, rtol=1e-4)
     mca_rotator.fit(mca_model_delayed)
 
     if compute:
@@ -249,3 +252,97 @@ def test_compute(mca_model_delayed, compute):
         assert data_is_dask(mca_rotator.data["norm1"])
         assert data_is_dask(mca_rotator.data["norm2"])
         assert data_is_dask(mca_rotator.data["modes_sign"])
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+def test_save_load(dim, mock_data_array, tmp_path, engine):
+    """Test save/load methods in MCA class, ensuring that we can
+    roundtrip the model and get the same results when transforming
+    data."""
+    original_unrotated = MCA()
+    original_unrotated.fit(mock_data_array, mock_data_array, dim)
+
+    original = MCARotator()
+    original.fit(original_unrotated)
+
+    # Save the EOF model
+    original.save(tmp_path / "mca", engine=engine)
+
+    # Check that the EOF model has been saved
+    assert (tmp_path / "mca").exists()
+
+    # Recreate the model from saved file
+    loaded = MCARotator.load(tmp_path / "mca", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        if original.data._allow_compute[key]:
+            assert loaded.data[key].equals(original.data[key])
+        else:
+            # but ensure that input data is not saved by default
+            assert loaded.data[key].size <= 1
+            assert loaded.data[key].attrs["placeholder"] is True
+
+    # Test that the recreated model can be used to transform new data
+    assert np.allclose(
+        original.transform(mock_data_array, mock_data_array),
+        loaded.transform(mock_data_array, mock_data_array),
+    )
+
+    # The loaded model should also be able to inverse_transform new data
+    assert np.allclose(
+        original.inverse_transform(*original.scores()),
+        loaded.inverse_transform(*loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = MCA()
+    model.fit(mock_data_array, mock_data_array, dim)
+    rotator = MCARotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = MCARotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_data_array), rebuilt_rotator.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = MCA()
+    model.fit(mock_dataset, mock_dataset, dim)
+    rotator = MCARotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = MCARotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_dataset), rebuilt_rotator.transform(mock_dataset)
+    )

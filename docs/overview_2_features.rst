@@ -45,34 +45,55 @@ dimensions are *feature* dimensions to be expressed as latent variables.
 Dask Support
 ----------------
 
-If you handle large datasets that exceed memory capacity, you can pass a ``Dask`` ``xarray`` object to ``xeofs``. 
-Contrary to expectations, ``xeofs`` computes the matrix decomposition results, assuming the output can fit 
-into memory. This behavior is the default because deferring computations usually causes substantial 
-increase in computational time since any derivative of the decomposition will have to recompute the entire SVD decomposition. 
-
-.. code-block:: python
-
-  model = xe.models.EOF()
-  model.fit(data, dim="time")  # <- data is a Dask object
-  
-  model.components() # Returns a non-Dask object
-
-However, if you wish to postpone computation, you can achieve this by setting ``compute=False`` during model initialization:
-
-.. code-block:: python
-
-  model = xe.models.EOF(compute=False)
-  model.fit(data, dim="time")
-  
-  model.components() # Returns a Dask object
-
-  model.compute() # Computes all deferred objects
-
-  model.components() # Now, it's no longer a Dask object
+If you handle large datasets that exceed memory capacity, ``xeofs`` is designed to work with ``dask``-backed
+``xarray`` objects from end-to-end. By default, ``xeofs`` computes models eagerly, which in some
+cases can lead to better performance. However, it is also possible to build and fit models "lazily", meaning
+no computation will be carried out until the user calls ``.compute()``. To enable lazy computation, specify
+``compute=False`` when initializing the model.
 
 .. note::
 
-    Importantly, ``xeofs`` never computes the input data directly.
+    Importantly, ``xeofs`` never loads the input dataset(s) into memory.
+
+Lazy Evaluation
+---------------
+
+There are a few tricks, and features that need to be explicitly disabled for lazy evaluation to work. First
+is the ``check_nans`` option, which skips checking for full or isolated ``NaNs`` in the data. In this case,
+the user is responsible for ensuring that the data is free of ``NaNs`` by first applying e.g. ``.dropna()``
+or ``.fillna()``. Second is that lazy mode is incompatible with assessing the fit of a rotator class during
+evaluation, becaue the entire ``dask`` task graph must be built up front. Therefore, a lazy rotator model will
+run out to the full ``max_iter`` regardless of the specified ``rtol``. For that reason it is recommended to
+reduce the number of iterations.
+
+As an example, the following lazily creates a rotated EOF model for an 80GB dataset in about a second, which can
+then be evaluated later using ``.compute()``.
+
+.. code-block:: python
+
+  import dask.array as da
+  import numpy as np
+  import xarray as xr
+
+  from xeofs.models import EOF, EOFRotator
+
+  data = xr.DataArray(
+      da.random.random((10000, 1440, 720), chunks=(100, 100, 100)),
+      dims=["time", "lon", "lat"],
+      coords={
+          "time": xr.date_range("2000-01-01", periods=10000, freq="D"),
+          "lon": np.linspace(-180, 180, 1440),
+          "lat": np.linspace(-90, 90, 720),
+      },
+  )
+  model = EOF(n_modes=5, check_nans=False, compute=False)
+  model.fit(data, dim="time")
+
+  rotator = EOFRotator(compute=False, max_iter=20)
+  rotator.fit(model)
+
+  # Later, you can compute the model
+  # rotator.compute()
 
 Available Methods
 -----------------
@@ -85,6 +106,23 @@ Refer to the :doc:`api` section to discover the methods currently available.
 
     Please note that ``xeofs`` is in its developmental phase. If there's a specific method 
     you'd like to see included, we encourage you to open an issue on `GitHub`_.
+
+Model Serialization
+-------------------
+
+``xeofs`` models offer convenient ``save()`` and ``load()`` methods for serializing
+fitted models to a portable format. 
+
+.. code-block:: python
+
+  from xeofs.models import EOF
+
+  model = EOF()
+  model.fit(data, dim="time")
+  model.save("my_model.zarr")
+
+  # Later, you can load the model
+  loaded_model = EOF.load("my_model.zarr")
 
 Input Data Compatibility
 ------------------------
@@ -116,12 +154,16 @@ Consider a 3D dataset with dimensions (time, lon, lat). A full-dimensional ``NaN
 grid point (lon, lat) exhibiting ``NaNs`` across all time steps. Conversely, an isolated 
 ``NaN`` might indicate a grid point (lon, lat) displaying ``NaNs`` for only certain time steps.
 
-``xeofs`` is adept at handling full-dimensional ``NaNs``. However, it cannot manage isolated ``NaNs``. In situations where isolated ``NaNs`` are detected, ``xeofs`` will raise an error.
+``xeofs`` is adept at handling full-dimensional ``NaNs``. However, it cannot manage isolated ``NaNs``,
+which requires the user to make a decision about how to fill or remove features or samples containing isolated
+``NaNs``. ``xeofs`` does provide an optional runtime check which will raise an error if isolated ``NaNs`` are
+detected, which is enabled by default.
 
 Model Evaluation
 ----------------
 
-``xeofs`` is dedicated to providing a user-friendly interface for model evaluations using bootstrapping. Currently, only bootstrapping for PCA/EOF analysis is supported 
+``xeofs`` is dedicated to providing a user-friendly interface for model evaluations using bootstrapping.
+Currently, only bootstrapping for PCA/EOF analysis is supported
 (for a practical example, see :doc:`auto_examples/3validation/index`).
 
 Computationally Efficient
@@ -151,7 +193,7 @@ significant speed advantages. The dashed line marks data sets with about 3 MiB;
     You can find the script to run the performance tests here_.
 
 
-.. _here: www.github.com/nicrie/xeofs/docs/perf/
+.. _here: https://github.com/xarray-contrib/xeofs/tree/main/docs/perf
 
 Implement Your Own Model
 -------------------------
@@ -260,7 +302,7 @@ we'll merely indicate their absence for this example.
   def _transform_algorithm(self, data):
       raise NotImplementedError("This model does not support transform.")
 
-  def _inverse_transform_algorithm(self, data):
+  def _inverse_transform_algorithm(self, scores):
       raise NotImplementedError("This model does not support inverse transform.")
 
 
@@ -350,5 +392,5 @@ toolkit for dimensionality reduction techniques.
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _eofs: https://github.com/ajdawson/eofs
 .. _`sklearn documentation on PCA`: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-.. _`GitHub`: https://github.com/nicrie/xeofs/issues
+.. _`GitHub`: https://github.com/xarray-contrib/xeofs/issues
 
