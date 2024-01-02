@@ -87,17 +87,17 @@ At the time of publication, `xeofs` provides the following methods:
 | Method                        | Alternative name                                                | Reference                                                                             |
 | :---                          | :---                                                            |     :---:                                                                             |
 | PCA                           | EOF analysis                                                    |                                                                                       |
-| Rotated PCA                   | -                                                               | [@kaiser_varimax_1958; @hendrickson_promax_1964]                                      |
-| Complex PCA                   | Hilbert EOF (HEOF) analysis                                     | [@rasmusson_biennial_1981; @barnett_interaction_1983; @horel_complex_1984]            |
+| Rotated PCA                   | -                                                               | @kaiser_varimax_1958, @hendrickson_promax_1964                                      |
+| Complex PCA                   | Hilbert EOF (HEOF) analysis                                     | @rasmusson_biennial_1981, @barnett_interaction_1983, @horel_complex_1984            |
 | Complex Rotated PCA           | -                                                               | [@horel_complex_1984]                                                                 |
-| Extended PCA                  | EEOF analysis / Multichannel Singular Spectrum Analysis (M-SSA) | [@weare_examples_1982; @broomhead_extracting_1986]                                     |
-| Optimal Persistence Analysis  | OPA                                                             | [@delsole_optimally_2001; @delsole_low-frequency_2006]                                |
-| Geographically-Weighted PCA   | GWPCA                                                           | [@harris_geographically_2011]                                                         |
-| Maximum Covariance Analysis   | MCA, SVD analysis                                               | [@bretherton_intercomparison_1992]                                                    |
-| Rotated MCA                   | -                                                               | [@cheng_orthogonal_1995]                                                              |
-| Complex MCA                   | Hilbert MCA/Analytical SVD                                      | [@elipot_observed_2017]                                                               |
-| Complex Rotated MCA           | -                                                               | [@rieger_lagged_2021]                                                                 |
-| Canonical Correlation Analysis| CCA                                                             | [@hotelling_relations_1936; @vinod_canonical_1976; @bretherton_intercomparison_1992]  |
+| Extended PCA                  | EEOF analysis / Multichannel Singular Spectrum Analysis (M-SSA) | @weare_examples_1982, @broomhead_extracting_1986                                     |
+| Optimal Persistence Analysis  | OPA                                                             | @delsole_optimally_2001, @delsole_low-frequency_2006                                |
+| Geographically-Weighted PCA   | GWPCA                                                           | @harris_geographically_2011                                                         |
+| Maximum Covariance Analysis   | MCA, SVD analysis                                               | @bretherton_intercomparison_1992                                                    |
+| Rotated MCA                   | -                                                               | @cheng_orthogonal_1995                                                              |
+| Complex MCA                   | Hilbert MCA/Analytical SVD                                      | @elipot_observed_2017                                                               |
+| Complex Rotated MCA           | -                                                               | @rieger_lagged_2021                                                                 |
+| Canonical Correlation Analysis| CCA                                                             | @hotelling_relations_1936, @vinod_canonical_1976, @bretherton_intercomparison_1992  |
 
 Additionally, we are actively developing further enhancements to `xeofs`, with plans to incorporate advanced methods 
 such as ROCK-PCA [@bueso_nonlinear_2020] and spectral, rotated PCA [@guilloteau_rotated_2020] in upcoming releases.
