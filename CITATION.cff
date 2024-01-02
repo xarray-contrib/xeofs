@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Rieger"
+  given-names: "Niclas"
+  orcid: "https://orcid.org/0000-0003-3357-1742"
+- family-names: "Levang"
+  given-names: "Samuel J."
+title: "xeofs"
+abstract: "Comprehensive EOF analysis in Python with xarray."
+license: MIT
+doi: 10.5281/zenodo.6323011
+url: "https://xeofs.readthedocs.io/en/latest/"
+repository-code: "https://github.com/xarray-contrib/xeofs"
+preferred-citation:
+  authors:
+  - family-names: "Rieger"
+    given-names: "Niclas"
+    orcid: "https://orcid.org/0000-0003-3357-1742"
+  - family-names: "Levang"
+    given-names: "Samuel J."
+  date-published: "2024-01-02"
+  doi: 10.21105/joss.06060
+  issn: 2475-9066
+  issue: 93
+  journal: "Journal of Open Source Software"
+  publisher: 
+    name: "Open Journals"
+  start: 6060
+  title: "xeofs: Comprehensive EOF analysis in Python with xarray"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.06060"
+  volume: 9
