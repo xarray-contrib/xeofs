@@ -142,13 +142,18 @@ For questions or support, please open a [Github issue](https://github.com/xarray
 When using `xeofs`, kindly remember to cite the original references of the methods employed in your work. Additionally, if `xeofs` is proving useful in your research, we'd appreciate if you could acknowledge its use with the following citation:
 
 ```bibtex
-@software{rieger_xeofs_2023,
-title = {xeofs: Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis},
-url = {https://github.com/xarray-contrib/xeofs}
-version = {x.y.z},
-author = {Rieger, N. and Levang, S. J.},
-date = {2023},
-doi = {10.5281/zenodo.6323011}
+@article{rieger_xeofs_2024,
+author = {Rieger, Niclas and Levang, Samuel J.},
+doi = {10.21105/joss.06060},
+journal = {Journal of Open Source Software},
+month = jan,
+number = {93},
+pages = {6060},
+title = {{xeofs: Comprehensive EOF analysis in Python with xarray}},
+url = {https://joss.theoj.org/papers/10.21105/joss.06060},
+volume = {9},
+year = {2024}
+}
 ```
 
 ## Contributors
