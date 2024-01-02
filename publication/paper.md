@@ -32,7 +32,7 @@ bibliography: paper.bib
 
 `xeofs` is a Python package tailored for the climate science 
 community, designed to streamline advanced data analysis using dimensionality 
-reduction techniques like Empirical Orthogonal Functions (EOF) analysis-often
+reduction techniques like Empirical Orthogonal Functions (EOF) analysis &ndash; often
 called Principal Component Analysis (PCA) in other domains. 
 Integrating seamlessly with `xarray` objects [@hoyer2017xarray], `xeofs` 
 makes it easier to analyze large, labeled, multi-dimensional datasets.
