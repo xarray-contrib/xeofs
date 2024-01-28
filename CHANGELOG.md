@@ -2,11 +2,28 @@
 
 
 
+## v2.2.5 (2024-01-28)
+
+### Documentation
+
+* docs: update xeofs citation (#145) ([`4cf84cf`](https://github.com/xarray-contrib/xeofs/commit/4cf84cfc0c99e790e53b183370ca9edfdbdd01c5))
+
+* docs: add CITATION.cff (#144) ([`787c598`](https://github.com/xarray-contrib/xeofs/commit/787c5982111eaa046e697a63aaa7b71180452314))
+
+### Fix
+
+* fix: incorrect explained variance in CCA (#147) ([`f825c68`](https://github.com/xarray-contrib/xeofs/commit/f825c68c885a14d546165f95ea2ca5ff7f5c6f4b))
+
+
 ## v2.2.4 (2023-12-23)
 
 ### Build
 
 * build: loose version constraints of dependencies (#137) ([`1a0efe1`](https://github.com/xarray-contrib/xeofs/commit/1a0efe1cbd18d5ce444a6e42eb2f290c9619dcb0))
+
+### Chore
+
+* chore(release): v2.2.4 ([`bde4456`](https://github.com/xarray-contrib/xeofs/commit/bde445690ae0c853f5fce1c8757f0d3ea42dcc5d))
 
 ### Documentation
 
