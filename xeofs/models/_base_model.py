@@ -283,13 +283,13 @@ class _BaseModel(ABC):
         return self.fit(data, dim, weights).transform(data, **kwargs)
 
     def inverse_transform(
-        self, scores: DataObject, normalized: bool = True
+        self, scores: DataArray, normalized: bool = True
     ) -> DataObject:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        scores: DataObject
+        scores: DataArray
             Transformed data to be reconstructed. This could be a subset
             of the `scores` data of a fitted model, or unseen data. Must
             have a 'mode' dimension.
@@ -303,8 +303,15 @@ class _BaseModel(ABC):
 
         """
         if normalized:
-            scores = scores * self.data["norms"]
+            norms = self.data["norms"].sel(mode=scores.mode)
+            scores = scores * norms
         data_reconstructed = self._inverse_transform_algorithm(scores)
+
+        # Reconstructing the data using a single mode introduces a
+        # redundant "mode" coordinate
+        if "mode" in data_reconstructed.coords:
+            data_reconstructed = data_reconstructed.drop_vars("mode")
+
         return self.preprocessor.inverse_transform_data(data_reconstructed)
 
     @abstractmethod
