@@ -25,6 +25,7 @@
       ~EOFRotator.fit
       ~EOFRotator.fit_transform
       ~EOFRotator.get_params
+      ~EOFRotator.get_serialization_attrs
       ~EOFRotator.inverse_transform
       ~EOFRotator.load
       ~EOFRotator.save

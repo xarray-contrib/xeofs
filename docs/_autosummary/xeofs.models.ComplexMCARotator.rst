@@ -25,6 +25,7 @@
       ~ComplexMCARotator.deserialize
       ~ComplexMCARotator.fit
       ~ComplexMCARotator.get_params
+      ~ComplexMCARotator.get_serialization_attrs
       ~ComplexMCARotator.heterogeneous_patterns
       ~ComplexMCARotator.homogeneous_patterns
       ~ComplexMCARotator.inverse_transform

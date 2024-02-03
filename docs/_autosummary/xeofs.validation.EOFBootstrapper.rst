@@ -25,6 +25,7 @@
       ~EOFBootstrapper.fit
       ~EOFBootstrapper.fit_transform
       ~EOFBootstrapper.get_params
+      ~EOFBootstrapper.get_serialization_attrs
       ~EOFBootstrapper.inverse_transform
       ~EOFBootstrapper.load
       ~EOFBootstrapper.save

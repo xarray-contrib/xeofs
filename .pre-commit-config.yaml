@@ -1,13 +1,13 @@
 repos:
 
-# - repo: ...
-
+  # Conventional Commits
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v1.2.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [] # optional: list of Conventional Commits types to allow
+  # Black Code Formatter
   - repo: https://github.com/psf/black
     rev: 23.7.0
     hooks:
@@ -17,3 +17,8 @@ repos:
         # pre-commit's default_language_version, see
         # https://pre-commit.com/#top_level-default_language_version
         language_version: python3.11
+  # Strip output from Jupyter Notebooks
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout

@@ -25,6 +25,7 @@
       ~OPA.fit
       ~OPA.fit_transform
       ~OPA.get_params
+      ~OPA.get_serialization_attrs
       ~OPA.inverse_transform
       ~OPA.load
       ~OPA.save

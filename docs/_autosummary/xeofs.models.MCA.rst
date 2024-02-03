@@ -23,6 +23,7 @@
       ~MCA.deserialize
       ~MCA.fit
       ~MCA.get_params
+      ~MCA.get_serialization_attrs
       ~MCA.heterogeneous_patterns
       ~MCA.homogeneous_patterns
       ~MCA.inverse_transform

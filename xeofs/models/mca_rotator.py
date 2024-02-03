@@ -7,7 +7,7 @@ from typing_extensions import Self
 from .mca import MCA, ComplexMCA
 from ..preprocessing.preprocessor import Preprocessor
 from ..utils.rotation import promax
-from ..utils.data_types import DataArray
+from ..utils.data_types import DataArray, DataObject
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ..data_container import DataContainer
 from .._version import __version__
@@ -319,7 +319,9 @@ class MCARotator(MCA):
                     )
         self.sorted = True
 
-    def transform(self, **kwargs) -> DataArray | List[DataArray]:
+    def transform(
+        self, data1: DataObject | None = None, data2: DataObject | None = None
+    ) -> DataArray | List[DataArray]:
         """Project new "unseen" data onto the rotated singular vectors.
 
         Parameters
@@ -336,7 +338,7 @@ class MCARotator(MCA):
 
         """
         # raise error if no data is provided
-        if not kwargs:
+        if data1 is None and data2 is None:
             raise ValueError("No data provided. Please provide data1 and/or data2.")
 
         n_modes = self._params["n_modes"]
@@ -348,8 +350,7 @@ class MCARotator(MCA):
 
         results = []
 
-        if "data1" in kwargs.keys():
-            data1 = kwargs["data1"]
+        if data1 is not None:
             # Select the (non-rotated) singular vectors of the first dataset
             comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
             norm1 = self.model.data["norm1"].sel(mode=slice(1, n_modes))
@@ -375,8 +376,7 @@ class MCARotator(MCA):
 
             results.append(projections1)
 
-        if "data2" in kwargs.keys():
-            data2 = kwargs["data2"]
+        if data2 is not None:
             # Select the (non-rotated) singular vectors of the second dataset
             comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
             norm2 = self.model.data["norm2"].sel(mode=slice(1, n_modes))
