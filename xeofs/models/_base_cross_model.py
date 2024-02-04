@@ -216,6 +216,38 @@ class _BaseCrossModel(ABC):
 
         return self._transform_algorithm(data1, data2)
 
+    def inverse_transform(
+        self, scores1: DataArray, scores2: DataArray
+    ) -> Tuple[DataObject, DataObject]:
+        """Reconstruct the original data from transformed data.
+
+        Parameters
+        ----------
+        scores1: DataObject
+            Transformed left field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+        scores2: DataObject
+            Transformed right field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+
+        Returns
+        -------
+        Xrec1: DataArray | Dataset | List[DataArray]
+            Reconstructed data of left field.
+        Xrec2: DataArray | Dataset | List[DataArray]
+            Reconstructed data of right field.
+
+        """
+        data1, data2 = self._inverse_transform_algorithm(scores1, scores2)
+
+        # Unstack and rescale the data
+        data1 = self.preprocessor1.inverse_transform_data(data1)
+        data2 = self.preprocessor2.inverse_transform_data(data2)
+
+        return data1, data2
+
     @abstractmethod
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
         """
@@ -247,9 +279,32 @@ class _BaseCrossModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(
-        self, scores1: DataObject, scores2: DataObject
-    ) -> Tuple[DataObject, DataObject]:
+    def _inverse_transform_algorithm(
+        self, scores1: DataArray, scores2: DataArray
+    ) -> Tuple[DataArray, DataArray]:
+        """
+        Reconstruct the original data from transformed data. This method needs to be implemented in the respective
+        subclass.
+
+        Parameters
+        ----------
+        scores1: DataArray
+            Transformed left field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+        scores2: DataArray
+            Transformed right field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+
+        Returns
+        -------
+        Xrec1: DataArray
+            Reconstructed data of left field.
+        Xrec2: DataArray
+            Reconstructed data of right field.
+
+        """
         raise NotImplementedError
 
     def components(self) -> Tuple[DataObject, DataObject]:

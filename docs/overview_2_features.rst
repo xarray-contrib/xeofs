@@ -141,6 +141,13 @@ the input type. For instance, executing PCA on a singular ``xr.DataArray`` will 
   
   A mixed list containing both ``xr.DataArray`` and ``xr.Dataset`` objects is not currently supported.
 
+.. note::
+
+    Some methods like PCA/EOF analysis can also handle complex-valued input data. However, due to a limitation_ in the 
+    underlying ``dask`` library, complex-valued data is not supported when using ``dask``.
+
+.. _limitation: https://github.com/dask/dask/issues/7639
+
 Handling Missing Values
 -----------------------
 

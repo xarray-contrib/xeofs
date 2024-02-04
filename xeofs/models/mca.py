@@ -12,6 +12,7 @@ from ..utils.statistics import pearson_correlation
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.dimension_renamer import DimensionRenamer
 from ..utils.xarray_utils import argsort_dask
+from ..utils.sanity_checks import assert_not_complex
 
 
 class MCA(_BaseCrossModel):
@@ -258,25 +259,27 @@ class MCA(_BaseCrossModel):
 
         return results
 
-    def inverse_transform(self, scores1: DataObject, scores2: DataObject):
+    def _inverse_transform_algorithm(
+        self, scores1: DataArray, scores2: DataArray
+    ) -> Tuple[DataArray, DataArray]:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        scores1: DataObject
+        scores1: DataArray
             Transformed left field data to be reconstructed. This could be
             a subset of the `scores` data of a fitted model, or unseen data.
             Must have a 'mode' dimension.
-        scores2: DataObject
+        scores2: DataArray
             Transformed right field data to be reconstructed. This could be
             a subset of the `scores` data of a fitted model, or unseen data.
             Must have a 'mode' dimension.
 
         Returns
         -------
-        Xrec1: DataArray | Dataset | List[DataArray]
+        Xrec1: DataArray
             Reconstructed data of left field.
-        Xrec2: DataArray | Dataset | List[DataArray]
+        Xrec2: DataArray
             Reconstructed data of right field.
 
         """
@@ -291,14 +294,6 @@ class MCA(_BaseCrossModel):
         # Reconstruct the data
         data1 = xr.dot(scores1, comps1.conj() * norm1, dims="mode")
         data2 = xr.dot(scores2, comps2.conj() * norm2, dims="mode")
-
-        # Enforce real output
-        data1 = data1.real
-        data2 = data2.real
-
-        # Unstack and rescale the data
-        data1 = self.preprocessor1.inverse_transform_data(data1)
-        data2 = self.preprocessor2.inverse_transform_data(data2)
 
         return data1, data2
 
@@ -679,6 +674,9 @@ class ComplexMCA(MCA):
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
+        assert_not_complex(data1)
+        assert_not_complex(data2)
+
         sample_name = self.sample_name
         feature_name = self.feature_name
 
@@ -907,6 +905,12 @@ class ComplexMCA(MCA):
 
     def transform(self, data1: DataObject, data2: DataObject):
         raise NotImplementedError("Complex MCA does not support transform method.")
+
+    def _inverse_transform_algorithm(self, scores1: DataArray, scores2: DataArray):
+        data1, data2 = super()._inverse_transform_algorithm(scores1, scores2)
+
+        # Enforce real output
+        return data1.real, data2.real
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
         raise NotImplementedError(
