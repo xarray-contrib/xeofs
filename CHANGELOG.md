@@ -2,7 +2,18 @@
 
 
 
+## v2.2.6 (2024-02-04)
+
+### Fix
+
+* fix: inverse_transform fails with single mode and normalized pcs (#151) ([`9ea7547`](https://github.com/xarray-contrib/xeofs/commit/9ea7547c5f5b60722f675b1dab776a507da9b9e1))
+
+
 ## v2.2.5 (2024-01-28)
+
+### Chore
+
+* chore(release): v2.2.5 ([`b5d04cc`](https://github.com/xarray-contrib/xeofs/commit/b5d04ccb0279ed9b0661ccaa6dc0183ecacc9eef))
 
 ### Documentation
 
