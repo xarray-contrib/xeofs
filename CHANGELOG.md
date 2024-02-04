@@ -2,7 +2,18 @@
 
 
 
+## v2.3.0 (2024-02-04)
+
+### Feature
+
+* feat: support complex input data (#152) ([`c6ce4e1`](https://github.com/xarray-contrib/xeofs/commit/c6ce4e171399f774f7d49dd40b59fa5477b38e8d))
+
+
 ## v2.2.6 (2024-02-04)
+
+### Chore
+
+* chore(release): v2.2.6 ([`66b31fb`](https://github.com/xarray-contrib/xeofs/commit/66b31fbeb111dd8b41b9a0cdcc7ca26b498dcf24))
 
 ### Fix
 
