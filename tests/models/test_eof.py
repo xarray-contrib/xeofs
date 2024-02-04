@@ -574,3 +574,19 @@ def test_serialize_deserialize_dataset(dim, mock_dataset):
     assert np.allclose(
         model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
     )
+
+
+def test_complex_input_inverse_transform(mock_complex_data_array):
+    """Test that the EOF model can handle complex input data."""
+
+    model = EOF(n_modes=128)
+    model.fit(mock_complex_data_array, dim="time")
+    scores = model.scores()
+
+    # Test the inverse_transform method
+    X_rec = model.inverse_transform(scores)
+    assert isinstance(X_rec, xr.DataArray)
+    # Check that the reconstructed data has the same dimensions as the original data
+    assert set(X_rec.dims) == set(mock_complex_data_array.dims)
+    # Reconstructed data should be close to the original data
+    xr.testing.assert_allclose(mock_complex_data_array, X_rec)
