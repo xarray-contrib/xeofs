@@ -128,12 +128,12 @@ class EOF(_BaseModel):
 
         return projections
 
-    def _inverse_transform_algorithm(self, scores: DataObject) -> DataArray:
+    def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        scores: DataObject
+        scores: DataArray
             Transformed data to be reconstructed. This could be a subset
             of the `scores` data of a fitted model, or unseen data. Must
             have a 'mode' dimension.
@@ -147,7 +147,7 @@ class EOF(_BaseModel):
         # Reconstruct the data
         comps = self.data["components"].sel(mode=scores.mode)
 
-        reconstructed_data = xr.dot(comps.conj(), scores)
+        reconstructed_data = xr.dot(comps.conj(), scores, dims="mode")
         reconstructed_data.name = "reconstructed_data"
 
         # Enforce real output

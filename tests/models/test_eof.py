@@ -444,34 +444,50 @@ def test_transform_nan_feature(dim, mock_data_array):
 
 
 @pytest.mark.parametrize(
-    "dim",
+    "dim, normalized",
     [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
+        (("time",), True),
+        (("lat", "lon"), True),
+        (("lon", "lat"), True),
+        (("time",), False),
+        (("lat", "lon"), False),
+        (("lon", "lat"), False),
     ],
 )
-def test_inverse_transform(dim, mock_data_array):
+def test_inverse_transform(dim, mock_data_array, normalized):
     """Test inverse_transform method in EOF class."""
 
     # instantiate the EOF class with necessary parameters
-    eof = EOF(n_modes=3, standardize=True)
+    eof = EOF(n_modes=20, standardize=True)
 
     # fit the EOF model
     eof.fit(mock_data_array, dim=dim)
+    scores = eof.scores(normalized=normalized)
 
     # Test with single mode
-    scores = eof.data["scores"].sel(mode=1)
-    reconstructed_data = eof.inverse_transform(scores)
-    assert isinstance(reconstructed_data, xr.DataArray)
+    scores_selection = scores.sel(mode=1)
+    X_rec_1 = eof.inverse_transform(scores_selection)
+    assert isinstance(X_rec_1, xr.DataArray)
+
+    # Test with single mode as list
+    scores_selection = scores.sel(mode=[1])
+    X_rec_1_list = eof.inverse_transform(scores_selection)
+    assert isinstance(X_rec_1_list, xr.DataArray)
+
+    # Single mode and list should be equal
+    xr.testing.assert_allclose(X_rec_1, X_rec_1_list)
 
     # Test with all modes
-    scores = eof.data["scores"]
-    reconstructed_data = eof.inverse_transform(scores)
-    assert isinstance(reconstructed_data, xr.DataArray)
+    X_rec = eof.inverse_transform(scores, normalized=normalized)
+    assert isinstance(X_rec, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data
-    assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+    assert set(X_rec.dims) == set(mock_data_array.dims)
+
+    # Reconstructed data should be close to the original data
+    orig_dim_order = mock_data_array.dims
+    X_rec = X_rec.transpose(*orig_dim_order)
+    xr.testing.assert_allclose(mock_data_array, X_rec)
 
 
 @pytest.mark.parametrize(
