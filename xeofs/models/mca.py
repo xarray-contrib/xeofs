@@ -12,6 +12,7 @@ from ..utils.statistics import pearson_correlation
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.dimension_renamer import DimensionRenamer
 from ..utils.xarray_utils import argsort_dask
+from ..utils.sanity_checks import assert_not_complex
 
 
 class MCA(_BaseCrossModel):
@@ -673,6 +674,9 @@ class ComplexMCA(MCA):
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
+        assert_not_complex(data1)
+        assert_not_complex(data2)
+
         sample_name = self.sample_name
         feature_name = self.feature_name
 

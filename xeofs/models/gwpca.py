@@ -6,7 +6,7 @@ from sklearn.utils.extmath import randomized_svd
 from xeofs.utils.data_types import DataArray
 from xeofs.utils.data_types import Data
 from ._base_model import _BaseModel
-from ..utils.sanity_checks import validate_input_type
+from ..utils.sanity_checks import assert_not_complex
 from ..utils.xarray_utils import convert_to_dim_type
 from ..utils.constants import (
     VALID_CARTESIAN_X_NAMES,
@@ -135,6 +135,9 @@ class GWPCA(_BaseModel):
     def _fit_algorithm(self, X: DataArray) -> Self:
         # Hide numba imports here to greatly speed up module import time
         from ..utils.numba_utils import _local_pcas
+
+        # Check input type
+        assert_not_complex(X)
 
         # Convert Dask arrays
         if not isinstance(X.data, np.ndarray):

@@ -8,6 +8,7 @@ from .decomposer import Decomposer
 from ..utils.data_types import DataObject, DataArray, Dims
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
+from ..utils.sanity_checks import assert_not_complex
 
 
 class EOF(_BaseModel):
@@ -340,6 +341,8 @@ class ComplexEOF(EOF):
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data: DataArray) -> Self:
+        assert_not_complex(data)
+
         sample_name = self.sample_name
         feature_name = self.feature_name
 

@@ -93,3 +93,10 @@ def validate_input_type(X) -> None:
             raise TypeError(err_msg)
     else:
         raise TypeError(err_msg)
+
+
+def assert_not_complex(da: xr.DataArray) -> None:
+    if da.dtype == "complex":
+        raise TypeError(
+            f"Invalid input type. This method does not support complex data types."
+        )

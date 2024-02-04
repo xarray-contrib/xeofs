@@ -24,6 +24,7 @@ from xeofs.models import EOF
 from .._version import __version__
 from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray, DataList, DataObject
+from ..utils.sanity_checks import assert_not_complex
 
 
 def _check_parameter_number(parameter_name: str, parameter, n_views: int):
@@ -305,6 +306,9 @@ class CCA(CCABaseModel):
         self.eps = eps
 
     def _fit_algorithm(self, views: List[DataArray]) -> Self:
+        # Check input data
+        [assert_not_complex(view) for view in views]
+
         self.c = _process_parameter("c", self.c, 0, self.n_views_)
         eigvals, eigvecs = self._solve_gevp(views)
         self.eigvals = eigvals
