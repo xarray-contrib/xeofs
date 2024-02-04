@@ -150,9 +150,6 @@ class EOF(_BaseModel):
         reconstructed_data = xr.dot(comps.conj(), scores, dims="mode")
         reconstructed_data.name = "reconstructed_data"
 
-        # Enforce real output
-        reconstructed_data = reconstructed_data.real
-
         return reconstructed_data
 
     def components(self) -> DataObject:
@@ -386,6 +383,11 @@ class ComplexEOF(EOF):
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("Complex EOF does not support transform method.")
+
+    def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
+        Xrec = super()._inverse_transform_algorithm(scores)
+        # Enforce real output
+        return Xrec.real
 
     def components_amplitude(self) -> DataObject:
         """Return the amplitude of the (EOF) components.
