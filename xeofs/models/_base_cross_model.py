@@ -214,7 +214,15 @@ class _BaseCrossModel(ABC):
             # Preprocess data2
             data2 = self.preprocessor2.transform(data2)
 
-        return self._transform_algorithm(data1, data2)
+        data = self._transform_algorithm(data1, data2)
+        data_list = []
+        if data1 is not None:
+            data1 = self.preprocessor1.inverse_transform_scores_unseen(data["data1"])
+            data_list.append(data1)
+        if data2 is not None:
+            data2 = self.preprocessor2.inverse_transform_scores_unseen(data["data2"])
+            data_list.append(data2)
+        return data_list
 
     def inverse_transform(
         self, scores1: DataArray, scores2: DataArray
@@ -265,7 +273,7 @@ class _BaseCrossModel(ABC):
     @abstractmethod
     def _transform_algorithm(
         self, data1: Optional[DataArray] = None, data2: Optional[DataArray] = None
-    ) -> Sequence[DataArray]:
+    ) -> Dict[str, DataArray]:
         """
         Transform the preprocessed data. This method needs to be implemented in the respective
         subclass.

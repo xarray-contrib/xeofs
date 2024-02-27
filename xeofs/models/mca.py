@@ -237,25 +237,21 @@ class MCA(_BaseCrossModel):
 
     def _transform_algorithm(
         self, data1: Optional[DataArray] = None, data2: Optional[DataArray] = None
-    ) -> Sequence[DataArray]:
-        results = []
+    ) -> Dict[str, DataArray]:
+        results = {}
         if data1 is not None:
             # Project data onto singular vectors
             comps1 = self.data["components1"]
             norm1 = self.data["norm1"]
             scores1 = xr.dot(data1, comps1) / norm1
-            # Inverse transform scores
-            scores1 = self.preprocessor1.inverse_transform_scores(scores1)
-            results.append(scores1)
+            results["data1"] = scores1
 
         if data2 is not None:
             # Project data onto singular vectors
             comps2 = self.data["components2"]
             norm2 = self.data["norm2"]
             scores2 = xr.dot(data2, comps2) / norm2
-            # Inverse transform scores
-            scores2 = self.preprocessor2.inverse_transform_scores(scores2)
-            results.append(scores2)
+            results["data2"] = scores2
 
         return results
 
