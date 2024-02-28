@@ -2,7 +2,22 @@
 
 
 
+## v2.3.1 (2024-02-28)
+
+### Build
+
+* build: constrain xarray version (#155) ([`8158657`](https://github.com/xarray-contrib/xeofs/commit/8158657fd837407c64e01969317aea39d1f192d7))
+
+### Fix
+
+* fix: correct inverse transform of unseen scores  (#154) ([`5f0f7a5`](https://github.com/xarray-contrib/xeofs/commit/5f0f7a5593da5ce266b1e951f0d632cfe51b311c))
+
+
 ## v2.3.0 (2024-02-04)
+
+### Chore
+
+* chore(release): v2.3.0 ([`1f54401`](https://github.com/xarray-contrib/xeofs/commit/1f54401f01ca7ad6760422eb300e696f12976d4c))
 
 ### Feature
 
