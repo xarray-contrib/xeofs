@@ -279,6 +279,12 @@ class MCA(_BaseCrossModel):
             Reconstructed data of right field.
 
         """
+        # Handle scalar mode
+        if "mode" not in scores1.dims:
+            scores1 = scores1.expand_dims("mode")
+        if "mode" not in scores2.dims:
+            scores2 = scores2.expand_dims("mode")
+
         # Singular vectors
         comps1 = self.data["components1"].sel(mode=scores1.mode)
         comps2 = self.data["components2"].sel(mode=scores2.mode)

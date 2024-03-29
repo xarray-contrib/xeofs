@@ -145,7 +145,10 @@ class EOF(_BaseModel):
             Reconstructed data.
 
         """
-        # Reconstruct the data
+        # Handle scalar mode
+        if "mode" not in scores.dims:
+            scores = scores.expand_dims("mode")
+
         comps = self.data["components"].sel(mode=scores.mode)
 
         reconstructed_data = xr.dot(comps.conj(), scores, dims="mode")
