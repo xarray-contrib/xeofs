@@ -248,6 +248,12 @@ class _BaseCrossModel(ABC):
             Reconstructed data of right field.
 
         """
+        # Handle scalar mode in xr.dot
+        if "mode" not in scores1.dims:
+            scores1 = scores1.expand_dims("mode")
+        if "mode" not in scores2.dims:
+            scores2 = scores2.expand_dims("mode")
+
         data1, data2 = self._inverse_transform_algorithm(scores1, scores2)
 
         # Unstack and rescale the data
