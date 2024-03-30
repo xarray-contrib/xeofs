@@ -2,11 +2,22 @@
 
 
 
+## v2.3.2 (2024-03-30)
+
+### Fix
+
+* fix: handle indexing changes in new xarray versions (#159) ([`7d07d30`](https://github.com/xarray-contrib/xeofs/commit/7d07d30690523b3ba844a5e0b388cdeb9eb1ce02))
+
+
 ## v2.3.1 (2024-02-28)
 
 ### Build
 
 * build: constrain xarray version (#155) ([`8158657`](https://github.com/xarray-contrib/xeofs/commit/8158657fd837407c64e01969317aea39d1f192d7))
+
+### Chore
+
+* chore(release): v2.3.1 ([`a3cb204`](https://github.com/xarray-contrib/xeofs/commit/a3cb204171dbbd1f09f2c083099cf3b67f625495))
 
 ### Fix
 
