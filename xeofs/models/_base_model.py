@@ -305,6 +305,11 @@ class _BaseModel(ABC):
         if normalized:
             norms = self.data["norms"].sel(mode=scores.mode)
             scores = scores * norms
+
+        # Handle scalar mode in xr.dot
+        if "mode" not in scores.dims:
+            scores = scores.expand_dims("mode")
+
         data_reconstructed = self._inverse_transform_algorithm(scores)
 
         # Reconstructing the data using a single mode introduces a
