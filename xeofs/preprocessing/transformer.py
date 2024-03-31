@@ -8,7 +8,7 @@ import xarray as xr
 from datatree import DataTree
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from ..utils.data_types import Dims, DataVar, DataArray, DataSet, Data, DataVarBound
+from ..utils.data_types import Dims, DataArray, DataSet, Data
 
 
 class Transformer(BaseEstimator, TransformerMixin, ABC):

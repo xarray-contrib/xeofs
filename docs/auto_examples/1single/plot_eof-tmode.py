@@ -6,6 +6,7 @@ EOF analysis in T-mode maximises the spatial variance.
 
 Load packages and data:
 """
+
 import xarray as xr
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec

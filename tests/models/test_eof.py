@@ -1,10 +1,6 @@
-from copy import deepcopy
-
 import numpy as np
 import xarray as xr
 import pytest
-from dask.array import Array as DaskArray  # type: ignore
-from numpy.testing import assert_allclose
 
 from xeofs.models.eof import EOF
 

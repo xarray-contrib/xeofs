@@ -6,7 +6,6 @@ Test the significance of individual modes and obtain confidence intervals
 for both EOFs and PCs.
 """
 
-
 # Load packages and data:
 import numpy as np
 import xarray as xr
@@ -49,7 +48,7 @@ q975 = ci_expvar.sel(quantile=0.975)
 
 is_significant = q025 - q975.shift({"mode": -1}) > 0
 n_significant_modes = (
-    is_significant.where(is_significant == True).cumsum(skipna=False).max().fillna(0)
+    is_significant.where(is_significant is True).cumsum(skipna=False).max().fillna(0)
 )
 print("{:} modes are significant at alpha=0.05".format(n_significant_modes.values))
 

@@ -1,11 +1,8 @@
 import numpy as np
-import xarray as xr
 import pytest
-import dask.array as da
 import warnings
-from numpy.testing import assert_allclose
 
-from xeofs.models import EOF, ComplexEOF
+from xeofs.models import ComplexEOF
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
@@ -99,7 +96,9 @@ def test_scores_phase(mock_data_array, dim):
 
     scores_phase = ceof.scores_phase()
     assert scores_phase is not None
-    assert ((-np.pi <= scores_phase.fillna(0)) & (scores_phase.fillna(0) <= np.pi)).all()  # type: ignore
+    assert (
+        (-np.pi <= scores_phase.fillna(0)) & (scores_phase.fillna(0) <= np.pi)
+    ).all()  # type: ignore
 
 
 @pytest.mark.parametrize(

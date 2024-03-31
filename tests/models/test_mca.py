@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
-from numpy.testing import assert_allclose
 
 from xeofs.models.mca import MCA
 from ..utilities import data_is_dask

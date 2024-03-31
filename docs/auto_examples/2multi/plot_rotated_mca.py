@@ -5,7 +5,6 @@ Rotated Maximum Covariance Analysis
 Rotated Maximum Covariance Analysis (MCA) between two data sets.
 """
 
-
 # Load packages and data:
 import numpy as np
 import xarray as xr

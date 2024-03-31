@@ -10,6 +10,7 @@ and finally (4) correlation matrix + coslat weighting.
 
 Load packages and data:
 """
+
 import xarray as xr
 import matplotlib.pyplot as plt
 import seaborn as sns

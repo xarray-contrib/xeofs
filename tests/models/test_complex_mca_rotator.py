@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
 
 # Import the classes from your modules
 from xeofs.models import ComplexMCA, ComplexMCARotator
@@ -27,7 +26,7 @@ def test_init():
     assert mca_rotator._params["power"] == 1
     assert mca_rotator._params["max_iter"] == 1000
     assert mca_rotator._params["rtol"] == 1e-8
-    assert mca_rotator._params["squared_loadings"] == False
+    assert mca_rotator._params["squared_loadings"] is False
 
 
 @pytest.mark.parametrize(
@@ -59,9 +58,7 @@ def test_transform(mca_model, mock_data_array):
     mca_rotator.fit(mca_model)
 
     with pytest.raises(NotImplementedError):
-        projections = mca_rotator.transform(
-            data1=mock_data_array, data2=mock_data_array
-        )
+        mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
 
 
 @pytest.mark.parametrize(

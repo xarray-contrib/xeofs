@@ -195,7 +195,7 @@ class MCARotator(MCA):
             loadings=loadings,
             feature_dim=self.feature_name,
             compute=self._params["compute"],
-            **promax_kwargs
+            **promax_kwargs,
         )
 
         # Assign coordinates to the rotation/correlation matrices

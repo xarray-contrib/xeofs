@@ -1,12 +1,9 @@
 import pytest
-import pandas as pd
 
 from xeofs.preprocessing.multi_index_converter import (
     MultiIndexConverter,
 )
-from ..conftest import generate_synthetic_dataarray
-from xeofs.utils.data_types import DataArray
-from ..utilities import assert_expected_dims, data_is_dask, data_has_multiindex
+from ..utilities import data_is_dask, data_has_multiindex
 
 # =============================================================================
 # GENERALLY VALID TEST CASES

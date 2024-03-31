@@ -5,7 +5,6 @@ Multivariate EOF analysis
 Multivariate EOF analysis.
 """
 
-
 # Load packages and data:
 import xarray as xr
 import matplotlib.pyplot as plt

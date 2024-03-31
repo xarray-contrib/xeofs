@@ -1,4 +1,4 @@
-from typing import Sequence, Hashable, Tuple, Any
+from typing import Any
 
 import xarray as xr
 
@@ -98,5 +98,5 @@ def validate_input_type(X) -> None:
 def assert_not_complex(da: xr.DataArray) -> None:
     if da.dtype == "complex":
         raise TypeError(
-            f"Invalid input type. This method does not support complex data types."
+            "Invalid input type. This method does not support complex data types."
         )

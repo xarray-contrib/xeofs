@@ -188,7 +188,7 @@ def get_dims(
         return sample_dims, feature_dims
     else:
         err_message = f"Invalid input type: {type(data).__name__}. Expected one of "
-        err_message += f"of the following: list of DataArrays or Datasets."
+        err_message += "of the following: list of DataArrays or Datasets."
         raise TypeError(err_message)
 
 

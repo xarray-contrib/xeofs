@@ -1,9 +1,9 @@
-from typing import List, Optional, Dict
+from typing import Optional, Dict
 from typing_extensions import Self
 import pandas as pd
 
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound
+from ..utils.data_types import Dims, DataArray, Data, DataVar, DataVarBound
 
 
 class MultiIndexConverter(Transformer):

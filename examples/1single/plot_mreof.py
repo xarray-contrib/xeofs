@@ -5,7 +5,6 @@ Varimax-rotated Multivariate EOF analysis
 Multivariate EOF analysis with additional Varimax rotation.
 """
 
-
 # Load packages and data:
 import xarray as xr
 import matplotlib.pyplot as plt

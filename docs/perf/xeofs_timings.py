@@ -4,7 +4,6 @@ import eofs
 import xeofs as xe
 import xarray as xr
 import dask
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 import timeit
 

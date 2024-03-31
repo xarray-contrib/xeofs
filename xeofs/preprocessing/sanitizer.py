@@ -5,7 +5,7 @@ import dask
 import xarray as xr
 
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar
+from ..utils.data_types import Dims, DataArray, Data
 
 
 class Sanitizer(Transformer):
@@ -65,7 +65,7 @@ class Sanitizer(Transformer):
         X: Data,
         sample_dims: Optional[Dims] = None,
         feature_dims: Optional[Dims] = None,
-        **kwargs
+        **kwargs,
     ) -> Self:
         # Check if input is a DataArray
         self._check_input_type(X)

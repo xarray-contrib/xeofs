@@ -371,7 +371,7 @@ class MCA(_BaseCrossModel):
         change_in_cf_in_last_mode = change_per_mode.isel(mode=-1)
         if change_in_cf_in_last_mode > 0.001:
             print(
-                f"Warning: CF is sensitive to the number of modes retained. Please increase `n_modes` for a better estimate."
+                "Warning: CF is sensitive to the number of modes retained. Please increase `n_modes` for a better estimate."
             )
         cov_frac = svals / tot_var
         cov_frac.name = "covariance_fraction"
