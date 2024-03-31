@@ -33,13 +33,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install -r pyproject.toml --extra dev --resolution ${{ matrix.versions.resolution }}
+          uv pip install -e . -r pyproject.toml --extra dev --resolution ${{ matrix.versions.resolution }}
 
       - name: Execute Tests with Pytest and Coverage
         run: |
-          python coverage run -m pytest -n auto --doctest-glob="README.md"
-          python coverage report -m
-          python coverage xml
+          coverage run -m pytest -n auto --doctest-glob="README.md"
+          coverage report -m
+          coverage xml
 
       - name: Upload Coverage Report to Codecov
         uses: codecov/codecov-action@v3

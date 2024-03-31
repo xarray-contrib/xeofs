@@ -34,6 +34,7 @@ dev = [
   "coverage>=6",
   "pre-commit>=3",
   "nbstripout>=0.6",
+  "pooch>=1.6.0",
 ]
 docs = [
   "rpy2>=3.5",
