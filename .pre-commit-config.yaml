@@ -12,7 +12,7 @@ repos:
     rev: v0.3.4
     hooks:
       - id: ruff
-        # args: [ --fix ]
+        args: [ --fix ]
       - id: ruff-format
   # Strip output from Jupyter Notebooks
   - repo: https://github.com/kynan/nbstripout

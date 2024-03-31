@@ -10,7 +10,7 @@ on:
 
 
 jobs:
-  Test:
+  test:
     name: py${{ matrix.versions.python-version }} ${{ matrix.versions.resolution }}
     runs-on: ubuntu-latest
     strategy:

@@ -5,15 +5,15 @@
 # Aim: ensure that PR title matches the concentional commits spec
 # More info: https://github.com/marketplace/actions/semantic-pull-request
 
-name: "Pull Request Linting"
+name: "PR Linting"
 
 on:
   pull_request_target:
     types: [opened, edited, synchronize]
 
 jobs:
-  PR_Validation:
-    name: Validate Pull Request Title
+  validate:
+    name: validate conventional commit in title
     runs-on: ubuntu-latest
     steps:
       - name: Run Semantic Pull Request Linting
