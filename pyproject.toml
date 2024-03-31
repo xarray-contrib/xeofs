@@ -66,7 +66,7 @@ target-version = "py311"
 version_toml = [ "pyproject.toml:project.version" ]
 version_source = "tag"
 commit_message = "chore(release): v{version}"
-build_command = "pip build"
+build_command = "python -m build"
 branch = "main"
 
 [tool.semantic_release.commit_parser_options]
