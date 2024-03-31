@@ -1,64 +1,71 @@
-[tool.poetry]
+[project]
 name = "xeofs"
 version = "2.3.2"
 description = "Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis"
-authors = ["Niclas Rieger <niclasrieger@gmail.com>", "Samuel J. Levang <slevang@gmail.com>"]
-license = "MIT"
+authors = [
+    {name = "Niclas Rieger", email = "niclasrieger@gmail.com"},
+    {name = "Samuel J. Levang", email = "slevang@gmail.com"},
+]
+license = {text = "MIT"}
 readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2",
+  "xarray>=2023.04.0",
+  "scikit-learn>=1.0.2",
+  "tqdm>=4.64.0",
+  "dask>=2023.0.1",
+  "statsmodels>=0.14.0",
+  "netCDF4>=1.5.8",
+  "numba>=0.57",
+  "typing-extensions>=4.8.0",
+  "zarr>=2.14.0",
+  "xarray-datatree>=0.0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.0.0",
+  "ruff>=0.3",
+  "pytest>=7",
+  "pytest-xdist>=3",
+  "coverage>=6",
+  "pre-commit>=3",
+  "nbstripout>=0.6",
+]
+docs = [
+  "rpy2>=3.5",
+  "sphinx-gallery>=0.14",
+  "sphinx-design>=0.5",
+  "sphinx-copybutton>=0.5",
+  "nbsphinx>=0.9",
+  "pydata-sphinx-theme>=0.14",
+  "sphinx>=7.2",
+  "nbconvert>=7.9",
+]
+
+[project.urls]
 homepage = "https://github.com/xarray-contrib/xeofs"
 repository = "https://github.com/xarray-contrib/xeofs"
 documentation = "https://xeofs.readthedocs.io/en/latest/"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-poetry = "^1.6"
-numpy = "^1.24"
-pandas = "^2"
-xarray = ">=2023"
-scikit-learn = "^1.0.2"
-pooch = "^1.6.0"
-tqdm = "^4.64.0"
-dask = ">=2023.0.1"
-statsmodels = "^0.14.0"
-netCDF4 = "^1.5.7"
-numba = ">=0.57"
-typing-extensions = "^4.8.0"
-zarr = "^2.0.0"
-xarray-datatree = ">=0.0.5"
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^4.0"
-pytest = "^7.0"
-coverage = "^6.3"
-black = "~23.7.0" 
-pre-commit = "^3.3"
-nbstripout = "^0.6"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-rpy2 = "^3.5"
-sphinx-gallery = "^0.14"
-sphinx-design = "^0.5"
-sphinx-copybutton = "^0.5"
-nbsphinx = "^0.9"
-pydata-sphinx-theme = "^0.14"
-sphinx = "^7.2"
-nbconvert = "^7.9"
-
 [build-system]
-requires = ["setuptools", "poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=42",
+  "setuptools-scm>=7",
+]
+
+[tool.ruff]
+target-version = "py311"
 
 [tool.semantic_release]
-version_toml = [ "pyproject.toml:tool.poetry.version" ]
+version_toml = [ "pyproject.toml:project.version" ]
 version_source = "tag"
 commit_message = "chore(release): v{version}"
-build_command = "pip install poetry && poetry build"
+build_command = "pip build"
 branch = "main"
 
 [tool.semantic_release.commit_parser_options]
@@ -76,4 +83,3 @@ allowed_tags = [
 ]
 minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
-
