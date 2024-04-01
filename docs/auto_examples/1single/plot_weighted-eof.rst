@@ -29,9 +29,10 @@ and finally (4) correlation matrix + coslat weighting.
 
 Load packages and data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-25
+.. GENERATED FROM PYTHON SOURCE LINES 13-26
 
-.. code-block:: default
+.. code-block:: Python
+
 
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -52,13 +53,13 @@ Load packages and data:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-27
+.. GENERATED FROM PYTHON SOURCE LINES 27-28
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-52
+.. GENERATED FROM PYTHON SOURCE LINES 28-53
 
-.. code-block:: default
+.. code-block:: Python
 
 
     components = []
@@ -92,13 +93,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-54
+.. GENERATED FROM PYTHON SOURCE LINES 54-55
 
 Create figure showing the first mode for all 4 cases
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-88
+.. GENERATED FROM PYTHON SOURCE LINES 55-89
 
-.. code-block:: default
+.. code-block:: Python
 
 
     proj = Orthographic(central_latitude=30, central_longitude=-80)
@@ -127,7 +128,7 @@ Create figure showing the first mode for all 4 cases
         a2.set_title("", loc="center")
         a2.set_title(titles[i], loc="left", weight="bold")
         if i < 3:
-            a2.set_xticks([])
+            a2.set_xticks([], [])
             sns.despine(ax=a2, trim=True, bottom=True)
         else:
             sns.despine(ax=a2, trim=True, bottom=False)
@@ -149,7 +150,7 @@ Create figure showing the first mode for all 4 cases
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.606 seconds)
+   **Total running time of the script:** (0 minutes 1.928 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_weighted-eof.py:
@@ -158,16 +159,13 @@ Create figure showing the first mode for all 4 cases
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_weighted-eof.ipynb <plot_weighted-eof.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_weighted-eof.py <plot_weighted-eof.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_weighted-eof.ipynb <plot_weighted-eof.ipynb>`
 
 
 .. only:: html

@@ -21,14 +21,14 @@
 Complex/Hilbert EOF analysis
 ============================================
 
-We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. 
-This method extends traditional EOF analysis into the complex domain, allowing 
+We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.
+This method extends traditional EOF analysis into the complex domain, allowing
 the EOF components to have real and imaginary parts. This capability can reveal
-oscillatory patterns in datasets, which are common in Earth observations. 
+oscillatory patterns in datasets, which are common in Earth observations.
 For example, beyond typical examples like seasonal cycles, you can think of
 internal waves in the ocean, or the Quasi-Biennial Oscillation in the atmosphere.
 
-Using monthly sea surface temperature data from 1970 to 2021 as an example, we 
+Using monthly sea surface temperature data from 1970 to 2021 as an example, we
 highlight the method's key features and address edge effects as a common challenge.
 
 .. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).
@@ -39,7 +39,7 @@ Let's start by importing the necessary packages and loading the data:
 
 .. GENERATED FROM PYTHON SOURCE LINES 23-31
 
-.. code-block:: default
+.. code-block:: Python
 
     import xeofs as xe
     import xarray as xr
@@ -420,20 +420,20 @@ Let's start by importing the necessary packages and loading the data:
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;sst&#x27; (time: 624, lat: 89, lon: 180)&gt;
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;sst&#x27; (time: 624, lat: 89, lon: 180)&gt; Size: 40MB
     [9996480 values with dtype=float32]
     Coordinates:
-      * lat      (lat) float32 88.0 86.0 84.0 82.0 80.0 ... -82.0 -84.0 -86.0 -88.0
-      * lon      (lon) float32 0.0 2.0 4.0 6.0 8.0 ... 350.0 352.0 354.0 356.0 358.0
-      * time     (time) datetime64[ns] 1970-01-01 1970-02-01 ... 2021-12-01
-    Attributes: (9)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'sst'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 624</li><li><span class='xr-has-index'>lat</span>: 89</li><li><span class='xr-has-index'>lon</span>: 180</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-03503569-6b83-492e-87e5-2957a402d504' class='xr-array-in' type='checkbox' checked><label for='section-03503569-6b83-492e-87e5-2957a402d504' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>...</span></div><div class='xr-array-data'><pre>[9996480 values with dtype=float32]</pre></div></div></li><li class='xr-section-item'><input id='section-d4cc63e9-77fe-48ee-b75f-8b714dcceab8' class='xr-section-summary-in' type='checkbox'  checked><label for='section-d4cc63e9-77fe-48ee-b75f-8b714dcceab8' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lat</span></div><div class='xr-var-dims'>(lat)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>88.0 86.0 84.0 ... -86.0 -88.0</div><input id='attrs-c8c4ecbc-5b05-458e-a373-ba0b2c0788f1' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-c8c4ecbc-5b05-458e-a373-ba0b2c0788f1' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-451936ec-188a-4c8a-b660-1d290eaf01bc' class='xr-var-data-in' type='checkbox'><label for='data-451936ec-188a-4c8a-b660-1d290eaf01bc' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_north</dd><dt><span>long_name :</span></dt><dd>Latitude</dd><dt><span>actual_range :</span></dt><dd>[ 88. -88.]</dd><dt><span>standard_name :</span></dt><dd>latitude</dd><dt><span>axis :</span></dt><dd>Y</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([ 88.,  86.,  84.,  82.,  80.,  78.,  76.,  74.,  72.,  70.,  68.,  66.,
+      * lat      (lat) float32 356B 88.0 86.0 84.0 82.0 ... -82.0 -84.0 -86.0 -88.0
+      * lon      (lon) float32 720B 0.0 2.0 4.0 6.0 8.0 ... 352.0 354.0 356.0 358.0
+      * time     (time) datetime64[ns] 5kB 1970-01-01 1970-02-01 ... 2021-12-01
+    Attributes: (9)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'sst'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 624</li><li><span class='xr-has-index'>lat</span>: 89</li><li><span class='xr-has-index'>lon</span>: 180</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-3d575c77-42aa-43f8-bd93-05ae9e25ddea' class='xr-array-in' type='checkbox' ><label for='section-3d575c77-42aa-43f8-bd93-05ae9e25ddea' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>...</span></div><div class='xr-array-data'><pre>[9996480 values with dtype=float32]</pre></div></div></li><li class='xr-section-item'><input id='section-45fef4d0-73d8-4c89-a36a-c17ad2509354' class='xr-section-summary-in' type='checkbox'  checked><label for='section-45fef4d0-73d8-4c89-a36a-c17ad2509354' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lat</span></div><div class='xr-var-dims'>(lat)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>88.0 86.0 84.0 ... -86.0 -88.0</div><input id='attrs-beddd774-e2ee-4413-a435-d45083dd6211' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-beddd774-e2ee-4413-a435-d45083dd6211' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f1e168d0-f66a-49de-82e6-5e189f8eed71' class='xr-var-data-in' type='checkbox'><label for='data-f1e168d0-f66a-49de-82e6-5e189f8eed71' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_north</dd><dt><span>long_name :</span></dt><dd>Latitude</dd><dt><span>actual_range :</span></dt><dd>[ 88. -88.]</dd><dt><span>standard_name :</span></dt><dd>latitude</dd><dt><span>axis :</span></dt><dd>Y</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([ 88.,  86.,  84.,  82.,  80.,  78.,  76.,  74.,  72.,  70.,  68.,  66.,
             64.,  62.,  60.,  58.,  56.,  54.,  52.,  50.,  48.,  46.,  44.,  42.,
             40.,  38.,  36.,  34.,  32.,  30.,  28.,  26.,  24.,  22.,  20.,  18.,
             16.,  14.,  12.,  10.,   8.,   6.,   4.,   2.,   0.,  -2.,  -4.,  -6.,
             -8., -10., -12., -14., -16., -18., -20., -22., -24., -26., -28., -30.,
            -32., -34., -36., -38., -40., -42., -44., -46., -48., -50., -52., -54.,
            -56., -58., -60., -62., -64., -66., -68., -70., -72., -74., -76., -78.,
-           -80., -82., -84., -86., -88.], dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lon</span></div><div class='xr-var-dims'>(lon)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>0.0 2.0 4.0 ... 354.0 356.0 358.0</div><input id='attrs-c8a9e9fc-1fac-45cd-8321-81cbde191839' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-c8a9e9fc-1fac-45cd-8321-81cbde191839' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b201e519-404a-4eb6-b5e1-91613bc3fb3b' class='xr-var-data-in' type='checkbox'><label for='data-b201e519-404a-4eb6-b5e1-91613bc3fb3b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_east</dd><dt><span>long_name :</span></dt><dd>Longitude</dd><dt><span>actual_range :</span></dt><dd>[  0. 358.]</dd><dt><span>standard_name :</span></dt><dd>longitude</dd><dt><span>axis :</span></dt><dd>X</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,  22.,
+           -80., -82., -84., -86., -88.], dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lon</span></div><div class='xr-var-dims'>(lon)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>0.0 2.0 4.0 ... 354.0 356.0 358.0</div><input id='attrs-f3c7049c-6590-47fb-af51-46ad84ad807b' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-f3c7049c-6590-47fb-af51-46ad84ad807b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-09dc4d09-acca-4690-ab60-4e59dcc7e644' class='xr-var-data-in' type='checkbox'><label for='data-09dc4d09-acca-4690-ab60-4e59dcc7e644' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_east</dd><dt><span>long_name :</span></dt><dd>Longitude</dd><dt><span>actual_range :</span></dt><dd>[  0. 358.]</dd><dt><span>standard_name :</span></dt><dd>longitude</dd><dt><span>axis :</span></dt><dd>X</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,  22.,
             24.,  26.,  28.,  30.,  32.,  34.,  36.,  38.,  40.,  42.,  44.,  46.,
             48.,  50.,  52.,  54.,  56.,  58.,  60.,  62.,  64.,  66.,  68.,  70.,
             72.,  74.,  76.,  78.,  80.,  82.,  84.,  86.,  88.,  90.,  92.,  94.,
@@ -448,10 +448,10 @@ Let's start by importing the necessary packages and loading the data:
            288., 290., 292., 294., 296., 298., 300., 302., 304., 306., 308., 310.,
            312., 314., 316., 318., 320., 322., 324., 326., 328., 330., 332., 334.,
            336., 338., 340., 342., 344., 346., 348., 350., 352., 354., 356., 358.],
-          dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>datetime64[ns]</div><div class='xr-var-preview xr-preview'>1970-01-01 ... 2021-12-01</div><input id='attrs-7381ee95-e869-4312-9262-692ca60adaf2' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7381ee95-e869-4312-9262-692ca60adaf2' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a007eec5-a087-4d80-99d4-0a9a201457ef' class='xr-var-data-in' type='checkbox'><label for='data-a007eec5-a087-4d80-99d4-0a9a201457ef' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>delta_t :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>avg_period :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>prev_avg_period :</span></dt><dd>0000-00-07 00:00:00</dd><dt><span>standard_name :</span></dt><dd>time</dd><dt><span>axis :</span></dt><dd>T</dd><dt><span>actual_range :</span></dt><dd>[19723. 81204.]</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;1970-01-01T00:00:00.000000000&#x27;, &#x27;1970-02-01T00:00:00.000000000&#x27;,
+          dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>datetime64[ns]</div><div class='xr-var-preview xr-preview'>1970-01-01 ... 2021-12-01</div><input id='attrs-675c9ad9-cd73-48c2-b6ba-8751c628b8ef' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-675c9ad9-cd73-48c2-b6ba-8751c628b8ef' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-00f6ade9-c439-426d-890a-ebf00a1a92bb' class='xr-var-data-in' type='checkbox'><label for='data-00f6ade9-c439-426d-890a-ebf00a1a92bb' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>delta_t :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>avg_period :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>prev_avg_period :</span></dt><dd>0000-00-07 00:00:00</dd><dt><span>standard_name :</span></dt><dd>time</dd><dt><span>axis :</span></dt><dd>T</dd><dt><span>actual_range :</span></dt><dd>[19723. 81204.]</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;1970-01-01T00:00:00.000000000&#x27;, &#x27;1970-02-01T00:00:00.000000000&#x27;,
            &#x27;1970-03-01T00:00:00.000000000&#x27;, ..., &#x27;2021-10-01T00:00:00.000000000&#x27;,
            &#x27;2021-11-01T00:00:00.000000000&#x27;, &#x27;2021-12-01T00:00:00.000000000&#x27;],
-          dtype=&#x27;datetime64[ns]&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-a458dcb3-0ed0-4203-b01b-5430544b660d' class='xr-section-summary-in' type='checkbox'  ><label for='section-a458dcb3-0ed0-4203-b01b-5430544b660d' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>lat</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-9481b34f-0af6-429c-813b-ab305ce249db' class='xr-index-data-in' type='checkbox'/><label for='index-9481b34f-0af6-429c-813b-ab305ce249db' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([ 88.0,  86.0,  84.0,  82.0,  80.0,  78.0,  76.0,  74.0,  72.0,  70.0,
+          dtype=&#x27;datetime64[ns]&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-dbc7afa0-b3da-4b10-88a4-f7d06efc4abb' class='xr-section-summary-in' type='checkbox'  ><label for='section-dbc7afa0-b3da-4b10-88a4-f7d06efc4abb' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>lat</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-942e25bf-c90e-4b18-b514-f421b1c4be86' class='xr-index-data-in' type='checkbox'/><label for='index-942e25bf-c90e-4b18-b514-f421b1c4be86' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([ 88.0,  86.0,  84.0,  82.0,  80.0,  78.0,  76.0,  74.0,  72.0,  70.0,
             68.0,  66.0,  64.0,  62.0,  60.0,  58.0,  56.0,  54.0,  52.0,  50.0,
             48.0,  46.0,  44.0,  42.0,  40.0,  38.0,  36.0,  34.0,  32.0,  30.0,
             28.0,  26.0,  24.0,  22.0,  20.0,  18.0,  16.0,  14.0,  12.0,  10.0,
@@ -460,17 +460,17 @@ Let's start by importing the necessary packages and loading the data:
            -32.0, -34.0, -36.0, -38.0, -40.0, -42.0, -44.0, -46.0, -48.0, -50.0,
            -52.0, -54.0, -56.0, -58.0, -60.0, -62.0, -64.0, -66.0, -68.0, -70.0,
            -72.0, -74.0, -76.0, -78.0, -80.0, -82.0, -84.0, -86.0, -88.0],
-          dtype=&#x27;float32&#x27;, name=&#x27;lat&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>lon</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-dd70f37f-0076-4f06-ba77-a97ef3f13aae' class='xr-index-data-in' type='checkbox'/><label for='index-dd70f37f-0076-4f06-ba77-a97ef3f13aae' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  0.0,   2.0,   4.0,   6.0,   8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
+          dtype=&#x27;float32&#x27;, name=&#x27;lat&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>lon</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-b8e01682-a154-4475-8756-91585e34e570' class='xr-index-data-in' type='checkbox'/><label for='index-b8e01682-a154-4475-8756-91585e34e570' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  0.0,   2.0,   4.0,   6.0,   8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
            ...
            340.0, 342.0, 344.0, 346.0, 348.0, 350.0, 352.0, 354.0, 356.0, 358.0],
-          dtype=&#x27;float32&#x27;, name=&#x27;lon&#x27;, length=180))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-4fc381e2-0ef9-49d4-b0ae-b51529bb5c0e' class='xr-index-data-in' type='checkbox'/><label for='index-4fc381e2-0ef9-49d4-b0ae-b51529bb5c0e' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(DatetimeIndex([&#x27;1970-01-01&#x27;, &#x27;1970-02-01&#x27;, &#x27;1970-03-01&#x27;, &#x27;1970-04-01&#x27;,
+          dtype=&#x27;float32&#x27;, name=&#x27;lon&#x27;, length=180))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-ed9b650b-88ac-4cff-a209-d3983a5da69f' class='xr-index-data-in' type='checkbox'/><label for='index-ed9b650b-88ac-4cff-a209-d3983a5da69f' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(DatetimeIndex([&#x27;1970-01-01&#x27;, &#x27;1970-02-01&#x27;, &#x27;1970-03-01&#x27;, &#x27;1970-04-01&#x27;,
                    &#x27;1970-05-01&#x27;, &#x27;1970-06-01&#x27;, &#x27;1970-07-01&#x27;, &#x27;1970-08-01&#x27;,
                    &#x27;1970-09-01&#x27;, &#x27;1970-10-01&#x27;,
                    ...
                    &#x27;2021-03-01&#x27;, &#x27;2021-04-01&#x27;, &#x27;2021-05-01&#x27;, &#x27;2021-06-01&#x27;,
                    &#x27;2021-07-01&#x27;, &#x27;2021-08-01&#x27;, &#x27;2021-09-01&#x27;, &#x27;2021-10-01&#x27;,
                    &#x27;2021-11-01&#x27;, &#x27;2021-12-01&#x27;],
-                  dtype=&#x27;datetime64[ns]&#x27;, name=&#x27;time&#x27;, length=624, freq=None))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-91c999cd-ed0c-4369-8c61-1e2cc725127a' class='xr-section-summary-in' type='checkbox'  ><label for='section-91c999cd-ed0c-4369-8c61-1e2cc725127a' class='xr-section-summary' >Attributes: <span>(9)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Monthly Means of Sea Surface Temperature</dd><dt><span>units :</span></dt><dd>degC</dd><dt><span>var_desc :</span></dt><dd>Sea Surface Temperature</dd><dt><span>level_desc :</span></dt><dd>Surface</dd><dt><span>statistic :</span></dt><dd>Mean</dd><dt><span>dataset :</span></dt><dd>NOAA Extended Reconstructed SST V5</dd><dt><span>parent_stat :</span></dt><dd>Individual Values</dd><dt><span>actual_range :</span></dt><dd>[-1.8     42.32636]</dd><dt><span>valid_range :</span></dt><dd>[-1.8 45. ]</dd></dl></div></li></ul></div></div>
+                  dtype=&#x27;datetime64[ns]&#x27;, name=&#x27;time&#x27;, length=624, freq=None))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-03915e2d-6f7f-48ce-963b-63ac3b6cea1f' class='xr-section-summary-in' type='checkbox'  ><label for='section-03915e2d-6f7f-48ce-963b-63ac3b6cea1f' class='xr-section-summary' >Attributes: <span>(9)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Monthly Means of Sea Surface Temperature</dd><dt><span>units :</span></dt><dd>degC</dd><dt><span>var_desc :</span></dt><dd>Sea Surface Temperature</dd><dt><span>level_desc :</span></dt><dd>Surface</dd><dt><span>statistic :</span></dt><dd>Mean</dd><dt><span>dataset :</span></dt><dd>NOAA Extended Reconstructed SST V5</dd><dt><span>parent_stat :</span></dt><dd>Individual Values</dd><dt><span>actual_range :</span></dt><dd>[-1.8     42.32636]</dd><dt><span>valid_range :</span></dt><dd>[-1.8 45. ]</dd></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -485,7 +485,7 @@ to mitigate potential edge effects, we'll begin with no padding.
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-41
 
-.. code-block:: default
+.. code-block:: Python
 
 
     kwargs = dict(n_modes=4, use_coslat=True, random_state=7)
@@ -504,7 +504,7 @@ Now, we fit the model to the data and extract the explained variance.
 
 .. GENERATED FROM PYTHON SOURCE LINES 43-48
 
-.. code-block:: default
+.. code-block:: Python
 
 
     model.fit(sst, dim="time")
@@ -524,7 +524,7 @@ Let's have a look at the explained variance of the first five modes:
 
 .. GENERATED FROM PYTHON SOURCE LINES 50-54
 
-.. code-block:: default
+.. code-block:: Python
 
 
     expvar.round(0)
@@ -901,11 +901,11 @@ Let's have a look at the explained variance of the first five modes:
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance&#x27; (mode: 4)&gt;
-    array([50686.,  1705.,  1105.,   519.])
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance&#x27; (mode: 4)&gt; Size: 32B
+    5.069e+04 1.705e+03 1.105e+03 519.0
     Coordinates:
-      * mode     (mode) int64 1 2 3 4
-    Attributes: (13)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-6e952de7-dfb2-428f-b69b-689f1b7c1607' class='xr-array-in' type='checkbox' checked><label for='section-6e952de7-dfb2-428f-b69b-689f1b7c1607' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>5.069e+04 1.705e+03 1.105e+03 519.0</span></div><div class='xr-array-data'><pre>array([50686.,  1705.,  1105.,   519.])</pre></div></div></li><li class='xr-section-item'><input id='section-924f7950-7779-4a33-9a63-8ef0d3ac07d7' class='xr-section-summary-in' type='checkbox'  checked><label for='section-924f7950-7779-4a33-9a63-8ef0d3ac07d7' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-1c962284-e9fd-4819-b9da-79644458efdb' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-1c962284-e9fd-4819-b9da-79644458efdb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9c886799-bfdd-43ec-af32-8b48c9d173c6' class='xr-var-data-in' type='checkbox'><label for='data-9c886799-bfdd-43ec-af32-8b48c9d173c6' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-9b1560ff-0fe2-42f7-8847-1e6e87153bd0' class='xr-section-summary-in' type='checkbox'  ><label for='section-9b1560ff-0fe2-42f7-8847-1e6e87153bd0' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-56cacf23-73eb-442a-8965-01c00a4445d4' class='xr-index-data-in' type='checkbox'/><label for='index-56cacf23-73eb-442a-8965-01c00a4445d4' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-485aaabc-9f32-4b93-9d41-52f80a761631' class='xr-section-summary-in' type='checkbox'  ><label for='section-485aaabc-9f32-4b93-9d41-52f80a761631' class='xr-section-summary' >Attributes: <span>(13)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>1.2.0</dd><dt><span>date :</span></dt><dd>2023-10-26 17:27:27</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd></dl></div></li></ul></div></div>
+      * mode     (mode) int64 32B 1 2 3 4
+    Attributes: (16)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-d1d2424b-99ec-4fde-9a1d-db92859e19fa' class='xr-array-in' type='checkbox' ><label for='section-d1d2424b-99ec-4fde-9a1d-db92859e19fa' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>5.069e+04 1.705e+03 1.105e+03 519.0</span></div><div class='xr-array-data'><pre>array([50686.,  1705.,  1105.,   519.])</pre></div></div></li><li class='xr-section-item'><input id='section-79b5d49f-d5e8-489f-9ff6-75f9ef0dd37d' class='xr-section-summary-in' type='checkbox'  checked><label for='section-79b5d49f-d5e8-489f-9ff6-75f9ef0dd37d' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-04dbce39-906d-46e5-baa8-b7c32543a332' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-04dbce39-906d-46e5-baa8-b7c32543a332' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0f72063e-42aa-4b13-b672-edabc9724b32' class='xr-var-data-in' type='checkbox'><label for='data-0f72063e-42aa-4b13-b672-edabc9724b32' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-b31a07d1-ee71-4d7d-8e53-c3d1cf5fb0a7' class='xr-section-summary-in' type='checkbox'  ><label for='section-b31a07d1-ee71-4d7d-8e53-c3d1cf5fb0a7' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-140af4df-9bde-49c3-b7a8-c19deed5fa63' class='xr-index-data-in' type='checkbox'/><label for='index-140af4df-9bde-49c3-b7a8-c19deed5fa63' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-11a185c5-b8df-4822-9f6a-2fd0d8d4a176' class='xr-section-summary-in' type='checkbox'  ><label for='section-11a185c5-b8df-4822-9f6a-2fd0d8d4a176' class='xr-section-summary' >Attributes: <span>(16)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>2.3.2</dd><dt><span>date :</span></dt><dd>2024-03-31 20:34:14</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>verbose :</span></dt><dd>False</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -917,7 +917,7 @@ If we look at the fraction of explained variance, we see that the first mode exp
 
 .. GENERATED FROM PYTHON SOURCE LINES 57-60
 
-.. code-block:: default
+.. code-block:: Python
 
 
     (expvar_ratio * 100).round(1)
@@ -1293,11 +1293,11 @@ If we look at the fraction of explained variance, we see that the first mode exp
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance_ratio&#x27; (mode: 4)&gt;
-    array([88.8,  3. ,  1.9,  0.9])
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance_ratio&#x27; (mode: 4)&gt; Size: 32B
+    88.8 3.0 1.9 0.9
     Coordinates:
-      * mode     (mode) int64 1 2 3 4
-    Attributes: (13)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance_ratio'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-d8b078d0-0d76-493e-a0a7-86ca3cb156af' class='xr-array-in' type='checkbox' checked><label for='section-d8b078d0-0d76-493e-a0a7-86ca3cb156af' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>88.8 3.0 1.9 0.9</span></div><div class='xr-array-data'><pre>array([88.8,  3. ,  1.9,  0.9])</pre></div></div></li><li class='xr-section-item'><input id='section-78a695d2-d2b8-406c-aaee-de8f6a71a05a' class='xr-section-summary-in' type='checkbox'  checked><label for='section-78a695d2-d2b8-406c-aaee-de8f6a71a05a' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-dea242a2-d303-4151-a52f-52e214b3bd8c' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-dea242a2-d303-4151-a52f-52e214b3bd8c' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7ed90da8-5448-49e7-833f-6194abe6ad37' class='xr-var-data-in' type='checkbox'><label for='data-7ed90da8-5448-49e7-833f-6194abe6ad37' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-a275e0ed-74ed-4038-9b8b-3fc639995a02' class='xr-section-summary-in' type='checkbox'  ><label for='section-a275e0ed-74ed-4038-9b8b-3fc639995a02' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-d0c9605e-7d95-4920-8258-370e9df8fbb3' class='xr-index-data-in' type='checkbox'/><label for='index-d0c9605e-7d95-4920-8258-370e9df8fbb3' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-02c17c22-0a51-4cee-b447-98180a31ada6' class='xr-section-summary-in' type='checkbox'  ><label for='section-02c17c22-0a51-4cee-b447-98180a31ada6' class='xr-section-summary' >Attributes: <span>(13)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>1.2.0</dd><dt><span>date :</span></dt><dd>2023-10-26 17:27:27</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd></dl></div></li></ul></div></div>
+      * mode     (mode) int64 32B 1 2 3 4
+    Attributes: (16)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance_ratio'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-16c5d432-011e-4450-ae9f-024303ebdee6' class='xr-array-in' type='checkbox' ><label for='section-16c5d432-011e-4450-ae9f-024303ebdee6' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>88.8 3.0 1.9 0.9</span></div><div class='xr-array-data'><pre>array([88.8,  3. ,  1.9,  0.9])</pre></div></div></li><li class='xr-section-item'><input id='section-b760ce90-1111-4d00-9960-390206f20253' class='xr-section-summary-in' type='checkbox'  checked><label for='section-b760ce90-1111-4d00-9960-390206f20253' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-01302b7c-5e12-401b-8fe7-bce1c0515b80' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-01302b7c-5e12-401b-8fe7-bce1c0515b80' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-139af5f2-6db7-431f-af2d-c58f93ba0625' class='xr-var-data-in' type='checkbox'><label for='data-139af5f2-6db7-431f-af2d-c58f93ba0625' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-807c2e08-fed6-43a3-9d77-a440f87297c9' class='xr-section-summary-in' type='checkbox'  ><label for='section-807c2e08-fed6-43a3-9d77-a440f87297c9' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-d364e86f-32fd-4448-b8fa-9c45ae39a311' class='xr-index-data-in' type='checkbox'/><label for='index-d364e86f-32fd-4448-b8fa-9c45ae39a311' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1fc858e5-73e5-46ee-83bb-d09931bf9c26' class='xr-section-summary-in' type='checkbox'  ><label for='section-1fc858e5-73e5-46ee-83bb-d09931bf9c26' class='xr-section-summary' >Attributes: <span>(16)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>2.3.2</dd><dt><span>date :</span></dt><dd>2024-03-31 20:34:14</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>verbose :</span></dt><dd>False</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -1313,7 +1313,7 @@ Let's confirm our hypothesis by looking at the real part the complex-valued scor
 
 .. GENERATED FROM PYTHON SOURCE LINES 67-72
 
-.. code-block:: default
+.. code-block:: Python
 
 
     scores = model.scores()
@@ -1334,7 +1334,7 @@ Let's confirm our hypothesis by looking at the real part the complex-valued scor
  .. code-block:: none
 
 
-    <xarray.plot.facetgrid.FacetGrid object at 0x7f879f177450>
+    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac67f2210>
 
 
 
@@ -1355,7 +1355,7 @@ multiples of the time series length. Let's see how the decay parameter impacts t
 
 .. GENERATED FROM PYTHON SOURCE LINES 85-92
 
-.. code-block:: default
+.. code-block:: Python
 
 
     model_ext = xe.models.ComplexEOF(padding="exp", decay_factor=0.01, **kwargs)
@@ -1378,7 +1378,7 @@ multiples of the time series length. Let's see how the decay parameter impacts t
  .. code-block:: none
 
 
-    <xarray.plot.facetgrid.FacetGrid object at 0x7f879eec4790>
+    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac75c1390>
 
 
 
@@ -1389,7 +1389,7 @@ Lastly, we examine the complex component amplitudes and phases.
 
 .. GENERATED FROM PYTHON SOURCE LINES 95-99
 
-.. code-block:: default
+.. code-block:: Python
 
 
     comp_amps = model.components_amplitude()
@@ -1409,7 +1409,7 @@ Lastly, we examine the complex component amplitudes and phases.
  .. code-block:: none
 
 
-    <xarray.plot.facetgrid.FacetGrid object at 0x7f879e7ccdd0>
+    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac63c67d0>
 
 
 
@@ -1423,7 +1423,7 @@ with mode 3 of the standard EOF analysis.
 
 .. GENERATED FROM PYTHON SOURCE LINES 105-108
 
-.. code-block:: default
+.. code-block:: Python
 
 
     comp_phases = model.components_phase()
@@ -1442,14 +1442,14 @@ with mode 3 of the standard EOF analysis.
  .. code-block:: none
 
 
-    <xarray.plot.facetgrid.FacetGrid object at 0x7f879c58e8d0>
+    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac7aee7d0>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 15.825 seconds)
+   **Total running time of the script:** (0 minutes 3.119 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_complex_eof.py:
@@ -1458,16 +1458,13 @@ with mode 3 of the standard EOF analysis.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_complex_eof.ipynb <plot_complex_eof.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_complex_eof.py <plot_complex_eof.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_complex_eof.ipynb <plot_complex_eof.ipynb>`
 
 
 .. only:: html

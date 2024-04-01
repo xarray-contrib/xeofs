@@ -14,7 +14,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial  data. EEOF analysis,...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial data. EEOF analysis, ...">
 
 .. only:: html
 
@@ -48,7 +48,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.  This met...">
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. This meth...">
 
 .. only:: html
 

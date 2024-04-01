@@ -23,10 +23,9 @@ EOF analysis (S-mode)
 
 EOF analysis in S-mode maximises the temporal variance.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-17
+.. GENERATED FROM PYTHON SOURCE LINES 7-16
 
-.. code-block:: default
-
+.. code-block:: Python
 
 
     # Load packages and data:
@@ -44,9 +43,9 @@ EOF analysis in S-mode maximises the temporal variance.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-21
+.. GENERATED FROM PYTHON SOURCE LINES 17-20
 
-.. code-block:: default
+.. code-block:: Python
 
 
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
@@ -58,13 +57,13 @@ EOF analysis in S-mode maximises the temporal variance.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 22-23
+.. GENERATED FROM PYTHON SOURCE LINES 21-22
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 23-31
+.. GENERATED FROM PYTHON SOURCE LINES 22-30
 
-.. code-block:: default
+.. code-block:: Python
 
 
     model = EOF(n_modes=5, use_coslat=True)
@@ -81,13 +80,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-33
+.. GENERATED FROM PYTHON SOURCE LINES 31-32
 
 Explained variance fraction
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 32-36
 
-.. code-block:: default
+.. code-block:: Python
 
 
     print("Explained variance: ", expvar.round(0).values)
@@ -107,13 +106,13 @@ Explained variance fraction
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-39
+.. GENERATED FROM PYTHON SOURCE LINES 37-38
 
 Create figure showing the first two modes
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-57
+.. GENERATED FROM PYTHON SOURCE LINES 38-56
 
-.. code-block:: default
+.. code-block:: Python
 
 
     proj = EqualEarth(central_longitude=180)
@@ -148,7 +147,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.394 seconds)
+   **Total running time of the script:** (0 minutes 2.207 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eof-smode.py:
@@ -157,16 +156,13 @@ Create figure showing the first two modes
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_eof-smode.py <plot_eof-smode.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
 
 
 .. only:: html

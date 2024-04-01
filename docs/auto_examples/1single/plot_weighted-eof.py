@@ -79,7 +79,7 @@ for i, (a1, a2) in enumerate(zip(ax_eofs, ax_pcs)):
     a2.set_title("", loc="center")
     a2.set_title(titles[i], loc="left", weight="bold")
     if i < 3:
-        a2.set_xticks([])
+        a2.set_xticks([], [])
         sns.despine(ax=a2, trim=True, bottom=True)
     else:
         sns.despine(ax=a2, trim=True, bottom=False)

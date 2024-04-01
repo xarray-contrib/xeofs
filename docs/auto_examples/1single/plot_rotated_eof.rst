@@ -21,28 +21,29 @@
 Rotated EOF analysis
 ========================
 
-EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting 
-the derived eigenvectors (EOFs) as climatic variability patterns. However, due to 
-the inherent orthogonality constraint in EOF analysis, the interpretation of all 
-but the first EOF can be problematic. Rotated EOF analysis, using optimization criteria 
-like Varimax and Promax, offers a solution by releasing this orthogonality constraint, 
+EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting
+the derived eigenvectors (EOFs) as climatic variability patterns. However, due to
+the inherent orthogonality constraint in EOF analysis, the interpretation of all
+but the first EOF can be problematic. Rotated EOF analysis, using optimization criteria
+like Varimax and Promax, offers a solution by releasing this orthogonality constraint,
 thus enabling a more accurate interpretation of variability patterns.
 
-Both Varimax (orthogonal) and Promax (oblique) rotations result in "sparse" solutions, 
-meaning the EOFs become more interpretable by limiting the number of variables that 
-contribute to each EOF. This rotation effectively serves as a regularization method 
-for the EOF solution, with the strength of regularization determined by the power parameter; 
+Both Varimax (orthogonal) and Promax (oblique) rotations result in "sparse" solutions,
+meaning the EOFs become more interpretable by limiting the number of variables that
+contribute to each EOF. This rotation effectively serves as a regularization method
+for the EOF solution, with the strength of regularization determined by the power parameter;
 the higher the value, the sparser the EOFs.
 
-Promax rotation, with a small regularization value (i.e., power=1), reverts to Varimax 
-rotation. In this context, we compare the first three modes of EOF analysis: (1) 
+Promax rotation, with a small regularization value (i.e., power=1), reverts to Varimax
+rotation. In this context, we compare the first three modes of EOF analysis: (1)
 without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
 
 We'll start by loading the necessary packages and data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-38
+.. GENERATED FROM PYTHON SOURCE LINES 24-39
 
-.. code-block:: default
+.. code-block:: Python
+
 
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -65,13 +66,13 @@ We'll start by loading the necessary packages and data:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-40
+.. GENERATED FROM PYTHON SOURCE LINES 40-41
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-60
+.. GENERATED FROM PYTHON SOURCE LINES 41-61
 
-.. code-block:: default
+.. code-block:: Python
 
 
     components = []
@@ -97,10 +98,17 @@ Perform the actual analysis
 
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /home/slevang/miniconda3/envs/xeofs-docs/lib/python3.11/site-packages/numpy/lib/nanfunctions.py:1879: RuntimeWarning: Degrees of freedom <= 0 for slice.
+      var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+
+.. GENERATED FROM PYTHON SOURCE LINES 62-67
 
 Create figure showing the first 6 modes for all 3 cases. While the first mode
 is very similar in all three cases the subsequent modes of the standard
@@ -108,9 +116,9 @@ solution exhibit dipole and tripole-like patterns. Under Varimax and Promax
 rotation, these structures completely disappear suggesting that these patterns
 were mere artifacts due to the orthogonality.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-98
+.. GENERATED FROM PYTHON SOURCE LINES 67-99
 
-.. code-block:: default
+.. code-block:: Python
 
 
     proj = Robinson(central_longitude=180)
@@ -159,7 +167,7 @@ were mere artifacts due to the orthogonality.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 18.587 seconds)
+   **Total running time of the script:** (0 minutes 6.472 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_rotated_eof.py:
@@ -168,16 +176,13 @@ were mere artifacts due to the orthogonality.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_rotated_eof.py <plot_rotated_eof.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
 
 
 .. only:: html

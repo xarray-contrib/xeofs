@@ -14,7 +14,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we&#x27;re going to perform a Canonical Correlation Analysis (CCA)  on three datase...">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we&#x27;re going to perform a Canonical Correlation Analysis (CCA) on three dataset...">
 
 .. only:: html
 
