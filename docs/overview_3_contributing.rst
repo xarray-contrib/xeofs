@@ -46,21 +46,21 @@ Using the commands below, prepare your environment:
 
 .. code-block:: bash
 
-    conda create -n xeofs python=3.10 poetry
+    conda create -n xeofs python=3.11 rpy2 pandoc
     conda activate xeofs
-    poetry install --with dev,docs 
+    pip install -e .[docs,dev]
 
 This will install all necessary dependencies, including those for development and documentation. If you're only updating the code (without modifying online documentation), you can skip the docs dependency:
 
 .. code-block:: bash
 
-    poetry install --with dev
+    pip install -e .[dev]
 
 On the other hand, if you're just updating documentation:
 
 .. code-block:: bash
 
-    poetry install --with docs
+    pip install -e .[docs]
 
 Additionally, install the pre-commit hooks:
 
