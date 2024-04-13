@@ -2,25 +2,26 @@
 Rotated EOF analysis
 ========================
 
-EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting 
-the derived eigenvectors (EOFs) as climatic variability patterns. However, due to 
-the inherent orthogonality constraint in EOF analysis, the interpretation of all 
-but the first EOF can be problematic. Rotated EOF analysis, using optimization criteria 
-like Varimax and Promax, offers a solution by releasing this orthogonality constraint, 
+EOF (Empirical Orthogonal Function) analysis is commonly used in climate science, interpreting
+the derived eigenvectors (EOFs) as climatic variability patterns. However, due to
+the inherent orthogonality constraint in EOF analysis, the interpretation of all
+but the first EOF can be problematic. Rotated EOF analysis, using optimization criteria
+like Varimax and Promax, offers a solution by releasing this orthogonality constraint,
 thus enabling a more accurate interpretation of variability patterns.
 
-Both Varimax (orthogonal) and Promax (oblique) rotations result in "sparse" solutions, 
-meaning the EOFs become more interpretable by limiting the number of variables that 
-contribute to each EOF. This rotation effectively serves as a regularization method 
-for the EOF solution, with the strength of regularization determined by the power parameter; 
+Both Varimax (orthogonal) and Promax (oblique) rotations result in "sparse" solutions,
+meaning the EOFs become more interpretable by limiting the number of variables that
+contribute to each EOF. This rotation effectively serves as a regularization method
+for the EOF solution, with the strength of regularization determined by the power parameter;
 the higher the value, the sparser the EOFs.
 
-Promax rotation, with a small regularization value (i.e., power=1), reverts to Varimax 
-rotation. In this context, we compare the first three modes of EOF analysis: (1) 
+Promax rotation, with a small regularization value (i.e., power=1), reverts to Varimax
+rotation. In this context, we compare the first three modes of EOF analysis: (1)
 without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
 
 We'll start by loading the necessary packages and data:
 """
+
 import xarray as xr
 import matplotlib.pyplot as plt
 import seaborn as sns

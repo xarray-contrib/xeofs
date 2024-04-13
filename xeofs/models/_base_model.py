@@ -7,31 +7,23 @@ from typing import (
     Any,
     List,
     Literal,
-    TypeVar,
-    Tuple,
 )
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import dask
-import numpy as np
 import xarray as xr
 from datatree import DataTree
 from dask.diagnostics.progress import ProgressBar
 
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, Data, DataArray, DataSet, DataList, Dims
+from ..utils.data_types import DataObject, Data, DataArray
 from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
 from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
     convert_to_dim_type,
-    get_dims,
-    feature_ones_like,
-    convert_to_list,
-    process_parameter,
-    _check_parameter_number,
     data_is_dask,
 )
 from .._version import __version__

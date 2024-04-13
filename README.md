@@ -3,7 +3,7 @@
 | Versions                   | ![PyPI](https://img.shields.io/pypi/v/xeofs) ![Conda](https://img.shields.io/conda/vn/conda-forge/xeofs) |
 |----------------------------|:---------------------------------------------------------------------------------------------:|
 | Build & Testing            | ![Build](https://img.shields.io/github/actions/workflow/status/xarray-contrib/xeofs/ci.yml?branch=main) ![Coverage](https://codecov.io/gh/xarray-contrib/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7) |
-| Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)                           |
+| Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)   [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json)](https://github.com/charliermarsh/ruff)                           |
 | Documentation              | ![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)                          |
 | Citation & Licensing       | [![JOSS](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180/status.svg)](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180) ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
 | User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs)                                          |

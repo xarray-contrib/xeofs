@@ -2,7 +2,6 @@ from typing import Optional, List, Tuple, Dict
 from typing_extensions import Self
 
 import numpy as np
-import xarray as xr
 from datatree import DataTree
 
 from .list_processor import GenericListTransformer

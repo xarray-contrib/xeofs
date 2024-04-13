@@ -1,10 +1,9 @@
-from typing import Tuple, Hashable, Sequence, Dict, Optional, List, Literal
+from typing import Tuple, Hashable, Sequence, Dict, Optional, Literal
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import dask
-import numpy as np
 import xarray as xr
 from datatree import DataTree
 from dask.diagnostics.progress import ProgressBar
@@ -12,7 +11,7 @@ from dask.diagnostics.progress import ProgressBar
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, DataArray, DataSet
+from ..utils.data_types import DataObject, DataArray
 from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
 from ..utils.xarray_utils import convert_to_dim_type, data_is_dask
 from ..utils.sanity_checks import validate_input_type

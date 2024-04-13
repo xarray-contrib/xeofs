@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import xarray as xr
 
 from xeofs.preprocessing.preprocessor import Preprocessor
 from ..conftest import generate_synthetic_dataset
@@ -66,7 +65,7 @@ def test_fit_transform_scalings(with_std, with_coslat, with_weights, mock_datase
     weights = None
     if with_weights:
         weights = mock_dataset.mean("time").copy()
-        weights = weights.where(weights == True, 0.5)
+        weights = weights.where(weights is True, 0.5)
 
     data_trans = prep.fit_transform(mock_dataset, "time", weights)
 

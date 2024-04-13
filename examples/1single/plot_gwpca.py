@@ -3,8 +3,8 @@ Geographically weighted PCA
 ===========================
 Geographically Weighted Principal Component Analysis (GWPCA) is a spatial analysis method that identifies and visualizes local spatial patterns and relationships in multivariate datasets across various geographic areas. It operates by applying PCA within a moving window over a geographical region, which enables the extraction of local principal components that can differ across locations.
 
-TIn this demonstration, we'll apply GWPCA to a dataset detailing the chemical compositions of soils from countries around the Baltic Sea [1]_. This example is inspired by a tutorial originally crafted and published by Chris Brunsdon [2]_. 
-The dataset comprises 10 variables (chemical elements) and spans 768 samples. 
+TIn this demonstration, we'll apply GWPCA to a dataset detailing the chemical compositions of soils from countries around the Baltic Sea [1]_. This example is inspired by a tutorial originally crafted and published by Chris Brunsdon [2]_.
+The dataset comprises 10 variables (chemical elements) and spans 768 samples.
 Here, each sample refers to a pair of latitude and longitude coordinates, representing specific sampling stations.
 
 .. [1] Reimann, C. et al. Baltic soil survey: total concentrations of major and selected trace elements in arable soils from 10 countries around the Baltic Sea. Science of The Total Environment 257, 155–170 (2000).
@@ -12,17 +12,17 @@ Here, each sample refers to a pair of latitude and longitude coordinates, repres
 
 
 
-.. note:: The dataset we're using is found in the R package 
-    `mvoutlier <https://cran.r-project.org/web/packages/mvoutlier/mvoutlier.pdf>`_. 
-    To access it, we'll employ the Python package 
-    `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ which facilitates 
-    interaction with R packages from within Python. 
+.. note:: The dataset we're using is found in the R package
+    `mvoutlier <https://cran.r-project.org/web/packages/mvoutlier/mvoutlier.pdf>`_.
+    To access it, we'll employ the Python package
+    `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ which facilitates
+    interaction with R packages from within Python.
 
-.. note:: Presently, there's no support for ``xarray.Dataset`` lacking an explicit feature dimension. 
+.. note:: Presently, there's no support for ``xarray.Dataset`` lacking an explicit feature dimension.
     As a workaround, ``xarray.DataArray.to_array`` can be used to convert the ``Dataset`` to an ``DataArray``.
 
 .. warning:: Bear in mind that GWPCA requires significant computational power.
-    The ``xeofs`` implementation is optimized for CPU efficiency and is best suited 
+    The ``xeofs`` implementation is optimized for CPU efficiency and is best suited
     for smaller to medium data sets. For more extensive datasets where parallel processing becomes essential,
     it's advisable to turn to the R package `GWmodel <https://cran.r-project.org/web/packages/GWmodel/GWmodel.pdf>`_.
     This package harnesses CUDA to enable GPU-accelerated GWPCA for optimized performance.
@@ -30,6 +30,7 @@ Here, each sample refers to a pair of latitude and longitude coordinates, repres
 
 Let's import the necessary packages.
 """
+
 # For the analysis
 import numpy as np
 import xarray as xr

@@ -1,8 +1,6 @@
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
-from numpy.testing import assert_allclose
 
 from xeofs.models import OPA
 

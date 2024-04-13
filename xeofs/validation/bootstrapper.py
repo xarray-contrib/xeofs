@@ -57,7 +57,6 @@ class EOFBootstrapper(_BaseBootstrapper, EOF):
         self.model = model
         self.preprocessor = model.preprocessor
         sample_name = model.sample_name
-        feature_name = model.feature_name
 
         input_data = model.data["input_data"]
         n_samples = input_data.sample.size

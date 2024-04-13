@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import Mock
 
 from xeofs.models import EOF, ComplexEOF, MCA, ComplexMCA
 from xeofs.models import EOFRotator, ComplexEOFRotator, MCARotator, ComplexMCARotator

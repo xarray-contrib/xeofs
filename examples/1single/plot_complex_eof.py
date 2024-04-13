@@ -2,14 +2,14 @@
 Complex/Hilbert EOF analysis
 ============================================
 
-We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. 
-This method extends traditional EOF analysis into the complex domain, allowing 
+We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.
+This method extends traditional EOF analysis into the complex domain, allowing
 the EOF components to have real and imaginary parts. This capability can reveal
-oscillatory patterns in datasets, which are common in Earth observations. 
+oscillatory patterns in datasets, which are common in Earth observations.
 For example, beyond typical examples like seasonal cycles, you can think of
 internal waves in the ocean, or the Quasi-Biennial Oscillation in the atmosphere.
 
-Using monthly sea surface temperature data from 1970 to 2021 as an example, we 
+Using monthly sea surface temperature data from 1970 to 2021 as an example, we
 highlight the method's key features and address edge effects as a common challenge.
 
 .. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).

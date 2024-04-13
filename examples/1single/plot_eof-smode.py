@@ -5,7 +5,6 @@ EOF analysis (S-mode)
 EOF analysis in S-mode maximises the temporal variance.
 """
 
-
 # Load packages and data:
 import xarray as xr
 import matplotlib.pyplot as plt

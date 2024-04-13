@@ -2,7 +2,7 @@ import pytest
 import xarray as xr
 import numpy as np
 
-from xeofs.models import EOF, ComplexEOF
+from xeofs.models import EOF
 from xeofs.validation import EOFBootstrapper
 
 
@@ -307,7 +307,7 @@ def test_scores(eof_model):
     bootstrapper.fit(eof_model)
 
     scores = bootstrapper.scores()
-    assert isinstance(scores, xr.DataArray), f"scores is not a xr.DataArray"
+    assert isinstance(scores, xr.DataArray), "scores is not a xr.DataArray"
 
     # check for expected dimensions
     ref = eof_model.scores()

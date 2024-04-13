@@ -23,10 +23,9 @@ Varimax-rotated Multivariate EOF analysis
 
 Multivariate EOF analysis with additional Varimax rotation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-17
+.. GENERATED FROM PYTHON SOURCE LINES 7-16
 
-.. code-block:: default
-
+.. code-block:: Python
 
 
     # Load packages and data:
@@ -44,13 +43,13 @@ Multivariate EOF analysis with additional Varimax rotation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-19
+.. GENERATED FROM PYTHON SOURCE LINES 17-18
 
 Create four different dataarrayss
 
-.. GENERATED FROM PYTHON SOURCE LINES 19-25
+.. GENERATED FROM PYTHON SOURCE LINES 18-24
 
-.. code-block:: default
+.. code-block:: Python
 
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
     subset1 = sst.isel(lon=slice(0, 45))
@@ -65,13 +64,13 @@ Create four different dataarrayss
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-27
+.. GENERATED FROM PYTHON SOURCE LINES 25-26
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-36
+.. GENERATED FROM PYTHON SOURCE LINES 26-35
 
-.. code-block:: default
+.. code-block:: Python
 
 
     multivariate_data = [subset1, subset2, subset3, subset4]
@@ -89,13 +88,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-38
+.. GENERATED FROM PYTHON SOURCE LINES 36-37
 
 Plot mode 1
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-72
+.. GENERATED FROM PYTHON SOURCE LINES 37-71
 
-.. code-block:: default
+.. code-block:: Python
 
 
     mode = 5
@@ -123,8 +122,8 @@ Plot mode 1
     for i, (a, comps) in enumerate(zip(ax, rcomponents)):
         a.coastlines(color=".5")
         comps.sel(mode=mode).plot(ax=a, **kwargs)
-        a.set_xticks([])
-        a.set_yticks([])
+        a.set_xticks([], [])
+        a.set_yticks([], [])
         a.set_xlabel("")
         a.set_ylabel("")
         a.set_title("Subset {:}".format(i + 1))
@@ -146,7 +145,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.486 seconds)
+   **Total running time of the script:** (0 minutes 1.727 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_mreof.py:
@@ -155,16 +154,13 @@ Plot mode 1
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_mreof.py <plot_mreof.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
 
 
 .. only:: html

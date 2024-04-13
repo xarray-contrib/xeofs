@@ -1,20 +1,15 @@
-from typing import Sequence, Hashable, Optional, Callable
 from typing_extensions import Self
 
-from sklearn.utils.extmath import randomized_svd
 
 from xeofs.utils.data_types import DataArray
-from xeofs.utils.data_types import Data
 from ._base_model import _BaseModel
 from ..utils.sanity_checks import assert_not_complex
-from ..utils.xarray_utils import convert_to_dim_type
 from ..utils.constants import (
     VALID_CARTESIAN_X_NAMES,
     VALID_CARTESIAN_Y_NAMES,
     VALID_LATITUDE_NAMES,
     VALID_LONGITUDE_NAMES,
 )
-from .eof import EOF
 import numpy as np
 import xarray as xr
 
@@ -115,12 +110,12 @@ class GWPCA(_BaseModel):
 
         self.attrs.update({"model": "GWPCA"})
 
-        if not kernel in VALID_KERNELS:
+        if kernel not in VALID_KERNELS:
             raise ValueError(
                 f"Invalid kernel: {kernel}. Must be one of {VALID_KERNELS}."
             )
 
-        if not metric in VALID_METRICS:
+        if metric not in VALID_METRICS:
             raise ValueError(
                 f"Invalid metric: {metric}. Must be one of {VALID_METRICS}."
             )

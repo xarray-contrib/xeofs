@@ -5,7 +5,6 @@ Maximum Covariance Analysis
 Maximum Covariance Analysis (MCA) between two data sets.
 """
 
-
 # Load packages and data:
 import numpy as np
 import xarray as xr

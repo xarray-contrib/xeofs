@@ -2,12 +2,12 @@
 Extented EOF analysis
 =====================
 
-This example demonstrates Extended EOF (EEOF) analysis on ``xarray`` tutorial 
-data. EEOF analysis, also termed as Multivariate/Multichannel Singular 
-Spectrum Analysis, advances traditional EOF analysis to capture propagating 
-signals or oscillations in multivariate datasets. At its core, this 
-involves the formulation of a lagged covariance matrix that encapsulates 
-both spatial and temporal correlations. Subsequently, this matrix is 
+This example demonstrates Extended EOF (EEOF) analysis on ``xarray`` tutorial
+data. EEOF analysis, also termed as Multivariate/Multichannel Singular
+Spectrum Analysis, advances traditional EOF analysis to capture propagating
+signals or oscillations in multivariate datasets. At its core, this
+involves the formulation of a lagged covariance matrix that encapsulates
+both spatial and temporal correlations. Subsequently, this matrix is
 decomposed to yield its eigenvectors (components) and eigenvalues (explained variance).
 
 Let's begin by setting up the required packages and fetching the data:

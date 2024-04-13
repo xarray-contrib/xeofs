@@ -1,9 +1,7 @@
 import pytest
-import xarray as xr
-import numpy as np
 
 from xeofs.preprocessing import Stacker
-from xeofs.utils.data_types import DataSet, DataArray
+from xeofs.utils.data_types import DataArray
 from ..conftest import generate_synthetic_dataset
 from ..utilities import (
     get_dims_from_data,

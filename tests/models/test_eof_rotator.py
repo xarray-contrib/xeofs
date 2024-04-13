@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
 
 from xeofs.models import EOF, EOFRotator
 from xeofs.data_container import DataContainer

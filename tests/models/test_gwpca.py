@@ -1,7 +1,6 @@
 import pytest
 import xeofs as xe
 
-from ..utilities import assert_expected_dims, data_is_dask, data_has_multiindex
 
 # =============================================================================
 # GENERALLY VALID TEST CASES
@@ -36,8 +35,8 @@ def test_fit(mock_data_array, kernel):
         n_modes=2, metric="haversine", kernel=kernel, bandwidth=5000
     )
     gwpca.fit(mock_data_array, dim=("lat", "lon"))
-    comps = gwpca.components()
-    llwc = gwpca.largest_locally_weighted_components()
+    gwpca.components()
+    gwpca.largest_locally_weighted_components()
 
 
 @pytest.mark.parametrize(
@@ -50,6 +49,4 @@ def test_fit(mock_data_array, kernel):
 )
 def test_fit_invalid(mock_data_array, metric, kernel, bandwidth):
     with pytest.raises(ValueError):
-        gwpca = xe.models.GWPCA(
-            n_modes=2, metric=metric, kernel=kernel, bandwidth=bandwidth
-        )
+        xe.models.GWPCA(n_modes=2, metric=metric, kernel=kernel, bandwidth=bandwidth)

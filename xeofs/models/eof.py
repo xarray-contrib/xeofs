@@ -5,7 +5,7 @@ import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray, Dims
+from ..utils.data_types import DataObject, DataArray
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
 from ..utils.sanity_checks import assert_not_complex

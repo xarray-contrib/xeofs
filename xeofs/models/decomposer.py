@@ -3,7 +3,6 @@ import xarray as xr
 import dask
 from dask.array import Array as DaskArray  # type: ignore
 from dask.diagnostics.progress import ProgressBar
-from numpy.linalg import svd
 from sklearn.utils.extmath import randomized_svd
 from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
