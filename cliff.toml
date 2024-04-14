@@ -70,9 +70,9 @@ commit_parsers = [
     { message = "^style", group = "<!-- 06 -->:art: Style" },
     { message = "^revert", group = "<!-- 07 -->:rewind: Revert" },
     { message = "^test", group = "<!-- 08 -->:microscope: Tests" },
-    { message = "^chore\\(version\\):", skip = true },
-    { message = "^build", group = "<!-- 09 -->:construction: Build" },
-    { message = "^chore|ci", group = "<!-- 10 -->:gear: Miscellaneous" },
+    { message = "^chore\\(release\\):", skip = true },
+    { message = "^chore|ci|build", group = "<!-- 09 -->:gear: Miscellaneous" },
+    { body = ".*security", group = "<!-- 10 -->:shield: Security" },
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
 protect_breaking_commits = false
