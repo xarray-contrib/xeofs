@@ -72,7 +72,10 @@ target-version = "py311"
 version_toml = [ "pyproject.toml:project.version" ]
 version_source = "tag"
 commit_message = "chore(release): v{version}"
-build_command = "python -m build"
+build_command = """
+    python -m pip install build~=0.10.0
+    python -m build .
+"""
 branch = "main"
 
 [tool.semantic_release.commit_parser_options]
