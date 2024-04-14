@@ -4,13 +4,12 @@ Source: https://github.com/jameschapman19/cca_zoo
 
 The original code is licensed under the MIT License.
 
-Copyright (c) 2020-2023 James Chapman
+Copyright (c) 2020 onward James Chapman
 """
 
 from abc import abstractmethod
 from datetime import datetime
-from typing import Sequence, List, Hashable
-from typing_extensions import Self
+from typing import Hashable, List, Sequence
 
 import dask.array as da
 import numpy as np
@@ -18,11 +17,14 @@ import xarray as xr
 from scipy.linalg import eigh
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import FLOAT_DTYPES
+from typing_extensions import Self
+
 from xeofs.models import EOF
 
 from .._version import __version__
 from ..preprocessing.preprocessor import Preprocessor
-from ..utils.data_types import DataObject, DataArray, DataList
+from ..utils.data_types import DataArray, DataList, DataObject
+from ..utils.sanity_checks import assert_not_complex
 
 
 def _check_parameter_number(parameter_name: str, parameter, n_views: int):
@@ -171,6 +173,7 @@ class CCABaseModel(BaseEstimator):
         view_transformed = []
 
         for i, view in enumerate(views):
+            # NOTE: coslat weighting already happens in Preprocessor class
             pca = EOF(n_modes=n_pca_modes[i], compute=self.compute)
             pca.fit(view, dim=self.sample_name)
             if self.compute:
@@ -196,20 +199,18 @@ class CCABaseModel(BaseEstimator):
                         cum_exp_var_ratio.isel(mode=-1).item()
                     )
                 )
-            n_modes_keep = cum_exp_var_ratio.where(
-                cum_exp_var_ratio <= self.variance_fraction, drop=True
-            ).size
-            if n_modes_keep == 0:
-                n_modes_keep += 1
+            n_modes_keep = (
+                cum_exp_var_ratio.where(
+                    cum_exp_var_ratio <= self.variance_fraction, drop=True
+                ).size
+                + 1
+            )
+            # Take at least 2 modes
+            n_modes_keep = max(n_modes_keep, 2)
 
-            # TODO: it's more convinient to work the common scaling of sklearn; provide additional parameter
-            # provide this parameter to transform method as well
-            scores = pca.scores().isel(mode=slice(0, n_modes_keep))
-            svals = pca.singular_values().isel(mode=slice(0, n_modes_keep))
-            scores = (
-                (scores * svals)
-                .rename({"mode": self.feature_name})
-                .transpose(self.sample_name, self.feature_name)
+            scores = pca.scores(normalized=False).isel(mode=slice(0, n_modes_keep))
+            scores = scores.rename({"mode": self.feature_name}).transpose(
+                self.sample_name, self.feature_name
             )
             view_transformed.append(scores)
         return view_transformed
@@ -305,6 +306,9 @@ class CCA(CCABaseModel):
         self.eps = eps
 
     def _fit_algorithm(self, views: List[DataArray]) -> Self:
+        # Check input data
+        [assert_not_complex(view) for view in views]
+
         self.c = _process_parameter("c", self.c, 0, self.n_views_)
         eigvals, eigvecs = self._solve_gevp(views)
         self.eigvals = eigvals
@@ -328,7 +332,7 @@ class CCA(CCABaseModel):
         # Transform the views using the loadings
         transformed_views = [
             xr.dot(view, loading, dims=self.feature_name)
-            for view, loading in zip(views, self.data["loadings"])
+            for view, loading in zip(self.data["input_data"], self.data["loadings"])
         ]
         # Calculate the variance of each latent dimension in the transformed views
         self.data["explained_variance"] = [
@@ -337,7 +341,7 @@ class CCA(CCABaseModel):
 
         # Explained variance ratio
         self.data["total_variance"] = [
-            view.var(self.sample_name).sum() for view in views
+            view.var(self.sample_name, ddof=1).sum() for view in views
         ]
 
         # Calculate the explained variance ratio for each latent dimension for each view

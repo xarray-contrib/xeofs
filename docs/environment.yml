@@ -3,27 +3,9 @@ channels:
   - conda-forge
   - nodefaults  # https://github.com/readthedocs/readthedocs.org/issues/9527
 dependencies:
-  - python==3.11
-  - numpy
-  - pandas
-  - xarray
-  - conda
-  - scikit-learn
-  - statsmodels
-  - dask
-  - yaml
-  - matplotlib
-  - seaborn
-  - cartopy
-  - ipython
-  - ipykernel
+  - python=3.11
   - rpy2
-  - sphinx-gallery
-  - sphinx-design
-  - sphinx-copybutton
-  - nbsphinx
-  - pydata-sphinx-theme
-  - sphinx
-  - nbconvert
+  - pandoc
+  - pip
   - pip:
-    - xeofs
+    - -e ../.[docs]

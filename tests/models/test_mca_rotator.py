@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
 
 # Import the classes from your modules
 from xeofs.models import MCA, MCARotator
@@ -28,7 +27,7 @@ def test_init():
     assert mca_rotator._params["power"] == 1
     assert mca_rotator._params["max_iter"] == 1000
     assert mca_rotator._params["rtol"] == 1e-8
-    assert mca_rotator._params["squared_loadings"] == False
+    assert mca_rotator._params["squared_loadings"] is False
 
 
 @pytest.mark.parametrize(
@@ -303,4 +302,46 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
     assert np.allclose(
         original.inverse_transform(*original.scores()),
         loaded.inverse_transform(*loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = MCA()
+    model.fit(mock_data_array, mock_data_array, dim)
+    rotator = MCARotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = MCARotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_data_array), rebuilt_rotator.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = MCA()
+    model.fit(mock_dataset, mock_dataset, dim)
+    rotator = MCARotator()
+    rotator.fit(model)
+    dt = rotator.serialize()
+    rebuilt_rotator = MCARotator.deserialize(dt)
+    assert np.allclose(
+        rotator.transform(mock_dataset), rebuilt_rotator.transform(mock_dataset)
     )

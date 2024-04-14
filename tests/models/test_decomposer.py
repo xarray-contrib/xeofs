@@ -1,10 +1,6 @@
 import numpy as np
-import xarray as xr
 import pytest
 from dask.array import Array as DaskArray  # type: ignore
-from sklearn.utils.extmath import randomized_svd as svd
-from scipy.sparse.linalg import svds as complex_svd  # type: ignore
-from dask.array.linalg import svd_compressed as dask_svd
 from xeofs.models.decomposer import Decomposer
 from ..utilities import data_is_dask
 

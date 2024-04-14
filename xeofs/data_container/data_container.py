@@ -2,7 +2,6 @@ from typing import Dict
 from typing_extensions import Self
 
 import dask
-import xarray as xr
 from dask.diagnostics.progress import ProgressBar
 from datatree import DataTree
 

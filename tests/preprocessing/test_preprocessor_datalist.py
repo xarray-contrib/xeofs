@@ -64,7 +64,7 @@ def test_fit_transform_scalings(
 ):
     prep = Preprocessor(with_std=with_std, with_coslat=with_coslat)
 
-    n_data = len(mock_data_array_list)
+    len(mock_data_array_list)
     sample_dims = ("time",)
     weights = None
     if with_weights:

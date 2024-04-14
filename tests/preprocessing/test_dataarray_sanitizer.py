@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import xarray as xr
 
 from xeofs.preprocessing.sanitizer import Sanitizer
 from xeofs.utils.data_types import DataArray

@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
-from numpy.testing import assert_allclose
 
 from xeofs.models.mca import MCA
 from ..utilities import data_is_dask
@@ -104,6 +102,20 @@ def test_transform(mca_model, mock_data_array, dim):
     result = mca_model.transform(data1=mock_data_array, data2=mock_data_array)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
+
+
+@pytest.mark.parametrize("dim", [(("time",))])
+def test_transform_unseen_data(mca_model, mock_data_array, dim):
+    data = mock_data_array.isel(time=slice(0, 20))
+    data_unseen = mock_data_array.isel(time=slice(21, None))
+
+    mca_model.fit(data, data, dim)
+    result = mca_model.transform(data1=data_unseen, data2=data_unseen)
+    assert isinstance(result, list)
+    assert isinstance(result[0], xr.DataArray)
+    # Check that unseen data can be transformed
+    assert result[0].notnull().all()
+    assert result[1].notnull().all()
 
 
 @pytest.mark.parametrize(
@@ -431,4 +443,42 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
     assert np.allclose(
         original.inverse_transform(*original.scores()),
         loaded.inverse_transform(*loaded.scores()),
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = MCA()
+    model.fit(mock_data_array, mock_data_array, dim)
+    dt = model.serialize()
+    rebuilt_model = MCA.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = MCA()
+    model.fit(mock_dataset, mock_dataset, dim)
+    dt = model.serialize()
+    rebuilt_model = MCA.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
     )

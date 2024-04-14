@@ -27,6 +27,7 @@
       ~ComplexEOFRotator.fit
       ~ComplexEOFRotator.fit_transform
       ~ComplexEOFRotator.get_params
+      ~ComplexEOFRotator.get_serialization_attrs
       ~ComplexEOFRotator.inverse_transform
       ~ComplexEOFRotator.load
       ~ComplexEOFRotator.save

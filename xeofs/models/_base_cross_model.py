@@ -1,10 +1,9 @@
-from typing import Tuple, Hashable, Sequence, Dict, Optional, List, Literal
+from typing import Tuple, Hashable, Sequence, Dict, Optional, Literal
 from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import dask
-import numpy as np
 import xarray as xr
 from datatree import DataTree
 from dask.diagnostics.progress import ProgressBar
@@ -12,7 +11,7 @@ from dask.diagnostics.progress import ProgressBar
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, DataArray, DataSet
+from ..utils.data_types import DataObject, DataArray
 from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
 from ..utils.xarray_utils import convert_to_dim_type, data_is_dask
 from ..utils.sanity_checks import validate_input_type
@@ -214,7 +213,53 @@ class _BaseCrossModel(ABC):
             # Preprocess data2
             data2 = self.preprocessor2.transform(data2)
 
-        return self._transform_algorithm(data1, data2)
+        data = self._transform_algorithm(data1, data2)
+        data_list = []
+        if data1 is not None:
+            data1 = self.preprocessor1.inverse_transform_scores_unseen(data["data1"])
+            data_list.append(data1)
+        if data2 is not None:
+            data2 = self.preprocessor2.inverse_transform_scores_unseen(data["data2"])
+            data_list.append(data2)
+        return data_list
+
+    def inverse_transform(
+        self, scores1: DataArray, scores2: DataArray
+    ) -> Tuple[DataObject, DataObject]:
+        """Reconstruct the original data from transformed data.
+
+        Parameters
+        ----------
+        scores1: DataObject
+            Transformed left field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+        scores2: DataObject
+            Transformed right field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+
+        Returns
+        -------
+        Xrec1: DataArray | Dataset | List[DataArray]
+            Reconstructed data of left field.
+        Xrec2: DataArray | Dataset | List[DataArray]
+            Reconstructed data of right field.
+
+        """
+        # Handle scalar mode in xr.dot
+        if "mode" not in scores1.dims:
+            scores1 = scores1.expand_dims("mode")
+        if "mode" not in scores2.dims:
+            scores2 = scores2.expand_dims("mode")
+
+        data1, data2 = self._inverse_transform_algorithm(scores1, scores2)
+
+        # Unstack and rescale the data
+        data1 = self.preprocessor1.inverse_transform_data(data1)
+        data2 = self.preprocessor2.inverse_transform_data(data2)
+
+        return data1, data2
 
     @abstractmethod
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
@@ -233,7 +278,7 @@ class _BaseCrossModel(ABC):
     @abstractmethod
     def _transform_algorithm(
         self, data1: Optional[DataArray] = None, data2: Optional[DataArray] = None
-    ) -> Sequence[DataArray]:
+    ) -> Dict[str, DataArray]:
         """
         Transform the preprocessed data. This method needs to be implemented in the respective
         subclass.
@@ -247,9 +292,32 @@ class _BaseCrossModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def inverse_transform(
-        self, scores1: DataObject, scores2: DataObject
-    ) -> Tuple[DataObject, DataObject]:
+    def _inverse_transform_algorithm(
+        self, scores1: DataArray, scores2: DataArray
+    ) -> Tuple[DataArray, DataArray]:
+        """
+        Reconstruct the original data from transformed data. This method needs to be implemented in the respective
+        subclass.
+
+        Parameters
+        ----------
+        scores1: DataArray
+            Transformed left field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+        scores2: DataArray
+            Transformed right field data to be reconstructed. This could be
+            a subset of the `scores` data of a fitted model, or unseen data.
+            Must have a 'mode' dimension.
+
+        Returns
+        -------
+        Xrec1: DataArray
+            Reconstructed data of left field.
+        Xrec2: DataArray
+            Reconstructed data of right field.
+
+        """
         raise NotImplementedError
 
     def components(self) -> Tuple[DataObject, DataObject]:

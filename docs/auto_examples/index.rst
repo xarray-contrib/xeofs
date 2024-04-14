@@ -28,7 +28,7 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial  data. EEOF analysis,...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial data. EEOF analysis, ...">
 
 .. only:: html
 
@@ -62,7 +62,7 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.  This met...">
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. This meth...">
 
 .. only:: html
 
@@ -212,7 +212,7 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we&#x27;re going to perform a Canonical Correlation Analysis (CCA)  on three datase...">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we&#x27;re going to perform a Canonical Correlation Analysis (CCA) on three dataset...">
 
 .. only:: html
 

@@ -8,51 +8,40 @@ on:
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
+
 jobs:
-
-  Code_Quality_Check:
-
+  test:
+    name: py${{ matrix.versions.python-version }} ${{ matrix.versions.resolution }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', 3.11]
+        versions:
+          - python-version: '3.10'
+            resolution: lowest-direct
+          - python-version: '3.11'
+            resolution: highest
+          - python-version: '3.12'
+            resolution: highest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+      - name: Setup Python ${{ matrix.versions.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.versions.python-version }}
 
-      - name: Setup Poetry
-        uses: abatilo/actions-poetry@v2.1.0
-        with:
-          poetry-version: 1.5.1
-
-      - name: Configure Poetry Settings
-        shell: bash
-        run: python -m poetry config virtualenvs.in-project true
-
-      - name: Verify Poetry Version
-        run: poetry --version
-
-      - name: Install Project Dependencies
-        run: python -m poetry install --with dev
-
-      - name: Lint Codebase with flake8
+      - name: Install dependencies
         run: |
-          python -m poetry run flake8 . --exclude .venv --count --select=E9,F63,F7,F82 --show-source --statistics
-          python -m poetry run flake8 . --exclude .venv --count --exit-zero --max-complexity=10 --max-line-length=79 --statistics
+          pip install uv
+          uv pip install . -r pyproject.toml --system --extra dev --resolution ${{ matrix.versions.resolution }}
 
-      - name: Execute Tests with pytest and Coverage
+      - name: Execute Tests
         run: |
-          python -m poetry run coverage run -m pytest
-          python -m poetry run coverage report -m
-          python -m poetry run coverage xml
+          coverage run -m pytest -n auto --doctest-glob="README.md"
+          coverage report -m
+          coverage xml
 
       - name: Upload Coverage Report to Codecov
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage.xml
-

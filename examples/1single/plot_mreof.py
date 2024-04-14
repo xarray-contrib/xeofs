@@ -5,7 +5,6 @@ Varimax-rotated Multivariate EOF analysis
 Multivariate EOF analysis with additional Varimax rotation.
 """
 
-
 # Load packages and data:
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -61,8 +60,8 @@ ax_pc.set_title("")
 for i, (a, comps) in enumerate(zip(ax, rcomponents)):
     a.coastlines(color=".5")
     comps.sel(mode=mode).plot(ax=a, **kwargs)
-    a.set_xticks([])
-    a.set_yticks([])
+    a.set_xticks([], [])
+    a.set_yticks([], [])
     a.set_xlabel("")
     a.set_ylabel("")
     a.set_title("Subset {:}".format(i + 1))

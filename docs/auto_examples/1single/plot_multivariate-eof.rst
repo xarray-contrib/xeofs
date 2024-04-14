@@ -23,10 +23,9 @@ Multivariate EOF analysis
 
 Multivariate EOF analysis.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-25
+.. GENERATED FROM PYTHON SOURCE LINES 7-24
 
-.. code-block:: default
-
+.. code-block:: Python
 
 
     # Load packages and data:
@@ -52,13 +51,13 @@ Multivariate EOF analysis.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-27
+.. GENERATED FROM PYTHON SOURCE LINES 25-26
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-33
+.. GENERATED FROM PYTHON SOURCE LINES 26-32
 
-.. code-block:: default
+.. code-block:: Python
 
 
     pca = EOF(n_modes=10, standardize=False, use_coslat=True)
@@ -73,13 +72,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-35
+.. GENERATED FROM PYTHON SOURCE LINES 33-34
 
 Plot mode 1
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-69
+.. GENERATED FROM PYTHON SOURCE LINES 34-68
 
-.. code-block:: default
+.. code-block:: Python
 
 
     mode = 5
@@ -107,8 +106,8 @@ Plot mode 1
     for i, (a, comps) in enumerate(zip(ax, components)):
         a.coastlines(color=".5")
         comps.sel(mode=mode).plot(ax=a, **kwargs)
-        a.set_xticks([])
-        a.set_yticks([])
+        a.set_xticks([], [])
+        a.set_yticks([], [])
         a.set_xlabel("")
         a.set_ylabel("")
         a.set_title("Subset {:}".format(i + 1))
@@ -130,7 +129,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.932 seconds)
+   **Total running time of the script:** (0 minutes 1.211 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_multivariate-eof.py:
@@ -139,16 +138,13 @@ Plot mode 1
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_multivariate-eof.ipynb <plot_multivariate-eof.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_multivariate-eof.py <plot_multivariate-eof.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_multivariate-eof.ipynb <plot_multivariate-eof.ipynb>`
 
 
 .. only:: html

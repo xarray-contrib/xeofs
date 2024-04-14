@@ -1,8 +1,6 @@
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
-from numpy.testing import assert_allclose
 
 from xeofs.models import OPA
 
@@ -278,9 +276,10 @@ def test_inverse_transform(dim, mock_data_array, opa_model):
 
     # fit the EOF model
     opa_model.fit(mock_data_array, dim=dim)
+    scores = opa_model.scores()
 
     with pytest.raises(NotImplementedError):
-        opa_model.inverse_transform(1)
+        opa_model.inverse_transform(scores)
 
     # # Test with scalar
     # mode = 1

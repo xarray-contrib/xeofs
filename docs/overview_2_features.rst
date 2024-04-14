@@ -141,6 +141,13 @@ the input type. For instance, executing PCA on a singular ``xr.DataArray`` will 
   
   A mixed list containing both ``xr.DataArray`` and ``xr.Dataset`` objects is not currently supported.
 
+.. note::
+
+    Some methods like PCA/EOF analysis can also handle complex-valued input data. However, due to a limitation_ in the 
+    underlying ``dask`` library, complex-valued data is not supported when using ``dask``.
+
+.. _limitation: https://github.com/dask/dask/issues/7639
+
 Handling Missing Values
 -----------------------
 
@@ -193,7 +200,7 @@ significant speed advantages. The dashed line marks data sets with about 3 MiB;
     You can find the script to run the performance tests here_.
 
 
-.. _here: https://github.com/nicrie/xeofs/tree/main/docs/perf
+.. _here: https://github.com/xarray-contrib/xeofs/tree/main/docs/perf
 
 Implement Your Own Model
 -------------------------
@@ -392,5 +399,5 @@ toolkit for dimensionality reduction techniques.
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _eofs: https://github.com/ajdawson/eofs
 .. _`sklearn documentation on PCA`: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-.. _`GitHub`: https://github.com/nicrie/xeofs/issues
+.. _`GitHub`: https://github.com/xarray-contrib/xeofs/issues
 

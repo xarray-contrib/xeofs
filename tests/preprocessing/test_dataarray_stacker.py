@@ -1,6 +1,4 @@
 import pytest
-import numpy as np
-import xarray as xr
 
 from xeofs.preprocessing import Stacker
 from xeofs.utils.data_types import DataArray

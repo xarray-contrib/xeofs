@@ -1,8 +1,5 @@
 import pytest
-import numpy as np
 import xarray as xr
-import dask.array as da
-from numpy.testing import assert_allclose
 
 from xeofs.models import ComplexMCA
 
@@ -213,7 +210,7 @@ def test_fit_empty_data(dim):
 @pytest.mark.parametrize(
     "dim",
     [
-        (("invalid_dim")),
+        ("invalid_dim"),
     ],
 )
 def test_fit_invalid_dims(mca_model, mock_data_array, dim):

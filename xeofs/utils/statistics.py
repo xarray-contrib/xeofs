@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import xarray as xr
 import scipy as sc
 from statsmodels.stats.multitest import multipletests as statsmodels_multipletests

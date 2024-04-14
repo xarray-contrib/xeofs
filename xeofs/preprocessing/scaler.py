@@ -6,7 +6,7 @@ import numpy as np
 import xarray as xr
 
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound
+from ..utils.data_types import Dims, DataArray, DataVar, DataVarBound
 from ..utils.xarray_utils import compute_sqrt_cos_lat_weights, feature_ones_like
 
 

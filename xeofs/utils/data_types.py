@@ -8,7 +8,6 @@ from typing import (
 )
 
 import dask.array as da
-import xarray as xr
 from xarray.core import dataarray as xr_dataarray
 from xarray.core import dataset as xr_dataset
 

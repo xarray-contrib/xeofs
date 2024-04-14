@@ -1,7 +1,6 @@
 from typing import List, Optional, Dict
 from typing_extensions import Self
 
-import pandas as pd
 import numpy as np
 import xarray as xr
 
@@ -10,13 +9,6 @@ from ..utils.data_types import (
     Dims,
     DimsList,
     DataArray,
-    DataSet,
-    Data,
-    DataVar,
-    DataList,
-    DataArrayList,
-    DataSetList,
-    DataVarList,
 )
 
 

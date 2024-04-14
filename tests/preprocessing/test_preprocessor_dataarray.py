@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import xarray as xr
 
 from xeofs.preprocessing.preprocessor import Preprocessor
 from ..conftest import generate_synthetic_dataarray

@@ -3,9 +3,7 @@ import pytest
 
 from xeofs.utils.dimension_renamer import DimensionRenamer
 
-import xarray as xr
 import pandas as pd
-import pytest
 
 
 @pytest.fixture

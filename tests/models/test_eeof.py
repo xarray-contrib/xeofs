@@ -1,8 +1,6 @@
 import numpy as np
 import xarray as xr
 import pytest
-import dask.array as da
-from numpy.testing import assert_allclose
 
 from xeofs.models.eeof import ExtendedEOF
 
@@ -377,13 +375,13 @@ def test_transform(dim, mock_data_array):
     # Create a xarray DataArray with random data
     model = ExtendedEOF(n_modes=5, tau=2, embedding=2, solver="full")
     model.fit(mock_data_array, dim)
-    scores = model.scores()
+    model.scores()
 
     # Create a new xarray DataArray with random data
     new_data = mock_data_array
 
     with pytest.raises(NotImplementedError):
-        projections = model.transform(new_data)
+        model.transform(new_data)
 
     # # Check that the projection has the right dimensions
     # assert projections.dims == scores.dims, "Projection has wrong dimensions"  # type: ignore

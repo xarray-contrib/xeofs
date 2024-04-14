@@ -2,7 +2,7 @@ from typing import Dict
 from typing_extensions import Self
 
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound
+from ..utils.data_types import Dims, DataArray, Data, DataVarBound
 
 
 class DimensionRenamer(Transformer):

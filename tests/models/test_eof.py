@@ -1,8 +1,6 @@
 import numpy as np
 import xarray as xr
 import pytest
-from dask.array import Array as DaskArray  # type: ignore
-from numpy.testing import assert_allclose
 
 from xeofs.models.eof import EOF
 
@@ -442,34 +440,50 @@ def test_transform_nan_feature(dim, mock_data_array):
 
 
 @pytest.mark.parametrize(
-    "dim",
+    "dim, normalized",
     [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
+        (("time",), True),
+        (("lat", "lon"), True),
+        (("lon", "lat"), True),
+        (("time",), False),
+        (("lat", "lon"), False),
+        (("lon", "lat"), False),
     ],
 )
-def test_inverse_transform(dim, mock_data_array):
+def test_inverse_transform(dim, mock_data_array, normalized):
     """Test inverse_transform method in EOF class."""
 
     # instantiate the EOF class with necessary parameters
-    eof = EOF(n_modes=3, standardize=True)
+    eof = EOF(n_modes=20, standardize=True)
 
     # fit the EOF model
     eof.fit(mock_data_array, dim=dim)
+    scores = eof.scores(normalized=normalized)
 
     # Test with single mode
-    scores = eof.data["scores"].sel(mode=1)
-    reconstructed_data = eof.inverse_transform(scores)
-    assert isinstance(reconstructed_data, xr.DataArray)
+    scores_selection = scores.sel(mode=1)
+    X_rec_1 = eof.inverse_transform(scores_selection)
+    assert isinstance(X_rec_1, xr.DataArray)
+
+    # Test with single mode as list
+    scores_selection = scores.sel(mode=[1])
+    X_rec_1_list = eof.inverse_transform(scores_selection)
+    assert isinstance(X_rec_1_list, xr.DataArray)
+
+    # Single mode and list should be equal
+    xr.testing.assert_allclose(X_rec_1, X_rec_1_list)
 
     # Test with all modes
-    scores = eof.data["scores"]
-    reconstructed_data = eof.inverse_transform(scores)
-    assert isinstance(reconstructed_data, xr.DataArray)
+    X_rec = eof.inverse_transform(scores, normalized=normalized)
+    assert isinstance(X_rec, xr.DataArray)
 
     # Check that the reconstructed data has the same dimensions as the original data
-    assert set(reconstructed_data.dims) == set(mock_data_array.dims)
+    assert set(X_rec.dims) == set(mock_data_array.dims)
+
+    # Reconstructed data should be close to the original data
+    orig_dim_order = mock_data_array.dims
+    X_rec = X_rec.transpose(*orig_dim_order)
+    xr.testing.assert_allclose(mock_data_array, X_rec)
 
 
 @pytest.mark.parametrize(
@@ -518,3 +532,57 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
         original.inverse_transform(original.scores()),
         loaded.inverse_transform(loaded.scores()),
     )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataarray(dim, mock_data_array):
+    """Test roundtrip serialization when the model is fit on a DataArray."""
+    model = EOF()
+    model.fit(mock_data_array, dim)
+    dt = model.serialize()
+    rebuilt_model = EOF.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
+    )
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_serialize_deserialize_dataset(dim, mock_dataset):
+    """Test roundtrip serialization when the model is fit on a Dataset."""
+    model = EOF()
+    model.fit(mock_dataset, dim)
+    dt = model.serialize()
+    rebuilt_model = EOF.deserialize(dt)
+    assert np.allclose(
+        model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
+    )
+
+
+def test_complex_input_inverse_transform(mock_complex_data_array):
+    """Test that the EOF model can handle complex input data."""
+
+    model = EOF(n_modes=128)
+    model.fit(mock_complex_data_array, dim="time")
+    scores = model.scores()
+
+    # Test the inverse_transform method
+    X_rec = model.inverse_transform(scores)
+    assert isinstance(X_rec, xr.DataArray)
+    # Check that the reconstructed data has the same dimensions as the original data
+    assert set(X_rec.dims) == set(mock_complex_data_array.dims)
+    # Reconstructed data should be close to the original data
+    xr.testing.assert_allclose(mock_complex_data_array, X_rec)
