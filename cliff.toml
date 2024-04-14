@@ -71,6 +71,7 @@ commit_parsers = [
     { message = "^revert", group = "<!-- 07 -->:rewind: Revert" },
     { message = "^test", group = "<!-- 08 -->:microscope: Tests" },
     { message = "^chore: release", skip = true },
+    { message = "^chore\\(release\\):", skip = true },
     { message = "^chore|ci|build", group = "<!-- 09 -->:gear: Miscellaneous" },
     { body = ".*security", group = "<!-- 10 -->:shield: Security" },
 ]
