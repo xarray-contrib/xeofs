@@ -62,17 +62,17 @@ commit_preprocessors = [
 ]
 # regex for parsing and grouping commits
 commit_parsers = [
-    { message = "^feat", group = "Features" },
-    { message = "^fix", group = "Bug Fixes" },
-    { message = "^doc", group = "Documentation" },
-    { message = "^perf", group = "Performance" },
-    { message = "^refactor", group = "Refactoring" },
-    { message = "^style", group = "Style" },
-    { message = "^revert", group = "Revert" },
-    { message = "^test", group = "Tests" },
+    { message = "^feat", group = "<!-- 00 -->:rocket: Features" },
+    { message = "^perf", group = "<!-- 01 -->:zap: Performance" },
+    { message = "^fix", group = "<!-- 02 -->:bug: Bug Fixes" },
+    { message = "^doc", group = "<!-- 04 -->:book: Documentation" },
+    { message = "^refactor", group = "<!-- 05 -->:hammer_and_wrench: Refactoring" },
+    { message = "^style", group = "<!-- 06 -->:art: Style" },
+    { message = "^revert", group = "<!-- 07 -->:rewind: Revert" },
+    { message = "^test", group = "<!-- 08 -->:microscope: Tests" },
     { message = "^chore\\(version\\):", skip = true },
-    { message = "^chore|ci", group = "Miscellaneous" },
-    { body = ".*security", group = "Security" },
+    { message = "^build", group = "<!-- 09 -->:construction: Build" },
+    { message = "^chore|ci", group = "<!-- 10 -->:gear: Miscellaneous" },
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
 protect_breaking_commits = false
