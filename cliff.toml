@@ -70,7 +70,7 @@ commit_parsers = [
     { message = "^style", group = "Style" },
     { message = "^revert", group = "Revert" },
     { message = "^test", group = "Tests" },
-    { message = "^chore\\(version\\):", skip = true },
+    { message = "^chore\\(release\\):", skip = true },
     { message = "^chore|ci", group = "Miscellaneous" },
     { body = ".*security", group = "Security" },
 ]
