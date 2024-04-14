@@ -7,15 +7,13 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
-- order categories and add icons - ([f3e18e9](https://github.com/nicrie/xeofs/commit/f3e18e948187a826f48d8570866eed35a1b08851)) - Niclas Rieger
-- ignore release commits - ([2c5c683](https://github.com/nicrie/xeofs/commit/2c5c6835c1b64eace585b9f01a3243222c22cc09)) - Niclas Rieger
-- add build to miscellaneous category - ([fc4f79e](https://github.com/nicrie/xeofs/commit/fc4f79edf641e6e99356b15893fa13245de34049)) - Niclas Rieger
+- new changelog (#141) - ([35b9ef7](https://github.com/nicrie/xeofs/commit/35b9ef7dee37b16dce109325b9e4374a422612bc)) - Sam Levang
+- remove release commits - ([6a35565](https://github.com/nicrie/xeofs/commit/6a355655677d123c3a336bf31d6f2b2ed6389c25)) - Niclas Rieger
 
 ### :gear: Miscellaneous
 
 - use `uv` and `ruff` (#160) - ([a9ba9ff](https://github.com/nicrie/xeofs/commit/a9ba9ffa0bd8aa3368b2a895cfbfd2b18c57db09)) - Sam Levang
-- git add the changelog - ([6cf6ee3](https://github.com/nicrie/xeofs/commit/6cf6ee3061d87f45b8cc3d3c20499230f7fdb337)) - Sam Levang
-- Merge branch 'git-cliff' of github.com:slevang/xeofs into pr/slevang/141 - ([8817d68](https://github.com/nicrie/xeofs/commit/8817d687e4347d049d4ae412b96a3e738601f145)) - Niclas Rieger
+- install build in semantic release (#161) - ([185dba8](https://github.com/nicrie/xeofs/commit/185dba8799390ab97b128e23f18befa3983809cb)) - Sam Levang
 
 ---
 ## [2.3.2](https://github.com/nicrie/xeofs/compare/v2.3.1..v2.3.2) - 2024-03-30
@@ -23,10 +21,6 @@ All notable changes to this project will be documented in this file. See [conven
 ### :bug: Bug Fixes
 
 - handle indexing changes in new xarray versions (#159) - ([7d07d30](https://github.com/nicrie/xeofs/commit/7d07d30690523b3ba844a5e0b388cdeb9eb1ce02)) - Sam Levang
-
-### :gear: Miscellaneous
-
-- **(release)** v2.3.2 - ([5c554a6](https://github.com/nicrie/xeofs/commit/5c554a65d720e11bb6212f2a78c2d0cae609df9d)) - github-actions
 
 ---
 ## [2.3.1](https://github.com/nicrie/xeofs/compare/v2.3.0..v2.3.1) - 2024-02-28
@@ -37,7 +31,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
-- **(release)** v2.3.1 - ([a3cb204](https://github.com/nicrie/xeofs/commit/a3cb204171dbbd1f09f2c083099cf3b67f625495)) - github-actions
 - constrain xarray version (#155) - ([8158657](https://github.com/nicrie/xeofs/commit/8158657fd837407c64e01969317aea39d1f192d7)) - Niclas Rieger
 
 ---
@@ -47,20 +40,12 @@ All notable changes to this project will be documented in this file. See [conven
 
 - support complex input data (#152) - ([c6ce4e1](https://github.com/nicrie/xeofs/commit/c6ce4e171399f774f7d49dd40b59fa5477b38e8d)) - Niclas Rieger
 
-### :gear: Miscellaneous
-
-- **(release)** v2.3.0 - ([1f54401](https://github.com/nicrie/xeofs/commit/1f54401f01ca7ad6760422eb300e696f12976d4c)) - github-actions
-
 ---
 ## [2.2.6](https://github.com/nicrie/xeofs/compare/v2.2.5..v2.2.6) - 2024-02-04
 
 ### :bug: Bug Fixes
 
 - inverse_transform fails with single mode and normalized pcs (#151) - ([9ea7547](https://github.com/nicrie/xeofs/commit/9ea7547c5f5b60722f675b1dab776a507da9b9e1)) - Niclas Rieger
-
-### :gear: Miscellaneous
-
-- **(release)** v2.2.6 - ([66b31fb](https://github.com/nicrie/xeofs/commit/66b31fbeb111dd8b41b9a0cdcc7ca26b498dcf24)) - github-actions
 
 ---
 ## [2.2.5](https://github.com/nicrie/xeofs/compare/v2.2.4..v2.2.5) - 2024-01-28
@@ -73,10 +58,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 - add CITATION.cff (#144) - ([787c598](https://github.com/nicrie/xeofs/commit/787c5982111eaa046e697a63aaa7b71180452314)) - Niclas Rieger
 - update xeofs citation (#145) - ([4cf84cf](https://github.com/nicrie/xeofs/commit/4cf84cfc0c99e790e53b183370ca9edfdbdd01c5)) - Niclas Rieger
-
-### :gear: Miscellaneous
-
-- **(release)** v2.2.5 - ([b5d04cc](https://github.com/nicrie/xeofs/commit/b5d04ccb0279ed9b0661ccaa6dc0183ecacc9eef)) - github-actions
 
 ---
 ## [2.2.4](https://github.com/nicrie/xeofs/compare/v2.2.3..v2.2.4) - 2023-12-23
@@ -92,7 +73,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
-- **(release)** v2.2.4 - ([bde4456](https://github.com/nicrie/xeofs/commit/bde445690ae0c853f5fce1c8757f0d3ea42dcc5d)) - github-actions
 - loose version constraints of dependencies (#137) - ([1a0efe1](https://github.com/nicrie/xeofs/commit/1a0efe1cbd18d5ce444a6e42eb2f290c9619dcb0)) - Niclas Rieger
 
 ---
@@ -106,20 +86,13 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
+- show contributors in README - ([049e654](https://github.com/nicrie/xeofs/commit/049e6544637d4c396d40ffcb1b29b7a710c584de)) - Sam Levang
 - Update link to contributing guide (#129) - ([21b8d3d](https://github.com/nicrie/xeofs/commit/21b8d3dd3cf46fb631f7c2fe28fdf95246cd4153)) - Niclas Rieger
 - fix link to perf scripts (#131) - ([e2b3276](https://github.com/nicrie/xeofs/commit/e2b32762bd6bb3111c973bbd571b56367a496eba)) - Niclas Rieger
 - add required dependencies - ([ce6b93a](https://github.com/nicrie/xeofs/commit/ce6b93ab31da6ab10ebc70e9444f1b9956ec02b2)) - Niclas Rieger
 - add required dependencies (#138) - ([7ec694f](https://github.com/nicrie/xeofs/commit/7ec694f41d6aca0509782096cbabbcd19264180a)) - Niclas Rieger
-- remove .all_contributorsrc config file - ([ccac889](https://github.com/nicrie/xeofs/commit/ccac8894d2a8b69371cdc24f019fa6dd0436ebf9)) - Niclas Rieger
-- revert accidental deletion - ([52a15bf](https://github.com/nicrie/xeofs/commit/52a15bf01b555763761e1e6c80e7aa10f2afa65d)) - Niclas Rieger
-- show contributors in README - ([049e654](https://github.com/nicrie/xeofs/commit/049e6544637d4c396d40ffcb1b29b7a710c584de)) - Sam Levang
 - remove all-contributor config file - ([f5234fc](https://github.com/nicrie/xeofs/commit/f5234fc3895f3bcd8893ae684ea23a0ebe001db4)) - Niclas Rieger
 - show contributors in readme (#140) - ([0c12fa5](https://github.com/nicrie/xeofs/commit/0c12fa5385e807e2cd45599e6fc0f10b3a520119)) - Niclas Rieger
-
-### :gear: Miscellaneous
-
-- **(release)** v2.2.3 - ([b149477](https://github.com/nicrie/xeofs/commit/b1494771cddab30812fcdb3633f42c871034ac89)) - github-actions
-- use git cliff changelog action - ([b65618e](https://github.com/nicrie/xeofs/commit/b65618eea7cb8cada5519c516c1ad694f6dbe0bf)) - Sam Levang
 
 ---
 ## [2.2.2](https://github.com/nicrie/xeofs/compare/v2.2.1..v2.2.2) - 2023-11-20
@@ -127,11 +100,6 @@ All notable changes to this project will be documented in this file. See [conven
 ### :bug: Bug Fixes
 
 - trigger new release - ([c79a116](https://github.com/nicrie/xeofs/commit/c79a1160d5b27e44f82b9c8fe9a9ac808ffca895)) - Niclas Rieger
-
-### :gear: Miscellaneous
-
-- **(release)** update PSR version - ([0f5524f](https://github.com/nicrie/xeofs/commit/0f5524fddafbd5aa71df5de40006f5ace75561bf)) - Niclas Rieger
-- **(release)** v2.2.2 - ([a58d0ad](https://github.com/nicrie/xeofs/commit/a58d0adb8fbb27c8008189beec51161300f97277)) - github-actions
 
 ---
 ## [2.2.1](https://github.com/nicrie/xeofs/compare/v2.2.0..v2.2.1) - 2023-11-20
@@ -440,7 +408,6 @@ All notable changes to this project will be documented in this file. See [conven
 ### :gear: Miscellaneous
 
 - **(black)** specify version and target directory - ([7919090](https://github.com/nicrie/xeofs/commit/7919090682f3bf1ba2c689e86cc802529e390cf7)) - Niclas Rieger
-- **(release)** v1.1.0 (#80) - ([f576cb1](https://github.com/nicrie/xeofs/commit/f576cb1dea5a8c13ce060ddad418f45ffb76ec9e)) - Niclas Rieger
 - add black as dev dependency - ([81ccaa8](https://github.com/nicrie/xeofs/commit/81ccaa8c0410a5c2961e88206b69e88ac80211ee)) - Niclas Rieger
 - update Github Action workflows - ([25211eb](https://github.com/nicrie/xeofs/commit/25211ebcd0e0a0ec23ce823303107febd9f1079f)) - Niclas Rieger
 - cosmetic changes (#72) - ([9f44357](https://github.com/nicrie/xeofs/commit/9f44357c1223b513bdbdfc7f40be68dd0b687938)) - Niclas Rieger
@@ -494,9 +461,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
-- **(release)** 1.0.5 (#70) - ([1dc9ce6](https://github.com/nicrie/xeofs/commit/1dc9ce614932cf62a97c8c6137d025b01e5ad31d)) - Niclas Rieger
-- **(release)** bump version - ([8ba42d3](https://github.com/nicrie/xeofs/commit/8ba42d3dfc77020903efcd84472aba027ed4c0b8)) - Niclas Rieger
-- **(release)** bump version (#71) - ([58ae844](https://github.com/nicrie/xeofs/commit/58ae844884483c4c20b463519e8fbcd7ec6679da)) - Niclas Rieger
 - update python-semantic-release to v8 - ([0887579](https://github.com/nicrie/xeofs/commit/08875797ba42448f0242fd559608b54407e771cd)) - Niclas Rieger
 - internal design (#69) - ([b39bdaf](https://github.com/nicrie/xeofs/commit/b39bdaf89c71bac831bb8683831e773e57d353bc)) - Niclas Rieger
 - lock PSR to 7.x - ([b5b94e3](https://github.com/nicrie/xeofs/commit/b5b94e3d33ee376addc395d612d6e21c7b13d613)) - Niclas Rieger
