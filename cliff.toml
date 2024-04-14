@@ -71,7 +71,7 @@ commit_parsers = [
     { message = "^revert", group = "Revert" },
     { message = "^test", group = "Tests" },
     { message = "^chore\\(release\\):", skip = true },
-    { message = "^chore|ci", group = "Miscellaneous" },
+    { message = "^chore|ci|build", group = "Miscellaneous" },
     { body = ".*security", group = "Security" },
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
