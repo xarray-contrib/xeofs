@@ -59,4 +59,5 @@ computation on large, multi-dimensional datasets, making advanced climate data a
    installation
    quickstart
    api
+   faq
    auto_examples/index

@@ -20,12 +20,17 @@
       ~MCARotator.components
       ~MCARotator.compute
       ~MCARotator.covariance_fraction
+      ~MCARotator.deserialize
       ~MCARotator.fit
       ~MCARotator.get_params
+      ~MCARotator.get_serialization_attrs
       ~MCARotator.heterogeneous_patterns
       ~MCARotator.homogeneous_patterns
       ~MCARotator.inverse_transform
+      ~MCARotator.load
+      ~MCARotator.save
       ~MCARotator.scores
+      ~MCARotator.serialize
       ~MCARotator.singular_values
       ~MCARotator.squared_covariance
       ~MCARotator.squared_covariance_fraction
