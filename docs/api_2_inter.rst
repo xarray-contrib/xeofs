@@ -7,5 +7,6 @@ Multi-Set Analysis
 
    xeofs.models.MCA
    xeofs.models.ComplexMCA
+   xeofs.models.MCARotator
    xeofs.models.ComplexMCARotator
    xeofs.models.CCA
