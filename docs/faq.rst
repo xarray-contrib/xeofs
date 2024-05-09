@@ -1,7 +1,7 @@
-.. _howtocite:
+.. _faq:
 
-How to Cite?
-============
+FAQ
+===
 
 How should I cite xeofs?
 -------------------------

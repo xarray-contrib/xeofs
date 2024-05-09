@@ -1,7 +1,7 @@
 .. _api:
 
 ======================
-API Reference
+API
 ======================
 
 Methods are categorized based on their analytical focus:
