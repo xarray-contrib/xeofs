@@ -8,7 +8,7 @@ The following packages are required dependencies:
 
 **Core Dependencies**
 
-* Python (3.10 or 3.11)
+* Python (3.10 or higher)
 * `numpy <https://www.numpy.org/>`__ 
 * `pandas <https://pandas.pydata.org/>`__ 
 * `xarray <http://xarray.pydata.org/>`__ 
