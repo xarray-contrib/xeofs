@@ -60,3 +60,4 @@ computation on large, multi-dimensional datasets, making advanced climate data a
    quickstart
    api
    auto_examples/index
+   how_to_cite
