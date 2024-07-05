@@ -2,7 +2,12 @@ from typing import Optional, List, Tuple, Dict
 from typing_extensions import Self
 
 import numpy as np
-from datatree import DataTree
+
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
+
 
 from .list_processor import GenericListTransformer
 from .dimension_renamer import DimensionRenamer

@@ -5,8 +5,12 @@ from datetime import datetime
 
 import dask
 import xarray as xr
-from datatree import DataTree
 from dask.diagnostics.progress import ProgressBar
+
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
 
 from .eof import EOF
 from ..preprocessing.preprocessor import Preprocessor

@@ -3,7 +3,11 @@ from typing_extensions import Self
 
 import dask
 from dask.diagnostics.progress import ProgressBar
-from datatree import DataTree
+
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
 
 from ..utils.data_types import DataArray
 
