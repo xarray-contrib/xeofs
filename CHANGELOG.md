@@ -5,10 +5,15 @@ All notable changes to this project will be documented in this file. See [conven
 ---
 ## [unreleased]
 
+### :bug: Bug Fixes
+
+- support new datatree and numpy 2.0 (#169) - ([536709c](https://github.com/nicrie/xeofs/commit/536709ce171ca5c07ca9a83b06cec3bb6a1eded7)) - Sam Levang
+
 ### :book: Documentation
 
 - new changelog (#141) - ([35b9ef7](https://github.com/nicrie/xeofs/commit/35b9ef7dee37b16dce109325b9e4374a422612bc)) - Sam Levang
-- remove release commits - ([6a35565](https://github.com/nicrie/xeofs/commit/6a355655677d123c3a336bf31d6f2b2ed6389c25)) - Niclas Rieger
+- Remove release commits from CHANGELOG (#163) - ([31bc358](https://github.com/nicrie/xeofs/commit/31bc35855514682e1a8ddfd68f88d1a89db6fcfe)) - Niclas Rieger
+- Add How to Cite page (#165) - ([388f87c](https://github.com/nicrie/xeofs/commit/388f87c7fb97a450b11f060e9d19dffe46b4fb6b)) - Niclas Rieger
 
 ### :gear: Miscellaneous
 
@@ -117,8 +122,8 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :rocket: Features
 
-- support saving to netcdf (#123) - ([8d06153](https://github.com/nicrie/xeofs/commit/8d06153b5de31aad3f0817979c1122250f444c57)) - Sam Levang
 - normalized option in inverse_transform - ([e7d6d90](https://github.com/nicrie/xeofs/commit/e7d6d90d6fdcbd4575cddf3b12ebf1852dc329ef)) - Sam Levang
+- support saving to netcdf (#123) - ([8d06153](https://github.com/nicrie/xeofs/commit/8d06153b5de31aad3f0817979c1122250f444c57)) - Sam Levang
 - normalized option in inverse_transform (#124) - ([4ad2791](https://github.com/nicrie/xeofs/commit/4ad2791d4db672c7c722ee2e5d12cf3b3a88028c)) - Sam Levang
 
 ### :bug: Bug Fixes
@@ -181,7 +186,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :rocket: Features
 
-- add EEOF inverse_transform() (#111) - ([ab6e3cc](https://github.com/nicrie/xeofs/commit/ab6e3cced44f288c48905bda34e2e4e6d1b60dee)) - Niclas Rieger
 - lazy execution mode (#110) - ([314901e](https://github.com/nicrie/xeofs/commit/314901ebd978290d56214219d7a87f5111f07775)) - Sam Levang
 
 ### :book: Documentation
@@ -194,6 +198,10 @@ All notable changes to this project will be documented in this file. See [conven
 
 ---
 ## [2.0.3](https://github.com/nicrie/xeofs/compare/v2.0.2..v2.0.3) - 2023-11-12
+
+### :rocket: Features
+
+- add EEOF inverse_transform() (#111) - ([ab6e3cc](https://github.com/nicrie/xeofs/commit/ab6e3cced44f288c48905bda34e2e4e6d1b60dee)) - Niclas Rieger
 
 ### :bug: Bug Fixes
 
@@ -268,12 +276,12 @@ All notable changes to this project will be documented in this file. See [conven
 - fix up minor errors - ([ef3fe8a](https://github.com/nicrie/xeofs/commit/ef3fe8aa2f707377efdd444b136c29acc592a418)) - Niclas Rieger
 - fix reference hyperlinks - ([38cadb9](https://github.com/nicrie/xeofs/commit/38cadb9aa970640f02734457fb07e5e43212facf)) - Niclas Rieger
 - update some docstrings - ([2795c54](https://github.com/nicrie/xeofs/commit/2795c54951b47ff0e124566338d5dfa0f8a15b91)) - Niclas Rieger
+- update examples (#93) - ([9f3c0c1](https://github.com/nicrie/xeofs/commit/9f3c0c15a3e6df57adeabdbc213928a524795fe9)) - Niclas Rieger
 - repair gallery - ([fa647d8](https://github.com/nicrie/xeofs/commit/fa647d8a0420e2938cea885956bb26a5376cfdaf)) - Niclas Rieger
 - update env - ([e8f72d5](https://github.com/nicrie/xeofs/commit/e8f72d5cc97393a806a276ff8932103392435b33)) - Niclas Rieger
+- update doc environment (#94) - ([9592dbc](https://github.com/nicrie/xeofs/commit/9592dbcab5b59236b60ce5c82fa2f374e4dc5bec)) - Niclas Rieger
 - add CoC - ([70f10b2](https://github.com/nicrie/xeofs/commit/70f10b29e3ac22b49bb3de0f00992761c1e6a059)) - Niclas Rieger
 - complete overhaul - ([47e13ea](https://github.com/nicrie/xeofs/commit/47e13ea6d0972f67b3e362473380ec802598e409)) - Niclas Rieger
-- update examples (#93) - ([9f3c0c1](https://github.com/nicrie/xeofs/commit/9f3c0c15a3e6df57adeabdbc213928a524795fe9)) - Niclas Rieger
-- update doc environment (#94) - ([9592dbc](https://github.com/nicrie/xeofs/commit/9592dbcab5b59236b60ce5c82fa2f374e4dc5bec)) - Niclas Rieger
 - build with Python 3.11 - ([c181972](https://github.com/nicrie/xeofs/commit/c181972253d9e6bc3ddcfd945f14bc1f06d7ef5f)) - Niclas Rieger
 - minor tweaks in documentation - ([977a89e](https://github.com/nicrie/xeofs/commit/977a89e99b74d7629a6478356ffc458ea1c0359f)) - Niclas Rieger
 - fix link - ([c6a595b](https://github.com/nicrie/xeofs/commit/c6a595b2d03855b8267992b7f2b345fb1578fe15)) - Niclas Rieger
@@ -281,10 +289,10 @@ All notable changes to this project will be documented in this file. See [conven
 ### :gear: Miscellaneous
 
 - add ipykernel as dependency - ([066dc2a](https://github.com/nicrie/xeofs/commit/066dc2ac526fc2cd8663507c31c90bd3c692169b)) - Niclas Rieger
+- add ipykernel as dependency (#92) - ([7fb4b62](https://github.com/nicrie/xeofs/commit/7fb4b629caf10185372201aae8a954dd3dedbb05)) - Niclas Rieger
 - docs require rpy2 package - ([edd69e2](https://github.com/nicrie/xeofs/commit/edd69e2fb5dd15cb83eadb2d15fd9e576962382b)) - Niclas Rieger
 - update env - ([572cead](https://github.com/nicrie/xeofs/commit/572cead3c0e4e121de014cfa2115e829457d62c8)) - Niclas Rieger
 - add pre-commit as dev dependency - ([3219562](https://github.com/nicrie/xeofs/commit/3219562d225f5c5cf6bb1719bbd2c15689c4ea11)) - Niclas Rieger
-- add ipykernel as dependency (#92) - ([7fb4b62](https://github.com/nicrie/xeofs/commit/7fb4b629caf10185372201aae8a954dd3dedbb05)) - Niclas Rieger
 - Merge branch 'main' into develop - ([b08e2c3](https://github.com/nicrie/xeofs/commit/b08e2c355ce39c4c28f0e59d0e3a8753a567c82d)) - Niclas Rieger
 - no support for 3.12 - ([a0ca2ac](https://github.com/nicrie/xeofs/commit/a0ca2ac706cea2a6453b6a1fb17d054d9d10c5dc)) - Niclas Rieger
 - install dev dependencies - ([be8bffd](https://github.com/nicrie/xeofs/commit/be8bffdd746a3a8683a42cfebccac107ff16db60)) - Niclas Rieger
@@ -295,6 +303,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :rocket: Features
 
+- add CCA support - ([79e82cc](https://github.com/nicrie/xeofs/commit/79e82ccb0802079123d3254c0ef9a617a962fb90)) - Niclas Rieger
 - add GWPCA support - ([58c2dbe](https://github.com/nicrie/xeofs/commit/58c2dbedea9e72f62a80e11415338aa2862e778b)) - Niclas Rieger
 - parameter normalized scores - ([f0dcb34](https://github.com/nicrie/xeofs/commit/f0dcb3411f36d8aac29a7b781556afd31a36a6b6)) - Niclas Rieger
 - add Extended EOF Analysis - ([2db736c](https://github.com/nicrie/xeofs/commit/2db736cdc5b860c36dbc23c43ffa04251e813533)) - Niclas Rieger
@@ -309,6 +318,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(Bootstrapper)** avoid pertubating sample coords - ([ffd11fc](https://github.com/nicrie/xeofs/commit/ffd11fcf21041b7defba6adb9973807d39678678)) - Niclas Rieger
 - **(CCA)** add checks for edge cases - ([76c0b1b](https://github.com/nicrie/xeofs/commit/76c0b1bbe7f64d16b340ae10789f3df3234321b0)) - Niclas Rieger
 - **(GWPCA)** raise error in scores - ([43e9274](https://github.com/nicrie/xeofs/commit/43e9274a3eb270a6e331e2f73f77a785e3eb6654)) - Niclas Rieger
+- PCA preprocessing before Hilbert transform - ([2bbcb69](https://github.com/nicrie/xeofs/commit/2bbcb6929ab92d051623c1b15f7ae0eb2f5eebac)) - Niclas Rieger
 - score coordinates in T-mode EOF analysis - ([731eec2](https://github.com/nicrie/xeofs/commit/731eec2825dbe091634cf41a52f38187cce3109c)) - Niclas Rieger
 - streamline model attribute types - ([98c5cef](https://github.com/nicrie/xeofs/commit/98c5cef82e542daa7cf7f003c52666bbedba994b)) - Niclas Rieger
 
@@ -322,17 +332,28 @@ All notable changes to this project will be documented in this file. See [conven
 - **(BaseModel)** move input check to utils - ([183779a](https://github.com/nicrie/xeofs/commit/183779a188e68550f886d08648075bc9d9ba106b)) - Niclas Rieger
 - **(GenericListTransformer)** remove inherit - ([2307169](https://github.com/nicrie/xeofs/commit/2307169a58d42357cca9edb2a60de82a17c95718)) - Niclas Rieger
 - **(Preprocessor)** enforce input as list - ([ebadaa2](https://github.com/nicrie/xeofs/commit/ebadaa21fc0d212034ac617f42ccd3b5e579c54b)) - Niclas Rieger
+- add MultiIndexConvert & tests - ([52935a0](https://github.com/nicrie/xeofs/commit/52935a0c1e09484046276bedd102ea92d65690d8)) - Niclas Rieger
+- add Sanitizer & tests - ([508d742](https://github.com/nicrie/xeofs/commit/508d742dc026b97f28be7af20ac41b12357a4f08)) - Niclas Rieger
+- Stacker focuses on stacking - ([9f39f8f](https://github.com/nicrie/xeofs/commit/9f39f8fccacb03ea4e1f1f32f2082a0a525d7589)) - Niclas Rieger
+- Sanitizer removes NaNs - ([7b5068b](https://github.com/nicrie/xeofs/commit/7b5068b9215351aaca855d716cc1b7b60069251c)) - Niclas Rieger
+- streamline Scaler - ([a62fc5a](https://github.com/nicrie/xeofs/commit/a62fc5a2a617c4c5b7915c182944df6583e6b3ac)) - Niclas Rieger
+- adapt Preprocessor to refactoring - ([4a43ce9](https://github.com/nicrie/xeofs/commit/4a43ce98ba37eaf2330ee1956686d3d73a8f2d1b)) - Niclas Rieger
+- reflect refactoring in Factory - ([0ce02f0](https://github.com/nicrie/xeofs/commit/0ce02f015c0981811fa5ce1aee02ad4affb97e86)) - Niclas Rieger
+- generalize preprocessing in MCA - ([fe9bd46](https://github.com/nicrie/xeofs/commit/fe9bd46cd0e288fbf8bd217acd675bb3d952f0cb)) - Niclas Rieger
 - create hilbert_transform.py - ([166e957](https://github.com/nicrie/xeofs/commit/166e9578e5f08dc383de7a64688d73833f1ccaaa)) - Niclas Rieger
 - simplify model data structure - ([09415a3](https://github.com/nicrie/xeofs/commit/09415a3591dc926838c2436c2a94a94adaa37e22)) - Niclas Rieger
 
 ### :art: Style
 
 - **(decomposer)** use structural pattern matching - ([6f8a9cf](https://github.com/nicrie/xeofs/commit/6f8a9cf192e7e660aa4bec112b624ceccea8df93)) - Niclas Rieger
+- add and streamline type hints - ([b51f36a](https://github.com/nicrie/xeofs/commit/b51f36ac2a4235aebafac972547bf14c02f39c7a)) - Niclas Rieger
 - update typings - ([324c06b](https://github.com/nicrie/xeofs/commit/324c06bba0fdc8afdecc4898c2a40173b01ac9e5)) - Niclas Rieger
 
 ### :microscope: Tests
 
 - **(EOF)** fix random seed - ([4080143](https://github.com/nicrie/xeofs/commit/40801431873acc87f851e88090dc0d919884bfc1)) - Niclas Rieger
+- provide method to create synthetic data - ([a737127](https://github.com/nicrie/xeofs/commit/a737127c75531b52e37634d90efb7635d21c42b4)) - Niclas Rieger
+- add more flexible data generation classes - ([15f0194](https://github.com/nicrie/xeofs/commit/15f01947ee430138dad6a301dd04ab84c2e534c4)) - Niclas Rieger
 - isolated NaNs are invalid test cases - ([d4b5a77](https://github.com/nicrie/xeofs/commit/d4b5a77bc91b7c13426d424dad72eb94a4f1c30f)) - Niclas Rieger
 - remove cca-zoo test - ([6ed06f0](https://github.com/nicrie/xeofs/commit/6ed06f0654a2a8b1f44f57ea54159f6b142a04ae)) - Niclas Rieger
 
@@ -354,11 +375,6 @@ All notable changes to this project will be documented in this file. See [conven
 - add Canonical Correlation Analysis - ([782e624](https://github.com/nicrie/xeofs/commit/782e6242ac1f0dd34ed12ee3d0e8154c66551d83)) - Niclas Rieger
 - add Optimal Persistence Analysis (OPA) - ([2482110](https://github.com/nicrie/xeofs/commit/248211086e140b5f0d8ec40a40962ed4b56a7b94)) - Niclas Rieger
 - choose name of sample and feature dim - ([4d521f8](https://github.com/nicrie/xeofs/commit/4d521f83dea46c558202fc9ce9cfe35c5126453c)) - Niclas Rieger
-- add CCA support - ([79e82cc](https://github.com/nicrie/xeofs/commit/79e82ccb0802079123d3254c0ef9a617a962fb90)) - Niclas Rieger
-
-### :bug: Bug Fixes
-
-- PCA preprocessing before Hilbert transform - ([2bbcb69](https://github.com/nicrie/xeofs/commit/2bbcb6929ab92d051623c1b15f7ae0eb2f5eebac)) - Niclas Rieger
 
 ### :book: Documentation
 
@@ -382,14 +398,6 @@ All notable changes to this project will be documented in this file. See [conven
 - remove dim checks - ([79b43cf](https://github.com/nicrie/xeofs/commit/79b43cf874905c531fe0974a0255d95905101eda)) - Niclas Rieger
 - generalize hilbert transform over dims - ([983e0ad](https://github.com/nicrie/xeofs/commit/983e0adf7cf46dcea148d2f24a31b650054f4570)) - Niclas Rieger
 - add MultIndexConverter to preprocessor - ([39ee3fb](https://github.com/nicrie/xeofs/commit/39ee3fbc77b1386f92586e699cffe3aa54ad17cd)) - Niclas Rieger
-- add MultiIndexConvert & tests - ([52935a0](https://github.com/nicrie/xeofs/commit/52935a0c1e09484046276bedd102ea92d65690d8)) - Niclas Rieger
-- add Sanitizer & tests - ([508d742](https://github.com/nicrie/xeofs/commit/508d742dc026b97f28be7af20ac41b12357a4f08)) - Niclas Rieger
-- Stacker focuses on stacking - ([9f39f8f](https://github.com/nicrie/xeofs/commit/9f39f8fccacb03ea4e1f1f32f2082a0a525d7589)) - Niclas Rieger
-- Sanitizer removes NaNs - ([7b5068b](https://github.com/nicrie/xeofs/commit/7b5068b9215351aaca855d716cc1b7b60069251c)) - Niclas Rieger
-- streamline Scaler - ([a62fc5a](https://github.com/nicrie/xeofs/commit/a62fc5a2a617c4c5b7915c182944df6583e6b3ac)) - Niclas Rieger
-- adapt Preprocessor to refactoring - ([4a43ce9](https://github.com/nicrie/xeofs/commit/4a43ce98ba37eaf2330ee1956686d3d73a8f2d1b)) - Niclas Rieger
-- reflect refactoring in Factory - ([0ce02f0](https://github.com/nicrie/xeofs/commit/0ce02f015c0981811fa5ce1aee02ad4affb97e86)) - Niclas Rieger
-- generalize preprocessing in MCA - ([fe9bd46](https://github.com/nicrie/xeofs/commit/fe9bd46cd0e288fbf8bd217acd675bb3d952f0cb)) - Niclas Rieger
 
 ### :art: Style
 
@@ -397,13 +405,10 @@ All notable changes to this project will be documented in this file. See [conven
 - **(tests)** streamline test names - ([3a1fb91](https://github.com/nicrie/xeofs/commit/3a1fb918244fda8896949fc4bbf38efa459296a5)) - Niclas Rieger
 - apply Black formatting to repo - ([029f6e9](https://github.com/nicrie/xeofs/commit/029f6e9192b5c386c4dfe913a664bc6709197402)) - Niclas Rieger
 - integrate Black into repo - ([dd4cd7f](https://github.com/nicrie/xeofs/commit/dd4cd7f44ca84e8b52ae9fd2006954ee2a708c5f)) - Niclas Rieger
-- add and streamline type hints - ([b51f36a](https://github.com/nicrie/xeofs/commit/b51f36ac2a4235aebafac972547bf14c02f39c7a)) - Niclas Rieger
 
 ### :microscope: Tests
 
 - **(DatasetStacker)** remove failing tests - ([3a2411e](https://github.com/nicrie/xeofs/commit/3a2411e6310ae4f021e3fbd2f317861d9d7282b6)) - Niclas Rieger
-- provide method to create synthetic data - ([a737127](https://github.com/nicrie/xeofs/commit/a737127c75531b52e37634d90efb7635d21c42b4)) - Niclas Rieger
-- add more flexible data generation classes - ([15f0194](https://github.com/nicrie/xeofs/commit/15f01947ee430138dad6a301dd04ab84c2e534c4)) - Niclas Rieger
 
 ### :gear: Miscellaneous
 
@@ -461,6 +466,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
+- Merge branch 'hotfix-mca-scores' into develop - ([f380aed](https://github.com/nicrie/xeofs/commit/f380aed55b8a530565203b8eb524f9df36ce0dff)) - Niclas Rieger
 - update python-semantic-release to v8 - ([0887579](https://github.com/nicrie/xeofs/commit/08875797ba42448f0242fd559608b54407e771cd)) - Niclas Rieger
 - internal design (#69) - ([b39bdaf](https://github.com/nicrie/xeofs/commit/b39bdaf89c71bac831bb8683831e773e57d353bc)) - Niclas Rieger
 - lock PSR to 7.x - ([b5b94e3](https://github.com/nicrie/xeofs/commit/b5b94e3d33ee376addc395d612d6e21c7b13d613)) - Niclas Rieger
@@ -479,17 +485,6 @@ All notable changes to this project will be documented in this file. See [conven
 - consistent (squared) covariance for MCA - ([8e43d15](https://github.com/nicrie/xeofs/commit/8e43d155c32ff210ff5e059b99aa5022c3718496)) - Niclas Rieger
 - correct MCA scores and SCF (#66) - ([f6ecc49](https://github.com/nicrie/xeofs/commit/f6ecc49480807b364780c5b61e1c24f7b1c5b9a5)) - Niclas Rieger
 
-### :gear: Miscellaneous
-
-- Merge branch 'hotfix-mca-scores' into develop - ([f380aed](https://github.com/nicrie/xeofs/commit/f380aed55b8a530565203b8eb524f9df36ce0dff)) - Niclas Rieger
-
----
-## [1.0.3](https://github.com/nicrie/xeofs/compare/v1.0.2..v1.0.3) - 2023-07-10
-
-### :bug: Bug Fixes
-
-- dummy patch to fix package versioning (#53) - ([89d128d](https://github.com/nicrie/xeofs/commit/89d128d9f3e1bea43242c8521e7f3d43716160cd)) - Niclas Rieger
-
 ### :book: Documentation
 
 - add ipython to env to use syntax highlight - ([6b2d16b](https://github.com/nicrie/xeofs/commit/6b2d16b496abfdca4c69e6af556fdeca78227d63)) - Niclas Rieger
@@ -498,6 +493,13 @@ All notable changes to this project will be documented in this file. See [conven
 
 - add Scaler and Stacker factories - ([5cf719f](https://github.com/nicrie/xeofs/commit/5cf719ff21ea4dc3a2d66dad0fcb680cfc500b1b)) - Niclas Rieger
 - merge Stacker & Scaler into Preprocessor - ([8c27b84](https://github.com/nicrie/xeofs/commit/8c27b8402f3ded1c4eb072e12227b4a53bd68ca6)) - Niclas Rieger
+
+---
+## [1.0.3](https://github.com/nicrie/xeofs/compare/v1.0.2..v1.0.3) - 2023-07-10
+
+### :bug: Bug Fixes
+
+- dummy patch to fix package versioning (#53) - ([89d128d](https://github.com/nicrie/xeofs/commit/89d128d9f3e1bea43242c8521e7f3d43716160cd)) - Niclas Rieger
 
 ### :gear: Miscellaneous
 
@@ -515,6 +517,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
+- add sphinx related packages to env - ([6e07d3b](https://github.com/nicrie/xeofs/commit/6e07d3b3c6797a787a5b10885c2f73ef5c14cdf8)) - Niclas Rieger
 - add dev-dependeny for readthedocs (#46) - ([e1e6379](https://github.com/nicrie/xeofs/commit/e1e6379e2da146e7d8422da45e68bf678561d600)) - Niclas Rieger
 - fix broken badge - ([9d9b5d8](https://github.com/nicrie/xeofs/commit/9d9b5d889bbef74f67c3a2b9d946c2373e51d725)) - Niclas Rieger
 - add comparison to other packages - ([7985585](https://github.com/nicrie/xeofs/commit/7985585b34fd27fd391f8a0d388723e2f639df30)) - Niclas Rieger
@@ -534,6 +537,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
+- Merge  develop of nicrie/xeofs into develop - ([f31e56e](https://github.com/nicrie/xeofs/commit/f31e56e49c550f87c6b132951f97ebd561ec5db5)) - Niclas Rieger
 - Merge branch 'main' into develop - ([bc4e87d](https://github.com/nicrie/xeofs/commit/bc4e87d469807c4b2bb4679556813e2693affe5f)) - Niclas Rieger
 - merge branch 'main' of nicrie/xeofs - ([efb5ab9](https://github.com/nicrie/xeofs/commit/efb5ab9c306e9d71a4aab20b6f16ccbfa6a65c56)) - Niclas Rieger
 - merge main into develop - ([9f50392](https://github.com/nicrie/xeofs/commit/9f50392d7f99ca6bb7cd13608b630094e0845cb3)) - Niclas Rieger
@@ -545,13 +549,9 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :bug: Bug Fixes
 
-- add dependency statsmodels - ([87e7e1d](https://github.com/nicrie/xeofs/commit/87e7e1d89f5d8dd3f7954bb4ebc79d2d41738404)) - Niclas Rieger
 - add dask as dependency (#42) - ([2bb2b6b](https://github.com/nicrie/xeofs/commit/2bb2b6b817a457a7a24918914e88675f08e298d6)) - Niclas Rieger
+- add dependency statsmodels - ([87e7e1d](https://github.com/nicrie/xeofs/commit/87e7e1d89f5d8dd3f7954bb4ebc79d2d41738404)) - Niclas Rieger
 - build and ci (#45) - ([7d1a88b](https://github.com/nicrie/xeofs/commit/7d1a88b1cda8a66d04f3ffa96e1aa5cfe899029b)) - Niclas Rieger
-
-### :book: Documentation
-
-- add sphinx related packages to env - ([6e07d3b](https://github.com/nicrie/xeofs/commit/6e07d3b3c6797a787a5b10885c2f73ef5c14cdf8)) - Niclas Rieger
 
 ### :microscope: Tests
 
@@ -565,7 +565,6 @@ All notable changes to this project will be documented in this file. See [conven
 - add dask - ([fef6509](https://github.com/nicrie/xeofs/commit/fef6509bb5fce40b4d03aaca9ed2ef6d7566e5d1)) - Niclas Rieger
 - remove python 3.8 support - ([2b408e7](https://github.com/nicrie/xeofs/commit/2b408e71ccc5cacc8011c0ac41a5a357d8d2fd09)) - Niclas Rieger
 - drop 3.9 support - ([4552fa9](https://github.com/nicrie/xeofs/commit/4552fa95827d1944fbea0ca8ce9b8a9c4b9e866e)) - Niclas Rieger
-- Merge  develop of nicrie/xeofs into develop - ([f31e56e](https://github.com/nicrie/xeofs/commit/f31e56e49c550f87c6b132951f97ebd561ec5db5)) - Niclas Rieger
 
 ---
 ## [1.0.0](https://github.com/nicrie/xeofs/compare/v0.7.2..v1.0.0) - 2023-07-07
@@ -698,9 +697,9 @@ All notable changes to this project will be documented in this file. See [conven
 - more text - ([0f9c32e](https://github.com/nicrie/xeofs/commit/0f9c32e48dd6c9069c11802a13a3f0113e5f07f5)) - nicrie
 - some minor corrections in docstrings - ([75eed31](https://github.com/nicrie/xeofs/commit/75eed31f2cdf33a896174aca77c33ec4bc3791eb)) - nicrie
 - add example and update docs - ([8bed38a](https://github.com/nicrie/xeofs/commit/8bed38a79094ece72487b619aa01cd45fa276a80)) - nicrie
+- update README - ([9e3210d](https://github.com/nicrie/xeofs/commit/9e3210d190da254850ea17c70011dab916bda24c)) - nicrie
 - update ROCK PCA to documentation - ([3a7394d](https://github.com/nicrie/xeofs/commit/3a7394d57fb4e9d79dfffef5b32df5af1a52e179)) - nicrie
 - adding example for ROCK PCA - ([8c6da93](https://github.com/nicrie/xeofs/commit/8c6da93f7c6e99780299e2687960c6a22e7c6661)) - nicrie
-- update README - ([9e3210d](https://github.com/nicrie/xeofs/commit/9e3210d190da254850ea17c70011dab916bda24c)) - nicrie
 - change examples - ([1c69645](https://github.com/nicrie/xeofs/commit/1c6964542dcfe3d794c6a01442822f57d422a681)) - nicrie
 - update README - ([2d28995](https://github.com/nicrie/xeofs/commit/2d28995a9e6c5ce1424721497eef6e97a6430e45)) - nicrie
 - fix some minor errors - ([d5d3f73](https://github.com/nicrie/xeofs/commit/d5d3f73b27814b947903a30cf6cbde8aaf5dc67b)) - nicrie
@@ -711,12 +710,18 @@ All notable changes to this project will be documented in this file. See [conven
 
 - Merge branch 'main' of github.com:nicrie/xeofs into develop - ([73e2473](https://github.com/nicrie/xeofs/commit/73e247383bd9340d717ce4e8d09637f97d963d03)) - nicrie
 
+### :art: Style
+
+- correct an indent that prevented xeofs being published to pypi - ([1ee531c](https://github.com/nicrie/xeofs/commit/1ee531c83f49125c8d8ce1f40a166a4fe4f5e78b)) - nicrie
+
 ### :microscope: Tests
 
 - add simple test cases for MCA Rotator - ([900d76e](https://github.com/nicrie/xeofs/commit/900d76ec1298b3c604c8734a41d8335a9446249e)) - nicrie
 
 ### :gear: Miscellaneous
 
+- docs do not compile properly, try changing version in conf.py - ([0a73edb](https://github.com/nicrie/xeofs/commit/0a73edbc30578b9598f18018180af567758ac7a9)) - nicrie
+- change conf - ([a73ef85](https://github.com/nicrie/xeofs/commit/a73ef85739bbf38f915add70319032c4c2d3791d)) - nicrie
 - add numba as dependency - ([f627d92](https://github.com/nicrie/xeofs/commit/f627d9270ca2c850c619ba428eaeeb315740f83a)) - nicrie
 - remove numba dependency - ([0979fcf](https://github.com/nicrie/xeofs/commit/0979fcf4111fc82c055269b4d69bd5a237bd21c0)) - nicrie
 
@@ -758,7 +763,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 - remove some comments - ([4eae075](https://github.com/nicrie/xeofs/commit/4eae075f13baa10677b84db608071ee859858085)) - nicrie
 - refer to issue why nodefaults is necessary - ([2aed6f3](https://github.com/nicrie/xeofs/commit/2aed6f35e67881f8ecda291d927f7991f89aea3b)) - nicrie
-- correct an indent that prevented xeofs being published to pypi - ([1ee531c](https://github.com/nicrie/xeofs/commit/1ee531c83f49125c8d8ce1f40a166a4fe4f5e78b)) - nicrie
 
 ### :microscope: Tests
 
@@ -772,17 +776,14 @@ All notable changes to this project will be documented in this file. See [conven
 - add tqdm as dependency - ([0de85e5](https://github.com/nicrie/xeofs/commit/0de85e5aa733d81836543fb02dba34387cf6ee18)) - nicrie
 - repair missing tqdm dependency - ([46fd5f2](https://github.com/nicrie/xeofs/commit/46fd5f2f40d091bada75f1e48181fd4230b1e1d5)) - nicrie
 - remove defaults from anaconda channels when building readthedocs - ([0dbcf81](https://github.com/nicrie/xeofs/commit/0dbcf81a95a357b4a2c83a531d056c9a0cb19245)) - nicrie
-- docs do not compile properly, try changing version in conf.py - ([0a73edb](https://github.com/nicrie/xeofs/commit/0a73edbc30578b9598f18018180af567758ac7a9)) - nicrie
-- change conf - ([a73ef85](https://github.com/nicrie/xeofs/commit/a73ef85739bbf38f915add70319032c4c2d3791d)) - nicrie
 
 ---
 ## [0.5.0](https://github.com/nicrie/xeofs/compare/v0.4.0..v0.5.0) - 2022-03-12
 
 ### :rocket: Features
 
-- Merge branch 'main' into develop - ([6d2d646](https://github.com/nicrie/xeofs/commit/6d2d6469768d3b91c63358d561b63f9581ebf2a8)) - nicrie
-- add base and xarray class for multivariate EOF analysis - ([5ba07f0](https://github.com/nicrie/xeofs/commit/5ba07f0e7c211e9b1a19a44d66d85d3ffc30a4d3)) - nicrie
 - add support for multivariate EOF analysis - ([fa9503a](https://github.com/nicrie/xeofs/commit/fa9503a2a789404471b2d85121d54e575a83128c)) - nicrie
+- Merge branch 'main' into develop - ([6d2d646](https://github.com/nicrie/xeofs/commit/6d2d6469768d3b91c63358d561b63f9581ebf2a8)) - nicrie
 - add support for multivariate EOF analysis - ([53961d9](https://github.com/nicrie/xeofs/commit/53961d974cda8bc6b24466c496058efc4d676a4b)) - nicrie
 
 ### :book: Documentation
@@ -824,6 +825,7 @@ All notable changes to this project will be documented in this file. See [conven
 - project unseen data onto EOFs - ([341546b](https://github.com/nicrie/xeofs/commit/341546b8b74cb1f91105aefd409fab8a087cca9a)) - nicrie
 - project unseen data onto rotated EOFs - ([63b2d3a](https://github.com/nicrie/xeofs/commit/63b2d3afdcb9b170b3fdbe5d38a6386463423e4a)) - nicrie
 - project new data onto EOFs and rotated EOFs - ([d8b0e57](https://github.com/nicrie/xeofs/commit/d8b0e57622bc6dec1b45ac94821eaf369a335704)) - nicrie
+- add base and xarray class for multivariate EOF analysis - ([5ba07f0](https://github.com/nicrie/xeofs/commit/5ba07f0e7c211e9b1a19a44d66d85d3ffc30a4d3)) - nicrie
 
 ### :bug: Bug Fixes
 
@@ -892,6 +894,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
+- add EOF s-mode and t-mode gallery example - ([5f371b7](https://github.com/nicrie/xeofs/commit/5f371b7ee52b64315a8c7940bb993605823e4455)) - nicrie
 - some minor changes in examples - ([9611eea](https://github.com/nicrie/xeofs/commit/9611eeac466078ac4e008373005e7cd0c98607bd)) - nicrie
 - add example for weigted EOF analysis - ([9dedab2](https://github.com/nicrie/xeofs/commit/9dedab2a25a0f18595e618ca986abe0b57b5a23f)) - nicrie
 - add example for rotated EOF analysis - ([efc364a](https://github.com/nicrie/xeofs/commit/efc364a925b33a167bfdfdbb71fd73ebd7b6c6f7)) - nicrie
@@ -922,17 +925,17 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
+- add installation instruction - ([9512d34](https://github.com/nicrie/xeofs/commit/9512d3450651384f48582458d2896c4d1ba355cc)) - nicrie
 - place badges on same line - ([e2d4dc3](https://github.com/nicrie/xeofs/commit/e2d4dc380accca197a76c16f815b35f889140150)) - nicrie
 - repair docs due to importlib being installed twice - ([0e21ebd](https://github.com/nicrie/xeofs/commit/0e21ebd0551ba7813ab5219febfda79dd26aec1a)) - nicrie
 - remove conflicting package versions - ([49636ae](https://github.com/nicrie/xeofs/commit/49636ae4f456ace63ed19bf081ce2fdf35dbbc42)) - nicrie
 - add installation instructions - ([43e2563](https://github.com/nicrie/xeofs/commit/43e2563e986f3217bce6e9fcd643ea0df0297cc4)) - nicrie
 - update docs - ([7b19b5b](https://github.com/nicrie/xeofs/commit/7b19b5bc35564317f49311c1a3705ce0893291dc)) - nicrie
 - update docstrings - ([e02b6ec](https://github.com/nicrie/xeofs/commit/e02b6ec4545bc9b13b48f27a00b4da77e1358037)) - nicrie
-- add download badge - ([9a96fd1](https://github.com/nicrie/xeofs/commit/9a96fd1e8d589b4c80b4498224f1851ec0428565)) - nicrie
-- add EOF s-mode and t-mode gallery example - ([5f371b7](https://github.com/nicrie/xeofs/commit/5f371b7ee52b64315a8c7940bb993605823e4455)) - nicrie
 - try to solve readthedoc version number - ([981bcdd](https://github.com/nicrie/xeofs/commit/981bcdd4865219574bf154bbd6c237c23ee48563)) - nicrie
 - try to solve the readthedocs issue with importlib - ([b4cdd9e](https://github.com/nicrie/xeofs/commit/b4cdd9ec4ca4d75df9e8a3ba7910163c42970cbe)) - nicrie
 - solve readthedoc version issue by installing xeofs first - ([7afdd78](https://github.com/nicrie/xeofs/commit/7afdd78af786ca5048c748ea09985aecc0d9b7b0)) - nicrie
+- add download badge - ([9a96fd1](https://github.com/nicrie/xeofs/commit/9a96fd1e8d589b4c80b4498224f1851ec0428565)) - nicrie
 
 ### :art: Style
 
@@ -957,8 +960,8 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :book: Documentation
 
+- update dependencies - ([05ceb68](https://github.com/nicrie/xeofs/commit/05ceb68bc77586663d9ddcf36c3e6c42d3947c72)) - nicrie
 - add batches and link to documentation - ([a7dd2d0](https://github.com/nicrie/xeofs/commit/a7dd2d0d6cdde42c6c9e9367bfd55d2aa077ba4d)) - nicrie
-- add installation instruction - ([9512d34](https://github.com/nicrie/xeofs/commit/9512d3450651384f48582458d2896c4d1ba355cc)) - nicrie
 
 ### :microscope: Tests
 
@@ -969,6 +972,8 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### :gear: Miscellaneous
 
+- Merge branch 'main' into develop - ([9cdef9b](https://github.com/nicrie/xeofs/commit/9cdef9b2eac6a3a997d86506a8ea1ad48395cef7)) - nicrie
+- upload package to pypi - ([989a278](https://github.com/nicrie/xeofs/commit/989a2784694e5880646e6d16362eb291a17d1fec)) - nicrie
 - Merge branch 'main' into develop - ([f51e4d2](https://github.com/nicrie/xeofs/commit/f51e4d2fa90ae41d4c390bffa4b1a09c32efd914)) - nicrie
 - add netcdf4 as dev-dependency - ([4c4897c](https://github.com/nicrie/xeofs/commit/4c4897ce65c39132989a3daede2c144d805d5dc5)) - nicrie
 
@@ -984,10 +989,6 @@ All notable changes to this project will be documented in this file. See [conven
 - allow standardized EOF analysis - ([6e80f78](https://github.com/nicrie/xeofs/commit/6e80f7867a35079b64a447604701f9e689e63f5f)) - nicrie
 - typo in CI - ([b34ccc5](https://github.com/nicrie/xeofs/commit/b34ccc511a412dd5920ec6a30d764794ca52aad9)) - nicrie
 
-### :book: Documentation
-
-- update dependencies - ([05ceb68](https://github.com/nicrie/xeofs/commit/05ceb68bc77586663d9ddcf36c3e6c42d3947c72)) - nicrie
-
 ### :gear: Miscellaneous
 
 - migrate to poetry - ([f7def8a](https://github.com/nicrie/xeofs/commit/f7def8a8b2e6ca5830c2edd6a81d612b15563189)) - nicrie
@@ -996,7 +997,5 @@ All notable changes to this project will be documented in this file. See [conven
 - fix incorrect call of coverage - ([d9ee80e](https://github.com/nicrie/xeofs/commit/d9ee80e9984411252fe9570f8b2ea6cc86844afc)) - nicrie
 - semantic-release is triggered for PR on main - ([e9077a2](https://github.com/nicrie/xeofs/commit/e9077a2369f5ceb8c64e7909fcb648dfcb5a4191)) - nicrie
 - migrate python-semantic-release to github workflows - ([c27de9a](https://github.com/nicrie/xeofs/commit/c27de9acc08fab78d26eae4aced65eb1078a282b)) - nicrie
-- Merge branch 'main' into develop - ([9cdef9b](https://github.com/nicrie/xeofs/commit/9cdef9b2eac6a3a997d86506a8ea1ad48395cef7)) - nicrie
-- upload package to pypi - ([989a278](https://github.com/nicrie/xeofs/commit/989a2784694e5880646e6d16362eb291a17d1fec)) - nicrie
 
 <!-- generated by git-cliff -->
