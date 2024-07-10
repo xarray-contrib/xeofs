@@ -5,8 +5,12 @@ from abc import abstractmethod
 
 import pandas as pd
 import xarray as xr
-from datatree import DataTree
 from sklearn.base import BaseEstimator, TransformerMixin
+
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
 
 from ..utils.data_types import Dims, DataArray, DataSet, Data
 

@@ -47,8 +47,8 @@ def test_fit(ceof_model):
     assert hasattr(
         ceof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
-    assert type(ceof_rotator.model) == ComplexEOF
-    assert type(ceof_rotator.data) == DataContainer
+    assert isinstance(ceof_rotator.model, ComplexEOF)
+    assert isinstance(ceof_rotator.data, DataContainer)
 
 
 @pytest.mark.parametrize(

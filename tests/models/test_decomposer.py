@@ -176,4 +176,4 @@ def test_random_state(
     U2 = decomposer.U_.data
 
     # Check that the results are the same
-    assert np.alltrue(U1 == U2)
+    assert np.all(U1 == U2)

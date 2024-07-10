@@ -2,7 +2,12 @@ from typing import Optional, List, Tuple, Dict
 from typing_extensions import Self
 
 import numpy as np
-from datatree import DataTree
+
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
+
 
 from .list_processor import GenericListTransformer
 from .dimension_renamer import DimensionRenamer
@@ -48,7 +53,7 @@ def extract_new_dim_names(X: List[DimensionRenamer]) -> Tuple[Dims, DimsList]:
     for x in X:
         new_sample_dims.append(x.sample_dims_after)
         new_feature_dims.append(x.feature_dims_after)
-    new_sample_dims: Dims = tuple(np.unique(np.asarray(new_sample_dims)))
+    new_sample_dims: Dims = tuple(np.unique(np.asarray(new_sample_dims)).tolist())
     return new_sample_dims, new_feature_dims
 
 
