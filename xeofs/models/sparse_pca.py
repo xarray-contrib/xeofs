@@ -14,15 +14,15 @@ from ._np_classes._sparse_pca import compute_rspca
 
 class SparsePCA(_BaseModel):
     """
-    Sparse PCA via Variable Projection [1]_.
+    Sparse PCA via Variable Projection.
 
-    Given a data matrix, Sparse PCA computes a set of sparse components that can optimally reconstruct the input data. The amount of sparsity is controlled by the L1 penalty coefficient, specified by the parameter `alpha`. Additionally, ridge shrinkage can be applied to improve conditioning.
+    Given a data matrix, Sparse PCA via Variable Projection [1]_ computes a set of sparse components that can optimally reconstruct the input data. The amount of sparsity is controlled by the L1 penalty coefficient, specified by the parameter `alpha`. Additionally, ridge shrinkage can be applied to improve conditioning.
 
     This implementation uses randomized methods for linear algebra to accelerate computations. The quality of the approximation can be controlled via the oversampling parameter `oversample` and `n_subspace`, which specifies the number of subspace iterations.
 
     Variable Projection for Sparse PCA solves the following optimization problem:
 
-        minimize :math:`1/2 \| X - X B A^T \|^2 + \alpha \|B\|_1 + 1/2 \beta \|B\|^2`
+        minimize :math:`\\frac{1}{2} \\| X - X B A^T \\|^2 + \\alpha \\|B\\|_1 + \\frac{1}{2} \\beta \\|B\\|^2`
 
     Parameters
     ----------
