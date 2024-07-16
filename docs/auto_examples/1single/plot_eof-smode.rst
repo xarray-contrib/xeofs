@@ -18,37 +18,48 @@
 .. _sphx_glr_auto_examples_1single_plot_eof-smode.py:
 
 
-EOF analysis (S-mode)
+Sparse PCA
 ========================
 
-EOF analysis in S-mode maximises the temporal variance.
+This example demonstrates the application of sparse PCA [1]_ to sea surface temperature data. Sparse PCA is an alternative to rotated PCA, where the components are sparse, often providing a more interpretable solution.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-16
+We replicate the analysis from the original paper [1]_, which identifies the ENSO (El Niño-Southern Oscillation) as the fourth mode, representing about 1% of the total variance. The original study focused on weekly sea surface temperatures from satellite data, whereas we use monthly data from ERSSTv5. Consequently, our results may not match exactly, but they should be quite similar.
 
-.. code-block:: Python
+References
+----------
+.. [1] Erichson, N. B. et al. Sparse Principal Component Analysis via Variable Projection. SIAM J. Appl. Math. 80, 977-1002 (2020).
+
+.. GENERATED FROM PYTHON SOURCE LINES 14-23
+
+.. code-block:: default
 
 
     # Load packages and data:
-    import xarray as xr
     import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
+    import xarray as xr
     from cartopy.crs import EqualEarth, PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF
-
-
-
+    from xeofs.models import SparsePCA
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 17-20
 
-.. code-block:: Python
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 24-25
+
+We use sea surface temperature data from 1990 to 2017, consistent with the original paper.
+
+.. GENERATED FROM PYTHON SOURCE LINES 25-29
+
+.. code-block:: default
 
 
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
+    sst = sst.sel(time=slice("1990", "2017"))
 
 
 
@@ -57,16 +68,16 @@ EOF analysis in S-mode maximises the temporal variance.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 21-22
+.. GENERATED FROM PYTHON SOURCE LINES 30-31
 
-Perform the actual analysis
+We perform sparse PCA using the `alpha` and `beta` parameters, which define the sparsity imposed by the elastic net (refer to Table 1 in the paper). In our analysis, we set `alpha` to 1e-5, as specified by the authors. Although the authors do not specify a value for `beta`, it appears that the results are not highly sensitive to this parameter. Therefore, we use the default `beta` value of 1e-4.
 
-.. GENERATED FROM PYTHON SOURCE LINES 22-30
+.. GENERATED FROM PYTHON SOURCE LINES 31-39
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    model = EOF(n_modes=5, use_coslat=True)
+    model = SparsePCA(n_modes=4, alpha=1e-5)
     model.fit(sst, dim="time")
     expvar = model.explained_variance()
     expvar_ratio = model.explained_variance_ratio()
@@ -80,13 +91,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 31-32
+.. GENERATED FROM PYTHON SOURCE LINES 40-41
 
-Explained variance fraction
+The explained variance fraction confirms that the fourth mode explains about 1% of the total variance, which is consistent with the original paper.
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-36
+.. GENERATED FROM PYTHON SOURCE LINES 41-45
 
-.. code-block:: Python
+.. code-block:: default
 
 
     print("Explained variance: ", expvar.round(0).values)
@@ -100,28 +111,28 @@ Explained variance fraction
 
  .. code-block:: none
 
-    Explained variance:  [24398.  1066.   676.   407.   303.]
-    Relative:  [85.5  3.7  2.4  1.4  1.1]
+    Explained variance:  [34060.  1252.   963.   405.]
+    Relative:  [86.   3.2  2.4  1. ]
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-38
+.. GENERATED FROM PYTHON SOURCE LINES 46-47
 
-Create figure showing the first two modes
+Examining the first four modes, we clearly identify ENSO as the fourth mode.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-56
+.. GENERATED FROM PYTHON SOURCE LINES 47-66
 
-.. code-block:: Python
+.. code-block:: default
 
 
     proj = EqualEarth(central_longitude=180)
     kwargs = {"cmap": "RdBu", "vmin": -0.05, "vmax": 0.05, "transform": PlateCarree()}
 
-    fig = plt.figure(figsize=(10, 8))
-    gs = GridSpec(3, 2, width_ratios=[1, 2])
-    ax0 = [fig.add_subplot(gs[i, 0]) for i in range(3)]
-    ax1 = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(3)]
+    fig = plt.figure(figsize=(10, 12))
+    gs = GridSpec(4, 2, width_ratios=[1, 2])
+    ax0 = [fig.add_subplot(gs[i, 0]) for i in range(4)]
+    ax1 = [fig.add_subplot(gs[i, 1], projection=proj) for i in range(4)]
 
     for i, (a0, a1) in enumerate(zip(ax0, ax1)):
         scores.sel(mode=i + 1).plot(ax=a0)
@@ -131,12 +142,13 @@ Create figure showing the first two modes
         a0.set_xlabel("")
 
     plt.tight_layout()
-    plt.savefig("eof-smode.jpg")
+    plt.savefig("sparse_pca.jpg")
+
 
 
 
 .. image-sg:: /auto_examples/1single/images/sphx_glr_plot_eof-smode_001.png
-   :alt: mode = 1, mode = 2, mode = 3, mode = 1, mode = 2, mode = 3
+   :alt: mode = 1, mode = 2, mode = 3, mode = 4, mode = 1, mode = 2, mode = 3, mode = 4
    :srcset: /auto_examples/1single/images/sphx_glr_plot_eof-smode_001.png
    :class: sphx-glr-single-img
 
@@ -147,7 +159,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.207 seconds)
+   **Total running time of the script:** (0 minutes 7.992 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eof-smode.py:
@@ -156,13 +168,16 @@ Create figure showing the first two modes
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_eof-smode.py <plot_eof-smode.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_eof-smode.ipynb <plot_eof-smode.ipynb>`
 
 
 .. only:: html

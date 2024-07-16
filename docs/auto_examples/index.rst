@@ -79,7 +79,7 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in S-mode maximises the temporal variance.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the application of sparse PCA [1]_ to sea surface temperature data. S...">
 
 .. only:: html
 
@@ -90,7 +90,7 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">EOF analysis (S-mode)</div>
+      <div class="sphx-glr-thumbnail-title">Sparse PCA</div>
     </div>
 
 
