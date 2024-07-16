@@ -136,6 +136,7 @@ For questions or support, please open a [Github issue](https://github.com/xarray
 - MCA: Python package [xMCA](https://github.com/Yefee/xMCA) by Yefee
 - CCA: Python package [CCA-Zoo](https://github.com/jameschapman19/cca_zoo) by James Chapman
 - ROCK-PCA: Matlab implementation by [Diego Bueso](https://github.com/DiegoBueso/ROCK-PCA)
+- Sparse PCA: Based on [Ristretto](https://github.com/erichson/ristretto) library by Benjamin Erichson
 
 ## How to cite?
 
