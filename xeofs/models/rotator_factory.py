@@ -44,13 +44,13 @@ class RotatorFactory:
         """
         # We need to check the type of the model instead of isinstance because
         # of inheritance.
-        if isinstance(model, EOF):
+        if type(model) is EOF:
             return EOFRotator(**self.params)
-        elif isinstance(model, ComplexEOF):
+        elif type(model) is ComplexEOF:
             return ComplexEOFRotator(**self.params)
-        elif isinstance(model, MCA):
+        elif type(model) is MCA:
             return MCARotator(**self.params)
-        elif isinstance(model, ComplexMCA):
+        elif type(model) is ComplexMCA:
             return ComplexMCARotator(**self.params)
         else:
             err_msg = f"Invalid model type. Valid types are {self._valid_types}."
