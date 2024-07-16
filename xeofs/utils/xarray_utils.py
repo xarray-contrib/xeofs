@@ -1,20 +1,20 @@
-from typing import Sequence, Hashable, Tuple, TypeVar, List, Any
+from typing import Any, Hashable, List, Sequence, Tuple, TypeVar
 
 import numpy as np
 import xarray as xr
 
-from .sanity_checks import convert_to_dim_type
+from .constants import VALID_LATITUDE_NAMES
 from .data_types import (
-    Dims,
-    DimsList,
     DaskArray,
     Data,
-    DataVar,
     DataArray,
-    DataSet,
     DataList,
+    DataSet,
+    DataVar,
+    Dims,
+    DimsList,
 )
-from .constants import VALID_LATITUDE_NAMES
+from .sanity_checks import convert_to_dim_type
 
 T = TypeVar("T")
 
@@ -133,7 +133,6 @@ def compute_sqrt_cos_lat_weights(data: DataVar, feature_dims: Dims) -> DataVar:
                 for var, da in data.data_vars.items()
             }
         )
-
     else:
         raise TypeError(
             "Invalid input type: {:}. Expected one of the following: DataArray".format(
@@ -330,3 +329,25 @@ def argsort_dask(data: Data, dim: str) -> Data:
         output_core_dims=[[dim]],
         dask="parallelized",
     )
+
+
+def get_matrix_rank(data: DataArray) -> int:
+    """Compute the rank of a 2D matrix.
+
+    We use the imprecice but practical assumption for real-world data
+    that the rank of the matrix is the minimum of the number of rows and columns.
+
+    Parameters:
+    ------------
+    data: DataArray
+        Input data.
+
+    Returns:
+    ---------
+    rank: int
+        Rank of the input matrix.
+
+    """
+    if len(data.dims) != 2:
+        raise ValueError("Input data must be a 2D matrix.")
+    return min(data.shape)

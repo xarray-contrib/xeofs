@@ -7,9 +7,10 @@ from typing_extensions import Self
 
 from ..utils.data_types import DataArray, DataObject
 from ..utils.sanity_checks import assert_not_complex
+from ..utils.xarray_utils import get_matrix_rank
 from ..utils.xarray_utils import total_variance as compute_total_variance
 from ._base_model import _BaseModel
-from ._np_classes._sparse_pca import compute_rspca
+from ._np_classes._sparse_pca import compute_rspca, compute_spca
 
 
 class SparsePCA(_BaseModel):
@@ -103,6 +104,7 @@ class SparsePCA(_BaseModel):
         oversample: int = 10,
         n_subspace: int = 1,
         n_blocks: int = 1,
+        center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
         sample_name: str = "sample",
@@ -111,13 +113,13 @@ class SparsePCA(_BaseModel):
         compute: bool = True,
         verbose: bool = False,
         random_state: Optional[int] = None,
-        solver: str = "randomized",
+        solver: str = "auto",
         solver_kwargs: Dict = {},
         **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
-            center=True,
+            center=center,
             standardize=standardize,
             use_coslat=use_coslat,
             check_nans=check_nans,
@@ -145,11 +147,6 @@ class SparsePCA(_BaseModel):
             }
         )
 
-        if solver != "randomized":
-            raise ValueError(
-                "SparsePCA only supports randomized solver. Please set solver='randomized'."
-            )
-
     def _fit_algorithm(self, data: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
@@ -163,6 +160,51 @@ class SparsePCA(_BaseModel):
         # Compute the total variance
         total_variance = compute_total_variance(data, dim=sample_name)
 
+        # Compute matrix rank
+        rank = get_matrix_rank(data)
+
+        # Decide whether to use exact or randomized algorithm
+        is_small_data = max(data.shape) < 500
+        solver = self._params["solver"]
+
+        match solver:
+            case "auto":
+                use_exact = (
+                    True if is_small_data and self.n_modes > int(0.8 * rank) else False
+                )
+            case "full":
+                use_exact = True
+            case "randomized":
+                use_exact = False
+            case _:
+                raise ValueError(
+                    f"Unrecognized solver '{solver}'. "
+                    "Valid options are 'auto', 'full', and 'randomized'."
+                )
+
+        decomposing_kwargs = dict(
+            n_components=self.n_modes,
+            alpha=self._params["alpha"],
+            beta=self._params["beta"],
+            robust=self._params["robust"],
+            regularizer=self._params["regularizer"],
+            max_iter=self._params["max_iter"],
+            tol=self._params["tol"],
+            compute=self._params["compute"],
+        )
+        if use_exact:
+            decomposing_algorithm = compute_spca
+        else:
+            decomposing_algorithm = compute_rspca
+            decomposing_kwargs.update(
+                dict(
+                    oversample=self._params["oversample"],
+                    n_subspace=self._params["n_subspace"],
+                    n_blocks=self._params["n_blocks"],
+                    random_state=self._params["random_state"],
+                )
+            )
+
         # Fit the data
         # We obtain the follwing outputs defined in Erichson et al. 2020
         # variable : notation used by Erichson et al.
@@ -170,25 +212,12 @@ class SparsePCA(_BaseModel):
         # components_normal : orthonormal matrix A
         # exp_var : eigenvalues
         components, components_normal, exp_var = xr.apply_ufunc(
-            compute_rspca,
+            decomposing_algorithm,
             data,
             input_core_dims=[[sample_name, feature_name]],
             output_core_dims=[[feature_name, "mode"], [feature_name, "mode"], ["mode"]],
             dask="allowed",
-            kwargs=dict(
-                n_components=self.n_modes,
-                alpha=self._params["alpha"],
-                beta=self._params["beta"],
-                robust=self._params["robust"],
-                regularizer=self._params["regularizer"],
-                max_iter=self._params["max_iter"],
-                tol=self._params["tol"],
-                oversample=self._params["oversample"],
-                n_subspace=self._params["n_subspace"],
-                n_blocks=self._params["n_blocks"],
-                random_state=self._params["random_state"],
-                compute=self._params["compute"],
-            ),
+            kwargs=decomposing_kwargs,
         )
 
         # Add coordinates to the results

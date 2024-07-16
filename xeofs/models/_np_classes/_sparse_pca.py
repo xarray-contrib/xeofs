@@ -447,9 +447,6 @@ def compute_spca(
     eigvals : array_like, `(n_components)`.
         Eigenvalues correspnding to the extracted components.
 
-    obj : array_like, `(n_iter)`.
-        Objective value at the i-th iteration.
-
     Notes
     -----
     Variable Projection for PCA solves the following optimization problem:
@@ -563,7 +560,7 @@ def compute_spca(
 
     eigen_values = Dtilde / (m - 1)
 
-    return B, A, eigen_values, obj
+    return B, A, eigen_values
 
 
 def compute_rspca(
@@ -683,7 +680,7 @@ def compute_rspca(
     )
 
     # Compute Sparse PCA
-    B, A, eigen_values, _ = compute_spca(
+    B, A, eigen_values = compute_spca(
         Xcompressed,
         n_components=n_components,
         alpha=alpha,
