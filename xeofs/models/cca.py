@@ -19,12 +19,11 @@ from sklearn.base import BaseEstimator
 from sklearn.utils.validation import FLOAT_DTYPES
 from typing_extensions import Self
 
-from xeofs.models import EOF
-
 from .._version import __version__
 from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray, DataList, DataObject
 from ..utils.sanity_checks import assert_not_complex
+from .eof import EOF
 
 
 def _check_parameter_number(parameter_name: str, parameter, n_views: int):
