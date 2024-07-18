@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file. See [conven
 ---
 ## [unreleased]
 
+### :rocket: Features
+
+- add sparse PCA using variable projection (#170) - ([e2ccc76](https://github.com/nicrie/xeofs/commit/e2ccc7621c33f55a1ca4c2afe588123ea12deffa)) - Niclas Rieger
+
+---
+## [2.3.3](https://github.com/nicrie/xeofs/compare/v2.3.2..v2.3.3) - 2024-07-10
+
 ### :bug: Bug Fixes
 
 - support new datatree and numpy 2.0 (#169) - ([536709c](https://github.com/nicrie/xeofs/commit/536709ce171ca5c07ca9a83b06cec3bb6a1eded7)) - Sam Levang
