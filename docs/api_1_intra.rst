@@ -10,5 +10,6 @@ Single-Set Analysis
    xeofs.models.ComplexEOF
    xeofs.models.ComplexEOFRotator
    xeofs.models.ExtendedEOF
+   xeofs.models.SparsePCA
    xeofs.models.OPA
    xeofs.models.GWPCA
