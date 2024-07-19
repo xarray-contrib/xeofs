@@ -10,7 +10,7 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Reproducible Minimal Working Example **
+**Reproducible Minimal Working Example**
 Provide a concise Python code snippet that demonstrates the issue. To display the code clearly, use [GitHub Flavored Markdown](http://github.github.com/github-flavored-markdown/) for formatting:
 
 ```python
