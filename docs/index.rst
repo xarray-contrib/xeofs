@@ -16,20 +16,20 @@ Extracting Patterns from Climate Data
   :maxdepth: 3
   :hidden:
 
-  01_user_guide
-  02_installation
-  03_api
-  04_contributing_guide
+  user_guide/index
+  installation
+  api_reference/index
+  contributing_guide
 
 
 
-``xeofs`` is a specialized Python package designed for dimensionality reduction in climate science, aimed at extracting meaningful patterns from large datasets. It provides eigenmethods such as Principal Component Analysis (EOF analysis) and several related variants. Seamlessly integrated with ``xarray`` and ``Dask``, ``xeofs`` enables efficient handling and scalable computation of large, multi-dimensional datasets. This integration makes advanced climate data analysis both accessible and efficient.
+xeofs is a specialized Python package designed for dimensionality reduction in climate science, aimed at extracting meaningful patterns from large datasets. It provides eigenmethods such as Principal Component Analysis (EOF analysis) and several related variants. Seamlessly integrated with xarray_ and Dask_, xeofs enables efficient handling and scalable computation of large, multi-dimensional datasets. This integration makes advanced climate data analysis both accessible and efficient.
 
 .. grid:: 2
 
     .. grid-item-card:: 
       :octicon:`repo;10em`
-      :link: 01_user_guide
+      :link: user_guide/index
       :link-type: doc
       :text-align: center
 
@@ -39,20 +39,20 @@ Extracting Patterns from Climate Data
 
     .. grid-item-card::
       :octicon:`gear;10em`
-      :link: 02_installation
+      :link: installation
       :link-type: doc
       :text-align: center
 
       **Installation**
 
-      Get started with ``xeofs`` in a few simple steps.
+      Get started with xeofs in a few simple steps.
 
 
 .. grid:: 2
 
     .. grid-item-card::
       :octicon:`search;10em`
-      :link: 03_api
+      :link: api_reference/index
       :link-type: doc
       :text-align: center
 
@@ -62,7 +62,7 @@ Extracting Patterns from Climate Data
 
     .. grid-item-card::
       :octicon:`people;10em`
-      :link: 04_contributing_guide
+      :link: contributing_guide
       :link-type: doc
       :text-align: center
 
@@ -73,7 +73,10 @@ Extracting Patterns from Climate Data
 
 .. note:: 
 
-    ``xeofs`` is currently in the early stages of development. 
+    xeofs is currently in the early stages of development. 
     We welcome contributions and feedback from the community.
+
+.. _xarray: https://docs.xarray.dev/en/stable/index.html
+.. _Dask: https://dask.org/
 
 

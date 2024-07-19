@@ -68,12 +68,11 @@ While all these tools are valuable in their specific realms, they possess certai
      - ❌
      - ❌
 
-\ :sup:`1`\ **Note on the algorithm:** The computational burden of a full SVD decomposition for an m x n matrix is O(min(mn², m²n)). However, the randomized SVD, which identifies only the initial k singular values, notably curtails this complexity to O(m n log(k)), making the randomized SVD, as utilized by ``xeofs``, more suitable for expansive datasets. For an in-depth exploration, refer to the `sklearn docs on PCA`_.
+\ :sup:`1`\ **Note on the algorithm:** The computational burden of a full SVD decomposition for an m x n matrix is O(min(mn², m²n)). owever, the randomized SVD, which identifies only the initial k singular values, notably curtails this complexity to O(m n log(k)), making the randomized SVD, as utilized by xeofs, more suitable for expansive datasets. For an in-depth exploration, refer to the `sklearn docs on PCA <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`_.
 
 
 .. _pyEOF: https://github.com/zhonghua-zheng/pyEOF
 .. _xMCA: https://github.com/Yefee/xMCA
 .. _eofs: https://github.com/ajdawson/eofs
-.. _`sklearn documentation on PCA`: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 .. _`GitHub`: https://github.com/xarray-contrib/xeofs/issues
 
