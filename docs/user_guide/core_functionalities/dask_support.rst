@@ -2,15 +2,15 @@
 Dask Support
 =============================================
 
-If you handle large datasets that exceed memory capacity, ``xeofs`` is designed to work with ``dask``-backed
-``xarray`` objects from end-to-end. By default, ``xeofs`` computes models eagerly, which in some
+If you handle large datasets that exceed memory capacity, xeofs is designed to work with dask_-backed
+xarray_ objects from end-to-end. By default, xeofs computes models eagerly, which in some
 cases can lead to better performance. However, it is also possible to build and fit models "lazily", meaning
 no computation will be carried out until the user calls ``.compute()``. To enable lazy computation, specify
 ``compute=False`` when initializing the model.
 
 .. note::
 
-    Importantly, ``xeofs`` never loads the input dataset(s) into memory.
+    Importantly, xeofs never loads the input dataset(s) into memory.
 
 ---------------------------------------------
 Lazy Evaluation
@@ -20,7 +20,7 @@ There are a few tricks, and features that need to be explicitly disabled for laz
 is the ``check_nans`` option, which skips checking for full or isolated ``NaNs`` in the data. In this case,
 the user is responsible for ensuring that the data is free of ``NaNs`` by first applying e.g. ``.dropna()``
 or ``.fillna()``. Second is that lazy mode is incompatible with assessing the fit of a rotator class during
-evaluation, becaue the entire ``dask`` task graph must be built up front. Therefore, a lazy rotator model will
+evaluation, becaue the entire dask task graph must be built up front. Therefore, a lazy rotator model will
 run out to the full ``max_iter`` regardless of the specified ``rtol``. For that reason it is recommended to
 reduce the number of iterations.
 
@@ -61,3 +61,7 @@ then be evaluated later using ``.compute()``.
 .. note::
 
     A standard laptop (Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz) with four cores, each using 3 GB of memory, needs **about 15 minutes** to compute the PCA.
+
+
+.. _dask: https://dask.org/
+.. _xarray: https://docs.xarray.dev/en/stable/index.html
