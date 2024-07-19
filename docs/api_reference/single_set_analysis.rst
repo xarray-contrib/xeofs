@@ -14,6 +14,7 @@ Methods that examine relationships among variables within a single dataset, or w
     xeofs.models.ExtendedEOF
     xeofs.models.OPA
     xeofs.models.GWPCA
+    xeofs.models.SparsePCA
 
 
 ------------------------------
