@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Describe the Model You Want to Implement**
+**Describe the model you want to implement**
 A clear and concise description of your goal. 
 
 **Reproducible Minimal Working Example**
@@ -20,7 +20,7 @@ model = xe.models.EOF()
 ...
 ```
 
-**Your Problem**
+**Your problem**
 A clear and concise description of what your problem is.
 
 **Declaration**
