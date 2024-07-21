@@ -1,10 +1,11 @@
-.. _faq:
-
-FAQ
-===
-
+=============================================
 How should I cite xeofs?
--------------------------
+=============================================
+
+.. note::
+    
+    Always cite the original publication/reference for the methods you use. xeofs is an easy-to-use interface but should not replace the acknowledgment of the original research.
+
 
 We appreciate your willingness to reference xeofs in your academic work. If you're using xeofs, we recommend citing both the following:
 
@@ -44,4 +45,3 @@ We appreciate your willingness to reference xeofs in your academic work. If you'
             doi    = {10.5281/zenodo.10897729},
             url    = {https://doi.org/10.5281/zenodo.10897729}
         }
-

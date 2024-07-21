@@ -34,3 +34,10 @@ div.admonition.info > .admonition-title:before {
 div.admonition.info > .admonition-title:after {
     color: #f9d264;
 }
+
+/* Class for centering elements */
+.center h1 { text-align: center; }
+.main-container .navbar-brand {
+    justify-content: center;
+    flex: 1;
+}
