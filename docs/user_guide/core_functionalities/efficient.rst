@@ -10,7 +10,7 @@ A comparative analysis demonstrates the performance of xeofs against eofs_ on a 
 Comparison of computational times between xeofs and eofs for data sets of varying sizes
 
 
-.. image:: ../perf/timings_dark.png
+.. image:: ../../perf/timings_dark.png
    :height: 300px
    :width: 750px
    :alt: Comparison of computational times between xeofs and eofs for data sets of varying sizes
