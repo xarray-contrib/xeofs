@@ -27,6 +27,7 @@ Extracting Patterns from Climate Data
   user_guide/index
   installation
   api_reference/index
+  whats_new/CHANGELOG
   contributing_guide
 
 
