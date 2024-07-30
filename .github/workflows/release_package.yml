@@ -28,11 +28,11 @@ jobs:
           config: cliff.toml
           args: --verbose
         env:
-          OUTPUT: CHANGELOG.md
+          OUTPUT: docs/whats_new/CHANGELOG.md
 
       - name: Add Changelog
         run: |
-          git add CHANGELOG.md
+          git add docs/whats_new/CHANGELOG.md
 
       # This action uses Python Semantic Release v8
       - name: Python Semantic Release
