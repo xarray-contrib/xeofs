@@ -1,5 +1,13 @@
 
-.. image:: logos/xeofs_logo.png
+.. image:: logos/xeofs_logo_dark.png
+  :class: only-dark
+  :align: center
+  :width: 1000
+  :alt: logo of xeofs
+
+|
+.. image:: logos/xeofs_logo_light.png
+  :class: only-light
   :align: center
   :width: 1000
   :alt: logo of xeofs

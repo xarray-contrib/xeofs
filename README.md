@@ -1,4 +1,4 @@
-![xeofs logo](docs/logos/xeofs_logo.png)
+![xeofs logo](docs/logos/xeofs_logo_dark.png)
 
 | Versions                   | ![PyPI](https://img.shields.io/pypi/v/xeofs) ![Conda](https://img.shields.io/conda/vn/conda-forge/xeofs) |
 |----------------------------|:---------------------------------------------------------------------------------------------:|
