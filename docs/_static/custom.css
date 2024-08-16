@@ -1,38 +1,40 @@
 
 html[data-theme="light"] {
-    --pst-color-primary: #2c445c;
-    --pst-color-secondary: #FE5F55;
-    --pst-color-info: #2c445c,
-    --pst-color-warning: #F9D264,
+    --pst-color-primary: #ea7317;
+    --pst-color-secondary: #ea7217b2;
+    --pst-color-info: #F9D264;
+    --pst-color-warning: #F9D264;
 }
 
 html[data-theme="dark"] {
-    --pst-color-primary: #F9D264;
-    --pst-color-secondary: #FE5F55;
-    --pst-color-info: #2c445c,
-    --pst-color-warning: #F9D264,
+    --pst-color-primary: #ea7317;
+    --pst-color-secondary: #ea7217b2;
+    --pst-color-accent: #ea7217b2;
+    --pst-color-info: #F9D264;
+    --pst-color-target: #F9D264;
+    --pst-color-warning: #F9D264;
 }
 
 
 ::-moz-selection { /* Code for Firefox */
     color: #000000;
-    background: #f9d264;
+    background: #ea7317;
 }    
 ::selection {
     color: #000000;
-    background: #f9d264;
+    background: #ea7317;
 }
 
 
 /* INFO admonition */
 div.admonition.info {
-    border-color: #f9d264;
+    border-color: #286279;
 }
 div.admonition.info > .admonition-title:before {
-    background-color: #f9d264;
+    background-color: #286279;
 }
 div.admonition.info > .admonition-title:after {
-    color: #f9d264;
+    color: #286279;
 }
 
 /* Class for centering elements */
