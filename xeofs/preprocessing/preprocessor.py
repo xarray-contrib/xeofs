@@ -1,35 +1,34 @@
-from typing import Optional, List, Tuple, Dict
-from typing_extensions import Self
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+from typing_extensions import Self
+
+from ..utils.data_types import (
+    Data,
+    DataArray,
+    Dims,
+    DimsList,
+)
+from ..utils.xarray_utils import (
+    _check_parameter_number,
+    convert_to_list,
+    get_dims,
+    process_parameter,
+    unwrap_singleton_list,
+)
+from .concatenator import Concatenator
+from .dimension_renamer import DimensionRenamer
+from .list_processor import GenericListTransformer
+from .multi_index_converter import MultiIndexConverter
+from .sanitizer import Sanitizer
+from .scaler import Scaler
+from .stacker import Stacker
+from .transformer import Transformer
 
 try:
     from xarray.core.datatree import DataTree
 except ImportError:
     from datatree import DataTree
-
-
-from .list_processor import GenericListTransformer
-from .dimension_renamer import DimensionRenamer
-from .scaler import Scaler
-from .stacker import Stacker
-from .multi_index_converter import MultiIndexConverter
-from .sanitizer import Sanitizer
-from .concatenator import Concatenator
-from .transformer import Transformer
-from ..utils.xarray_utils import (
-    get_dims,
-    unwrap_singleton_list,
-    process_parameter,
-    _check_parameter_number,
-    convert_to_list,
-)
-from ..utils.data_types import (
-    DataArray,
-    Data,
-    Dims,
-    DimsList,
-)
 
 
 def extract_new_dim_names(X: List[DimensionRenamer]) -> Tuple[Dims, DimsList]:
