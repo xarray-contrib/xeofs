@@ -243,7 +243,7 @@ def test_compute_at_least_one_component(mock_data_array):
     )
 
     # Warning is raised to indicate that the value of init_rank_reduction is too low
-    warn_msg = "`init_rank_reduction=` is too low and results in zero components. One component will be computed instead."
+    warn_msg = "`init_rank_reduction=.*` is too low and results in zero components. One component will be computed instead."
     with pytest.warns(UserWarning, match=warn_msg):
         decomposer.fit(mock_data_array)
 
