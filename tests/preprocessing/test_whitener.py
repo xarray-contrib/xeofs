@@ -153,3 +153,12 @@ def test_invserse_transform_alpha(alpha):
     data_unwhitened = whitener.inverse_transform_data(data_whitened)
 
     xr.testing.assert_allclose(data, data_unwhitened, atol=1e-6)
+
+
+def test_invalid_alpha():
+    data = generate_synthetic_dataarray(1, 1, "index", "no_nan", "no_dask")
+    data = data.rename({"sample0": "sample", "feature0": "feature"})
+
+    err_msg = "`alpha` must be greater than or equal to 0"
+    with pytest.raises(ValueError, match=err_msg):
+        Whitener(n_modes=2, alpha=-1.0)
