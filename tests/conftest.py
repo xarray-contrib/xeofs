@@ -1,10 +1,11 @@
-import numpy as np
-import pytest
 import warnings
-import xarray as xr
-import pandas as pd
 
-from xeofs.utils.data_types import DataArray, DataSet, DataList
+import numpy as np
+import pandas as pd
+import pytest
+import xarray as xr
+
+from xeofs.utils.data_types import DataArray, DataList, DataSet
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
@@ -49,7 +50,7 @@ def generate_synthetic_dataarray(
     # Create dimensions
     sample_dims = [f"sample{i}" for i in range(n_sample)]
     feature_dims = [f"feature{i}" for i in range(n_feature)]
-    all_dims = feature_dims + sample_dims
+    all_dims = sample_dims + feature_dims
 
     # Create coordinates/indices
     coords = {}
