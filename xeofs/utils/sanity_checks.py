@@ -5,7 +5,7 @@ import xarray as xr
 from xeofs.utils.data_types import Dims
 
 
-def assert_single_dataarray(da, name):
+def assert_single_dataarray(da, name="object"):
     """Check if the given object is a DataArray.
 
     Args:
@@ -19,7 +19,7 @@ def assert_single_dataarray(da, name):
         raise TypeError(f"{name} must be a DataArray")
 
 
-def assert_list_dataarrays(da_list, name):
+def assert_list_dataarrays(da_list, name="object"):
     """Check if the given object is a list of DataArrays.
 
     Args:
@@ -35,7 +35,7 @@ def assert_list_dataarrays(da_list, name):
         assert_single_dataarray(da, name)
 
 
-def assert_single_dataset(ds, name):
+def assert_single_dataset(ds, name="object"):
     """Check if the given object is a Dataset.
 
     Args:
@@ -49,7 +49,7 @@ def assert_single_dataset(ds, name):
         raise TypeError(f"{name} must be a Dataset")
 
 
-def assert_dataarray_or_dataset(da, name):
+def assert_dataarray_or_dataset(da, name="object"):
     """Check if the given object is a DataArray or Dataset.
 
     Args:
@@ -100,3 +100,17 @@ def assert_not_complex(da: xr.DataArray) -> None:
         raise TypeError(
             "Invalid input type. This method does not support complex data types."
         )
+
+
+def sanity_check_n_modes(n_modes: int | float) -> None:
+    """Check if the number of modes is valid."""
+
+    match n_modes:
+        case int():
+            if n_modes < 1:
+                raise ValueError("n_modes must be greater than 0")
+        case float():
+            if not (0 < n_modes <= 1.0):
+                raise ValueError("n_modes must be in the range (0, 1]")
+        case _:
+            raise TypeError("n_modes must be an integer or a float")
