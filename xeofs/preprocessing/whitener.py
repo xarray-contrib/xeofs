@@ -20,13 +20,13 @@ class Whitener(Transformer):
     ----------
     n_modes: int | float
         If int, number of components to keep. If float, fraction of variance to keep.
-    init_rank_reduction: float
+    init_rank_reduction: float, default=0.3
         Used only when `n_modes` is given as a float. Specifiy the initial PCA rank reduction before truncating the solution to the desired fraction of explained variance. Must be in the half open interval ]0, 1]. Lower values will speed up the computation.
-    alpha: float
-        Regularization parameter to perform fractional whitening, where 0 corresponds to full PCA whitening and 1 to PCA without whitening.
-    sample_name: str
+    alpha: float, default=0.0
+        Power parameter to perform fractional whitening, where 0 corresponds to full PCA whitening and 1 to PCA without whitening.
+    sample_name: str, default="sample"
         Name of the sample dimension.
-    feature_name: str
+    feature_name: str, default="feature"
         Name of the feature dimension.
     solver_kwargs: Dict
         Additional keyword arguments for the SVD solver.
@@ -35,14 +35,18 @@ class Whitener(Transformer):
 
     def __init__(
         self,
-        n_modes: int | None = None,
-        init_rank_reduction: float = 0.0,
+        n_modes: int | float,
+        init_rank_reduction: float = 0.3,
         alpha: float = 0.0,
         sample_name: str = "sample",
         feature_name: str = "feature",
         solver_kwargs: Dict = {},
     ):
         super().__init__(sample_name, feature_name)
+
+        # Verify that alpha has a lower bound of 0
+        if alpha < 0:
+            raise ValueError("`alpha` must be greater than or equal to 0")
 
         self.n_modes = n_modes
         self.init_rank_reduction = init_rank_reduction
@@ -73,7 +77,11 @@ class Whitener(Transformer):
     ) -> Self:
         self._sanity_check_input(X)
 
-        decomposer = Decomposer(n_modes=self.n_modes, **self.solver_kwargs)
+        decomposer = Decomposer(
+            n_modes=self.n_modes,
+            init_rank_reduction=self.init_rank_reduction,
+            **self.solver_kwargs,
+        )
         decomposer.fit(X, dims=(self.sample_name, self.feature_name))
 
         self.U = decomposer.U_
