@@ -1,8 +1,16 @@
 import numpy as np
 import pytest
 
-from xeofs.models import EOF, ComplexEOF, EOFRotator, ComplexEOFRotator
-from xeofs.models import MCA, ComplexMCA, MCARotator, ComplexMCARotator
+from xeofs.models import (
+    EOF,
+    MCA,
+    ComplexEOF,
+    ComplexEOFRotator,
+    ComplexMCA,
+    ComplexMCARotator,
+    EOFRotator,
+    MCARotator,
+)
 
 
 # Orthogonality
@@ -234,8 +242,9 @@ def test_mca_scores(dim, use_coslat, mock_data_array):
     model.fit(data1, data2, dim=dim)
     U1 = model.data["scores1"].values
     U2 = model.data["scores2"].values
-    K = U1.T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    s = model.data["singular_values"].values
+    K = U1.T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(s)
     assert np.allclose(K, target, atol=1e-5), "Scores are not orthogonal"
 
 
@@ -278,12 +287,13 @@ def test_cmca_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=10, standardize=True, use_coslat=use_coslat)
+    model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     U1 = model.data["scores1"].values
     U2 = model.data["scores2"].values
-    K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    s = model.data["singular_values"].values
+    K = U1.conj().T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(s)
     assert np.allclose(K, target, atol=1e-5), "Scores are not unitary"
 
 
@@ -798,7 +808,7 @@ def test_mca_inverse_transform(dim, use_coslat, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat, n_pca_modes="all")
     model.fit(data1, data2, dim=dim)
     scores1 = model.data["scores1"]
     scores2 = model.data["scores2"]
@@ -829,7 +839,9 @@ def test_cmca_inverse_transform(dim, use_coslat, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = ComplexMCA(
+        n_modes=19, standardize=True, use_coslat=use_coslat, n_pca_modes="all"
+    )
     model.fit(data1, data2, dim=dim)
     scores1 = model.data["scores1"]
     scores2 = model.data["scores2"]
@@ -871,7 +883,7 @@ def test_rmca_inverse_transform(
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=10, standardize=True, use_coslat=use_coslat)
+    model = MCA(n_modes=10, standardize=True, use_coslat=use_coslat, n_pca_modes="all")
     model.fit(data1, data2, dim=dim)
     rot = MCARotator(n_modes=10, power=power, squared_loadings=squared_loadings)
     rot.fit(model)

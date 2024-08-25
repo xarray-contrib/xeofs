@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 from xeofs.models.mca import MCA
+
 from ..utilities import data_is_dask
 
 
@@ -383,16 +384,16 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
     ],
 )
 def test_compute(mock_dask_data_array, dim, compute):
-    mca_model = MCA(n_modes=10, compute=compute)
+    mca_model = MCA(n_modes=10, compute=compute, n_pca_modes=10)
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
 
     if compute:
-        assert not data_is_dask(mca_model.data["squared_covariance"])
+        assert not data_is_dask(mca_model.data["singular_values"])
         assert not data_is_dask(mca_model.data["components1"])
         assert not data_is_dask(mca_model.data["components2"])
 
     else:
-        assert data_is_dask(mca_model.data["squared_covariance"])
+        assert data_is_dask(mca_model.data["singular_values"])
         assert data_is_dask(mca_model.data["components1"])
         assert data_is_dask(mca_model.data["components2"])
 
