@@ -8,6 +8,7 @@ from ._base_model import _BaseModel
 from .eof import EOF
 from .decomposer import Decomposer
 from ..utils.data_types import DataObject, DataArray
+from ..utils.sanity_checks import assert_not_complex
 
 
 class OPA(_BaseModel):
@@ -127,6 +128,8 @@ class OPA(_BaseModel):
         )
 
     def _fit_algorithm(self, data: DataArray) -> Self:
+        assert_not_complex(data)
+
         sample_name = self.sample_name
         feature_name = self.feature_name
 

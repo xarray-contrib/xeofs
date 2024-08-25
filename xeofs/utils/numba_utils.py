@@ -184,4 +184,4 @@ def local_pca_vectorized(
     for i in range(n_out.shape[0]):
         expvar[i] = lbda[i]
         comps[:, i] = Vt[i, :]
-    totvar = lbda.sum()
+    lbda.sum()

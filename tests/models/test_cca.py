@@ -1,9 +1,4 @@
-import numpy as np
-import xarray as xr
 import pytest
-import dask.array as da
-from numpy.testing import assert_allclose
-from ..conftest import generate_list_of_synthetic_dataarrays
 
 from xeofs.models.cca import CCA
 

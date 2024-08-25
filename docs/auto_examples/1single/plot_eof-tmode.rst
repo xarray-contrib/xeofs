@@ -25,9 +25,10 @@ EOF analysis in T-mode maximises the spatial variance.
 
 Load packages and data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 9-18
+.. GENERATED FROM PYTHON SOURCE LINES 9-19
 
-.. code-block:: default
+.. code-block:: Python
+
 
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -45,13 +46,13 @@ Load packages and data:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 19-20
+.. GENERATED FROM PYTHON SOURCE LINES 20-21
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-27
+.. GENERATED FROM PYTHON SOURCE LINES 21-28
 
-.. code-block:: default
+.. code-block:: Python
 
 
     model = EOF(n_modes=5)
@@ -67,13 +68,13 @@ Perform the actual analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-29
+.. GENERATED FROM PYTHON SOURCE LINES 29-30
 
 Create figure showing the first two modes
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-47
+.. GENERATED FROM PYTHON SOURCE LINES 30-48
 
-.. code-block:: default
+.. code-block:: Python
 
 
     proj = EqualEarth(central_longitude=180)
@@ -108,7 +109,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.067 seconds)
+   **Total running time of the script:** (0 minutes 2.323 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eof-tmode.py:
@@ -117,16 +118,13 @@ Create figure showing the first two modes
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_eof-tmode.py <plot_eof-tmode.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
 
 
 .. only:: html

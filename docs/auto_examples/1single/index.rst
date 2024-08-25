@@ -14,7 +14,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial  data. EEOF analysis,...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates Extended EOF (EEOF) analysis on xarray tutorial data. EEOF analysis, ...">
 
 .. only:: html
 
@@ -48,7 +48,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.  This met...">
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. This meth...">
 
 .. only:: html
 
@@ -65,7 +65,7 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in S-mode maximises the temporal variance.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the application of sparse PCA [1]_ to sea surface temperature data. S...">
 
 .. only:: html
 
@@ -76,7 +76,7 @@
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">EOF analysis (S-mode)</div>
+      <div class="sphx-glr-thumbnail-title">Sparse PCA</div>
     </div>
 
 

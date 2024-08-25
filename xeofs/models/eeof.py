@@ -4,12 +4,9 @@ from typing_extensions import Self
 import numpy as np
 import xarray as xr
 
-from ._base_model import _BaseModel
 from .eof import EOF
-from .decomposer import Decomposer
-from ..utils.data_types import DataArray, Data, Dims
+from ..utils.data_types import DataArray
 from ..data_container import DataContainer
-from ..utils.xarray_utils import total_variance as compute_total_variance
 
 
 class ExtendedEOF(EOF):
@@ -78,7 +75,7 @@ class ExtendedEOF(EOF):
         solver: str = "auto",
         random_state: Optional[int] = None,
         solver_kwargs: dict = {},
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n_modes=n_modes,
@@ -92,7 +89,7 @@ class ExtendedEOF(EOF):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
-            **kwargs
+            **kwargs,
         )
         self.attrs.update({"model": "Extended EOF Analysis"})
         self._params.update(

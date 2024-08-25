@@ -98,13 +98,13 @@ class Stacker(Transformer):
         invalid_feature_dims = True if len(feature_dims) < 1 else False
 
         if invalid_sample_dims:
-            raise ValueError(f"Sample dimension must not be empty.")
+            raise ValueError("Sample dimension must not be empty.")
         if invalid_feature_dims:
             match X:
                 case xr.DataArray():
-                    raise ValueError(f"Feature dimension must not be empty.")
+                    raise ValueError("Feature dimension must not be empty.")
                 case xr.Dataset():
-                    err_msg = f"Dataset without feature dimension is currently not supported. Please convert your Dataset to a DataArray first, e.g. by using `to_array()`."
+                    err_msg = "Dataset without feature dimension is currently not supported. Please convert your Dataset to a DataArray first, e.g. by using `to_array()`."
                     raise ValueError(err_msg)
                 case _:
                     raise TypeError(f"Invalid data type {type(X)}.")
@@ -112,7 +112,7 @@ class Stacker(Transformer):
     def _validate_indices(self, X: Data):
         """Check that the indices of the data are no MultiIndex"""
         if any([isinstance(index, pd.MultiIndex) for index in X.indexes.values()]):
-            raise ValueError(f"Cannot stack data containing a MultiIndex.")
+            raise ValueError("Cannot stack data containing a MultiIndex.")
 
     def _sanity_check(self, X: Data, sample_dims, feature_dims):
         self._validate_dims(X, sample_dims, feature_dims)
@@ -186,7 +186,7 @@ class Stacker(Transformer):
                 # There's only one sample dimension and it's already named correctly
                 pass
         else:
-            raise ValueError(f"Sample dimension must not be empty.")
+            raise ValueError("Sample dimension must not be empty.")
 
         # Stack FEATURE dimension
         match X:
@@ -200,7 +200,7 @@ class Stacker(Transformer):
                         # There's only one feature dimension and it's already named correctly
                         pass
                 else:
-                    raise ValueError(f"Feature dimension must not be empty.")
+                    raise ValueError("Feature dimension must not be empty.")
 
             case xr.Dataset():
                 X = X.to_stacked_array(

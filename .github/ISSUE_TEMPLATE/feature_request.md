@@ -1,6 +1,6 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: Feature Request
+about: Have an idea to improve xeofs? Share it with us!
 title: ''
 labels: ''
 assignees: ''

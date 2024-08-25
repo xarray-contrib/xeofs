@@ -1,8 +1,5 @@
 import numpy as np
-import xarray as xr
 import pytest
-import dask.array as da
-from numpy.testing import assert_allclose
 
 from xeofs.models import EOF, ComplexEOF, EOFRotator, ComplexEOFRotator
 from xeofs.models import MCA, ComplexMCA, MCARotator, ComplexMCARotator
@@ -486,9 +483,9 @@ def test_ceof_transform(dim, use_coslat, mock_data_array, normalized):
     """Not implemented yet"""
     model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    scores = model.scores(normalized=normalized)
+    model.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
-        pseudo_scores = model.transform(mock_data_array, normalized=normalized)
+        model.transform(mock_data_array, normalized=normalized)
 
 
 # Rotated EOF
@@ -539,9 +536,9 @@ def test_creof_transform(dim, use_coslat, power, mock_data_array, normalized):
     model.fit(mock_data_array, dim=dim)
     rot = ComplexEOFRotator(n_modes=5, power=power)
     rot.fit(model)
-    scores = rot.scores(normalized=normalized)
+    rot.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
-        pseudo_scores = rot.transform(mock_data_array, normalized=normalized)
+        rot.transform(mock_data_array, normalized=normalized)
 
 
 # MCA

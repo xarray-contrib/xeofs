@@ -1,7 +1,7 @@
 from .eof import EOF, ComplexEOF
+from .eof_rotator import ComplexEOFRotator, EOFRotator
 from .mca import MCA, ComplexMCA
-from .eof_rotator import EOFRotator, ComplexEOFRotator
-from .mca_rotator import MCARotator, ComplexMCARotator
+from .mca_rotator import ComplexMCARotator, MCARotator
 
 
 class RotatorFactory:
@@ -44,13 +44,13 @@ class RotatorFactory:
         """
         # We need to check the type of the model instead of isinstance because
         # of inheritance.
-        if type(model) == EOF:
+        if type(model) is EOF:
             return EOFRotator(**self.params)
-        elif type(model) == ComplexEOF:
+        elif type(model) is ComplexEOF:
             return ComplexEOFRotator(**self.params)
-        elif type(model) == MCA:
+        elif type(model) is MCA:
             return MCARotator(**self.params)
-        elif type(model) == ComplexMCA:
+        elif type(model) is ComplexMCA:
             return ComplexMCARotator(**self.params)
         else:
             err_msg = f"Invalid model type. Valid types are {self._valid_types}."

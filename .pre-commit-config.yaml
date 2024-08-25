@@ -7,16 +7,13 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [] # optional: list of Conventional Commits types to allow
-  # Black Code Formatter
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
+  # Lint and format with ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.4
     hooks:
-      - id: black
-        # It is recommended to specify the latest version of Python
-        # supported by your project here, or alternatively use
-        # pre-commit's default_language_version, see
-        # https://pre-commit.com/#top_level-default_language_version
-        language_version: python3.11
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
   # Strip output from Jupyter Notebooks
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.1

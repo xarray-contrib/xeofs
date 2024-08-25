@@ -1,12 +1,20 @@
 import numpy as np
-import xarray as xr
 import pytest
 from dask.array import Array as DaskArray  # type: ignore
-from sklearn.utils.extmath import randomized_svd as svd
-from scipy.sparse.linalg import svds as complex_svd  # type: ignore
-from dask.array.linalg import svd_compressed as dask_svd
+
 from xeofs.models.decomposer import Decomposer
+
 from ..utilities import data_is_dask
+
+
+def compute_max_exp_var(singular_values, data):
+    """Compute the maximal cumulative explained variance by all components."""
+
+    total_variance = data.var("sample", ddof=1).sum("feature")
+    explained_variance = singular_values**2 / (data.sample.size - 1)
+    explained_variance_ratio = explained_variance / total_variance
+    explained_variance_ratio_cumsum = explained_variance_ratio.cumsum("mode")
+    return explained_variance_ratio_cumsum.isel(mode=-1).item()
 
 
 @pytest.fixture
@@ -16,9 +24,10 @@ def decomposer():
 
 @pytest.fixture
 def mock_data_array(mock_data_array):
-    return mock_data_array.stack(sample=("time",), feature=("lat", "lon")).dropna(
+    data2d = mock_data_array.stack(sample=("time",), feature=("lat", "lon")).dropna(
         "feature"
     )
+    return data2d - data2d.mean("sample")
 
 
 @pytest.fixture
@@ -180,4 +189,80 @@ def test_random_state(
     U2 = decomposer.U_.data
 
     # Check that the results are the same
-    assert np.alltrue(U1 == U2)
+    assert np.all(U1 == U2)
+
+
+@pytest.mark.parametrize(
+    "target_variance, solver",
+    [
+        (0.1, "randomized"),
+        (0.5, "randomized"),
+        (0.9, "randomized"),
+        (0.99, "randomized"),
+        (0.1, "full"),
+        (0.5, "full"),
+        (0.9, "full"),
+        (0.99, "full"),
+    ],
+)
+def test_decompose_via_variance_threshold(mock_data_array, target_variance, solver):
+    """Test that the decomposer returns the correct number of modes to explain the target variance."""
+    decomposer = Decomposer(
+        n_modes=target_variance, solver=solver, init_rank_reduction=0.9
+    )
+    decomposer.fit(mock_data_array)
+    s = decomposer.s_
+
+    # Compute total variance and test whether variance threshold is reached
+    max_explained_variance_ratio = compute_max_exp_var(s, mock_data_array)
+    assert (
+        max_explained_variance_ratio >= target_variance
+    ), f"Expected >= {target_variance:.2f}, got {max_explained_variance_ratio:2f}"
+
+    # We still get a truncated version of the SVD
+    assert s.mode.size < min(mock_data_array.shape)
+
+
+def test_raise_warning_for_low_init_rank_reduction(mock_data_array):
+    target_variance = 0.5
+    init_rank_reduction = 0.1
+    decomposer = Decomposer(
+        n_modes=target_variance, init_rank_reduction=init_rank_reduction
+    )
+    warn_msg = ".*components were computed which explain.*of the variance but.*of explained variance was requested. Consider increasing the `init_rank_reduction`"
+    with pytest.warns(UserWarning, match=warn_msg):
+        decomposer.fit(mock_data_array)
+
+
+def test_compute_at_least_one_component(mock_data_array):
+    """"""
+    target_variance = 0.5
+    init_rank_reduction = 0.01
+    decomposer = Decomposer(
+        n_modes=target_variance, init_rank_reduction=init_rank_reduction
+    )
+
+    # Warning is raised to indicate that the value of init_rank_reduction is too low
+    warn_msg = "`init_rank_reduction=.*` is too low and results in zero components. One component will be computed instead."
+    with pytest.warns(UserWarning, match=warn_msg):
+        decomposer.fit(mock_data_array)
+
+    # At least one mode is computed
+    s = decomposer.s_
+    assert s.mode.size >= 1
+
+
+@pytest.mark.parametrize(
+    "solver",
+    ["full", "randomized"],
+)
+def test_dask_array_based_on_target_variance(mock_dask_data_array, solver):
+    target_variance = 0.5
+    decomposer = Decomposer(
+        n_modes=target_variance, init_rank_reduction=0.9, solver=solver, compute=False
+    )
+
+    err_msg = "Estimating the number of modes to keep based on variance is not supported with dask arrays.*"
+    with pytest.raises(ValueError, match=err_msg):
+        assert data_is_dask(mock_dask_data_array)
+        decomposer.fit(mock_dask_data_array)

@@ -1,18 +1,15 @@
-from typing import Tuple, List, Hashable
 import numpy as np
 import pandas as pd
-import xarray as xr
 from xeofs.utils.data_types import (
     DataArray,
     DataSet,
     DataList,
-    DaskArray,
     Dims,
     DimsList,
     DimsTuple,
     DimsListTuple,
 )
-from xeofs.utils.xarray_utils import data_is_dask
+from xeofs.utils.xarray_utils import data_is_dask  # noqa: F401
 
 
 def is_xdata(data):

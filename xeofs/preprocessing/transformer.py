@@ -5,10 +5,14 @@ from abc import abstractmethod
 
 import pandas as pd
 import xarray as xr
-from datatree import DataTree
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from ..utils.data_types import Dims, DataVar, DataArray, DataSet, Data, DataVarBound
+try:
+    from xarray.core.datatree import DataTree
+except ImportError:
+    from datatree import DataTree
+
+from ..utils.data_types import Dims, DataArray, DataSet, Data
 
 
 class Transformer(BaseEstimator, TransformerMixin, ABC):
@@ -96,14 +100,19 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
             ds = data
         else:
             # Convert DataArray to Dataset
+            coords = {}
+            data_vars = {}
             if data.name in data.coords:
                 # Convert a coord-like DataArray to Dataset and note multiindexes
                 if isinstance(data.to_index(), pd.MultiIndex):
                     multiindexes[data.name] = [n for n in data.to_index().names]
-            # Make sure the DataArray has some name so we can create a string mapping
-            elif data.name is None:
-                data.name = key
-            ds = xr.Dataset(data_vars={data.name: data})
+                coords[data.name] = data
+            else:
+                # Make sure the DataArray has some name so we can create a string mapping
+                if data.name is None:
+                    data.name = key
+                data_vars[data.name] = data
+            ds = xr.Dataset(data_vars=data_vars, coords=coords)
             name_map = data.name
 
         # Drop multiindexes and record for later

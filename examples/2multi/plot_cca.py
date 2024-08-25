@@ -2,10 +2,10 @@
 Canonical Correlation Analysis
 ==============================
 
-In this example, we're going to perform a Canonical Correlation Analysis (CCA) 
-on three datasets using the ERSSTv5 monthly sea surface temperature (SST) data 
-from 1970 to 2022. We divide this data into three areas: the Indian Ocean, 
-the Pacific Ocean, and the Atlantic Ocean. Our goal is to perform CCA on these 
+In this example, we're going to perform a Canonical Correlation Analysis (CCA)
+on three datasets using the ERSSTv5 monthly sea surface temperature (SST) data
+from 1970 to 2022. We divide this data into three areas: the Indian Ocean,
+the Pacific Ocean, and the Atlantic Ocean. Our goal is to perform CCA on these
 regions.
 
 First, we'll import the necessary modules.

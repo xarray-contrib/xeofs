@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
 
 from xeofs.models import EOF, EOFRotator
 from xeofs.data_container import DataContainer
@@ -50,8 +49,8 @@ def test_fit(eof_model):
     assert hasattr(
         eof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
-    assert type(eof_rotator.model) == EOF
-    assert type(eof_rotator.data) == DataContainer
+    assert isinstance(eof_rotator.model, EOF)
+    assert isinstance(eof_rotator.data, DataContainer)
 
 
 @pytest.mark.parametrize(

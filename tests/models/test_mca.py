@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
 import xarray as xr
-from dask.array import Array as DaskArray  # type: ignore
-from numpy.testing import assert_allclose
 
 from xeofs.models.mca import MCA
 from ..utilities import data_is_dask
@@ -104,6 +102,20 @@ def test_transform(mca_model, mock_data_array, dim):
     result = mca_model.transform(data1=mock_data_array, data2=mock_data_array)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
+
+
+@pytest.mark.parametrize("dim", [(("time",))])
+def test_transform_unseen_data(mca_model, mock_data_array, dim):
+    data = mock_data_array.isel(time=slice(0, 20))
+    data_unseen = mock_data_array.isel(time=slice(21, None))
+
+    mca_model.fit(data, data, dim)
+    result = mca_model.transform(data1=data_unseen, data2=data_unseen)
+    assert isinstance(result, list)
+    assert isinstance(result[0], xr.DataArray)
+    # Check that unseen data can be transformed
+    assert result[0].notnull().all()
+    assert result[1].notnull().all()
 
 
 @pytest.mark.parametrize(

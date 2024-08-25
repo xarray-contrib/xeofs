@@ -1,12 +1,11 @@
-from typing import Dict, Optional
+import warnings
 
 import numpy as np
-import pytest
-import warnings
-import xarray as xr
 import pandas as pd
+import pytest
+import xarray as xr
 
-from xeofs.utils.data_types import DataArray, DataSet, DataList
+from xeofs.utils.data_types import DataArray, DataList, DataSet
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
@@ -51,7 +50,7 @@ def generate_synthetic_dataarray(
     # Create dimensions
     sample_dims = [f"sample{i}" for i in range(n_sample)]
     feature_dims = [f"feature{i}" for i in range(n_feature)]
-    all_dims = feature_dims + sample_dims
+    all_dims = sample_dims + feature_dims
 
     # Create coordinates/indices
     coords = {}
@@ -282,6 +281,31 @@ def mock_data_array_boundary_nans(mock_data_array):
 @pytest.fixture
 def mock_dask_data_array(mock_data_array):
     return mock_data_array.chunk({"lon": 2, "lat": 2, "time": -1})
+
+
+@pytest.fixture
+def mock_complex_data_array():
+    def f1(x, t):
+        return xr.DataArray(
+            1.0 / np.cosh(x[np.newaxis, :] + 3) * np.exp(2.3j * t[:, np.newaxis]),
+            coords=[("time", t), ("x", x)],
+        )
+
+    def f2(x, t):
+        return xr.DataArray(
+            2.0
+            / np.cosh(x[np.newaxis, :])
+            * np.tanh(x)
+            * np.exp(2.8j * t[:, np.newaxis]),
+            coords=[("time", t), ("x", x)],
+        )
+
+    x = np.linspace(-5, 5, 128)
+    t = np.linspace(0, 4 * np.pi, 256)
+
+    X1 = f1(x, t)
+    X2 = f2(x, t)
+    return X1 + X2
 
 
 # =============================================================================

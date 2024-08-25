@@ -5,9 +5,10 @@ import xarray as xr
 
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray, Dims
+from ..utils.data_types import DataObject, DataArray
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
+from ..utils.sanity_checks import assert_not_complex
 
 
 class EOF(_BaseModel):
@@ -128,12 +129,12 @@ class EOF(_BaseModel):
 
         return projections
 
-    def _inverse_transform_algorithm(self, scores: DataObject) -> DataArray:
+    def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        scores: DataObject
+        scores: DataArray
             Transformed data to be reconstructed. This could be a subset
             of the `scores` data of a fitted model, or unseen data. Must
             have a 'mode' dimension.
@@ -147,11 +148,8 @@ class EOF(_BaseModel):
         # Reconstruct the data
         comps = self.data["components"].sel(mode=scores.mode)
 
-        reconstructed_data = xr.dot(comps.conj(), scores)
+        reconstructed_data = xr.dot(comps.conj(), scores, dims="mode")
         reconstructed_data.name = "reconstructed_data"
-
-        # Enforce real output
-        reconstructed_data = reconstructed_data.real
 
         return reconstructed_data
 
@@ -343,6 +341,8 @@ class ComplexEOF(EOF):
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data: DataArray) -> Self:
+        assert_not_complex(data)
+
         sample_name = self.sample_name
         feature_name = self.feature_name
 
@@ -386,6 +386,11 @@ class ComplexEOF(EOF):
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         raise NotImplementedError("Complex EOF does not support transform method.")
+
+    def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
+        Xrec = super()._inverse_transform_algorithm(scores)
+        # Enforce real output
+        return Xrec.real
 
     def components_amplitude(self) -> DataObject:
         """Return the amplitude of the (EOF) components.

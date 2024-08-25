@@ -3,7 +3,12 @@ from typing import Any
 
 import numpy as np
 import xarray as xr
-from datatree import DataTree, open_datatree
+
+try:
+    from xarray.core.datatree import DataTree
+    from xarray.backends.api import open_datatree
+except ImportError:
+    from datatree import DataTree, open_datatree
 
 
 def write_model_tree(
@@ -20,9 +25,11 @@ def write_model_tree(
         raise ValueError(f"Unknown engine {engine}")
 
 
-def open_model_tree(path: str, engine: str = "zarr", chunks={}, **kwargs) -> DataTree:
+def open_model_tree(path: str, engine: str = "zarr", **kwargs) -> DataTree:
     """Open a DataTree from a file."""
-    dt = open_datatree(path, engine=engine, chunks=chunks, **kwargs)
+    if engine == "zarr" and "chunks" not in kwargs:
+        kwargs["chunks"] = {}
+    dt = open_datatree(path, engine=engine, **kwargs)
     if engine in ["netcdf4", "h5netcdf"]:
         dt = _desanitize_attrs_nc(dt)
     return dt
