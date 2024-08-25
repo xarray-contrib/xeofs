@@ -1,8 +1,8 @@
 from typing import Dict
-from typing_extensions import Self
 
 import dask
 from dask.diagnostics.progress import ProgressBar
+from typing_extensions import Self
 
 try:
     from xarray.core.datatree import DataTree
@@ -62,6 +62,15 @@ class DataContainer(dict):
         for k, v in computed_data.items():
             self[k] = v
 
+    def _validate_attrs_values(self, value):
+        """Convert any boolean and None values to strings"""
+        if isinstance(value, bool):
+            return str(value)
+        elif value is None:
+            return "None"
+        else:
+            return value
+
     def _validate_attrs(self, attrs: Dict) -> Dict:
         """Convert any boolean and None values to strings"""
         for key, value in attrs.items():
@@ -69,6 +78,8 @@ class DataContainer(dict):
                 attrs[key] = str(value)
             elif value is None:
                 attrs[key] = "None"
+            elif isinstance(value, list):
+                attrs[key] = [self._validate_attrs_values(v) for v in value]
 
         return attrs
 
