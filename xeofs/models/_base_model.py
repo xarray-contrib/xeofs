@@ -1,36 +1,27 @@
 import warnings
-from typing import (
-    Optional,
-    Sequence,
-    Hashable,
-    Dict,
-    Any,
-    List,
-    Literal,
-)
-from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import (
+    Any,
+    Literal,
+)
 
-import dask
+import dask.base
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
+from typing_extensions import Self
 
-try:
-    from xarray.core.datatree import DataTree
-except ImportError:
-    from datatree import DataTree
-
-from ..preprocessing.preprocessor import Preprocessor
-from ..data_container import DataContainer
-from ..utils.data_types import DataObject, Data, DataArray
+from .._version import __version__
+from ..utils.data_types import DataArray
 from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
-from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
-    convert_to_dim_type,
     data_is_dask,
 )
-from .._version import __version__
+
+try:
+    from xarray.core.datatree import DataTree  # type: ignore
+except ImportError:
+    from datatree import DataTree
 
 # Ignore warnings from numpy casting with additional coordinates
 warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
@@ -40,86 +31,15 @@ xr.set_options(keep_attrs=True)
 
 class _BaseModel(ABC):
     """
-    Abstract base class for EOF model.
+    Abstract base class for an xeofs model.
 
-    Parameters
-    ----------
-    n_modes: int, default=10
-        Number of modes to calculate.
-    center: bool, default=True
-        Whether to center the input data.
-    standardize: bool, default=False
-        Whether to standardize the input data.
-    use_coslat: bool, default=False
-        Whether to use cosine of latitude for scaling.
-    check_nans : bool, default=True
-        If True, remove full-dimensional NaN features from the data, check to ensure
-        that NaN features match the original fit data during transform, and check
-        for isolated NaNs. Note: this forces eager computation of dask arrays.
-        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
-        or filled prior to fitting, or SVD will fail.
-    sample_name: str, default="sample"
-        Name of the sample dimension.
-    feature_name: str, default="feature"
-        Name of the feature dimension.
-    compute : bool, default=True
-        Whether to compute elements of the model eagerly, or to defer computation.
-        If True, four pieces of the fit will be computed sequentially: 1) the
-        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
-        and components.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
-    random_state: Optional[int], default=None
-        Seed for the random number generator.
-    solver: {"auto", "full", "randomized"}, default="auto"
-        Solver to use for the SVD computation.
-    solver_kwargs: dict, default={}
-        Additional keyword arguments to pass to the SVD solver function.
+    Provides basic functionality for lazy model evaluation, serialization, deserialization and saving/loading models.
 
     """
 
-    def __init__(
-        self,
-        n_modes=10,
-        center=True,
-        standardize=False,
-        use_coslat=False,
-        check_nans=True,
-        sample_name="sample",
-        feature_name="feature",
-        compute=True,
-        verbose=False,
-        random_state=None,
-        solver="auto",
-        solver_kwargs={},
-    ):
-        self.n_modes = n_modes
-        self.sample_name = sample_name
-        self.feature_name = feature_name
-
+    def __init__(self):
         # Define model parameters
-        self._params = {
-            "n_modes": n_modes,
-            "center": center,
-            "standardize": standardize,
-            "use_coslat": use_coslat,
-            "check_nans": check_nans,
-            "sample_name": sample_name,
-            "feature_name": feature_name,
-            "random_state": random_state,
-            "verbose": verbose,
-            "compute": compute,
-            "solver": solver,
-            "solver_kwargs": solver_kwargs,
-        }
-        self._decomposer_kwargs = {
-            "n_modes": n_modes,
-            "solver": solver,
-            "random_state": random_state,
-            "compute": compute,
-            "verbose": verbose,
-            "solver_kwargs": solver_kwargs,
-        }
+        self._params = {}
 
         # Define analysis-relevant meta data
         self.attrs = {"model": "BaseModel"}
@@ -132,228 +52,10 @@ class _BaseModel(ABC):
         )
         self.attrs.update(self._params)
 
-        # Initialize the Preprocessor to scale and stack the data
-        self.preprocessor = Preprocessor(
-            sample_name=sample_name,
-            feature_name=feature_name,
-            with_center=center,
-            with_std=standardize,
-            with_coslat=use_coslat,
-            check_nans=check_nans,
-            compute=compute,
-        )
-        # Initialize the data container that stores the results
-        self.data = DataContainer()
-
-    def get_serialization_attrs(self) -> Dict:
-        return dict(
-            data=self.data,
-            preprocessor=self.preprocessor,
-        )
-
-    def fit(
-        self,
-        X: List[Data] | Data,
-        dim: Sequence[Hashable] | Hashable,
-        weights: Optional[List[Data] | Data] = None,
-    ) -> Self:
-        """
-        Fit the model to the input data.
-
-        Parameters
-        ----------
-        X: DataArray | Dataset | List[DataArray]
-            Input data.
-        dim: Sequence[Hashable] | Hashable
-            Specify the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights: Optional[DataArray | Dataset | List[DataArray]]
-            Weighting factors for the input data.
-
-        """
-        # Check for invalid types
-        validate_input_type(X)
-        if weights is not None:
-            validate_input_type(weights)
-
-        self.sample_dims = convert_to_dim_type(dim)
-
-        # Preprocess the data & transform to 2D
-        data2D: DataArray = self.preprocessor.fit_transform(
-            X, self.sample_dims, weights
-        )
-
-        self._fit_algorithm(data2D)
-
-        if self._params["compute"]:
-            self.data.compute()
-
-        return self
-
     @abstractmethod
-    def _fit_algorithm(self, data: DataArray) -> Self:
-        """Fit the model to the input data assuming a 2D DataArray.
-
-        Parameters
-        ----------
-        data: DataArray
-            Input data with dimensions (sample_name, feature_name)
-
-        Returns
-        -------
-        self: Self
-            The fitted model.
-
-        """
+    def get_serialization_attrs(self) -> dict:
+        """Get the attributes to serialize."""
         raise NotImplementedError
-
-    def transform(self, data: List[Data] | Data, normalized=True) -> DataArray:
-        """Project data onto the components.
-
-        Parameters
-        ----------
-        data: DataArray | Dataset | List[DataArray]
-            Data to be transformed.
-        normalized: bool, default=True
-            Whether to normalize the scores by the L2 norm.
-
-        Returns
-        -------
-        projections: DataArray
-            Projections of the data onto the components.
-
-        """
-        validate_input_type(data)
-
-        data2D = self.preprocessor.transform(data)
-        data2D = self._transform_algorithm(data2D)
-        if normalized:
-            data2D = data2D / self.data["norms"]
-            data2D.name = "scores"
-        return self.preprocessor.inverse_transform_scores_unseen(data2D)
-
-    @abstractmethod
-    def _transform_algorithm(self, data: DataArray) -> DataArray:
-        """Project data onto the components.
-
-        Parameters
-        ----------
-        data: DataArray
-            Input data with dimensions (sample_name, feature_name)
-
-        Returns
-        -------
-        projections: DataArray
-            Projections of the data onto the components.
-
-        """
-        raise NotImplementedError
-
-    def fit_transform(
-        self,
-        data: List[Data] | Data,
-        dim: Sequence[Hashable] | Hashable,
-        weights: Optional[List[Data] | Data] = None,
-        **kwargs,
-    ) -> DataArray:
-        """Fit the model to the input data and project the data onto the components.
-
-        Parameters
-        ----------
-        data: DataObject
-            Input data.
-        dim: Sequence[Hashable] | Hashable
-            Specify the sample dimensions. The remaining dimensions
-            will be treated as feature dimensions.
-        weights: Optional[DataObject]
-            Weighting factors for the input data.
-        **kwargs
-            Additional keyword arguments to pass to the transform method.
-
-        Returns
-        -------
-        projections: DataArray
-            Projections of the data onto the components.
-
-        """
-        return self.fit(data, dim, weights).transform(data, **kwargs)
-
-    def inverse_transform(
-        self, scores: DataArray, normalized: bool = True
-    ) -> DataObject:
-        """Reconstruct the original data from transformed data.
-
-        Parameters
-        ----------
-        scores: DataArray
-            Transformed data to be reconstructed. This could be a subset
-            of the `scores` data of a fitted model, or unseen data. Must
-            have a 'mode' dimension.
-        normalized: bool, default=True
-            Whether the scores data have been normalized by the L2 norm.
-
-        Returns
-        -------
-        data: DataArray | Dataset | List[DataArray]
-            Reconstructed data.
-
-        """
-        if normalized:
-            norms = self.data["norms"].sel(mode=scores.mode)
-            scores = scores * norms
-
-        # Handle scalar mode in xr.dot
-        if "mode" not in scores.dims:
-            scores = scores.expand_dims("mode")
-
-        data_reconstructed = self._inverse_transform_algorithm(scores)
-
-        # Reconstructing the data using a single mode introduces a
-        # redundant "mode" coordinate
-        if "mode" in data_reconstructed.coords:
-            data_reconstructed = data_reconstructed.drop_vars("mode")
-
-        return self.preprocessor.inverse_transform_data(data_reconstructed)
-
-    @abstractmethod
-    def _inverse_transform_algorithm(self, scores: DataObject) -> DataArray:
-        """Reconstruct the original data from transformed data.
-
-        Parameters
-        ----------
-        scores: DataObject
-            Transformed data to be reconstructed. This could be a subset
-            of the `scores` data of a fitted model, or unseen data. Must
-            have a 'mode' dimension.
-
-        Returns
-        -------
-        data: DataArray
-            Reconstructed 2D data with dimensions (sample_name, feature_name)
-
-        """
-        raise NotImplementedError
-
-    def components(self) -> DataObject:
-        """Get the components."""
-        components = self.data["components"]
-        return self.preprocessor.inverse_transform_components(components)
-
-    def scores(self, normalized=True) -> DataArray:
-        """Get the scores.
-
-        Parameters
-        ----------
-        normalized: bool, default=True
-            Whether to normalize the scores by the L2 norm.
-        """
-        scores = self.data["scores"].copy()
-        if normalized:
-            attrs = scores.attrs.copy()
-            scores = scores / self.data["norms"]
-            scores.attrs.update(attrs)
-            scores.name = "scores"
-        return self.preprocessor.inverse_transform_scores(scores)
 
     def compute(self, verbose: bool = False, **kwargs):
         """Compute and load delayed model results.
@@ -377,9 +79,9 @@ class _BaseModel(ABC):
 
         if verbose:
             with ProgressBar():
-                (data_objs,) = dask.compute(data_objs, **kwargs)
+                (data_objs,) = dask.base.compute(data_objs, **kwargs)
         else:
-            (data_objs,) = dask.compute(data_objs, **kwargs)
+            (data_objs,) = dask.base.compute(data_objs, **kwargs)
 
         for k, v in data_objs.items():
             dt[k] = DataTree(v)
@@ -392,7 +94,7 @@ class _BaseModel(ABC):
     def _post_compute(self):
         pass
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         """Get the model parameters."""
         return self._params
 
@@ -461,10 +163,10 @@ class _BaseModel(ABC):
             if key == "params":
                 continue
             elif attr == "_is_tree":
-                deserialized_obj = getattr(self, key).deserialize(dt[key])
+                deserialized_obj = getattr(self, str(key)).deserialize(dt[str(key)])
             else:
                 deserialized_obj = attr
-            setattr(self, key, deserialized_obj)
+            setattr(self, str(key), deserialized_obj)
 
     @classmethod
     def load(
