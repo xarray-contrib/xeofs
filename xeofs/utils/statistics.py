@@ -1,11 +1,18 @@
-import xarray as xr
 import scipy as sc
+import xarray as xr
 from statsmodels.stats.multitest import multipletests as statsmodels_multipletests
 
 from .constants import MULTIPLE_TESTS
 
 
-def pearson_correlation(data1, data2, correction=None, alpha=0.05):
+def pearson_correlation(
+    data1,
+    data2,
+    correction=None,
+    alpha=0.05,
+    sample_name="sample",
+    feature_name="feature",
+):
     """Compute Pearson correlation between two xarray objects.
 
     Additionally, compute two-sided p-values and adjust them for multiple testing.
@@ -40,18 +47,41 @@ def pearson_correlation(data1, data2, correction=None, alpha=0.05):
         Adjusted p-values for the Pearson correlation.
 
     """
+
+    def _correlation_coefficients_numpy(X, Y):
+        """Compute Pearson correlation coefficients assuming centered data."""
+        X = X / X.std()
+        Y = Y / Y.std()
+        return X.conj().T @ Y / X.shape[0]
+
     n_samples = data1.shape[0]
 
     # Compute Pearson correlation coefficients
-    corr = (data1 * data2).mean("sample") / data1.std("sample") / data2.std("sample")
+    sample_name_x = "sample_dim_x"
+    sample_name_y = "sample_dim_y"
+    data1 = data1.rename({sample_name: sample_name_x})
+    data2 = data2.rename({sample_name: sample_name_y})
+    feature_name_x = data1.dims[1]
+    feature_name_y = data2.dims[1]
+    corr = xr.apply_ufunc(
+        _correlation_coefficients_numpy,
+        data1,
+        data2,
+        input_core_dims=[
+            [sample_name_x, feature_name_x],
+            [sample_name_y, feature_name_y],
+        ],
+        output_core_dims=[[feature_name_x, feature_name_y]],
+        dask="allowed",
+    )
 
     # Compute two-sided p-values
-    pvals = _compute_pvalues(corr, n_samples, dims=["feature"])
+    pvals = _compute_pvalues(corr, n_samples)
 
     if correction is not None:
         # Adjust p-values for multiple testing
         rejected, pvals = _multipletests(
-            pvals, dim="feature", alpha=alpha, method=correction
+            pvals, dim=feature_name, alpha=alpha, method=correction
         )
         return corr, pvals
 
@@ -59,7 +89,7 @@ def pearson_correlation(data1, data2, correction=None, alpha=0.05):
         return corr, pvals
 
 
-def _compute_pvalues(pearsonr, n_samples: int, dims) -> xr.DataArray:
+def _compute_pvalues(pearsonr, n_samples: int) -> xr.DataArray:
     # Compute two-sided p-values
     # Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html#r8c6348c62346-1
     a = n_samples / 2 - 1
@@ -67,8 +97,8 @@ def _compute_pvalues(pearsonr, n_samples: int, dims) -> xr.DataArray:
     pvals = 2 * xr.apply_ufunc(
         dist.cdf,
         -abs(pearsonr),
-        input_core_dims=[dims],
-        output_core_dims=[dims],
+        input_core_dims=[[]],
+        output_core_dims=[[]],
         dask="allowed",
         vectorize=False,
     )
