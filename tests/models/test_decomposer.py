@@ -229,7 +229,7 @@ def test_raise_warning_for_low_init_rank_reduction(mock_data_array):
     decomposer = Decomposer(
         n_modes=target_variance, init_rank_reduction=init_rank_reduction
     )
-    warn_msg = ".*components were computed which explain.*of the variance but.*of explained variance was requested. Consider increasing the `init_rank_reduction`"
+    warn_msg = "Dataset has .* components, explaining .* of the variance. However, .*explained variance was requested. Please consider increasing `init_rank_reduction`"
     with pytest.warns(UserWarning, match=warn_msg):
         decomposer.fit(mock_data_array)
 
@@ -243,7 +243,7 @@ def test_compute_at_least_one_component(mock_data_array):
     )
 
     # Warning is raised to indicate that the value of init_rank_reduction is too low
-    warn_msg = "`init_rank_reduction=.*` is too low and results in zero components. One component will be computed instead."
+    warn_msg = "`init_rank_reduction=.*` is too low resulting in zero components. One component will be computed instead."
     with pytest.warns(UserWarning, match=warn_msg):
         decomposer.fit(mock_data_array)
 
