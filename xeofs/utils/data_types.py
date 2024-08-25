@@ -1,10 +1,10 @@
 from typing import (
+    Hashable,
     List,
-    TypeAlias,
     Sequence,
     Tuple,
+    TypeAlias,
     TypeVar,
-    Hashable,
 )
 
 import dask.array as da
@@ -22,6 +22,7 @@ DataSetList: TypeAlias = List[DataSet]
 DataList: TypeAlias = List[Data]
 DataVarList: TypeAlias = List[DataVar]
 
+GenericType = TypeVar("GenericType")
 
 DaskArray: TypeAlias = da.Array  # type: ignore
 DataObject: TypeAlias = DataArray | DataSet | DataList
