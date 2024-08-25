@@ -1,17 +1,18 @@
-from typing import Optional, Dict
-from typing_extensions import Self
+from typing import Dict, Optional
+
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
-from ._base_model import _BaseModel
-from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray
+from ..utils.data_types import DataArray, DataObject
 from ..utils.hilbert_transform import hilbert_transform
-from ..utils.xarray_utils import total_variance as compute_total_variance
 from ..utils.sanity_checks import assert_not_complex
+from ..utils.xarray_utils import total_variance as compute_total_variance
+from ._base_model_single_set import _BaseModelSingleSet
+from .decomposer import Decomposer
 
 
-class EOF(_BaseModel):
+class EOF(_BaseModelSingleSet):
     """EOF analysis.
 
     Empirical Orthogonal Functions (EOF) analysis, more commonly known

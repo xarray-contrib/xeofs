@@ -1,17 +1,17 @@
-from typing import Optional, Dict
+from typing import Dict, Optional
+
+import numpy as np
+import xarray as xr
 from typing_extensions import Self
 
-import xarray as xr
-import numpy as np
-
-from ._base_model import _BaseModel
-from .eof import EOF
-from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray
+from ..utils.data_types import DataArray, DataObject
 from ..utils.sanity_checks import assert_not_complex
+from ._base_model_single_set import _BaseModelSingleSet
+from .decomposer import Decomposer
+from .eof import EOF
 
 
-class OPA(_BaseModel):
+class OPA(_BaseModelSingleSet):
     """Optimal Persistence Analysis.
 
     Optimal Persistence Analysis (OPA) [1]_ [2]_ identifies the patterns with the
