@@ -1,11 +1,12 @@
-from typing import Optional, Dict
+from typing import Dict, Optional
+
+import xarray as xr
+from dask.base import compute
 from typing_extensions import Self
 
-import dask
-import xarray as xr
-
+from ..utils.data_types import Data, DataArray, Dims
+from ..utils.sanity_checks import assert_single_dataarray
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, Data
 
 
 class Sanitizer(Transformer):
@@ -29,10 +30,6 @@ class Sanitizer(Transformer):
             sample_coords=self.sample_coords,
             is_valid_feature=self.is_valid_feature,
         )
-
-    def _check_input_type(self, X) -> None:
-        if not isinstance(X, xr.DataArray):
-            raise ValueError("Input must be an xarray DataArray")
 
     def _check_input_dims(self, X) -> None:
         if set(X.dims) != set([self.sample_name, self.feature_name]):
@@ -68,7 +65,7 @@ class Sanitizer(Transformer):
         **kwargs,
     ) -> Self:
         # Check if input is a DataArray
-        self._check_input_type(X)
+        assert_single_dataarray(X)
 
         # Check if input has the correct dimensions
         self._check_input_dims(X)
@@ -84,7 +81,7 @@ class Sanitizer(Transformer):
 
     def transform(self, X: DataArray) -> DataArray:
         # Check if input is a DataArray
-        self._check_input_type(X)
+        assert_single_dataarray(X)
 
         # Check if input has the correct dimensions
         self._check_input_dims(X)
@@ -103,7 +100,7 @@ class Sanitizer(Transformer):
                 X_valid_features,
                 X_valid_samples,
                 X_valid_features_per_sample,
-            ) = dask.compute(
+            ) = compute(
                 self.is_valid_feature,
                 X_valid_features,
                 X_valid_samples,

@@ -95,14 +95,14 @@ class Decomposer:
             self.n_modes_precompute = int(rank * self.init_rank_reduction)
             if self.n_modes_precompute < 1:
                 warnings.warn(
-                    f"`init_rank_reduction={self.init_rank_reduction}` is too low and results in zero components. One component will be computed instead."
+                    f"`init_rank_reduction={self.init_rank_reduction}` is too low resulting in zero components. One component will be computed instead."
                 )
                 self.n_modes_precompute = 1
 
         # TODO(nicrie): perhaps we can just set n_modes to rank if it is larger than rank (possible solution for #158)
         if self.n_modes_precompute > rank:
             raise ValueError(
-                f"n_modes must be smaller or equal to the rank of the data object (rank={rank})"
+                f"n_modes must be less than or equal to the rank of the dataset (rank = {rank})."
             )
 
         # Check if data is small enough to use exact SVD
@@ -212,7 +212,7 @@ class Decomposer:
             )
             if n_modes_required > self.n_modes_precompute:
                 warnings.warn(
-                    f"{self.n_modes_precompute} components were computed which explain {total_explained_variance:.2%} of the variance but {self.n_modes:.2%} of explained variance was requested. Consider increasing the `init_rank_reduction`."
+                    f"Dataset has {self.n_modes_precompute} components, explaining {total_explained_variance:.2%} of the variance. However, {self.n_modes:.2%} explained variance was requested. Please consider increasing `init_rank_reduction`."
                 )
                 n_modes_required = self.n_modes_precompute
 
