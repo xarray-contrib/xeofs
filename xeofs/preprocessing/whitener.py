@@ -3,9 +3,10 @@ from typing import Dict, Optional
 
 import numpy as np
 import xarray as xr
+from dask.base import compute as dask_compute
 from typing_extensions import Self
 
-from ..models.decomposer import Decomposer
+from ..models._np_classes.svd import SVD
 from ..utils.data_types import (
     DataArray,
     Dims,
@@ -140,16 +141,26 @@ class Whitener(Transformer):
                 # In case of "all" modes to the rank of the input data
                 self.n_modes = self._get_n_modes(X)
 
-                decomposer = Decomposer(
+                svd = SVD(
                     n_modes=self.n_modes,
                     init_rank_reduction=self.init_rank_reduction,
-                    compute=self.compute_svd,
                     random_state=self.random_state,
                     **self.solver_kwargs,
                 )
-                decomposer.fit(X, dims=(self.sample_name, self.feature_name))
-                s: DataArray = decomposer.s_
-                V: DataArray = decomposer.V_
+                _, s, V = xr.apply_ufunc(
+                    svd.fit_transform,
+                    X,
+                    input_core_dims=[[self.sample_name, self.feature_name]],
+                    output_core_dims=[
+                        [self.sample_name, "mode"],
+                        ["mode"],
+                        [self.feature_name, "mode"],
+                    ],
+                    dask="allowed",
+                )
+
+                if self.compute_svd:
+                    s, V = dask_compute(s, V)
 
                 n_c: float = np.sqrt(n_samples - 1)
                 self.T: DataArray = V * (s / n_c) ** (self.alpha - 1)
@@ -184,25 +195,10 @@ class Whitener(Transformer):
         nc = X.shape[0] - 1
         C = X.conj().T @ X / nc
         power = (self.alpha - 1) / 2
-        T = fractional_matrix_power(C, power)
+        svd_kwargs = {"random_state": self.random_state}
+        T = fractional_matrix_power(C, power, **svd_kwargs)
         Tinv = np.linalg.inv(T)
         return T, Tinv
-
-    def _fractional_matrix_power(self, C, power):
-        V, s, _ = np.linalg.svd(C)
-
-        # cut off small singular values
-        is_above_zero = s > np.finfo(s.dtype).eps
-        V = V[:, is_above_zero]
-        s = s[is_above_zero]
-
-        # TODO: use hermitian=True for numpy>=2.0
-        # V, s, _ = np.linalg.svd(C, hermitian=True)
-        C_scaled = V @ np.diag(s**power) @ V.conj().T
-        if np.iscomplexobj(C):
-            return C_scaled
-        else:
-            return C_scaled.real
 
     def get_Tinv(self, unwhiten_only=False) -> DataArray:
         """Get the inverse transformation to unwhiten the data without PC transform.

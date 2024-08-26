@@ -1,7 +1,9 @@
 import numpy as np
 
+from ..models._np_classes.svd import SVD
 
-def fractional_matrix_power(C, power):
+
+def fractional_matrix_power(C, power, **kwargs):
     """Compute the fractional matrix power of a symmetric matrix using SVD.
 
     Note: This function is a simplified version of the fractional_matrix_power
@@ -11,7 +13,8 @@ def fractional_matrix_power(C, power):
     if C.shape[0] != C.shape[1]:
         raise ValueError("Matrix must be square.")
 
-    V, s, _ = np.linalg.svd(C)
+    svd = SVD(n_modes="all", **kwargs)
+    _, s, V = svd.fit_transform(C)
 
     # cut off small singular values
     is_above_zero = s > np.finfo(s.dtype).eps

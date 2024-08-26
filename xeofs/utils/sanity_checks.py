@@ -102,15 +102,18 @@ def assert_not_complex(da: xr.DataArray) -> None:
         )
 
 
-def sanity_check_n_modes(n_modes: int | float) -> None:
+def sanity_check_n_modes(n_modes: int | float | str) -> None:
     """Check if the number of modes is valid."""
 
     match n_modes:
         case int():
             if n_modes < 1:
-                raise ValueError("n_modes must be greater than 0")
+                raise ValueError("If integer, n_modes must be greater than 0")
         case float():
             if not (0 < n_modes <= 1.0):
-                raise ValueError("n_modes must be in the range (0, 1]")
+                raise ValueError("If float, n_modes must be in the range (0, 1]")
+        case str():
+            if n_modes not in ["all"]:
+                raise ValueError("If string, n_modes must be 'all'")
         case _:
-            raise TypeError("n_modes must be an integer or a float")
+            raise TypeError("n_modes must be an integer, float or string.")

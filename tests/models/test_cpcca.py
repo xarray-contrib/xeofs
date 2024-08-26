@@ -1,8 +1,25 @@
+import dask.array as da
 import numpy as np
 import pytest
 import xarray as xr
 
 from xeofs.models.cpcca import ContinuousPowerCCA
+
+
+def generate_random_data(shape, lazy=False):
+    rng = np.random.default_rng(142)
+    if lazy:
+        return xr.DataArray(
+            da.random.random(shape, chunks=(5, 5)),
+            dims=["sample", "feature"],
+            coords={"sample": np.arange(shape[0]), "feature": np.arange(shape[1])},
+        )
+    else:
+        return xr.DataArray(
+            rng.random(shape),
+            dims=["sample", "feature"],
+            coords={"sample": np.arange(shape[0]), "feature": np.arange(shape[1])},
+        )
 
 
 def generate_well_conditioned_data(lazy=False):
@@ -154,6 +171,60 @@ def test_fit_different_coordinates():
     assert np.all(r > np.finfo(r.dtype).eps)
 
 
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+def test_components(mock_data_array, dim):
+    cpcca = ContinuousPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca.fit(mock_data_array, mock_data_array, dim)
+    components1, components2 = cpcca.components()
+    feature_dims = tuple(set(mock_data_array.dims) - set(dim))
+    assert isinstance(components1, xr.DataArray)
+    assert isinstance(components2, xr.DataArray)
+    assert set(components1.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components1 does not have the right feature dimensions"
+    assert set(components2.dims) == set(
+        ("mode",) + feature_dims
+    ), "Components2 does not have the right feature dimensions"
+
+
+@pytest.mark.parametrize(
+    "shapeX,shapeY,alpha,use_pca",
+    [
+        ((20, 10), (20, 10), 1.0, False),
+        ((20, 40), (20, 30), 1.0, False),
+        ((20, 10), (20, 40), 1.0, False),
+        ((20, 10), (20, 10), 0.5, False),
+        ((20, 40), (20, 30), 0.5, False),
+        ((20, 10), (20, 40), 0.5, False),
+        ((20, 10), (20, 10), 1.0, True),
+        ((20, 40), (20, 30), 1.0, True),
+        ((20, 10), (20, 40), 1.0, True),
+        ((20, 10), (20, 10), 0.5, True),
+        ((20, 40), (20, 30), 0.5, True),
+        ((20, 10), (20, 40), 0.5, True),
+    ],
+)
+def test_components_coordinates(shapeX, shapeY, alpha, use_pca):
+    # Test that the components have the right coordinates
+    X = generate_random_data(shapeX)
+    Y = generate_random_data(shapeY)
+
+    cpcca = ContinuousPowerCCA(
+        n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
+    )
+    cpcca.fit(X, Y, "sample")
+    components1, components2 = cpcca.components()
+    xr.testing.assert_equal(components1.coords["feature"], X.coords["feature"])
+    xr.testing.assert_equal(components2.coords["feature"], Y.coords["feature"])
+
+
 # @pytest.mark.parametrize(
 #     "dim",
 #     [
@@ -183,28 +254,6 @@ def test_fit_different_coordinates():
 #     cf = mca_model.covariance_fraction()
 #     assert isinstance(cf, xr.DataArray)
 #     assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_components(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     components1, components2 = mca_model.components()
-#     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
-#     assert isinstance(components1, xr.DataArray)
-#     assert isinstance(components2, xr.DataArray)
-#     assert set(components1.dims) == set(
-#         ("mode",) + feature_dims
-#     ), "Components1 does not have the right feature dimensions"
-#     assert set(components2.dims) == set(
-#         ("mode",) + feature_dims
-#     ), "Components2 does not have the right feature dimensions"
 
 
 # @pytest.mark.parametrize(
