@@ -33,6 +33,8 @@ class Whitener(Transformer):
         If int, number of components to keep. If float, fraction of variance to keep. If `n_modes="all"`, keep all components.
     init_rank_reduction: float, default=0.3
         Used only when `n_modes` is given as a float. Specifiy the initial PCA rank reduction before truncating the solution to the desired fraction of explained variance. Must be in the half open interval ]0, 1]. Lower values will speed up the computation.
+    compute_svd: bool, default=False
+        Whether to perform eager or lazy computation.
     sample_name: str, default="sample"
         Name of the sample dimension.
     feature_name: str, default="feature"
@@ -48,6 +50,7 @@ class Whitener(Transformer):
         use_pca: bool = False,
         n_modes: int | float | str = "all",
         init_rank_reduction: float = 0.3,
+        compute_svd: bool = False,
         sample_name: str = "sample",
         feature_name: str = "feature",
         solver_kwargs: Dict = {},
@@ -64,6 +67,7 @@ class Whitener(Transformer):
         self.use_pca = use_pca
         self.n_modes = n_modes
         self.init_rank_reduction = init_rank_reduction
+        self.compute_svd = compute_svd
         self.solver_kwargs = solver_kwargs
 
         # Check whether Whitener is identity transformation
@@ -135,6 +139,7 @@ class Whitener(Transformer):
                 decomposer = Decomposer(
                     n_modes=self.n_modes,
                     init_rank_reduction=self.init_rank_reduction,
+                    compute=self.compute_svd,
                     **self.solver_kwargs,
                 )
                 decomposer.fit(X, dims=(self.sample_name, self.feature_name))
