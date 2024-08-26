@@ -1,7 +1,7 @@
-from .cpcca import ComplexCPCCA, ContinuousPowerCCA
+from .cpcca import ComplexCPCCA, ContinuumPowerCCA
 
 
-class MCA(ContinuousPowerCCA):
+class MCA(ContinuumPowerCCA):
     def __init__(
         self,
         n_modes: int = 2,
@@ -19,7 +19,7 @@ class MCA(ContinuousPowerCCA):
         solver_kwargs: dict = {},
         **kwargs,
     ):
-        # NOTE: **kwargs is only used here to catch any additional arguments that may be passed during deserialization. During .serialize(), the MCA model stores all model parameters from the parent class ContinuousPowerCCA. During deserialization, `use_pca` and `alpha` are passed to the child class MCA where there are not present and would raise an error. To avoid this, we catch all additional arguments here and ignore them.
+        # NOTE: **kwargs is only used here to catch any additional arguments that may be passed during deserialization. During .serialize(), the MCA model stores all model parameters from the parent class ContinuumPowerCCA. During deserialization, `use_pca` and `alpha` are passed to the child class MCA where there are not present and would raise an error. To avoid this, we catch all additional arguments here and ignore them.
         super().__init__(
             n_modes=n_modes,
             alpha=[1.0, 1.0],

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xeofs.models.cpcca import ContinuousPowerCCA
+from xeofs.models.cpcca import ContinuumPowerCCA
 
 
 def generate_random_data(shape, lazy=False):
@@ -54,11 +54,11 @@ def generate_well_conditioned_data(lazy=False):
 
 @pytest.fixture
 def cpcca():
-    return ContinuousPowerCCA(n_modes=1)
+    return ContinuumPowerCCA(n_modes=1)
 
 
 def test_initialization():
-    model = ContinuousPowerCCA()
+    model = ContinuumPowerCCA()
     assert model is not None
 
 
@@ -144,7 +144,7 @@ def test_total_squared_covariance(alpha, use_pca):
     cov_mat = xr.cov(X_, Y_, dim="sample")
     tsc = (cov_mat**2).sum()
 
-    cpcca = ContinuousPowerCCA(
+    cpcca = ContinuumPowerCCA(
         n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
     )
     cpcca.fit(X, Y, "sample")
@@ -155,7 +155,7 @@ def test_total_squared_covariance(alpha, use_pca):
 def test_alpha_integer():
     X, Y = generate_well_conditioned_data()
 
-    cpcca = ContinuousPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
 
@@ -164,7 +164,7 @@ def test_fit_different_coordinates():
     X, Y = generate_well_conditioned_data()
     X = X.isel(sample=slice(0, 99))
     Y = Y.isel(sample=slice(100, 199))
-    cpcca = ContinuousPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
     r = cpcca.cross_correlation_coefficients()
     # Correlation coefficents are not zero
@@ -180,7 +180,7 @@ def test_fit_different_coordinates():
     ],
 )
 def test_components(mock_data_array, dim):
-    cpcca = ContinuousPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(mock_data_array, mock_data_array, dim)
     components1, components2 = cpcca.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
@@ -216,7 +216,7 @@ def test_components_coordinates(shapeX, shapeY, alpha, use_pca):
     X = generate_random_data(shapeX)
     Y = generate_random_data(shapeY)
 
-    cpcca = ContinuousPowerCCA(
+    cpcca = ContinuumPowerCCA(
         n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
     )
     cpcca.fit(X, Y, "sample")

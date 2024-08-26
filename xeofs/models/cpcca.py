@@ -16,8 +16,8 @@ from ._base_model_cross_set import _BaseModelCrossSet
 from .decomposer import Decomposer
 
 
-class ContinuousPowerCCA(_BaseModelCrossSet):
-    """Continuous Power CCA.
+class ContinuumPowerCCA(_BaseModelCrossSet):
+    """Continuum Power CCA.
 
     CCA is a statistical method that finds patterns of maximum correlation between two datasets.
 
@@ -789,7 +789,7 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
             )
 
 
-class ComplexCPCCA(ContinuousPowerCCA):
+class ComplexCPCCA(ContinuumPowerCCA):
     """Complex Continuous Power CCA."""
 
     def __init__(
