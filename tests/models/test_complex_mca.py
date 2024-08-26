@@ -231,18 +231,6 @@ def test_transform_not_implemented(mca_model, mock_data_array, dim):
         mca_model.transform(mock_data_array, mock_data_array)
 
 
-def test_homogeneous_patterns_not_implemented():
-    mca = ComplexMCA()
-    with pytest.raises(NotImplementedError):
-        mca.homogeneous_patterns()
-
-
-def test_heterogeneous_patterns_not_implemented():
-    mca = ComplexMCA()
-    with pytest.raises(NotImplementedError):
-        mca.heterogeneous_patterns()
-
-
 @pytest.mark.parametrize(
     "dim",
     [

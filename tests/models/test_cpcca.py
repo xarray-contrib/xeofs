@@ -99,13 +99,6 @@ def test_inverse_transform(cpcca):
     assert isinstance(Xrec2, xr.DataArray)
 
 
-def test_squared_covariance(cpcca):
-    X, Y = generate_well_conditioned_data()
-    cpcca.fit(X, Y, "sample")
-    squared_covariance = cpcca.squared_covariance()
-    assert isinstance(squared_covariance, xr.DataArray)
-
-
 def test_squared_covariance_fraction(cpcca):
     X, Y = generate_well_conditioned_data()
     cpcca.fit(X, Y, "sample")

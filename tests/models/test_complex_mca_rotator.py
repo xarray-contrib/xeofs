@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 # Import the classes from your modules
@@ -58,7 +58,7 @@ def test_transform(mca_model, mock_data_array):
     mca_rotator.fit(mca_model)
 
     with pytest.raises(NotImplementedError):
-        mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
+        mca_rotator.transform(X=mock_data_array, Y=mock_data_array)
 
 
 @pytest.mark.parametrize(
@@ -192,8 +192,7 @@ def test_scores(mca_model, mock_data_array, dim):
 def test_homogeneous_patterns(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    with pytest.raises(NotImplementedError):
-        _ = mca_rotator.homogeneous_patterns()
+    mca_rotator.homogeneous_patterns()
 
 
 @pytest.mark.parametrize(
@@ -207,8 +206,7 @@ def test_homogeneous_patterns(mca_model, mock_data_array, dim):
 def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
     mca_rotator = ComplexMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    with pytest.raises(NotImplementedError):
-        _ = mca_rotator.heterogeneous_patterns()
+    mca_rotator.heterogeneous_patterns()
 
 
 @pytest.mark.parametrize(

@@ -100,7 +100,7 @@ def test_fit_with_dataarray_list(mca_model, mock_data_array_list, dim):
 )
 def test_transform(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    result = mca_model.transform(data1=mock_data_array, data2=mock_data_array)
+    result = mca_model.transform(X=mock_data_array, Y=mock_data_array)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
 
@@ -111,7 +111,7 @@ def test_transform_unseen_data(mca_model, mock_data_array, dim):
     data_unseen = mock_data_array.isel(time=slice(21, None))
 
     mca_model.fit(data, data, dim)
-    result = mca_model.transform(data1=data_unseen, data2=data_unseen)
+    result = mca_model.transform(X=data_unseen, Y=data_unseen)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
     # Check that unseen data can be transformed

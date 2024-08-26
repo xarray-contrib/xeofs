@@ -1,22 +1,23 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 # Import the classes from your modules
 from xeofs.models import MCA, MCARotator
+
 from ..utilities import data_is_dask
 
 
 @pytest.fixture
 def mca_model(mock_data_array, dim):
-    mca = MCA(n_modes=5)
+    mca = MCA(n_modes=5, use_pca=False)
     mca.fit(mock_data_array, mock_data_array, dim)
     return mca
 
 
 @pytest.fixture
 def mca_model_delayed(mock_dask_data_array, dim):
-    mca = MCA(n_modes=5, compute=False, check_nans=False)
+    mca = MCA(n_modes=5, compute=False, check_nans=False, use_pca=False)
     mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
 
