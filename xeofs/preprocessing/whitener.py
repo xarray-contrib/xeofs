@@ -39,6 +39,8 @@ class Whitener(Transformer):
         Name of the sample dimension.
     feature_name: str, default="feature"
         Name of the feature dimension.
+    random_state: np.random.Generator | int | None, default=None
+        Random seed for reproducibility.
     solver_kwargs: Dict
         Additional keyword arguments for the SVD solver.
 
@@ -53,6 +55,7 @@ class Whitener(Transformer):
         compute_svd: bool = False,
         sample_name: str = "sample",
         feature_name: str = "feature",
+        random_state: np.random.Generator | int | None = None,
         solver_kwargs: Dict = {},
     ):
         super().__init__(sample_name, feature_name)
@@ -68,6 +71,7 @@ class Whitener(Transformer):
         self.n_modes = n_modes
         self.init_rank_reduction = init_rank_reduction
         self.compute_svd = compute_svd
+        self.random_state = random_state
         self.solver_kwargs = solver_kwargs
 
         # Check whether Whitener is identity transformation
@@ -140,6 +144,7 @@ class Whitener(Transformer):
                     n_modes=self.n_modes,
                     init_rank_reduction=self.init_rank_reduction,
                     compute=self.compute_svd,
+                    random_state=self.random_state,
                     **self.solver_kwargs,
                 )
                 decomposer.fit(X, dims=(self.sample_name, self.feature_name))
