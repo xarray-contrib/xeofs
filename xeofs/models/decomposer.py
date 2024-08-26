@@ -1,5 +1,4 @@
 import warnings
-from typing import Optional
 
 import dask
 import numpy as np
@@ -37,7 +36,7 @@ class Decomposer:
         than 80% of the smallest dimension of the data, then the more efficient
         `randomized` method is enabled. Otherwise the exact full SVD is computed
         and optionally truncated afterwards.
-    random_state : Optional[int], default=None
+    random_state : np.random.Generator | int | None, default=None
         Seed for the random number generator.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
@@ -54,7 +53,7 @@ class Decomposer:
         flip_signs: bool = True,
         compute: bool = True,
         solver: str = "auto",
-        random_state: Optional[int] = None,
+        random_state: np.random.Generator | int | None = None,
         verbose: bool = False,
         component_dim_name: str = "mode",
         solver_kwargs: dict = {},
