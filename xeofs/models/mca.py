@@ -37,16 +37,6 @@ class MCA(ContinuousPowerCCA):
         )
         self.attrs.update({"model": "MCA"})
 
-    # NOTE: For backwards compability
-    def squared_covariance(self):
-        """Get the squared covariance.
-
-        The squared covariance corresponds to the explained variance in PCA and is given by the
-        squared singular values of the covariance matrix.
-
-        """
-        return super()._squared_covariance()
-
 
 class ComplexMCA(ComplexCPCCA, MCA):
     def __init__(

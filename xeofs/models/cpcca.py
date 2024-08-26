@@ -169,13 +169,13 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
 
     def _fit_algorithm(
         self,
-        data1: DataArray,
-        data2: DataArray,
+        X: DataArray,
+        Y: DataArray,
     ) -> Self:
         feature_name = self.feature_name
 
         # Compute the totalsquared covariance from the unwhitened data
-        C_whitened = self._compute_cross_covariance_matrix(data1, data2)
+        C_whitened = self._compute_cross_covariance_matrix(X, Y)
 
         # Initialize the SVD decomposer
         decomposer = Decomposer(**self._decomposer_kwargs)
@@ -195,19 +195,20 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
         idx_sorted_modes.coords.update(singular_values.coords)
 
         # Project the data onto the singular vectors
-        scores1 = xr.dot(data1, Q1, dims=feature_name[0])
-        scores2 = xr.dot(data2, Q2, dims=feature_name[1])
+        scores1 = xr.dot(X, Q1, dims=feature_name[0])
+        scores2 = xr.dot(Y, Q2, dims=feature_name[1])
 
         norm1 = np.sqrt(xr.dot(scores1.conj(), scores1, dims=self.sample_name)).real
         norm2 = np.sqrt(xr.dot(scores2.conj(), scores2, dims=self.sample_name)).real
 
-        self.data.add(name="input_data1", data=data1, allow_compute=False)
-        self.data.add(name="input_data2", data=data2, allow_compute=False)
+        self.data.add(name="input_data1", data=X, allow_compute=False)
+        self.data.add(name="input_data2", data=Y, allow_compute=False)
         self.data.add(name="components1", data=Q1)
         self.data.add(name="components2", data=Q2)
         self.data.add(name="scores1", data=scores1)
         self.data.add(name="scores2", data=scores2)
         self.data.add(name="singular_values", data=singular_values)
+        self.data.add(name="squared_covariance", data=singular_values**2)
         self.data.add(name="total_squared_covariance", data=total_squared_covariance)
         self.data.add(name="idx_modes_sorted", data=idx_sorted_modes)
         self.data.add(name="norm1", data=norm1)
@@ -242,25 +243,25 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
 
     def _transform_algorithm(
         self,
-        data1: Optional[DataArray] = None,
-        data2: Optional[DataArray] = None,
+        X: Optional[DataArray] = None,
+        Y: Optional[DataArray] = None,
         normalized=False,
     ) -> Dict[str, DataArray]:
         results = {}
-        if data1 is not None:
+        if X is not None:
             # Project data onto singular vectors
             comps1 = self.data["components1"]
             norm1 = self.data["norm1"]
-            scores1 = xr.dot(data1, comps1)
+            scores1 = xr.dot(X, comps1)
             if normalized:
                 scores1 = scores1 / norm1
             results["data1"] = scores1
 
-        if data2 is not None:
+        if Y is not None:
             # Project data onto singular vectors
             comps2 = self.data["components2"]
             norm2 = self.data["norm2"]
-            scores2 = xr.dot(data2, comps2)
+            scores2 = xr.dot(Y, comps2)
             if normalized:
                 scores2 = scores2 / norm2
             results["data2"] = scores2
@@ -268,17 +269,17 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
         return results
 
     def _inverse_transform_algorithm(
-        self, scores1: DataArray, scores2: DataArray
+        self, X: DataArray, Y: DataArray
     ) -> Tuple[DataArray, DataArray]:
         """Reconstruct the original data from transformed data.
 
         Parameters
         ----------
-        scores1: DataArray
+        X: DataArray
             Transformed left field data to be reconstructed. This could be
             a subset of the `scores` data of a fitted model, or unseen data.
             Must have a 'mode' dimension.
-        scores2: DataArray
+        Y: DataArray
             Transformed right field data to be reconstructed. This could be
             a subset of the `scores` data of a fitted model, or unseen data.
             Must have a 'mode' dimension.
@@ -292,12 +293,12 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
 
         """
         # Singular vectors
-        comps1 = self.data["components1"].sel(mode=scores1.mode)
-        comps2 = self.data["components2"].sel(mode=scores2.mode)
+        comps1 = self.data["components1"].sel(mode=X.mode)
+        comps2 = self.data["components2"].sel(mode=Y.mode)
 
         # Reconstruct the data
-        data1 = xr.dot(scores1, comps1.conj(), dims="mode")
-        data2 = xr.dot(scores2, comps2.conj(), dims="mode")
+        data1 = xr.dot(X, comps1.conj(), dims="mode")
+        data2 = xr.dot(Y, comps2.conj(), dims="mode")
 
         return data1, data2
 
@@ -336,14 +337,16 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
         singular_values.name = "singular_values"
         return singular_values
 
-    def _squared_covariance(self):
+    def squared_covariance(self):
         """Get the squared covariance.
 
         The squared covariance corresponds to the explained variance in PCA and is given by the
         squared singular values of the covariance matrix.
 
         """
-        return self.data["singular_values"] ** 2
+        sc = self.data["squared_covariance"]
+        sc.name = "squared_covariance"
+        return sc
 
     def squared_covariance_fraction(self):
         """Calculate the squared covariance fraction (SCF).
@@ -357,7 +360,9 @@ class ContinuousPowerCCA(_BaseModelCrossSet):
         where `m` is the total number of modes and :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
 
         """
-        return self._squared_covariance() / self.data["total_squared_covariance"]
+        scf = self.squared_covariance() / self.data["total_squared_covariance"]
+        scf.name = "squared_covariance_fraction"
+        return scf
 
     def cross_correlation_coefficients(self):
         """Get the cross-correlation coefficients.
@@ -988,10 +993,10 @@ class ComplexCPCCA(ContinuousPowerCCA):
 
         return Rx, Ry
 
-    def _transform_algorithm(self, data1: DataArray, data2: DataArray) -> dict:
-        raise NotImplementedError(
-            "The transform method is not implemented for Complex Continuous Power CCA."
-        )
+    def transform(
+        self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
+    ) -> Sequence[DataArray]:
+        raise NotImplementedError("Complex models do not support the transform method.")
 
 
 # class ComplexMCA(MCA):

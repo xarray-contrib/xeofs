@@ -1,16 +1,17 @@
-from datetime import datetime
+from typing import Dict, List, Sequence
+
 import numpy as np
 import xarray as xr
-from typing import List, Dict
 from typing_extensions import Self
 
-from .mca import MCA, ComplexMCA
-from ..preprocessing.preprocessor import Preprocessor
-from ..utils.rotation import promax
-from ..utils.data_types import DataArray, DataObject
-from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ..data_container import DataContainer
-from .._version import __version__
+from ..preprocessing.preprocessor import Preprocessor
+from ..preprocessing.whitener import Whitener
+from ..utils.data_types import DataArray, DataObject
+from ..utils.rotation import promax
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
+from ._base_model import _BaseModel
+from .mca import MCA, ComplexMCA
 
 
 class MCARotator(MCA):
@@ -68,6 +69,8 @@ class MCARotator(MCA):
         squared_loadings: bool = False,
         compute: bool = True,
     ):
+        _BaseModel.__init__(self)
+
         if max_iter is None:
             max_iter = 1000 if compute else 100
 
@@ -82,19 +85,14 @@ class MCARotator(MCA):
         }
 
         # Define analysis-relevant meta data
-        self.attrs = {"model": "Rotated MCA"}
+        self.attrs.update({"model": "ROtated MCA"})
         self.attrs.update(self._params)
-        self.attrs.update(
-            {
-                "software": "xeofs",
-                "version": __version__,
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            }
-        )
 
         # Attach empty objects
         self.preprocessor1 = Preprocessor()
         self.preprocessor2 = Preprocessor()
+        self.whitener1 = Whitener()
+        self.whitener2 = Whitener()
         self.data = DataContainer()
         self.model = MCA()
 
@@ -105,6 +103,8 @@ class MCARotator(MCA):
             data=self.data,
             preprocessor1=self.preprocessor1,
             preprocessor2=self.preprocessor2,
+            whitener1=self.whitener1,
+            whitener2=self.whitener2,
             model=self.model,
             sorted=self.sorted,
         )
@@ -135,6 +135,9 @@ class MCARotator(MCA):
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix
 
+    def _get_feature_name(self):
+        return self.model.feature_name
+
     def fit(self, model: MCA) -> Self:
         """Rotate the solution obtained from ``xe.models.MCA``.
 
@@ -155,9 +158,14 @@ class MCARotator(MCA):
         self.model = model
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
+        self.whitener1 = model.whitener1
+        self.whitener2 = model.whitener2
         self.sample_name = self.model.sample_name
         self.feature_name = self.model.feature_name
         self.sorted = False
+
+        common_feature_dim = "common_feature_dim"
+        feature_name = self._get_feature_name()
 
         n_modes = self._params["n_modes"]
         power = self._params["power"]
@@ -176,24 +184,33 @@ class MCARotator(MCA):
         # or weighted with the singular values ("squared loadings"), as opposed to the square root of the singular values.
         # In doing so, the squared covariance remains conserved under rotation, allowing for the estimation of the
         # modes' importance.
-        norm1 = self.model.data["norm1"].sel(mode=slice(1, n_modes))
-        norm2 = self.model.data["norm2"].sel(mode=slice(1, n_modes))
+        svalues = self.model.singular_values().sel(mode=slice(1, n_modes))
         if use_squared_loadings:
             # Squared loadings approach conserving squared covariance
-            scaling = norm1 * norm2
+            scaling = svalues
         else:
             # Cheng & Dunkerton approach conserving covariance
-            scaling = np.sqrt(norm1 * norm2)
+            scaling = np.sqrt(svalues)
 
-        comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
-        comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
-        loadings = xr.concat([comps1, comps2], dim=self.feature_name) * scaling
+        # Get unrotated singular vectors
+        Qx = self.model.data["components1"].sel(mode=slice(1, n_modes))
+        Qy = self.model.data["components2"].sel(mode=slice(1, n_modes))
+
+        # Unwhiten and back-transform into physical space
+        Qx = self.whitener1.inverse_transform_components(Qx)
+        Qy = self.whitener2.inverse_transform_components(Qy)
+
+        # Rename the feature dimension to a common name so that the combined vectors can be concatenated
+        Qx = Qx.rename({feature_name[0]: common_feature_dim})
+        Qy = Qy.rename({feature_name[1]: common_feature_dim})
+
+        loadings = xr.concat([Qx, Qy], dim=common_feature_dim) * scaling
 
         # Rotate loadings
         promax_kwargs = {"power": power, "max_iter": max_iter, "rtol": rtol}
         rot_loadings, rot_matrix, phi_matrix = promax(
             loadings=loadings,
-            feature_dim=self.feature_name,
+            feature_dim=common_feature_dim,
             compute=self._params["compute"],
             **promax_kwargs,
         )
@@ -209,38 +226,42 @@ class MCARotator(MCA):
         )
 
         # Rotated (loaded) singular vectors
-        comps1_rot = rot_loadings.isel(
-            {self.feature_name: slice(0, comps1.coords[self.feature_name].size)}
+        Qx_rot = rot_loadings.isel(
+            {common_feature_dim: slice(0, Qx.coords[common_feature_dim].size)}
         )
-        comps2_rot = rot_loadings.isel(
-            {self.feature_name: slice(comps1.coords[self.feature_name].size, None)}
+        Qy_rot = rot_loadings.isel(
+            {common_feature_dim: slice(Qx.coords[common_feature_dim].size, None)}
         )
+
+        # Rename the common feature dimension to the original feature names
+        Qx_rot = Qx_rot.rename({common_feature_dim: feature_name[0]})
+        Qy_rot = Qy_rot.rename({common_feature_dim: feature_name[1]})
 
         # Normalization factor of singular vectors
         norm1_rot = xr.apply_ufunc(
             np.linalg.norm,
-            comps1_rot,
-            input_core_dims=[[self.feature_name, "mode"]],
+            Qx_rot,
+            input_core_dims=[[feature_name[0], "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={self.feature_name},
+            exclude_dims={feature_name[0]},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
         )
         norm2_rot = xr.apply_ufunc(
             np.linalg.norm,
-            comps2_rot,
-            input_core_dims=[[self.feature_name, "mode"]],
+            Qy_rot,
+            input_core_dims=[[feature_name[1], "mode"]],
             output_core_dims=[["mode"]],
-            exclude_dims={self.feature_name},
+            exclude_dims={feature_name[1]},
             kwargs={"axis": 0},
             vectorize=False,
             dask="allowed",
         )
 
         # Rotated (normalized) singular vectors
-        comps1_rot = comps1_rot / norm1_rot
-        comps2_rot = comps2_rot / norm2_rot
+        Qx_rot = Qx_rot / norm1_rot
+        Qy_rot = Qy_rot / norm2_rot
 
         # Remove the squaring introduced by the squared loadings approach
         if use_squared_loadings:
@@ -258,6 +279,13 @@ class MCARotator(MCA):
         scores1 = self.model.data["scores1"].sel(mode=slice(1, n_modes))
         scores2 = self.model.data["scores2"].sel(mode=slice(1, n_modes))
 
+        scores1 = self.whitener1.inverse_transform_scores(scores1)
+        scores2 = self.whitener2.inverse_transform_scores(scores2)
+
+        # Normalize scores
+        scores1 = scores1 / np.sqrt(svalues)
+        scores2 = scores2 / np.sqrt(svalues)
+
         RinvT = self._compute_rot_mat_inv_trans(
             rot_matrix, input_dims=("mode_m", "mode_n")
         )
@@ -265,15 +293,20 @@ class MCARotator(MCA):
         scores1 = scores1.rename({"mode": "mode_m"})
         scores2 = scores2.rename({"mode": "mode_m"})
         RinvT = RinvT.rename({"mode_n": "mode"})
-        scores1_rot = xr.dot(scores1, RinvT, dims="mode_m")
-        scores2_rot = xr.dot(scores2, RinvT, dims="mode_m")
+        scores1_rot = xr.dot(scores1, RinvT, dims="mode_m") * norm1_rot
+        scores2_rot = xr.dot(scores2, RinvT, dims="mode_m") * norm2_rot
 
         # Ensure consitent signs for deterministic output
-        modes_sign = get_deterministic_sign_multiplier(rot_loadings, self.feature_name)
-        comps1_rot = comps1_rot * modes_sign
-        comps2_rot = comps2_rot * modes_sign
+        modes_sign = get_deterministic_sign_multiplier(rot_loadings, common_feature_dim)
+        Qx_rot = Qx_rot * modes_sign
+        Qy_rot = Qy_rot * modes_sign
         scores1_rot = scores1_rot * modes_sign
         scores2_rot = scores2_rot * modes_sign
+
+        # For consistency with the unrotated model classes, we transform the pattern vectors
+        # into the whitened PC space
+        Qx_rot = self.whitener1.transform_components(Qx_rot)
+        Qy_rot = self.whitener2.transform_components(Qy_rot)
 
         # Create data container
         self.data.add(
@@ -282,8 +315,8 @@ class MCARotator(MCA):
         self.data.add(
             name="input_data2", data=self.model.data["input_data2"], allow_compute=False
         )
-        self.data.add(name="components1", data=comps1_rot)
-        self.data.add(name="components2", data=comps2_rot)
+        self.data.add(name="components1", data=Qx_rot)
+        self.data.add(name="components2", data=Qy_rot)
         self.data.add(name="scores1", data=scores1_rot)
         self.data.add(name="scores2", data=scores2_rot)
         self.data.add(name="squared_covariance", data=squared_covariance)
@@ -348,18 +381,21 @@ class MCARotator(MCA):
         )
         RinvT = RinvT.rename({"mode_n": "mode"})
 
+        scaling = self.model.singular_values().sel(mode=slice(1, n_modes))
+        scaling = np.sqrt(scaling)
+
         results = []
 
         if data1 is not None:
             # Select the (non-rotated) singular vectors of the first dataset
             comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
-            norm1 = self.model.data["norm1"].sel(mode=slice(1, n_modes))
 
             # Preprocess the data
+            comps1 = self.whitener1.inverse_transform_components(comps1)
             data1 = self.preprocessor1.transform(data1)
 
             # Compute non-rotated scores by projecting the data onto non-rotated components
-            projections1 = xr.dot(data1, comps1) / norm1
+            projections1 = xr.dot(data1, comps1) / scaling
             # Rotate the scores
             projections1 = projections1.rename({"mode": "mode_m"})
             projections1 = xr.dot(projections1, RinvT, dims="mode_m")
@@ -371,6 +407,9 @@ class MCARotator(MCA):
             # Adapt the sign of the scores
             projections1 = projections1 * self.data["modes_sign"]
 
+            # Unscale the scores
+            projections1 = projections1 * self.data["norm1"]
+
             # Unstack the projections
             projections1 = self.preprocessor1.inverse_transform_scores(projections1)
 
@@ -379,13 +418,13 @@ class MCARotator(MCA):
         if data2 is not None:
             # Select the (non-rotated) singular vectors of the second dataset
             comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
-            norm2 = self.model.data["norm2"].sel(mode=slice(1, n_modes))
 
             # Preprocess the data
+            comps2 = self.whitener2.inverse_transform_components(comps2)
             data2 = self.preprocessor2.transform(data2)
 
             # Compute non-rotated scores by project the data onto non-rotated components
-            projections2 = xr.dot(data2, comps2) / norm2
+            projections2 = xr.dot(data2, comps2) / scaling
             # Rotate the scores
             projections2 = projections2.rename({"mode": "mode_m"})
             projections2 = xr.dot(projections2, RinvT, dims="mode_m")
@@ -396,6 +435,9 @@ class MCARotator(MCA):
                 ).assign_coords(mode=projections2.mode)
             # Determine the sign of the scores
             projections2 = projections2 * self.data["modes_sign"]
+
+            # Unscale the scores
+            projections2 = projections2 * self.data["norm2"]
 
             # Unstack the projections
             projections2 = self.preprocessor2.inverse_transform_scores(projections2)
@@ -408,6 +450,13 @@ class MCARotator(MCA):
             return results[0]
         else:
             return results
+
+    def singular_values(self):
+        """Get the singular values of the cross-covariance matrix."""
+        # TODO(nicrie): only for backwards compatibility, remove in future as it is redundant; singular values can be obtained straight from the unrotated model
+        # TODO(nicrie): add deprecation warning
+        n_modes = self._params["n_modes"]
+        return self.model.data["singular_values"].sel(mode=slice(1, n_modes))
 
 
 class ComplexMCARotator(MCARotator, ComplexMCA):
@@ -463,15 +512,11 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
         self.attrs.update({"model": "Complex Rotated MCA"})
         self.model = ComplexMCA()
 
-    def transform(self, **kwargs):
+    def transform(
+        self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
+    ) -> Sequence[DataArray]:
         # Here we make use of the Method Resolution Order (MRO) to call the
         # transform method of the first class in the MRO after `MCARotator`
         # that has a transform method. In this case it will be `ComplexMCA`,
         # which will raise an error because it does not have a transform method.
-        super(MCARotator, self).transform(**kwargs)
-
-    def homogeneous_patterns(self, **kwargs):
-        super(MCARotator, self).homogeneous_patterns(**kwargs)
-
-    def heterogeneous_patterns(self, **kwargs):
-        super(MCARotator, self).homogeneous_patterns(**kwargs)
+        return super(MCARotator, self).transform(X, Y, normalized)

@@ -50,8 +50,8 @@ def pearson_correlation(
 
     def _correlation_coefficients_numpy(X, Y):
         """Compute Pearson correlation coefficients assuming centered data."""
-        X = X / X.std()
-        Y = Y / Y.std()
+        X = X / X.std(0)
+        Y = Y / Y.std(0)
         return X.conj().T @ Y / X.shape[0]
 
     n_samples = data1.shape[0]
