@@ -3,10 +3,9 @@ from typing import Dict, Optional
 
 import numpy as np
 import xarray as xr
-from dask.base import compute as dask_compute
 from typing_extensions import Self
 
-from ..models._np_classes.svd import SVD
+from ..models.svd import SVD
 from ..utils.data_types import (
     DataArray,
     Dims,
@@ -144,23 +143,13 @@ class Whitener(Transformer):
                 svd = SVD(
                     n_modes=self.n_modes,
                     init_rank_reduction=self.init_rank_reduction,
+                    compute=self.compute_svd,
                     random_state=self.random_state,
+                    sample_name=self.sample_name,
+                    feature_name=self.feature_name,
                     **self.solver_kwargs,
                 )
-                _, s, V = xr.apply_ufunc(
-                    svd.fit_transform,
-                    X,
-                    input_core_dims=[[self.sample_name, self.feature_name]],
-                    output_core_dims=[
-                        [self.sample_name, "mode"],
-                        ["mode"],
-                        [self.feature_name, "mode"],
-                    ],
-                    dask="allowed",
-                )
-
-                if self.compute_svd:
-                    s, V = dask_compute(s, V)
+                _, s, V = svd.fit_transform(X)
 
                 n_c: float = np.sqrt(n_samples - 1)
                 self.T: DataArray = V * (s / n_c) ** (self.alpha - 1)

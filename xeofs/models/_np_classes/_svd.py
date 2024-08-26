@@ -31,7 +31,7 @@ def get_deterministic_sign_multiplier(data, axis: int):
     return sign_multiplier
 
 
-class SVD:
+class _SVD:
     """Decomposes a data object using Singular Value Decomposition (SVD).
 
     The data object will be decomposed like X = U * S * V.T, where U and V are

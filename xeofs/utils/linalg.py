@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..models._np_classes.svd import SVD
+from ..models._np_classes._svd import _SVD
 
 
 def fractional_matrix_power(C, power, **kwargs):
@@ -13,7 +13,7 @@ def fractional_matrix_power(C, power, **kwargs):
     if C.shape[0] != C.shape[1]:
         raise ValueError("Matrix must be square.")
 
-    svd = SVD(n_modes="all", **kwargs)
+    svd = _SVD(n_modes="all", **kwargs)
     _, s, V = svd.fit_transform(C)
 
     # cut off small singular values

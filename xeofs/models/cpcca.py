@@ -17,9 +17,14 @@ from .decomposer import Decomposer
 
 
 class ContinuumPowerCCA(_BaseModelCrossSet):
-    """Continuum Power CCA.
+    """Continuum Power CCA (CPCCA)
 
-    CCA is a statistical method that finds patterns of maximum correlation between two datasets.
+    CPCCA is an extension of continuum power regression for isolating pairs of
+    coupled patterns whose temporal variation maximizes the squared covariance
+    between partially whitened variables
+
+    CCA is a statistical method that finds patterns of maximum correlation
+    between two datasets.
 
     Parameters
     ----------
