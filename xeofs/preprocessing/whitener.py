@@ -94,7 +94,7 @@ class Whitener(Transformer):
                 )
             )
 
-    def _get_n_modes(self, X: xr.DataArray) -> int | float:
+    def _get_n_modes(self, X: DataArray) -> int | float:
         if isinstance(self.n_modes, str):
             if self.n_modes == "all":
                 return min(X.shape)
@@ -118,7 +118,7 @@ class Whitener(Transformer):
 
     def fit(
         self,
-        X: xr.DataArray,
+        X: DataArray,
         sample_dims: Optional[Dims] = None,
         feature_dims: Optional[DimsList] = None,
     ) -> Self:
@@ -143,10 +143,10 @@ class Whitener(Transformer):
                     **self.solver_kwargs,
                 )
                 decomposer.fit(X, dims=(self.sample_name, self.feature_name))
-                s = decomposer.s_
-                V = decomposer.V_
+                s: DataArray = decomposer.s_
+                V: DataArray = decomposer.V_
 
-                n_c = np.sqrt(n_samples - 1)
+                n_c: float = np.sqrt(n_samples - 1)
                 self.T: DataArray = V * (s / n_c) ** (self.alpha - 1)
                 self.Tinv = (s / n_c) ** (1 - self.alpha) * V.conj().T
                 self.s = s
@@ -163,9 +163,7 @@ class Whitener(Transformer):
 
         return self
 
-    def _compute_whitener_transform(
-        self, X: xr.DataArray
-    ) -> tuple[DataArray, DataArray]:
+    def _compute_whitener_transform(self, X: DataArray) -> tuple[DataArray, DataArray]:
         T, Tinv = xr.apply_ufunc(
             self._compute_whitener_transform_numpy,
             X,
@@ -201,7 +199,7 @@ class Whitener(Transformer):
         else:
             return C_scaled.real
 
-    def get_Tinv(self, unwhiten_only=False) -> xr.DataArray:
+    def get_Tinv(self, unwhiten_only=False) -> DataArray:
         """Get the inverse transformation to unwhiten the data without PC transform.
 
         In contrast to `inverse_transform()`, this method returns the inverse transformation matrix without the PC transformation. That is, for PC transormed data this transformation only unwhitens the data without transforming back into the input space. For non-PC transformed data, this transformation is equivalent to the inverse transformation.
@@ -221,7 +219,7 @@ class Whitener(Transformer):
         else:
             return self.Tinv
 
-    def transform(self, X: xr.DataArray) -> DataArray:
+    def transform(self, X: DataArray) -> DataArray:
         """Transform new data into the fractional whitened PC space."""
 
         self._sanity_check_input(X)
@@ -234,7 +232,7 @@ class Whitener(Transformer):
 
     def fit_transform(
         self,
-        X: xr.DataArray,
+        X: DataArray,
         sample_dims: Optional[Dims] = None,
         feature_dims: Optional[DimsList] = None,
     ) -> DataArray:
@@ -245,7 +243,7 @@ class Whitener(Transformer):
 
         Parameters
         ----------
-        X: xr.DataArray
+        X: DataArray
             Data to transform back into original space.
         unwhiten_only: bool, default=False
             If True, only unwhiten the data without transforming back into the input space. This is useful when the data was transformed with PCA before whitening and you need the unwhitened data in the PC space.
