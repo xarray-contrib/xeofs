@@ -252,6 +252,18 @@ class Whitener(Transformer):
             X = X.rename({self.feature_name: "mode"})
             return xr.dot(X, T_inv, dims="mode")
 
+    def transform_components(self, X: DataArray) -> DataArray:
+        """Transform 2D components (feature x mode) into whitened PC space."""
+
+        if self.is_identity:
+            return X
+        else:
+            dummy_dim = "dummy_dim"
+            VS = self.T.conj().T
+            VS = VS.rename({"mode": dummy_dim})
+            transformed = xr.dot(VS, X, dims=self.feature_name)
+            return transformed.rename({dummy_dim: self.feature_name})
+
     def inverse_transform_components(self, X: DataArray) -> DataArray:
         """Transform 2D components (feature x mode) from whitened PC space back into original space."""
 
