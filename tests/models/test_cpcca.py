@@ -6,8 +6,8 @@ import xarray as xr
 from xeofs.models.cpcca import ContinuumPowerCCA
 
 
-def generate_random_data(shape, lazy=False):
-    rng = np.random.default_rng(142)
+def generate_random_data(shape, lazy=False, seed=142):
+    rng = np.random.default_rng(seed)
     if lazy:
         return xr.DataArray(
             da.random.random(shape, chunks=(5, 5)),
@@ -225,298 +225,29 @@ def test_components_coordinates(shapeX, shapeY, alpha, use_pca):
     xr.testing.assert_equal(components2.coords["feature"], Y.coords["feature"])
 
 
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_singular_values(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     n_modes = mca_model.get_params()["n_modes"]
-#     svals = mca_model.singular_values()
-#     assert isinstance(svals, xr.DataArray)
-#     assert svals.size == n_modes
+@pytest.mark.parametrize(
+    "correction",
+    [(None), ("fdr_bh")],
+)
+def test_homogeneous_patterns(correction):
+    X = generate_random_data((200, 10), seed=123)
+    Y = generate_random_data((200, 20), seed=321)
+
+    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca.fit(X, Y, "sample")
+
+    _ = cpcca.homogeneous_patterns(correction=correction)
 
 
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_covariance_fraction(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     cf = mca_model.covariance_fraction()
-#     assert isinstance(cf, xr.DataArray)
-#     assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
+@pytest.mark.parametrize(
+    "correction",
+    [(None), ("fdr_bh")],
+)
+def test_heterogeneous_patterns(correction):
+    X = generate_random_data((200, 10), seed=123)
+    Y = generate_random_data((200, 20), seed=321)
 
+    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca.fit(X, Y, "sample")
 
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_components_dataset(mca_model, mock_dataset, dim):
-#     mca_model.fit(mock_dataset, mock_dataset, dim)
-#     components1, components2 = mca_model.components()
-#     feature_dims = tuple(set(mock_dataset.dims) - set(dim))
-#     assert isinstance(components1, xr.Dataset)
-#     assert isinstance(components2, xr.Dataset)
-#     assert set(components1.data_vars) == set(
-#         mock_dataset.data_vars
-#     ), "Components does not have the same data variables as the input Dataset"
-#     assert set(components2.data_vars) == set(
-#         mock_dataset.data_vars
-#     ), "Components does not have the same data variables as the input Dataset"
-#     assert set(components1.dims) == set(
-#         ("mode",) + feature_dims
-#     ), "Components does not have the right feature dimensions"
-#     assert set(components2.dims) == set(
-#         ("mode",) + feature_dims
-#     ), "Components does not have the right feature dimensions"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_components_dataarray_list(mca_model, mock_data_array_list, dim):
-#     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
-#     components1, components2 = mca_model.components()
-#     feature_dims = [tuple(set(data.dims) - set(dim)) for data in mock_data_array_list]
-#     assert isinstance(components1, list)
-#     assert isinstance(components2, list)
-#     assert len(components1) == len(mock_data_array_list)
-#     assert len(components2) == len(mock_data_array_list)
-#     assert isinstance(components1[0], xr.DataArray)
-#     assert isinstance(components2[0], xr.DataArray)
-#     for comp, feat_dims in zip(components1, feature_dims):
-#         assert set(comp.dims) == set(
-#             ("mode",) + feat_dims
-#         ), "Components1 does not have the right feature dimensions"
-#     for comp, feat_dims in zip(components2, feature_dims):
-#         assert set(comp.dims) == set(
-#             ("mode",) + feat_dims
-#         ), "Components2 does not have the right feature dimensions"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_scores(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     scores1, scores2 = mca_model.scores()
-#     assert isinstance(scores1, xr.DataArray)
-#     assert isinstance(scores2, xr.DataArray)
-#     assert set(scores1.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores1 does not have the right dimensions"
-#     assert set(scores2.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores2 does not have the right dimensions"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_scores_dataset(mca_model, mock_dataset, dim):
-#     mca_model.fit(mock_dataset, mock_dataset, dim)
-#     scores1, scores2 = mca_model.scores()
-#     assert isinstance(scores1, xr.DataArray)
-#     assert isinstance(scores2, xr.DataArray)
-#     assert set(scores1.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores1 does not have the right dimensions"
-#     assert set(scores2.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores2 does not have the right dimensions"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_scores_dataarray_list(mca_model, mock_data_array_list, dim):
-#     mca_model.fit(mock_data_array_list, mock_data_array_list, dim)
-#     scores1, scores2 = mca_model.scores()
-#     assert isinstance(scores1, xr.DataArray)
-#     assert isinstance(scores2, xr.DataArray)
-#     assert set(scores1.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores1 does not have the right dimensions"
-#     assert set(scores2.dims) == set(
-#         (dim + ("mode",))
-#     ), "Scores2 does not have the right dimensions"
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_homogeneous_patterns(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     patterns, pvals = mca_model.homogeneous_patterns()
-#     assert isinstance(patterns[0], xr.DataArray)
-#     assert isinstance(patterns[1], xr.DataArray)
-#     assert isinstance(pvals[0], xr.DataArray)
-#     assert isinstance(pvals[1], xr.DataArray)
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
-#     mca_model.fit(mock_data_array, mock_data_array, dim)
-#     patterns, pvals = mca_model.heterogeneous_patterns()
-#     assert isinstance(patterns[0], xr.DataArray)
-#     assert isinstance(patterns[1], xr.DataArray)
-#     assert isinstance(pvals[0], xr.DataArray)
-#     assert isinstance(pvals[1], xr.DataArray)
-
-
-# @pytest.mark.parametrize(
-#     "dim, compute",
-#     [
-#         (("time",), True),
-#         (("lat", "lon"), True),
-#         (("lon", "lat"), True),
-#         (("time",), False),
-#         (("lat", "lon"), False),
-#         (("lon", "lat"), False),
-#     ],
-# )
-# def test_compute(mock_dask_data_array, dim, compute):
-#     mca_model = MCA(n_modes=10, compute=compute, n_pca_modes=10)
-#     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
-
-#     if compute:
-#         assert not data_is_dask(mca_model.data["squared_covariance"])
-#         assert not data_is_dask(mca_model.data["components1"])
-#         assert not data_is_dask(mca_model.data["components2"])
-
-#     else:
-#         assert data_is_dask(mca_model.data["squared_covariance"])
-#         assert data_is_dask(mca_model.data["components1"])
-#         assert data_is_dask(mca_model.data["components2"])
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# @pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
-# def test_save_load(dim, mock_data_array, tmp_path, engine):
-#     """Test save/load methods in MCA class, ensuring that we can
-#     roundtrip the model and get the same results when transforming
-#     data."""
-#     original = MCA()
-#     original.fit(mock_data_array, mock_data_array, dim)
-
-#     # Save the EOF model
-#     original.save(tmp_path / "mca", engine=engine)
-
-#     # Check that the EOF model has been saved
-#     assert (tmp_path / "mca").exists()
-
-#     # Recreate the model from saved file
-#     loaded = MCA.load(tmp_path / "mca", engine=engine)
-
-#     # Check that the params and DataContainer objects match
-#     assert original.get_params() == loaded.get_params()
-#     assert all([key in loaded.data for key in original.data])
-#     for key in original.data:
-#         if original.data._allow_compute[key]:
-#             assert loaded.data[key].equals(original.data[key])
-#         else:
-#             # but ensure that input data is not saved by default
-#             assert loaded.data[key].size <= 1
-#             assert loaded.data[key].attrs["placeholder"] is True
-
-#     # Test that the recreated model can be used to transform new data
-#     assert np.allclose(
-#         original.transform(mock_data_array, mock_data_array),
-#         loaded.transform(mock_data_array, mock_data_array),
-#     )
-
-#     # The loaded model should also be able to inverse_transform new data
-#     assert np.allclose(
-#         original.inverse_transform(*original.scores()),
-#         loaded.inverse_transform(*loaded.scores()),
-#     )
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_serialize_deserialize_dataarray(dim, mock_data_array):
-#     """Test roundtrip serialization when the model is fit on a DataArray."""
-#     model = MCA()
-#     model.fit(mock_data_array, mock_data_array, dim)
-#     dt = model.serialize()
-#     rebuilt_model = MCA.deserialize(dt)
-#     assert np.allclose(
-#         model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
-#     )
-
-
-# @pytest.mark.parametrize(
-#     "dim",
-#     [
-#         (("time",)),
-#         (("lat", "lon")),
-#         (("lon", "lat")),
-#     ],
-# )
-# def test_serialize_deserialize_dataset(dim, mock_dataset):
-#     """Test roundtrip serialization when the model is fit on a Dataset."""
-#     model = MCA()
-#     model.fit(mock_dataset, mock_dataset, dim)
-#     dt = model.serialize()
-#     rebuilt_model = MCA.deserialize(dt)
-#     assert np.allclose(
-#         model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
-#     )
+    _ = cpcca.heterogeneous_patterns(correction=correction)
