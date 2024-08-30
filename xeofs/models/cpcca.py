@@ -35,12 +35,14 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
     ----------
     n_modes : int, default=2
         Number of modes to calculate.
+    alpha : Sequence[float] | float, default=0.2
+        Degree of whitening applied to the data. If float, the same value is applied to both data sets.
     standardize : Squence[bool] | bool, default=False
         Whether to standardize the input data. Generally not recommended as standardization can be managed by the degree of whitening.
     use_coslat : Sequence[bool] | bool, default=False
         For data on a longitude-latitude grid, whether to correct for varying grid cell areas towards the poles by scaling each grid point with the square root of the cosine of its latitude.
     use_pca : Sequence[bool] | bool, default=False
-        Whether to preprocess each field individually by reducing dimensionality through PCA. The cross-covariance matrix is computed in the reduced principal component space.
+        Whether to preprocess each field individually by reducing dimensionality through PCA. The cross-covariance matrix is then computed in the reduced principal component space.
     n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
         Number of modes to retain during PCA preprocessing step. If int, specifies the exact number of modes; if float, specifies the fraction of variance to retain; if "all", all modes are retained.
     pca_init_rank_reduction : Sequence[float] | float, default=0.3
@@ -62,14 +64,12 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
 
     Notes
     -----
-    CCA, MCA and RDA are all special cases of CPCCA depending on the choice of the parameters :math:`\\alpha_x` and :math:`\\alpha_y`.
+    Canonical Correlation Analysis (CCA), Maximum Covariance Analysis (MCA) and Redundany Analysis (RDA) are all special cases of CPCCA depending on the choice of the parameter :math:`\\alpha`.
 
     References
     ----------
     .. [1] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
     .. [2] Wilks, D. S. Statistical Methods in the Atmospheric Sciences. (Academic Press, 2019). doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
-
-
 
     Examples
     --------
@@ -82,6 +82,22 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
 
     >>> model = CPCCA(n_modes=5, alpha=0.2)
     >>> model.fit(X, Y)
+
+    Perform Maximum Covariance Analysis:
+
+    >>> model = CPCCA(n_modes=5, alpha=1.0)
+    >>> model.fit(X, Y)
+
+    Perform Redundancy Analysis:
+
+    >>> model = CPCCA(n_modes=5, alpha=[0, 1])
+    >>> model.fit(X, Y)
+
+    Make predictions for `Y` given `X`:
+
+    >>> scores_y_pred = model.predict(X)  # prediction in "PC" space
+    >>> Y_pred = model.inverse_transform(Y=scores_y_pred)  # prediction in physical space
+
 
     """
 
@@ -343,17 +359,29 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         return results
 
     def _inverse_transform_algorithm(
-        self, X: DataArray, Y: DataArray
-    ) -> Tuple[DataArray, DataArray]:
-        # Singular vectors
-        comps1 = self.data["components1"].sel(mode=X.mode)
-        comps2 = self.data["components2"].sel(mode=Y.mode)
+        self, X: DataArray | None = None, Y: DataArray | None = None
+    ) -> dict[str, DataArray]:
+        x_is_given = X is not None
+        y_is_given = Y is not None
 
-        # Reconstruct the data
-        data1 = xr.dot(X, comps1.conj(), dims="mode")
-        data2 = xr.dot(Y, comps2.conj(), dims="mode")
+        if (not x_is_given) and (not y_is_given):
+            raise ValueError("Either X or Y must be given.")
 
-        return data1, data2
+        results = {}
+
+        if x_is_given:
+            # Singular vectors
+            comps1 = self.data["components1"].sel(mode=X.mode)
+            # Reconstruct the data
+            results["X"] = xr.dot(X, comps1.conj(), dims="mode")
+
+        if y_is_given:
+            # Singular vectors
+            comps2 = self.data["components2"].sel(mode=Y.mode)
+            # Reconstruct the data
+            results["Y"] = xr.dot(Y, comps2.conj(), dims="mode")
+
+        return results
 
     def _predict_algorithm(self, X: DataArray) -> DataArray:
         sample_name_fit_x = "sample_fit_dim_x"

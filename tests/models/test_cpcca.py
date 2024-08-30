@@ -265,3 +265,16 @@ def test_heterogeneous_patterns(correction):
     cpcca.fit(X, Y, "sample")
 
     _ = cpcca.heterogeneous_patterns(correction=correction)
+
+
+def test_predict():
+    X = generate_random_data((200, 10), seed=123)
+    Y = generate_random_data((200, 20), seed=321)
+
+    cpcca = ContinuumPowerCCA(n_modes=10, alpha=0.2, use_pca=False)
+    cpcca.fit(X, Y, "sample")
+
+    Xnew = generate_random_data((200, 10), seed=123)
+
+    Ry_pred = cpcca.predict(Xnew)
+    _ = cpcca.inverse_transform(Y=Ry_pred)

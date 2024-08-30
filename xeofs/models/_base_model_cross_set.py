@@ -221,8 +221,8 @@ class _BaseModelCrossSet(_BaseModel):
 
     @abstractmethod
     def _inverse_transform_algorithm(
-        self, X: DataArray, Y: DataArray, **kwargs
-    ) -> tuple[DataArray, DataArray]:
+        self, X: DataArray | None = None, Y: DataArray | None = None, **kwargs
+    ) -> dict[str, DataArray]:
         """
         Reconstruct the original data from transformed data. This method needs to be implemented in the respective
         subclass.
@@ -352,8 +352,8 @@ class _BaseModelCrossSet(_BaseModel):
         return data_list
 
     def inverse_transform(
-        self, X: DataArray, Y: DataArray
-    ) -> tuple[DataObject, DataObject]:
+        self, X: DataArray | None = None, Y: DataArray | None = None
+    ) -> Sequence[DataObject] | DataObject:
         """Reconstruct the original data from transformed data.
 
         Parameters
@@ -375,21 +375,42 @@ class _BaseModelCrossSet(_BaseModel):
             Reconstructed data of right field.
 
         """
-        # Handle scalar mode in xr.dot
-        if "mode" not in X.dims:
-            X = X.expand_dims("mode")
-        if "mode" not in Y.dims:
-            Y = Y.expand_dims("mode")
+        x_is_given = X is not None
+        y_is_given = Y is not None
 
-        X, Y = self._inverse_transform_algorithm(X, Y)
+        if (not x_is_given) and (not y_is_given):
+            raise ValueError("Either X or Y must be provided.")
+
+        if x_is_given:
+            # Handle scalar mode in xr.dot
+            if "mode" not in X.dims:
+                X = X.expand_dims("mode")
+
+        if y_is_given:
+            # Handle scalar mode in xr.dot
+            if "mode" not in Y.dims:
+                Y = Y.expand_dims("mode")
+
+        inv_transformed = self._inverse_transform_algorithm(X, Y)
+
+        results: list[DataObject] = []
 
         # Unstack and rescale the data
-        X = self.whitener1.inverse_transform_data(X)
-        Y = self.whitener2.inverse_transform_data(Y)
-        X = self.preprocessor1.inverse_transform_data(X)
-        Y = self.preprocessor2.inverse_transform_data(Y)
+        if x_is_given:
+            X = inv_transformed["X"]
+            X = self.whitener1.inverse_transform_data(X)
+            X: DataObject = self.preprocessor1.inverse_transform_data(X)
+            results.append(X)
+        if y_is_given:
+            Y = inv_transformed["Y"]
+            Y = self.whitener2.inverse_transform_data(Y)
+            Y: DataObject = self.preprocessor2.inverse_transform_data(Y)
+            results.append(Y)
 
-        return X, Y
+        if len(results) == 1:
+            return results[0]
+        else:
+            return results
 
     def predict(self, X: DataObject) -> DataArray:
         """Predict the right field from the left field."""
