@@ -8,9 +8,11 @@ Methods that investigate relationships or patterns between variables across two 
    :template: custom-class-template.rst
    :recursive:
 
-   xeofs.models.MCA
-   xeofs.models.ComplexMCA
    xeofs.models.CCA
+   xeofs.models.MCA
+   xeofs.models.ContinuumPowerCCA
+   xeofs.models.ComplexMCA
+   xeofs.models.ComplexCPCCA
 
 ------------------------------
 Sparse Solutions via Rotation
@@ -22,4 +24,6 @@ Sparse Solutions via Rotation
    :recursive:
 
    xeofs.models.MCARotator
+   xeofs.models.CPCCARotator
    xeofs.models.ComplexMCARotator
+   xeofs.models.ComplexCPCCARotator
