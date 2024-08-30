@@ -14,7 +14,7 @@ from ._base_model_cross_set import _BaseModelCrossSet
 from .decomposer import Decomposer
 
 
-class ContinuumPowerCCA(_BaseModelCrossSet):
+class CPCCA(_BaseModelCrossSet):
     """Continuum Power CCA (CPCCA).
 
     CPCCA extends continuum power regression to isolate pairs of coupled
@@ -1007,7 +1007,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         return X / X.std(dim)
 
 
-class ComplexCPCCA(ContinuumPowerCCA):
+class ComplexCPCCA(CPCCA):
     """Complex CPCCA.
 
     Complex CPCCA (Hilbert CPCCA) extends classical CPCCA [1]_ by examining

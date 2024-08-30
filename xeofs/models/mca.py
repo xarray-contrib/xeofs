@@ -4,10 +4,10 @@ from typing import Sequence
 import numpy as np
 
 from ..utils.data_types import DataArray
-from .cpcca import ComplexCPCCA, ContinuumPowerCCA
+from .cpcca import CPCCA, ComplexCPCCA
 
 
-class MCA(ContinuumPowerCCA):
+class MCA(CPCCA):
     """Maximum Covariance Analysis (MCA).
 
     MCA seeks to find paris of coupled patterns that maximize the squared
@@ -102,7 +102,7 @@ class MCA(ContinuumPowerCCA):
         solver_kwargs: dict = {},
         **kwargs,
     ):
-        # NOTE: **kwargs is only used here to catch any additional arguments that may be passed during deserialization. During .serialize(), the MCA model stores all model parameters from the parent class ContinuumPowerCCA. During deserialization, `use_pca` and `alpha` are passed to the child class MCA where there are not present and would raise an error. To avoid this, we catch all additional arguments here and ignore them.
+        # NOTE: **kwargs is only used here to catch any additional arguments that may be passed during deserialization. During .serialize(), the MCA model stores all model parameters from the parent class CPCCA. During deserialization, `use_pca` and `alpha` are passed to the child class MCA where there are not present and would raise an error. To avoid this, we catch all additional arguments here and ignore them.
         super().__init__(
             n_modes=n_modes,
             alpha=[1.0, 1.0],

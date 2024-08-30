@@ -1,5 +1,5 @@
 from .cca import CCA
-from .cpcca import ComplexCPCCA, ContinuumPowerCCA
+from .cpcca import CPCCA, ComplexCPCCA
 from .cpcca_rotator import ComplexCPCCARotator, CPCCARotator
 from .eeof import ExtendedEOF
 from .eof import EOF, ComplexEOF
@@ -22,7 +22,7 @@ __all__ = [
     "GWPCA",
     "MCA",
     "CCA",
-    "ContinuumPowerCCA",
+    "CPCCA",
     "ComplexMCA",
     "ComplexCPCCA",
     "CPCCARotator",

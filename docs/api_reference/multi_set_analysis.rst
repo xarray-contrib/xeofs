@@ -10,7 +10,7 @@ Methods that investigate relationships or patterns between variables across two 
 
    xeofs.models.CCA
    xeofs.models.MCA
-   xeofs.models.ContinuumPowerCCA
+   xeofs.models.CPCCA
    xeofs.models.ComplexMCA
    xeofs.models.ComplexCPCCA
 

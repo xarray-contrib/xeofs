@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xeofs.models.cpcca import ContinuumPowerCCA
+from xeofs.models.cpcca import CPCCA
 
 
 def generate_random_data(shape, lazy=False, seed=142):
@@ -54,11 +54,11 @@ def generate_well_conditioned_data(lazy=False):
 
 @pytest.fixture
 def cpcca():
-    return ContinuumPowerCCA(n_modes=1)
+    return CPCCA(n_modes=1)
 
 
 def test_initialization():
-    model = ContinuumPowerCCA()
+    model = CPCCA()
     assert model is not None
 
 
@@ -129,9 +129,7 @@ def test_inverse_transform(cpcca):
 )
 def test_squared_covariance_fraction(alpha, use_pca):
     X, Y = generate_well_conditioned_data()
-    cpcca = ContinuumPowerCCA(
-        n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
-    )
+    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
     scf = cpcca.squared_covariance_fraction()
     assert isinstance(scf, xr.DataArray)
@@ -158,9 +156,7 @@ def test_total_squared_covariance(alpha, use_pca):
     cov_mat = xr.cov(X_, Y_, dim="sample")
     tsc = (cov_mat**2).sum()
 
-    cpcca = ContinuumPowerCCA(
-        n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
-    )
+    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
     tsc_model = cpcca.data["total_squared_covariance"]
     xr.testing.assert_allclose(tsc, tsc_model)
@@ -169,7 +165,7 @@ def test_total_squared_covariance(alpha, use_pca):
 def test_alpha_integer():
     X, Y = generate_well_conditioned_data()
 
-    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
 
@@ -178,7 +174,7 @@ def test_fit_different_coordinates():
     X, Y = generate_well_conditioned_data()
     X = X.isel(sample=slice(0, 99))
     Y = Y.isel(sample=slice(100, 199))
-    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
     r = cpcca.cross_correlation_coefficients()
     # Correlation coefficents are not zero
@@ -194,7 +190,7 @@ def test_fit_different_coordinates():
     ],
 )
 def test_components(mock_data_array, dim):
-    cpcca = ContinuumPowerCCA(n_modes=2, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
     cpcca.fit(mock_data_array, mock_data_array, dim)
     components1, components2 = cpcca.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
@@ -230,9 +226,7 @@ def test_components_coordinates(shapeX, shapeY, alpha, use_pca):
     X = generate_random_data(shapeX)
     Y = generate_random_data(shapeY)
 
-    cpcca = ContinuumPowerCCA(
-        n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
-    )
+    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
     components1, components2 = cpcca.components()
     xr.testing.assert_equal(components1.coords["feature"], X.coords["feature"])
@@ -247,7 +241,7 @@ def test_homogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
     _ = cpcca.homogeneous_patterns(correction=correction)
@@ -261,7 +255,7 @@ def test_heterogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
     _ = cpcca.heterogeneous_patterns(correction=correction)
@@ -271,7 +265,7 @@ def test_predict():
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(n_modes=10, alpha=0.2, use_pca=False)
+    cpcca = CPCCA(n_modes=10, alpha=0.2, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
     Xnew = generate_random_data((200, 10), seed=123)

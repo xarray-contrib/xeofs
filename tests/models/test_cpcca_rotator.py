@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xeofs.models import ContinuumPowerCCA, CPCCARotator
+from xeofs.models import CPCCA, CPCCARotator
 
 
 def generate_random_data(shape, lazy=False, seed=142):
@@ -30,7 +30,7 @@ def test_homogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
     rotator = CPCCARotator(n_modes=4)
@@ -47,7 +47,7 @@ def test_heterogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
     rotator = CPCCARotator(n_modes=4)
@@ -71,9 +71,7 @@ def test_squared_covariance_fraction(alpha, use_pca):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(
-        n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
-    )
+    cpcca = CPCCA(n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
     rotator = CPCCARotator(n_modes=10)
     rotator.fit(cpcca)
@@ -98,9 +96,7 @@ def test_squared_covariance_fraction_conserved(alpha, use_pca):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ContinuumPowerCCA(
-        n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
-    )
+    cpcca = CPCCA(n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
 
     n_rot_modes = 5

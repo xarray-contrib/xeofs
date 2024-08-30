@@ -11,11 +11,11 @@ from ..utils.data_types import DataArray, DataObject
 from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ._base_model import _BaseModel
-from .cpcca import ComplexCPCCA, ContinuumPowerCCA
+from .cpcca import CPCCA, ComplexCPCCA
 
 
-class CPCCARotator(ContinuumPowerCCA):
-    """Rotate a solution obtained from ``xe.models.ContinuumPowerCCA``.
+class CPCCARotator(CPCCA):
+    """Rotate a solution obtained from ``xe.models.CPCCA``.
 
     Rotate the obtained components and scores of a CPCCA model to increase
     interpretability. The algorithm here is based on the approach of Cheng &
@@ -52,7 +52,7 @@ class CPCCARotator(ContinuumPowerCCA):
 
     Perform a CPCCA analysis:
 
-    >>> model = ContinuumPowerCCA(n_modes=10)
+    >>> model = CPCCA(n_modes=10)
     >>> model.fit(X, Y, dim='time')
 
     Then, apply varimax rotation to first 5 components and scores:
@@ -100,7 +100,7 @@ class CPCCARotator(ContinuumPowerCCA):
         self.whitener1 = Whitener()
         self.whitener2 = Whitener()
         self.data = DataContainer()
-        self.model = ContinuumPowerCCA()
+        self.model = CPCCA()
 
         self.sorted = False
 
@@ -289,13 +289,13 @@ class CPCCARotator(ContinuumPowerCCA):
 
         return self
 
-    def fit(self, model: ContinuumPowerCCA) -> Self:
-        """Rotate the solution obtained from ``xe.models.ContinuumPowerCCA``.
+    def fit(self, model: CPCCA) -> Self:
+        """Rotate the solution obtained from ``xe.models.CPCCA``.
 
         Parameters
         ----------
-        model : ``xe.models.ContinuumPowerCCA``
-            The ContinuumPowerCCA model to be rotated.
+        model : ``xe.models.CPCCA``
+            The CPCCA model to be rotated.
 
         """
         self._fit_algorithm(model)
