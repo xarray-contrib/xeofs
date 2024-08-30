@@ -332,7 +332,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         are computed as:
 
         .. math::
-            c_{xy, i} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{y, i}} \\right)
+            c_{xy, i} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{y, i} \\right)
 
         where :math:`\\mathbf{r}_{x, i}` and :math:`\\mathbf{r}_{y, i}` are the
         `i`th scores of ``X`` and ``Y``,
@@ -366,7 +366,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         The correlation coefficients of the scores of :math:`X` are given by:
 
         .. math::
-            c_{x, ij} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{x, j}} \\right)
+            c_{x, ij} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{x, j} \\right)
 
         where :math:`\\mathbf{r}_{x, i}` and :math:`\\mathbf{r}_{x, j}` are the
         `i`th and `j`th scores of :math:`X`.
@@ -392,7 +392,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         The correlation coefficients of the scores of :math:`Y` are given by:
 
         .. math::
-            c_{y, ij} = \\text{corr} \\left(\\mathbf{r}_{y, i}, \\mathbf{r}_{y, j}} \\right)
+            c_{y, ij} = \\text{corr} \\left(\\mathbf{r}_{y, i}, \\mathbf{r}_{y, j} \\right)
 
         where :math:`\\mathbf{r}_{y, i}` and :math:`\\mathbf{r}_{y, j}` are the
         `i`th and `j`th scores of :math:`Y`.
