@@ -8,8 +8,6 @@ from typing_extensions import Self
 from ..utils.data_types import DataArray, DataObject
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.linalg import fractional_matrix_power
-
-# from ..utils.sanity_checks import assert_not_complex
 from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import argsort_dask
 from ._base_model_cross_set import _BaseModelCrossSet
@@ -19,7 +17,9 @@ from .decomposer import Decomposer
 class ContinuumPowerCCA(_BaseModelCrossSet):
     """Continuum Power CCA (CPCCA).
 
-    CPCCA extends continuum power regression to isolate pairs of coupled patterns, maximizing the squared covariance between partially whitened variables [1]_ [2]_.
+    CPCCA extends continuum power regression to isolate pairs of coupled
+    patterns, maximizing the squared covariance between partially whitened
+    variables [1]_ [2]_.
 
     This method solves the following optimization problem:
 
@@ -27,30 +27,45 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
 
     subject to the constraints:
 
-        :math:`q_x^T (X^TX)^{1-\\alpha_x} q_x = 1, \\quad q_y^T (Y^TY)^{1-\\alpha_y} q_y = 1`
+        :math:`q_x^T (X^TX)^{1-\\alpha_x} q_x = 1, \\quad q_y^T
+        (Y^TY)^{1-\\alpha_y} q_y = 1`
 
-    where :math:`\\alpha_x` and :math:`\\alpha_y` control the degree of whitening applied to the data.
+    where :math:`\\alpha_x` and :math:`\\alpha_y` control the degree of
+    whitening applied to the data.
 
     Parameters
     ----------
     n_modes : int, default=2
         Number of modes to calculate.
     alpha : Sequence[float] | float, default=0.2
-        Degree of whitening applied to the data. If float, the same value is applied to both data sets.
+        Degree of whitening applied to the data. If float, the same value is
+        applied to both data sets.
     standardize : Squence[bool] | bool, default=False
-        Whether to standardize the input data. Generally not recommended as standardization can be managed by the degree of whitening.
+        Whether to standardize the input data. Generally not recommended as
+        standardization can be managed by the degree of whitening.
     use_coslat : Sequence[bool] | bool, default=False
-        For data on a longitude-latitude grid, whether to correct for varying grid cell areas towards the poles by scaling each grid point with the square root of the cosine of its latitude.
+        For data on a longitude-latitude grid, whether to correct for varying
+        grid cell areas towards the poles by scaling each grid point with the
+        square root of the cosine of its latitude.
     use_pca : Sequence[bool] | bool, default=False
-        Whether to preprocess each field individually by reducing dimensionality through PCA. The cross-covariance matrix is then computed in the reduced principal component space.
+        Whether to preprocess each field individually by reducing dimensionality
+        through PCA. The cross-covariance matrix is then computed in the reduced
+        principal component space.
     n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
-        Number of modes to retain during PCA preprocessing step. If int, specifies the exact number of modes; if float, specifies the fraction of variance to retain; if "all", all modes are retained.
+        Number of modes to retain during PCA preprocessing step. If int,
+        specifies the exact number of modes; if float, specifies the fraction of
+        variance to retain; if "all", all modes are retained.
     pca_init_rank_reduction : Sequence[float] | float, default=0.3
-        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the initial fraction of rank reduction for faster PCA computation via randomized SVD.
+        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the
+        initial fraction of rank reduction for faster PCA computation via
+        randomized SVD.
     check_nans : Sequence[bool] | bool, default=True
-        Whether to check for NaNs in the input data. Set to False for lazy model evaluation.
+        Whether to check for NaNs in the input data. Set to False for lazy model
+        evaluation.
     compute : bool, default=True
-        Whether to compute the model elements eagerly. If True, the following are computed sequentially: preprocessor scaler, optional NaN checks, SVD decomposition, scores, and components.
+        Whether to compute the model elements eagerly. If True, the following
+        are computed sequentially: preprocessor scaler, optional NaN checks, SVD
+        decomposition, scores, and components.
     random_state : numpy.random.Generator | int | None, default=None
         Seed for the random number generator.
     sample_name : str, default="sample"
@@ -64,12 +79,17 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
 
     Notes
     -----
-    Canonical Correlation Analysis (CCA), Maximum Covariance Analysis (MCA) and Redundany Analysis (RDA) are all special cases of CPCCA depending on the choice of the parameter :math:`\\alpha`.
+    Canonical Correlation Analysis (CCA), Maximum Covariance Analysis (MCA) and
+    Redundany Analysis (RDA) are all special cases of CPCCA depending on the
+    choice of the parameter :math:`\\alpha`.
 
     References
     ----------
-    .. [1] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
-    .. [2] Wilks, D. S. Statistical Methods in the Atmospheric Sciences. (Academic Press, 2019). doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
+    .. [1] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+    .. [2] Wilks, D. S. Statistical Methods in the Atmospheric Sciences.
+        (Academic Press, 2019).
+        doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
 
     Examples
     --------
@@ -142,113 +162,6 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         self.sample_name: str = params["sample_name"]
         self.feature_name: tuple[str, str] = params["feature_name"]
 
-    @staticmethod
-    def _normalize_data(X, dim):
-        # Assume centered data
-        return X / X.std(dim)
-
-    @staticmethod
-    def _compute_cross_covariance_numpy(X, Y):
-        # Assume centered data
-        n_samples_x = X.shape[0]
-        n_samples_y = Y.shape[0]
-        if n_samples_x != n_samples_y:
-            err_msg = f"Both data matrices must have the same number of samples but found {n_samples_x} in the first and {n_samples_y} in the second."
-            raise ValueError(err_msg)
-        return X.conj().T @ Y / (n_samples_x - 1)
-
-    def _compute_cross_covariance_diagonal_numpy(self, X, Y):
-        # Assume centered data
-        return np.diag(self._compute_cross_covariance_numpy(X, Y))
-
-    def _compute_cross_matrix(
-        self,
-        X: DataArray,
-        Y: DataArray,
-        sample_dim: str,
-        feature_dim_x: str,
-        feature_dim_y: str,
-        method: str = "covariance",
-        diagonal: bool = False,
-    ) -> DataArray:
-        """Compute the cross matrix of two data objects.
-
-        Assume centered data.
-
-        Parameters
-        ----------
-        X, Y : DataArray
-            DataArrays to compute the cross matrix from.
-        sample_dim : str
-            Name of the sample dimension.
-        feature_dim_x, feature_dim_y : str
-            Name of the feature dimensions. If the feature dimensions are the same, they are renamed to avoid conflicts.
-        method : {"covariance", "correlation"}
-            Method to compute the cross matrix.
-        diagonal : bool, default=False
-            Whether to compute the diagonal of the cross matrix.
-
-        Returns
-        -------
-        DataArray
-            The cross matrix of the two data objects.
-
-        """
-        if feature_dim_x == feature_dim_y:
-            new_feature_dim_x = feature_dim_x + "_x"
-            new_feature_dim_y = feature_dim_y + "_y"
-            X = X.rename({feature_dim_x: new_feature_dim_x})
-            Y = Y.rename({feature_dim_y: new_feature_dim_y})
-            feature_dim_x = new_feature_dim_x
-            feature_dim_y = new_feature_dim_y
-
-        # Rename the sample dimension to avoid conflicts for
-        # different coordinates with same length
-        sample_dim_x = sample_dim + "_x"
-        sample_dim_y = sample_dim + "_y"
-        X = X.rename({sample_dim: sample_dim_x})
-        Y = Y.rename({sample_dim: sample_dim_y})
-
-        if method == "correlation":
-            X = self._normalize_data(X, sample_dim_x)
-            Y = self._normalize_data(Y, sample_dim_y)
-
-        if diagonal:
-            return xr.apply_ufunc(
-                self._compute_cross_covariance_diagonal_numpy,
-                X,
-                Y,
-                input_core_dims=[
-                    [sample_dim_x, feature_dim_x],
-                    [sample_dim_y, feature_dim_y],
-                ],
-                output_core_dims=[[feature_dim_y]],
-                dask="allowed",
-            ).rename({feature_dim_y: feature_dim_y[:-2]})
-        else:
-            return xr.apply_ufunc(
-                self._compute_cross_covariance_numpy,
-                X,
-                Y,
-                input_core_dims=[
-                    [sample_dim_x, feature_dim_x],
-                    [sample_dim_y, feature_dim_y],
-                ],
-                output_core_dims=[[feature_dim_x, feature_dim_y]],
-                dask="allowed",
-            )
-
-    def _compute_total_squared_covariance(self, C: DataArray) -> DataArray:
-        """Compute the total squared covariance.
-
-        Requires the unwhitened covariance matrix which we can obtain by multiplying the whitened covariance matrix with the inverse of the whitening transformation matrix.
-        """
-        C = self.whitener2.inverse_transform_data(C)
-        C = self.whitener1.inverse_transform_data(C.conj().T)
-        # Not necessary to conjugate transpose for total squared covariance
-        # C = C.conj().T
-        return (abs(C) ** 2).sum()
-
     def _fit_algorithm(
         self,
         X: DataArray,
@@ -307,29 +220,6 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         # # Assign analysis-relevant meta data
         self.data.set_attrs(self.attrs)
         return self
-
-    def _get_scores(self, normalized=False):
-        norm1 = self.data["norm1"]
-        norm2 = self.data["norm2"]
-
-        scores1 = self.data["scores1"]
-        scores2 = self.data["scores2"]
-
-        if normalized:
-            scores1 = scores1 / norm1
-            scores2 = scores2 / norm2
-
-        return scores1, scores2
-
-    def _get_components(self, normalized=True):
-        comps1 = self.data["components1"]
-        comps2 = self.data["components2"]
-
-        if not normalized:
-            comps1 = comps1 * self.data["norm1"]
-            comps2 = comps2 * self.data["norm2"]
-
-        return comps1, comps2
 
     def _transform_algorithm(
         self,
@@ -412,19 +302,133 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         Ry_pred.name = "pseudo_scores_Y"
         return Ry_pred
 
+    def _get_components(self, normalized=True):
+        comps1 = self.data["components1"]
+        comps2 = self.data["components2"]
+
+        if not normalized:
+            comps1 = comps1 * self.data["norm1"]
+            comps2 = comps2 * self.data["norm2"]
+
+        return comps1, comps2
+
+    def _get_scores(self, normalized=False):
+        norm1 = self.data["norm1"]
+        norm2 = self.data["norm2"]
+
+        scores1 = self.data["scores1"]
+        scores2 = self.data["scores2"]
+
+        if normalized:
+            scores1 = scores1 / norm1
+            scores2 = scores2 / norm2
+
+        return scores1, scores2
+
+    def cross_correlation_coefficients(self):
+        """Get the cross-correlation coefficients.
+
+        The cross-correlation coefficients between the scores of ``X`` and ``Y``
+        are computed as:
+
+        .. math::
+            c_{xy, i} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{y, i}} \\right)
+
+        where :math:`\\mathbf{r}_{x, i}` and :math:`\\mathbf{r}_{y, i}` are the
+        `i`th scores of ``X`` and ``Y``,
+
+        Notes
+        -----
+        When :math:`\\alpha=0`, the cross-correlation coefficients are
+        equivalent to the canonical correlation coefficients.
+
+        """
+
+        Rx = self.data["scores1"]
+        Ry = self.data["scores2"]
+
+        cross_corr = self._compute_cross_matrix(
+            Rx,
+            Ry,
+            sample_dim=self.sample_name,
+            feature_dim_x="mode",
+            feature_dim_y="mode",
+            method="correlation",
+            diagonal=True,
+        )
+        cross_corr = cross_corr.real
+        cross_corr.name = "cross_correlation_coefficients"
+        return cross_corr
+
+    def correlation_coefficients_X(self):
+        """Get the correlation coefficients for the scores of :math:`X`.
+
+        The correlation coefficients of the scores of :math:`X` are given by:
+
+        .. math::
+            c_{x, ij} = \\text{corr} \\left(\\mathbf{r}_{x, i}, \\mathbf{r}_{x, j}} \\right)
+
+        where :math:`\\mathbf{r}_{x, i}` and :math:`\\mathbf{r}_{x, j}` are the
+        `i`th and `j`th scores of :math:`X`.
+
+        """
+        Rx = self.data["scores1"]
+
+        corr = self._compute_cross_matrix(
+            Rx,
+            Rx,
+            sample_dim=self.sample_name,
+            feature_dim_x="mode",
+            feature_dim_y="mode",
+            method="correlation",
+            diagonal=False,
+        )
+        corr.name = "correlation_coefficients_X"
+        return corr
+
+    def correlation_coefficients_Y(self):
+        """Get the correlation coefficients for the scores of :math:`Y`.
+
+        The correlation coefficients of the scores of :math:`Y` are given by:
+
+        .. math::
+            c_{y, ij} = \\text{corr} \\left(\\mathbf{r}_{y, i}, \\mathbf{r}_{y, j}} \\right)
+
+        where :math:`\\mathbf{r}_{y, i}` and :math:`\\mathbf{r}_{y, j}` are the
+        `i`th and `j`th scores of :math:`Y`.
+
+        """
+        Ry = self.data["scores2"]
+
+        corr = self._compute_cross_matrix(
+            Ry,
+            Ry,
+            sample_dim=self.sample_name,
+            feature_dim_x="mode",
+            feature_dim_y="mode",
+            method="correlation",
+            diagonal=False,
+        )
+        corr.name = "correlation_coefficients_Y"
+        return corr
+
     def squared_covariance_fraction(self):
         """Get the squared covariance fraction (SCF).
 
-        It is computed according to equation (15) in [7]_ :
+        The SCF is computed as a weighted mean-square error (see equation (15)
+        in Swenson (2015)) :
 
         .. math::
             SCF_{i} = 1 - \\frac{\\|\\mathbf{d}_{X,i}^T \\mathbf{d}_{Y,i}\\|_F^2}{\\|X^TY\\|_F^2}
 
-        where :math:`\\mathbf{d}_{X,i}` and :math:`\\mathbf{d}_{Y,i}` are the residuals of the input data :math:`X` and :math:`Y` after reconstruction by the `ith` scores of :math:`X` and :math:`Y`, respectively.
+        where :math:`\\mathbf{d}_{X,i}` and :math:`\\mathbf{d}_{Y,i}` are the
+        residuals of the input data :math:`X` and :math:`Y` after reconstruction
+        by the `ith` scores of :math:`X` and :math:`Y`, respectively.
 
         References
         ----------
-        .. [7] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+        Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+            Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
         """
 
@@ -504,91 +508,23 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         scf = xr.where(scf < 0, 0, scf)
         return scf
 
-    def cross_correlation_coefficients(self):
-        """Get the cross-correlation coefficients.
-
-        The cross-correlation coefficients are the correlation coefficients between the left and right scores:
-
-        .. math::
-            c_{xy, i} = \\frac{\\mathbf{r}_{x, i}^T \\mathbf{r}_{y, i}}{\\|\\mathbf{r}_{x, i}\\| \\|\\mathbf{r}_{y, i}\\|}
-
-        """
-
-        Rx = self.data["scores1"]
-        Ry = self.data["scores2"]
-
-        cross_corr = self._compute_cross_matrix(
-            Rx,
-            Ry,
-            sample_dim=self.sample_name,
-            feature_dim_x="mode",
-            feature_dim_y="mode",
-            method="correlation",
-            diagonal=True,
-        )
-        cross_corr = cross_corr.real
-        cross_corr.name = "cross_correlation_coefficients"
-        return cross_corr
-
-    def correlation_coefficients_X(self):
-        """Get the correlation coefficients of the left scores.
-
-        The correlation coefficients of the left scores are given by:
-
-        .. math::
-            c_{x, i} = \\frac{\\mathbf{r}_{x, i}^T \\mathbf{r}_{x, i}}{\\|\\mathbf{r}_{x, i}\\|^2}
-
-        """
-        Rx = self.data["scores1"]
-
-        corr = self._compute_cross_matrix(
-            Rx,
-            Rx,
-            sample_dim=self.sample_name,
-            feature_dim_x="mode",
-            feature_dim_y="mode",
-            method="correlation",
-            diagonal=False,
-        )
-        corr.name = "correlation_coefficients_X"
-        return corr
-
-    def correlation_coefficients_Y(self):
-        """Get the correlation coefficients of the right scores.
-
-        The correlation coefficients of the right scores are given by:
-
-        .. math::
-            c_{y, i} = \\frac{\\mathbf{r}_{y, i}^T \\mathbf{r}_{y, i}}{\\|\\mathbf{r}_{y, i}\\|^2}
-
-        """
-        Ry = self.data["scores2"]
-
-        corr = self._compute_cross_matrix(
-            Ry,
-            Ry,
-            sample_dim=self.sample_name,
-            feature_dim_x="mode",
-            feature_dim_y="mode",
-            method="correlation",
-            diagonal=False,
-        )
-        corr.name = "correlation_coefficients_Y"
-        return corr
-
     def fraction_variance_X_explained_by_X(self):
-        """Get the fraction of variance in :math:`X` explained by the scores of :math:`X`.
+        """Get the fraction of variance explained (FVE X).
 
-        It is computed according to equation (14.46 a) in [4]_ :
+        The FVE X is the fraction of variance in :math:`X` explained by the
+        scores of :math:`X`. It is computed as a weighted mean-square error (see
+        equation (15) in Swenson (2015)) :
 
         .. math::
             FVE_{X|X,i} = 1 - \\frac{\\|\\mathbf{d}_{X,i}\\|_F^2}{\\|X\\|_F^2}
 
-        where :math:`\\mathbf{d}_{X,i}` are the residuals of the input data :math:`X` after reconstruction by the `ith` scores of :math:`X`.
+        where :math:`\\mathbf{d}_{X,i}` are the residuals of the input data
+        :math:`X` after reconstruction by the `ith` scores of :math:`X`.
 
         References
         ----------
-        .. [4] Wilks, D. S. Statistical Methods in the Atmospheric Sciences. (Academic Press, 2019). doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
+        Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+            Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
         """
         # Get the singular vectors
@@ -625,18 +561,22 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         return fve_xx
 
     def fraction_variance_Y_explained_by_Y(self):
-        """Get the fraction of variance in :math:`Y` explained by the scores of :math:`Y`.
+        """Get the fraction of variance explained (FVE Y).
 
-        It is computed according to equation (14.46 b) in [5]_ :
+        The FVE Y is the fraction of variance in :math:`Y` explained by the
+        scores of :math:`Y`. It is computed as a weighted mean-square error (see
+        equation (15) in Swenson (2015)) :
 
         .. math::
             FVE_{Y|Y,i} = 1 - \\frac{\\|\\mathbf{d}_{Y,i}\\|_F^2}{\\|Y\\|_F^2}
 
-        where :math:`\\mathbf{d}_{Y,i}` are the residuals of the input data :math:`Y` after reconstruction by the `ith` scores of :math:`Y`.
+        where :math:`\\mathbf{d}_{Y,i}` are the residuals of the input data
+        :math:`Y` after reconstruction by the `ith` scores of :math:`Y`.
 
         References
         ----------
-        .. [5] Wilks, D. S. Statistical Methods in the Atmospheric Sciences. (Academic Press, 2019). doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
+        Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+            Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
         """
         # Get the singular vectors
@@ -672,24 +612,24 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         fve_yy.name = "fraction_variance_Y_explained_by_Y"
         return fve_yy
 
-    @staticmethod
-    def _compute_total_variance(X: DataArray, dim: str) -> DataArray:
-        """Compute the total variance of the centered data."""
-        return (X * X.conj()).sum() / (X[dim].size - 1)
-
     def fraction_variance_Y_explained_by_X(self) -> DataArray:
-        """Get the fraction of variance in :math:`Y` explained by the scores of :math:`X`.
+        """Get the fraction of variance explained (FVE YX).
 
-        It is computed according to equation (16) in [6]_ :
+        The FVE YX is the fraction of variance in :math:`Y` explained by the
+        scores of :math:`X`. It is computed as a weighted mean-square error (see
+        equation (15) in Swenson (2015)) :
 
         .. math::
             FVE_{Y|X,i} = 1 - \\frac{\\|(X^TX)^{-1/2} \\mathbf{d}_{X,i}^T \\mathbf{d}_{Y,i}\\|_F^2}{\\|(X^TX)^{-1/2} X^TY\\|_F^2}
 
-        where :math:`\\mathbf{d}_{X,i}` and :math:`\\mathbf{d}_{Y,i}` are the residuals of the input data :math:`X` and :math:`Y` after reconstruction by the `ith` scores of :math:`X` and :math:`Y`, respectively.
+        where :math:`\\mathbf{d}_{X,i}` and :math:`\\mathbf{d}_{Y,i}` are the
+        residuals of the input data :math:`X` and :math:`Y` after reconstruction
+        by the `ith` scores of :math:`X` and :math:`Y`, respectively.
 
         References
         ----------
-        .. [6] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+        Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
         """
 
@@ -781,7 +721,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         return fve_yx
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
-        """Get the homogeneous correlation patterns for :math:`X` and :math:`Y`.
+        """Get the homogeneous correlation patterns.
 
         The homogeneous correlation patterns are the correlation coefficients
         between the input data and the scores. They are defined as:
@@ -792,27 +732,27 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         .. math::
             H_{Y, i} = \\text{corr} \\left(Y, \\mathbf{r}_{y,i} \\right)
 
-        where :math:`X` and :math:`Y` are the input data, and :math:`\\mathbf{r}_{x,i}` and :math:`\\mathbf{r}_{y,i}`
-        are the `i`th scores of :math:`X` and :math:`Y`, respectively.
+        where :math:`X` and :math:`Y` are the input data, and
+        :math:`\\mathbf{r}_{x,i}` and :math:`\\mathbf{r}_{y,i}` are the `i`th
+        scores of :math:`X` and :math:`Y`, respectively.
 
 
         Parameters
         ----------
         correction: str, default=None
-            Method to apply a multiple testing correction. If None, no correction
-            is applied.  Available methods are:
-            - bonferroni : one-step correction
-            - sidak : one-step correction
-            - holm-sidak : step down method using Sidak adjustments
-            - holm : step-down method using Bonferroni adjustments
-            - simes-hochberg : step-up method (independent)
-            - hommel : closed method based on Simes tests (non-negative)
-            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-            - fdr_by : Benjamini/Yekutieli (negative)
-            - fdr_tsbh : two stage fdr correction (non-negative)
-            - fdr_tsbky : two stage fdr correction (non-negative)
+            Method to apply a multiple testing correction. If None, no
+            correction is applied.  Available methods are: - bonferroni :
+            one-step correction - sidak : one-step correction - holm-sidak :
+            step down method using Sidak adjustments - holm : step-down method
+            using Bonferroni adjustments - simes-hochberg : step-up method
+            (independent) - hommel : closed method based on Simes tests
+            (non-negative) - fdr_bh : Benjamini/Hochberg (non-negative)
+            (default) - fdr_by : Benjamini/Yekutieli (negative) - fdr_tsbh : two
+            stage fdr correction (non-negative) - fdr_tsbky : two stage fdr
+            correction (non-negative)
         alpha: float, default=0.05
-            The desired family-wise error rate. Not used if `correction` is None.
+            The desired family-wise error rate. Not used if `correction` is
+            None.
 
         Returns
         -------
@@ -863,7 +803,7 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         return (hom_pat1, hom_pat2), (pvals1, pvals2)
 
     def heterogeneous_patterns(self, correction=None, alpha=0.05):
-        """Get the heterogeneous correlation patterns for :math:`X` and :math:`Y`.
+        """Get the heterogeneous correlation patterns.
 
         The heterogeneous patterns are the correlation coefficients between the
         input data and the scores of the other field:
@@ -874,26 +814,26 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
         .. math::
             G_{Y, i} = \\text{corr} \\left(Y, \\mathbf{r}_{x,i} \\right)
 
-        where :math:`X` and :math:`Y` are the input data, and :math:`\\mathbf{r}_{x,i}` and :math:`\\mathbf{r}_{y,i}`
-        are the `i`th scores of :math:`X` and :math:`Y`, respectively.
+        where :math:`X` and :math:`Y` are the input data, and
+        :math:`\\mathbf{r}_{x,i}` and :math:`\\mathbf{r}_{y,i}` are the `i`th
+        scores of :math:`X` and :math:`Y`, respectively.
 
         Parameters
         ----------
         correction: str, default=None
-            Method to apply a multiple testing correction. If None, no correction
-            is applied.  Available methods are:
-            - bonferroni : one-step correction
-            - sidak : one-step correction
-            - holm-sidak : step down method using Sidak adjustments
-            - holm : step-down method using Bonferroni adjustments
-            - simes-hochberg : step-up method (independent)
-            - hommel : closed method based on Simes tests (non-negative)
-            - fdr_bh : Benjamini/Hochberg (non-negative) (default)
-            - fdr_by : Benjamini/Yekutieli (negative)
-            - fdr_tsbh : two stage fdr correction (non-negative)
-            - fdr_tsbky : two stage fdr correction (non-negative)
+            Method to apply a multiple testing correction. If None, no
+            correction is applied.  Available methods are: - bonferroni :
+            one-step correction - sidak : one-step correction - holm-sidak :
+            step down method using Sidak adjustments - holm : step-down method
+            using Bonferroni adjustments - simes-hochberg : step-up method
+            (independent) - hommel : closed method based on Simes tests
+            (non-negative) - fdr_bh : Benjamini/Hochberg (non-negative)
+            (default) - fdr_by : Benjamini/Yekutieli (negative) - fdr_tsbh : two
+            stage fdr correction (non-negative) - fdr_tsbky : two stage fdr
+            correction (non-negative)
         alpha: float, default=0.05
-            The desired family-wise error rate. Not used if `correction` is None.
+            The desired family-wise error rate. Not used if `correction` is
+            None.
 
         Returns
         -------
@@ -901,7 +841,6 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
             Heterogenous correlation patterns of `X` and `Y`.
         tuple[DataObject, DataObject]
             p-values of the heterogenous correlation patterns of `X` and `Y`.
-
 
         """
         input_data1 = self.data["input_data1"]
@@ -955,11 +894,123 @@ class ContinuumPowerCCA(_BaseModelCrossSet):
                 " attaching it with `data.add()`."
             )
 
+    def _compute_cross_matrix(
+        self,
+        X: DataArray,
+        Y: DataArray,
+        sample_dim: str,
+        feature_dim_x: str,
+        feature_dim_y: str,
+        method: str = "covariance",
+        diagonal: bool = False,
+    ) -> DataArray:
+        """Compute the cross matrix of two data objects.
+
+        Assume centered data.
+
+        Parameters
+        ----------
+        X, Y : DataArray
+            DataArrays to compute the cross matrix from.
+        sample_dim : str
+            Name of the sample dimension.
+        feature_dim_x, feature_dim_y : str
+            Name of the feature dimensions. If the feature dimensions are the same, they are renamed to avoid conflicts.
+        method : {"covariance", "correlation"}
+            Method to compute the cross matrix.
+        diagonal : bool, default=False
+            Whether to compute the diagonal of the cross matrix.
+
+        Returns
+        -------
+        DataArray
+            The cross matrix of the two data objects.
+
+        """
+        if feature_dim_x == feature_dim_y:
+            new_feature_dim_x = feature_dim_x + "_x"
+            new_feature_dim_y = feature_dim_y + "_y"
+            X = X.rename({feature_dim_x: new_feature_dim_x})
+            Y = Y.rename({feature_dim_y: new_feature_dim_y})
+            feature_dim_x = new_feature_dim_x
+            feature_dim_y = new_feature_dim_y
+
+        # Rename the sample dimension to avoid conflicts for
+        # different coordinates with same length
+        sample_dim_x = sample_dim + "_x"
+        sample_dim_y = sample_dim + "_y"
+        X = X.rename({sample_dim: sample_dim_x})
+        Y = Y.rename({sample_dim: sample_dim_y})
+
+        if method == "correlation":
+            X = self._normalize_data(X, sample_dim_x)
+            Y = self._normalize_data(Y, sample_dim_y)
+
+        if diagonal:
+            return xr.apply_ufunc(
+                self._compute_cross_covariance_diagonal_numpy,
+                X,
+                Y,
+                input_core_dims=[
+                    [sample_dim_x, feature_dim_x],
+                    [sample_dim_y, feature_dim_y],
+                ],
+                output_core_dims=[[feature_dim_y]],
+                dask="allowed",
+            ).rename({feature_dim_y: feature_dim_y[:-2]})
+        else:
+            return xr.apply_ufunc(
+                self._compute_cross_covariance_numpy,
+                X,
+                Y,
+                input_core_dims=[
+                    [sample_dim_x, feature_dim_x],
+                    [sample_dim_y, feature_dim_y],
+                ],
+                output_core_dims=[[feature_dim_x, feature_dim_y]],
+                dask="allowed",
+            )
+
+    def _compute_cross_covariance_diagonal_numpy(self, X, Y):
+        # Assume centered data
+        return np.diag(self._compute_cross_covariance_numpy(X, Y))
+
+    def _compute_total_squared_covariance(self, C: DataArray) -> DataArray:
+        """Compute the total squared covariance.
+
+        Requires the unwhitened covariance matrix which we can obtain by multiplying the whitened covariance matrix with the inverse of the whitening transformation matrix.
+        """
+        C = self.whitener2.inverse_transform_data(C)
+        C = self.whitener1.inverse_transform_data(C.conj().T)
+        # Not necessary to conjugate transpose for total squared covariance
+        # C = C.conj().T
+        return (abs(C) ** 2).sum()
+
+    @staticmethod
+    def _compute_total_variance(X: DataArray, dim: str) -> DataArray:
+        """Compute the total variance of the centered data."""
+        return (X * X.conj()).sum() / (X[dim].size - 1)
+
+    @staticmethod
+    def _compute_cross_covariance_numpy(X, Y):
+        # Assume centered data
+        n_samples_x = X.shape[0]
+        n_samples_y = Y.shape[0]
+        if n_samples_x != n_samples_y:
+            err_msg = f"Both data matrices must have the same number of samples but found {n_samples_x} in the first and {n_samples_y} in the second."
+            raise ValueError(err_msg)
+        return X.conj().T @ Y / (n_samples_x - 1)
+
+    @staticmethod
+    def _normalize_data(X, dim):
+        # Assume centered data
+        return X / X.std(dim)
+
 
 class ComplexCPCCA(ContinuumPowerCCA):
     """Complex CPCCA.
 
-    Complex CPCCA (Hilbert CPCCA) extends classical CPCCA by examining
+    Complex CPCCA (Hilbert CPCCA) extends classical CPCCA [1]_ by examining
     amplitude-phase relationships. It augments the input data with its Hilbert
     transform, creating a complex-valued field.
 
@@ -980,26 +1031,40 @@ class ComplexCPCCA(ContinuumPowerCCA):
     ----------
     n_modes : int, default=2
         Number of modes to calculate.
+    alpha : Sequence[float] | float, default=0.2
+        Degree of whitening applied to the data. If float, the same value is
+        applied to both data sets.
     padding : Sequence[str] | str | None, default="exp"
-        Padding method for the Hilbert transform. Available options are:
-        - None: no padding
-        - "exp": exponential decay
+        Padding method for the Hilbert transform. Available options are: - None:
+        no padding - "exp": exponential decay
     decay_factor : Sequence[float] | float, default=0.2
         Decay factor for the exponential padding.
     standardize : Squence[bool] | bool, default=False
-        Whether to standardize the input data. Generally not recommended as standardization can be managed by the degree of whitening.
+        Whether to standardize the input data. Generally not recommended as
+        standardization can be managed by the degree of whitening.
     use_coslat : Sequence[bool] | bool, default=False
-        For data on a longitude-latitude grid, whether to correct for varying grid cell areas towards the poles by scaling each grid point with the square root of the cosine of its latitude.
+        For data on a longitude-latitude grid, whether to correct for varying
+        grid cell areas towards the poles by scaling each grid point with the
+        square root of the cosine of its latitude.
     use_pca : Sequence[bool] | bool, default=False
-        Whether to preprocess each field individually by reducing dimensionality through PCA. The cross-covariance matrix is computed in the reduced principal component space.
+        Whether to preprocess each field individually by reducing dimensionality
+        through PCA. The cross-covariance matrix is computed in the reduced
+        principal component space.
     n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
-        Number of modes to retain during PCA preprocessing step. If int, specifies the exact number of modes; if float, specifies the fraction of variance to retain; if "all", all modes are retained.
+        Number of modes to retain during PCA preprocessing step. If int,
+        specifies the exact number of modes; if float, specifies the fraction of
+        variance to retain; if "all", all modes are retained.
     pca_init_rank_reduction : Sequence[float] | float, default=0.3
-        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the initial fraction of rank reduction for faster PCA computation via randomized SVD.
+        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the
+        initial fraction of rank reduction for faster PCA computation via
+        randomized SVD.
     check_nans : Sequence[bool] | bool, default=True
-        Whether to check for NaNs in the input data. Set to False for lazy model evaluation.
+        Whether to check for NaNs in the input data. Set to False for lazy model
+        evaluation.
     compute : bool, default=True
-        Whether to compute the model elements eagerly. If True, the following are computed sequentially: preprocessor scaler, optional NaN checks, SVD decomposition, scores, and components.
+        Whether to compute the model elements eagerly. If True, the following
+        are computed sequentially: preprocessor scaler, optional NaN checks, SVD
+        decomposition, scores, and components.
     random_state : numpy.random.Generator | int | None, default=None
         Seed for the random number generator.
     sample_name : str, default="sample"
@@ -1013,16 +1078,24 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
     Examples
     --------
-    Perform Complex CPCCA on two datasets `X` and `Y`, using exponential padding:
+
+    Perform Complex CPCCA on two datasets `X` and `Y`, using exponential
+    padding:
+
     >>> model = ComplexCPCCA(n_modes=5, padding="exp")
     >>> model.fit(X, Y)
 
+    References
+    ----------
+    .. [1] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
     """
 
     def __init__(
         self,
         n_modes: int = 2,
+        alpha: Sequence[float] | float = 0.2,
         padding: Sequence[str] | str | None = "exp",
         decay_factor: Sequence[float] | float = 0.2,
         standardize: Sequence[bool] | bool = False,
@@ -1031,13 +1104,12 @@ class ComplexCPCCA(ContinuumPowerCCA):
         use_pca: Sequence[bool] | bool = True,
         n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
-        alpha: Sequence[float] | float = 1.0,
         compute: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
-        random_state: Optional[int] = None,
-        solver_kwargs: Dict = {},
+        random_state: np.random.Generator | int | None = None,
+        solver_kwargs: dict = {},
         **kwargs,
     ):
         super().__init__(
@@ -1063,25 +1135,6 @@ class ComplexCPCCA(ContinuumPowerCCA):
         self._params["padding"] = padding
         self._params["decay_factor"] = decay_factor
 
-    def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
-        """Augment the data with the Hilbert transform."""
-        params = self.get_params()
-        padding = params["padding"]
-        decay_factor = params["decay_factor"]
-        X = hilbert_transform(
-            X,
-            dims=(self.sample_name, self.feature_name[0]),
-            padding=padding[0],
-            decay_factor=decay_factor[0],
-        )
-        Y = hilbert_transform(
-            Y,
-            dims=(self.sample_name, self.feature_name[1]),
-            padding=padding[1],
-            decay_factor=decay_factor[1],
-        )
-        return X, Y
-
     def components_amplitude(self, normalized=True) -> Tuple[DataObject, DataObject]:
         """Get the amplitude of the components.
 
@@ -1097,10 +1150,8 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
         Returns
         -------
-        DataObject
-            Component amplitudes of `X`.
-        DataObject
-            Component amplitudes of `Y`.
+        tuple[DataObject, DataObject]
+            Component amplitudes of :math:`X` and :math:`Y`.
 
         """
         Px, Py = self._get_components(normalized=normalized)
@@ -1119,7 +1170,7 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
         return Px, Py
 
-    def components_phase(self, normalized=True) -> Tuple[DataObject, DataObject]:
+    def components_phase(self, normalized=True) -> tuple[DataObject, DataObject]:
         """Get the phase of the components.
 
         The phases of the components are defined as
@@ -1134,10 +1185,8 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
         Returns
         -------
-        DataObject
-            Component phases of `X`.
-        DataObject
-            Component phases of `Y`.
+        tuple[DataObject, DataObject]
+            Component phases of :math:`X` and :math:`Y`.
 
         """
         Px, Py = self._get_components(normalized=normalized)
@@ -1171,10 +1220,8 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
         Returns
         -------
-        DataArray
-            Score amplitudes of `X`.
-        DataArray
-            Score amplitudes of `Y`.
+        tuple[DataArray, DataArray]
+            Score amplitudes of :math:`X` and :math:`Y`.
 
         """
         Rx, Ry = self._get_scores(normalized=normalized)
@@ -1208,10 +1255,8 @@ class ComplexCPCCA(ContinuumPowerCCA):
 
         Returns
         -------
-        DataArray
-            Score phases of `X`.
-        DataArray
-            Score phases of `Y`.
+        tuple[DataArray, DataArray]
+            Score phases of :math:`X` and :math:`Y`.
 
         """
         Rx, Ry = self._get_scores(normalized=normalized)
@@ -1233,4 +1278,24 @@ class ComplexCPCCA(ContinuumPowerCCA):
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
     ) -> Sequence[DataArray]:
+        """Transform the input data into the component space."""
         raise NotImplementedError("Complex models do not support the transform method.")
+
+    def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
+        """Augment the data with the Hilbert transform."""
+        params = self.get_params()
+        padding = params["padding"]
+        decay_factor = params["decay_factor"]
+        X = hilbert_transform(
+            X,
+            dims=(self.sample_name, self.feature_name[0]),
+            padding=padding[0],
+            decay_factor=decay_factor[0],
+        )
+        Y = hilbert_transform(
+            Y,
+            dims=(self.sample_name, self.feature_name[1]),
+            padding=padding[1],
+            decay_factor=decay_factor[1],
+        )
+        return X, Y

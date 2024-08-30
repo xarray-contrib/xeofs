@@ -5,23 +5,22 @@ from .mca import MCA, ComplexMCA
 class MCARotator(CPCCARotator, MCA):
     """Rotate a solution obtained from ``xe.models.MCA``.
 
-    Rotated MCA [1]_ is an extension of the standard MCA that applies an additional rotation
-    to the computed modes to maximize the variance explained individually by each mode.
-    This rotation method enhances interpretability by distributing the explained variance more
-    evenly among the modes, making it easier to discern patterns within the data.
+    Rotate the obtained components and scores of a CPCCA model to increase
+    interpretability. The algorithm here is based on the approach of Cheng &
+    Dunkerton (1995) [1]_.
 
     Parameters
     ----------
     n_modes : int, default=10
         Specify the number of modes to be rotated.
     power : int, default=1
-        Set the power for the Promax rotation. A ``power`` value of 1 results
-        in a Varimax rotation.
+        Set the power for the Promax rotation. A ``power`` value of 1 results in
+        a Varimax rotation.
     max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
         rotation matrix. If not specified, defaults to 1000 if ``compute=True``
-        and 100 if ``compute=False``, since we can't terminate a lazy computation
-        based using ``rtol``.
+        and 100 if ``compute=False``, since we can't terminate a lazy
+        computation based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
@@ -30,15 +29,27 @@ class MCARotator(CPCCARotator, MCA):
 
     References
     ----------
-    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
+    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns
+        Derived from Singular Value Decomposition Analysis. J. Climate 8,
+        2631–2643 (1995).
 
     Examples
     --------
-    >>> model = MCA(n_modes=5)
-    >>> model.fit(da1, da2, dim='time')
-    >>> rotator = MCARotator(n_modes=5, power=2)
+
+    Perform a MCA:
+
+    >>> model = MCA(n_modes=10)
+    >>> model.fit(X, Y, dim='time')
+
+    Then, apply varimax rotation to first 5 components and scores:
+
+    >>> rotator = MCARotator(n_modes=5)
     >>> rotator.fit(model)
+
+    Retrieve the rotated components and scores:
+
     >>> rotator.components()
+    >>> rotator.scores()
 
     """
 
@@ -66,7 +77,9 @@ class MCARotator(CPCCARotator, MCA):
 class ComplexMCARotator(ComplexCPCCARotator, MCA):
     """Rotate a solution obtained from ``xe.models.ComplexMCA``.
 
-    Rotate the obtained components and scores of a ``ComplexMCA`` model to increase interpretability. The algorithm here is based on the approach of Cheng & Dunkerton (1995) [1]_, Elipot et al. (2017) [2]_ and Rieger et al. (2021) [3]_.
+    Rotate the obtained components and scores of a CPCCA model to increase
+    interpretability. The algorithm here is based on the approach of Cheng &
+    Dunkerton (1995) [1]_, Elipot et al. (2017) [2]_ and Rieger et al. (2021).
 
     Parameters
     ----------
@@ -98,15 +111,23 @@ class ComplexMCARotator(ComplexCPCCARotator, MCA):
         Maximum Covariance Analysis. Journal of Climate 34, 9861–9878 (2021).
 
 
-
     Examples
     --------
-    Perform a Varimax-rotated MCA:
-    >>> model = ComplexMCA(n_modes=5)
+
+    Perform a Complex MCA:
+
+    >>> model = ComplexMCA(n_modes=10)
     >>> model.fit(X, Y, dim='time')
-    >>> rotator = ComplexMCARotator(n_modes=5, power=1)
+
+    Then, apply varimax rotation to first 5 components and scores:
+
+    >>> rotator = ComplexMCARotator(n_modes=5)
     >>> rotator.fit(model)
+
+    Retrieve the rotated components and scores:
+
     >>> rotator.components()
+    >>> rotator.scores()
 
     """
 

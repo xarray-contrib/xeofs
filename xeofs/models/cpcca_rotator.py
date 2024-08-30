@@ -17,20 +17,22 @@ from .cpcca import ComplexCPCCA, ContinuumPowerCCA
 class CPCCARotator(ContinuumPowerCCA):
     """Rotate a solution obtained from ``xe.models.ContinuumPowerCCA``.
 
-    Rotate the obtained components and scores of a CPCCA model to increase interpretability. The algorithm here is based on the approach of Cheng & Dunkerton (1995) [1]_ and adapted to the CPCCA framework [2]_.
+    Rotate the obtained components and scores of a CPCCA model to increase
+    interpretability. The algorithm here is based on the approach of Cheng &
+    Dunkerton (1995) [1]_ and adapted to the CPCCA framework [2]_.
 
     Parameters
     ----------
     n_modes : int, default=10
         Specify the number of modes to be rotated.
     power : int, default=1
-        Set the power for the Promax rotation. A ``power`` value of 1 results
-        in a Varimax rotation.
+        Set the power for the Promax rotation. A ``power`` value of 1 results in
+        a Varimax rotation.
     max_iter : int or None, default=None
         Determine the maximum number of iterations for the computation of the
         rotation matrix. If not specified, defaults to 1000 if ``compute=True``
-        and 100 if ``compute=False``, since we can't terminate a lazy computation
-        based using ``rtol``.
+        and 100 if ``compute=False``, since we can't terminate a lazy
+        computation based using ``rtol``.
     rtol : float, default=1e-8
         Define the relative tolerance required to achieve convergence and
         terminate the iterative process.
@@ -39,16 +41,29 @@ class CPCCARotator(ContinuumPowerCCA):
 
     References
     ----------
-    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
-    .. [2] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns
+        Derived from Singular Value Decomposition Analysis. J. Climate 8,
+        2631–2643 (1995).
+    .. [2] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
     Examples
     --------
-    >>> model = ContinuumPowerCCA(n_modes=5)
+
+    Perform a CPCCA analysis:
+
+    >>> model = ContinuumPowerCCA(n_modes=10)
     >>> model.fit(X, Y, dim='time')
-    >>> rotator = CPCCARotator(n_modes=5, power=2)
+
+    Then, apply varimax rotation to first 5 components and scores:
+
+    >>> rotator = CPCCARotator(n_modes=5)
     >>> rotator.fit(model)
+
+    Retrieve the rotated components and scores:
+
     >>> rotator.components()
+    >>> rotator.scores()
 
     """
 
@@ -99,51 +114,6 @@ class CPCCARotator(ContinuumPowerCCA):
             model=self.model,
             sorted=self.sorted,
         )
-
-    def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
-        """Compute the inverse transpose of the rotation matrix.
-
-        For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent
-        to the rotation matrix itself. For oblique rotations (e.g., Promax), the simplification
-        does not hold.
-
-        Returns
-        -------
-        rotation_matrix : xr.DataArray
-
-        """
-        if self._params["power"] > 1:
-            # inverse matrix
-            rotation_matrix = xr.apply_ufunc(
-                np.linalg.inv,
-                rotation_matrix,
-                input_core_dims=[(input_dims)],
-                output_core_dims=[(input_dims[::-1])],
-                vectorize=False,
-                dask="allowed",
-            )
-            # transpose matrix
-            rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
-        return rotation_matrix
-
-    def _get_feature_name(self):
-        return self.model.feature_name
-
-    def fit(self, model: ContinuumPowerCCA) -> Self:
-        """Rotate the solution obtained from ``xe.models.ContinuumPowerCCA``.
-
-        Parameters
-        ----------
-        model : ``xe.models.ContinuumPowerCCA``
-            The ContinuumPowerCCA model to be rotated.
-
-        """
-        self._fit_algorithm(model)
-
-        if self._params["compute"]:
-            self.compute()
-
-        return self
 
     def _fit_algorithm(self, model) -> Self:
         self.model = model
@@ -319,21 +289,21 @@ class CPCCARotator(ContinuumPowerCCA):
 
         return self
 
-    def _post_compute(self):
-        """Leave sorting until after compute because it can't be done lazily."""
-        self._sort_by_variance()
+    def fit(self, model: ContinuumPowerCCA) -> Self:
+        """Rotate the solution obtained from ``xe.models.ContinuumPowerCCA``.
 
-    def _sort_by_variance(self):
-        """Re-sort the mode dimension of all data variables by variance explained."""
-        if not self.sorted:
-            for key in self.data.keys():
-                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
-                    self.data[key] = (
-                        self.data[key]
-                        .isel(mode=self.data["idx_modes_sorted"].values)
-                        .assign_coords(mode=self.data[key].mode)
-                    )
-        self.sorted = True
+        Parameters
+        ----------
+        model : ``xe.models.ContinuumPowerCCA``
+            The ContinuumPowerCCA model to be rotated.
+
+        """
+        self._fit_algorithm(model)
+
+        if self._params["compute"]:
+            self.compute()
+
+        return self
 
     def transform(
         self,
@@ -439,11 +409,58 @@ class CPCCARotator(ContinuumPowerCCA):
         else:
             return results
 
+    def _post_compute(self):
+        """Leave sorting until after compute because it can't be done lazily."""
+        self._sort_by_variance()
+
+    def _sort_by_variance(self):
+        """Re-sort the mode dimension of all data variables by variance explained."""
+        if not self.sorted:
+            for key in self.data.keys():
+                if "mode" in self.data[key].dims and key != "idx_modes_sorted":
+                    self.data[key] = (
+                        self.data[key]
+                        .isel(mode=self.data["idx_modes_sorted"].values)
+                        .assign_coords(mode=self.data[key].mode)
+                    )
+        self.sorted = True
+
+    def _compute_rot_mat_inv_trans(self, rotation_matrix, input_dims) -> xr.DataArray:
+        """Compute the inverse transpose of the rotation matrix.
+
+        For orthogonal rotations (e.g., Varimax), the inverse transpose is equivalent
+        to the rotation matrix itself. For oblique rotations (e.g., Promax), the simplification
+        does not hold.
+
+        Returns
+        -------
+        rotation_matrix : xr.DataArray
+
+        """
+        if self._params["power"] > 1:
+            # inverse matrix
+            rotation_matrix = xr.apply_ufunc(
+                np.linalg.inv,
+                rotation_matrix,
+                input_core_dims=[(input_dims)],
+                output_core_dims=[(input_dims[::-1])],
+                vectorize=False,
+                dask="allowed",
+            )
+            # transpose matrix
+            rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
+        return rotation_matrix
+
+    def _get_feature_name(self):
+        return self.model.feature_name
+
 
 class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     """Rotate a solution obtained from ``xe.models.ComplexCPCCA``.
 
-    Rotate the obtained components and scores of a ``ComplexCPCCA`` model to increase interpretability. The algorithm here is based on the approach of Cheng & Dunkerton (1995) [1]_ and Rieger et al. (2021) [2]_, and adapted to the CPCCA framework [3]_.
+    Rotate the obtained components and scores of a CPCCA model to increase
+    interpretability. The algorithm here is based on the approach of Cheng &
+    Dunkerton (1995) [1]_ and adapted to the CPCCA framework [2]_.
 
 
     Parameters
@@ -474,22 +491,26 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns
         Derived from Singular Value Decomposition Analysis. J. Climate 8,
         2631–2643 (1995).
-    .. [2] Rieger, N., Corral, Á., Olmedo, E. & Turiel, A. Lagged
-        Teleconnections of Climate Variables Identified via Complex Rotated
-        Maximum Covariance Analysis. Journal of Climate 34, 9861–9878 (2021).
     .. [3] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
         Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
 
-
-
     Examples
     --------
-    Varimax-rotated CPCCA model:
-    >>> model = ComplexCPCCA(n_modes=5)
-    >>> model.fit(da1, da2, dim='time')
-    >>> rotator = ComplexCPCCARotator(n_modes=5, power=1)
+
+    Perform a CPCCA analysis:
+
+    >>> model = ComplexCPCCA(n_modes=10)
+    >>> model.fit(X, Y, dim='time')
+
+    Then, apply varimax rotation to first 5 components and scores:
+
+    >>> rotator = ComplexCPCCARotator(n_modes=5)
     >>> rotator.fit(model)
+
+    Retrieve the rotated components and scores:
+
     >>> rotator.components()
+    >>> rotator.scores()
 
     """
 
@@ -501,6 +522,7 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
     ) -> Sequence[DataArray]:
+        """Transform the data."""
         # Here we make use of the Method Resolution Order (MRO) to call the
         # transform method of the first class in the MRO after `CPCCARotator`
         # that has a transform method. In this case it will be `ComplexCPCCA`,

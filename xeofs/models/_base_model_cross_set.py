@@ -14,7 +14,6 @@ from ._base_model import _BaseModel
 
 
 class _BaseModelCrossSet(_BaseModel):
-    # TODO: double check the docstring here, matches __init__?
     """
     Abstract base class for cross-decomposition models.
 
@@ -29,24 +28,31 @@ class _BaseModelCrossSet(_BaseModel):
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
     check_nans : bool, default=True
-        If True, remove full-dimensional NaN features from the data, check to ensure
-        that NaN features match the original fit data during transform, and check
-        for isolated NaNs. Note: this forces eager computation of dask arrays.
-        If False, skip all NaN checks. In this case, NaNs should be explicitly removed
-        or filled prior to fitting, or SVD will fail.
+        If True, remove full-dimensional NaN features from the data, check to
+        ensure that NaN features match the original fit data during transform,
+        and check for isolated NaNs. Note: this forces eager computation of dask
+        arrays. If False, skip all NaN checks. In this case, NaNs should be
+        explicitly removed or filled prior to fitting, or SVD will fail.
     alpha : float, default=1.0
-        Parameter to perform fractional whitening of the data. If 0, the data is completely whitened. If 1, the data is not whitened.
+        Parameter to perform fractional whitening of the data. If 0, the data is
+        completely whitened. If 1, the data is not whitened.
     use_pca : bool, default=False
         If True, perform PCA to reduce the dimensionality of the data.
     n_pca_modes : int | float | str, default=0.999
-        If int, specifies the number of modes to retain. If float, specifies the fraction of variance in the (whitened) data that should be explained by the retained modes. If "all", all modes are retained.
+        If int, specifies the number of modes to retain. If float, specifies the
+        fraction of variance in the (whitened) data that should be explained by
+        the retained modes. If "all", all modes are retained.
     init_rank_reduction : float, default=0.3
-        Only relevant when `use_pca=True` and `n_modes` is a float, in which case it denotes the fraction of the initial rank to reduce the data to via PCA as a first guess before truncating the solution to the desired fraction of explained variance. This allows for faster computation of PCA via randomized SVD and avoids the need to compute the full SVD.
+        Only relevant when `use_pca=True` and `n_modes` is a float, in which
+        case it denotes the fraction of the initial rank to reduce the data to
+        via PCA as a first guess before truncating the solution to the desired
+        fraction of explained variance. This allows for faster computation of
+        PCA via randomized SVD and avoids the need to compute the full SVD.
     compute: bool, default=True
-        Whether to compute elements of the model eagerly, or to defer computation.
-        If True, four pieces of the fit will be computed sequentially: 1) the
-        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
-        and components.
+        Whether to compute elements of the model eagerly, or to defer
+        computation. If True, four pieces of the fit will be computed
+        sequentially: 1) the preprocessor scaler, 2) optional NaN checks, 3) SVD
+        decomposition, 4) scores and components.
     random_state: numpy.random.Generator or int, optional
         Seed for the random number generator.
     sample_name: str, default="sample"
@@ -180,15 +186,6 @@ class _BaseModelCrossSet(_BaseModel):
         # Initialize the data container that stores the results
         self.data = DataContainer()
 
-    def get_serialization_attrs(self) -> dict:
-        return dict(
-            data=self.data,
-            preprocessor1=self.preprocessor1,
-            preprocessor2=self.preprocessor2,
-            whitener1=self.whitener1,
-            whitener2=self.whitener2,
-        )
-
     @abstractmethod
     def _fit_algorithm(self, X: DataArray, Y: DataArray) -> Self:
         """
@@ -271,22 +268,22 @@ class _BaseModelCrossSet(_BaseModel):
         weights_X: DataObject | None = None,
         weights_Y: DataObject | None = None,
     ) -> Self:
-        """
-        Fit the model to the data.
+        """Fit the data to the model.
 
         Parameters
         ----------
-        X: DataObject
-            Left input data.
-        Y: DataObject
-            Right input data.
+        X, Y: DataObject
+            Data to be fitted.
         dim: Hashable | Sequence[Hashable]
             Define the sample dimensions. The remaining dimensions
             will be treated as feature dimensions.
-        weights_X: DataObject | None, default=None
-            Weights to be applied to the left input data.
-        weights_Y: DataObject | None, default=None
-            Weights to be applied to the right input data.
+        weights_X, weights_Y: DataObject | None, default=None
+            Weights for the data. If None, no weights are used.
+
+        Returns
+        -------
+        xeofs MultiSetModel
+            Fitted model.
 
         """
         validate_input_type(X)
@@ -313,15 +310,22 @@ class _BaseModelCrossSet(_BaseModel):
 
         return self
 
-    def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
-        """Optional method to augment the data before fitting."""
-        return X, Y
-
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
-    ) -> Sequence[DataArray]:
-        """
-        Abstract method to transform the data.
+    ) -> Sequence[DataArray] | DataArray:
+        """Transform the data.
+
+        Parameters
+        ----------
+        X, Y: DataObject | None
+            Data to be transformed. At least one of them must be provided.
+        normalized: bool, default=False
+            Whether to return normalized scores.
+
+        Returns
+        -------
+        Sequence[DataArray] | DataArray
+            Transformed data.
 
 
         """
@@ -349,7 +353,11 @@ class _BaseModelCrossSet(_BaseModel):
             Y = self.whitener2.inverse_transform_scores_unseen(data["data2"])
             Y = self.preprocessor2.inverse_transform_scores_unseen(Y)
             data_list.append(Y)
-        return data_list
+
+        if len(data_list) == 1:
+            return data_list[0]
+        else:
+            return data_list
 
     def inverse_transform(
         self, X: DataArray | None = None, Y: DataArray | None = None
@@ -358,21 +366,13 @@ class _BaseModelCrossSet(_BaseModel):
 
         Parameters
         ----------
-        X: DataObject
-            Transformed left field data to be reconstructed. This could be
-            a subset of the `scores` data of a fitted model, or unseen data.
-            Must have a 'mode' dimension.
-        Y: DataObject
-            Transformed right field data to be reconstructed. This could be
-            a subset of the `scores` data of a fitted model, or unseen data.
-            Must have a 'mode' dimension.
+        X, Y: DataArray | None
+            Transformed data to be reconstructed. At least one of them must be provided.
 
         Returns
         -------
-        Xrec1: DataArray | Dataset | List[DataArray]
-            Reconstructed data of left field.
-        Xrec2: DataArray | Dataset | List[DataArray]
-            Reconstructed data of right field.
+        Sequence[DataObject] | DataObject
+            Reconstructed data.
 
         """
         x_is_given = X is not None
@@ -399,13 +399,13 @@ class _BaseModelCrossSet(_BaseModel):
         if x_is_given:
             X = inv_transformed["X"]
             X = self.whitener1.inverse_transform_data(X)
-            X: DataObject = self.preprocessor1.inverse_transform_data(X)
-            results.append(X)
+            Xrec = self.preprocessor1.inverse_transform_data(X)
+            results.append(Xrec)
         if y_is_given:
             Y = inv_transformed["Y"]
             Y = self.whitener2.inverse_transform_data(Y)
-            Y: DataObject = self.preprocessor2.inverse_transform_data(Y)
-            results.append(Y)
+            Yrec = self.preprocessor2.inverse_transform_data(Y)
+            results.append(Yrec)
 
         if len(results) == 1:
             return results[0]
@@ -413,7 +413,19 @@ class _BaseModelCrossSet(_BaseModel):
             return results
 
     def predict(self, X: DataObject) -> DataArray:
-        """Predict the right field from the left field."""
+        """Predict Y from X.
+
+        Parameters
+        ----------
+        X: DataObject
+            Data to be used for prediction.
+
+        Returns
+        -------
+        DataArray
+            Predicted data in transformed space.
+
+        """
 
         validate_input_type(X)
 
@@ -433,7 +445,23 @@ class _BaseModelCrossSet(_BaseModel):
         return Y
 
     def components(self, normalized=True) -> tuple[DataObject, DataObject]:
-        """Get the components."""
+        """Get the components of the model.
+
+        The components may be referred to differently depending on the model
+        type. Common terms include canonical vectors, singular vectors, loadings
+        or spatial patterns.
+
+        Parameters
+        ----------
+        normalized: bool, default=True
+            Whether to return L2 normalized components.
+
+        Returns
+        -------
+        tuple[DataObject, DataObject]
+            Components of X and Y.
+
+        """
         Px, Py = self._get_components(normalized=normalized)
 
         Px = self.whitener1.inverse_transform_components(Px)
@@ -444,7 +472,23 @@ class _BaseModelCrossSet(_BaseModel):
         return Px, Py
 
     def scores(self, normalized=False) -> tuple[DataArray, DataArray]:
-        """Get the scores."""
+        """Get the scores of the model.
+
+        The component scores may be referred to differently depending on the
+        model type. Common terms include canonical variates, expansion
+        coefficents, principal component (scores) or temporal patterns.
+
+        Parameters
+        ----------
+        normalized: bool, default=False
+            Whether to return L2 normalized scores.
+
+        Returns
+        -------
+        tuple[DataArray, DataArray]
+            Scores of X and Y.
+
+        """
         Rx, Ry = self._get_scores(normalized=normalized)
 
         Rx = self.whitener1.inverse_transform_scores(Rx)
@@ -454,15 +498,26 @@ class _BaseModelCrossSet(_BaseModel):
         Ry: DataArray = self.preprocessor2.inverse_transform_scores(Ry)
         return Rx, Ry
 
-    @staticmethod
-    def _check_parameter_number(
-        parameter_name: str, parameter: Sequence[GenericType]
-    ) -> None:
-        if len(parameter) != 2:
-            err_msg = (
-                f"Expected 2 items for '{parameter_name}', but got {len(parameter)}."
-            )
-            raise ValueError(err_msg)
+    def get_serialization_attrs(self) -> dict:
+        """Get the attributes needed to serialize the model.
+
+        Returns
+        -------
+        dict
+            Attributes needed to serialize the model.
+
+        """
+        return dict(
+            data=self.data,
+            preprocessor1=self.preprocessor1,
+            preprocessor2=self.preprocessor2,
+            whitener1=self.whitener1,
+            whitener2=self.whitener2,
+        )
+
+    def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
+        """Optional method to augment the data before fitting."""
+        return X, Y
 
     def _process_parameter(
         self,
@@ -477,3 +532,13 @@ class _BaseModelCrossSet(_BaseModel):
             parameter = [parameter] * n_datasets
         self._check_parameter_number(parameter_name, parameter)
         return parameter
+
+    @staticmethod
+    def _check_parameter_number(
+        parameter_name: str, parameter: Sequence[GenericType]
+    ) -> None:
+        if len(parameter) != 2:
+            err_msg = (
+                f"Expected 2 items for '{parameter_name}', but got {len(parameter)}."
+            )
+            raise ValueError(err_msg)
