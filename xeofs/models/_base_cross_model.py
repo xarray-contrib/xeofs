@@ -1,25 +1,26 @@
-from typing import Tuple, Hashable, Sequence, Dict, Optional, Literal
-from typing_extensions import Self
+import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Dict, Hashable, Literal, Optional, Sequence, Tuple
 
 import dask
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
+from typing_extensions import Self
 
 try:
     from xarray.core.datatree import DataTree
 except ImportError:
     from datatree import DataTree
 
-from .eof import EOF
-from ..preprocessing.preprocessor import Preprocessor
-from ..data_container import DataContainer
-from ..utils.data_types import DataObject, DataArray
-from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
-from ..utils.xarray_utils import convert_to_dim_type, data_is_dask
-from ..utils.sanity_checks import validate_input_type
 from .._version import __version__
+from ..data_container import DataContainer
+from ..preprocessing.preprocessor import Preprocessor
+from ..utils.data_types import DataArray, DataObject
+from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
+from ..utils.sanity_checks import validate_input_type
+from ..utils.xarray_utils import convert_to_dim_type, data_is_dask
+from .eof import EOF
 
 
 class _BaseCrossModel(ABC):
@@ -76,6 +77,12 @@ class _BaseCrossModel(ABC):
         random_state=None,
         solver_kwargs={},
     ):
+        if verbose:
+            warnings.warn(
+                "The 'verbose' parameter is deprecated and will be removed in a future release.",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
         self.n_modes = n_modes
         self.sample_name = sample_name
         self.feature_name = feature_name
