@@ -201,7 +201,7 @@ class Whitener(Transformer):
                 np.diag,
                 Tinv,
                 input_core_dims=[["mode"]],
-                output_core_dims=[[self.feature_name, "mode"]],
+                output_core_dims=[["mode", self.feature_name]],
                 dask="allowed",
             )
             Tinv = Tinv.assign_coords({self.feature_name: self.s.coords["mode"].data})
