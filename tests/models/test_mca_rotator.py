@@ -81,7 +81,7 @@ def test_inverse_transform(mca_model):
 
     reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
-    assert isinstance(reconstructed_data, tuple)
+    assert isinstance(reconstructed_data, list)
     assert len(reconstructed_data) == 2
 
 
