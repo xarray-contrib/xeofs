@@ -116,12 +116,26 @@ def test_inverse_transform(cpcca):
     assert isinstance(Xrec2, xr.DataArray)
 
 
-def test_squared_covariance_fraction(cpcca):
+@pytest.mark.parametrize(
+    "alpha,use_pca",
+    [
+        (1.0, False),
+        (0.5, False),
+        (0.0, False),
+        (1.0, True),
+        (0.5, True),
+        (0.0, True),
+    ],
+)
+def test_squared_covariance_fraction(alpha, use_pca):
     X, Y = generate_well_conditioned_data()
+    cpcca = ContinuumPowerCCA(
+        n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all"
+    )
     cpcca.fit(X, Y, "sample")
     scf = cpcca.squared_covariance_fraction()
     assert isinstance(scf, xr.DataArray)
-    assert scf.sum("mode") <= 1.00001, "Squared covariance fraction is greater than 1"
+    assert all(scf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(

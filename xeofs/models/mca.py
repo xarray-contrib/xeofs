@@ -1,7 +1,72 @@
+import warnings
+
+from ..utils.data_types import DataArray
 from .cpcca import ComplexCPCCA, ContinuumPowerCCA
 
 
 class MCA(ContinuumPowerCCA):
+    """Maximum Covariance Analysis (MCA).
+
+    MCA [1]_ [2]_ seeks to find paris of coupled patterns that maimize the
+    squared covariance.
+
+    This method solves the following optimization problem:
+
+        :math:`\\max_{q_x, q_y} \\left( q_x^T X^T Y q_y \\right)`
+
+    subject to the constraints:
+
+        :math:`q_x^T q_x = 1, \\quad q_y^T q_y = 1`
+
+    where :math:`X` and :math:`Y` are the input data matrices and :math:`q_x`
+    and :math:`q_y` are the corresponding pattern vectors.
+
+    Parameters
+    ----------
+    n_modes: int, default=2
+        Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    n_pca_modes: int, default=None
+        The number of principal components to retain during the PCA preprocessing
+        step applied to both data sets prior to executing MCA.
+        If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
+        Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
+        only the specified number of principal components. This reduction in dimensionality can be especially beneficial
+        when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
+        intensive or in scenarios where multicollinearity is a concern.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
+    sample_name: str, default="sample"
+        Name of the new sample dimension.
+    feature_name: str, default="feature"
+        Name of the new feature dimension.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    random_state: int, default=None
+        Seed for the random number generator.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments passed to the SVD solver function.
+
+
+    References
+    ----------
+    .. [1] Bretherton, C., Smith, C., Wallace, J., 1992. An intercomparison of methods for finding coupled patterns in climate data. Journal of climate 5, 541–560.
+    .. [2] Wilks, D. S. Statistical Methods in the Atmospheric Sciences. (Academic Press, 2019). doi:https://doi.org/10.1016/B978-0-12-815823-4.00011-0.
+
+    Examples
+    --------
+    >>> model = MCA(n_modes=5, standardize=True)
+    >>> model.fit(data1, data2)
+    """
+
     def __init__(
         self,
         n_modes: int = 2,
@@ -35,10 +100,160 @@ class MCA(ContinuumPowerCCA):
             random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
-        self.attrs.update({"model": "MCA"})
+        self.attrs.update({"model": "Maximum Covariance Analysis"})
+
+    def _squared_covariance(self) -> DataArray:
+        """Get the squared covariance.
+
+        The squared covariance is given by the
+        squared singular values of the covariance matrix:
+
+        .. math::
+            SC_i = \\sigma_i^2
+
+        where :math:`\\sigma_i` is the `ith` singular value of the covariance matrix.
+
+        """
+        # only true for MCA, for alpha < 1 the sigmas become more and more correlation coefficients
+        # either remove this one and provide it only for MCA child class, or use error formulation
+        sc = self.data["squared_covariance"]
+        sc.name = "squared_covariance"
+        return sc
+
+    def _covariance_explained_DC95(self) -> DataArray:
+        """Get the covariance explained (CE) per mode according to CD95.
+
+        References
+        ----------
+        .. Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
+
+        """
+        cov_exp = self._squared_covariance() ** (0.5)
+        cov_exp.name = "pseudo_explained_covariance"
+        return cov_exp
+
+    def _total_covariance(self) -> DataArray:
+        """Get the total covariance.
+
+        This measure follows the defintion of Cheng and Dunkerton (1995).
+        Note that this measure is not an invariant in MCA.
+
+        """
+        pseudo_tot_cov = self._covariance_explained_DC95().sum()
+        pseudo_tot_cov.name = "pseudo_total_covariance"
+        return pseudo_tot_cov
+
+    def covariance_fraction_CD95(self):
+        """Get the covariance fraction (CF).
+
+        Cheng and Dunkerton (1995) [3]_ define the CF as follows:
+
+        .. math::
+            CF_i = \\frac{\\sigma_i}{\\sum_{i=1}^{m} \\sigma_i}
+
+        where `m` is the total number of modes and :math:`\\sigma_i` is the
+        `ith` singular value of the covariance matrix.
+
+        In this implementation the sum of singular values is estimated from the
+        first `n` modes, therefore one should aim to retain as many modes as
+        possible to get a good estimate of the covariance fraction.
+
+        Note
+        ----
+        Since CPCCA maximizes *squared* covariance (SC), it is this quantity that is going to be preserved during the decomposition, i.e. the SC of both data sets is the same before and after decomposition. Put differently, each mode explains a fraction of the total SC, and all modes together allow you to reconstruct the total SC of the cross-covariance matrix. The (non-squared) covariance is not an invariant under CPCCA. That is, the quantity is not preserved by the individual modes we obtain and cannnot reconstructed from them.    It is crucial to distinguish the covariance fraction (CF) from the
+        squared covariance fraction (SCF). The SCF is invariant in CPCCA and is
+        typically used to evaluate the relative importance of each mode. In
+        contrast, the CF is not invariant. Cheng and Dunkerton introduced the CF
+        to compare the relative importance of modes before and after Varimax
+        rotation in MCA. Notably, when both data fields in MCA are identical,
+        the CF is equivalent to the explained variance ratio in Principal
+        Component Analysis (PCA).
+
+        References
+        ----------
+        .. [3] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns Derived from Singular Value Decomposition Analysis. J. Climate 8, 2631–2643 (1995).
+        """
+        # Check how sensitive the CF is to the number of modes
+        cov_exp = self._covariance_explained_DC95()
+        tot_var = self._total_covariance()
+        cf = cov_exp[0] / cov_exp.cumsum()
+        change_per_mode = cf.shift({"mode": 1}) - cf
+        change_in_cf_in_last_mode = change_per_mode.isel(mode=-1)
+        if change_in_cf_in_last_mode > 0.001:
+            warnings.warn(
+                "The curent estimate of CF is sensitive to the number of modes retained. Please increase `n_modes` for a better estimate."
+            )
+        cov_frac = cov_exp / tot_var
+        cov_frac.name = "covariance_fraction"
+        cov_frac.attrs.update(cov_exp.attrs)
+        return cov_frac
 
 
 class ComplexMCA(ComplexCPCCA, MCA):
+    """Complex MCA.
+
+    Complex MCA [1]_ (aka Analytical SVD or Hilbert MCA),  extends classical CPCCA by examining
+    amplitude-phase relationships. It augments the input data with its Hilbert
+    transform, creating a complex-valued field.
+
+    This method solves the following optimization problem:
+
+        :math:`\\max_{q_x, q_y} \\left( q_x^H X^H Y q_y \\right)`
+
+    subject to the constraints:
+
+        :math:`q_x^H q_x = 1, \\quad q_y^H q_y = 1`
+
+    where :math:`H` denotes the conjugate transpose and :math:`X` and :math:`Y` are
+    the augmented data matrices.
+
+    An optional padding with exponentially decaying values can be applied prior
+    to the Hilbert transform in order to mitigate the impact of spectral
+    leakage.
+
+
+    Parameters
+    ----------
+    n_modes : int, default=2
+        Number of modes to calculate.
+    padding : Sequence[str] | str | None, default="exp"
+        Padding method for the Hilbert transform. Available options are:
+        - None: no padding
+        - "exp": exponential decay
+    decay_factor : Sequence[float] | float, default=0.2
+        Decay factor for the exponential padding.
+    standardize : Squence[bool] | bool, default=False
+        Whether to standardize the input data. Generally not recommended as standardization can be managed by the degree of whitening.
+    use_coslat : Sequence[bool] | bool, default=False
+        For data on a longitude-latitude grid, whether to correct for varying grid cell areas towards the poles by scaling each grid point with the square root of the cosine of its latitude.
+    use_pca : Sequence[bool] | bool, default=False
+        Whether to preprocess each field individually by reducing dimensionality through PCA. The cross-covariance matrix is computed in the reduced principal component space.
+    n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
+        Number of modes to retain during PCA preprocessing step. If int, specifies the exact number of modes; if float, specifies the fraction of variance to retain; if "all", all modes are retained.
+    pca_init_rank_reduction : Sequence[float] | float, default=0.3
+        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the initial fraction of rank reduction for faster PCA computation via randomized SVD.
+    check_nans : Sequence[bool] | bool, default=True
+        Whether to check for NaNs in the input data. Set to False for lazy model evaluation.
+    compute : bool, default=True
+        Whether to compute the model elements eagerly. If True, the following are computed sequentially: preprocessor scaler, optional NaN checks, SVD decomposition, scores, and components.
+    random_state : numpy.random.Generator | int | None, default=None
+        Seed for the random number generator.
+    sample_name : str, default="sample"
+        Name for the new sample dimension.
+    feature_name : Sequence[str] | str, default="feature"
+        Name for the new feature dimension.
+    solver : {"auto", "full", "randomized"}
+        Solver to use for the SVD computation.
+    solver_kwargs : dict, default={}
+        Additional keyword arguments passed to the SVD solver function.
+
+    References
+    ----------
+    .. [1] Elipot, S., Frajka-Williams, E., Hughes, C. W., Olhede, S. & Lankhorst, M. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054 (2017).
+
+
+    """
+
     def __init__(
         self,
         n_modes: int = 2,
