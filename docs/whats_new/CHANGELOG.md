@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. See [conven
 ### 🔖 Documentation
 
 - **(changelog)** move log to documentation (#199) - ([c9de931](https://github.com/nicrie/xeofs/commit/c9de931327faae972747e3b0d3fbfded4c3b9a91)) - Niclas Rieger
+- **(changelog)** update changelog - ([280bd43](https://github.com/nicrie/xeofs/commit/280bd430383ae5fecc47275f1964945b1bd5479b)) - github-actions[bot]
 - **(decomposer)** improve error messages (#194) - ([9d34060](https://github.com/nicrie/xeofs/commit/9d34060617a45c60b02bf504e38d7b202285ccfc)) - Niclas Rieger
 - reorganize documentation (#171) - ([aa28770](https://github.com/nicrie/xeofs/commit/aa287706f590c7afe7eeb6d51c30d64b4d285cc0)) - Niclas Rieger
 - update color design (#181) - ([25598a1](https://github.com/nicrie/xeofs/commit/25598a1fc23e41560e9d85327f7c52c0420825f4)) - Niclas Rieger
@@ -38,6 +39,8 @@ All notable changes to this project will be documented in this file. See [conven
 - merge main into develop - ([4e683e6](https://github.com/nicrie/xeofs/commit/4e683e644be0975e3f2e388703a5dd88484da674)) - Niclas Rieger
 - updating internal code structure (#195) - ([00d5fb7](https://github.com/nicrie/xeofs/commit/00d5fb7dcd176aa6eaf274805ebfc29eb937c8b6)) - Niclas Rieger
 - update git-cliff Github Action - ([f8b3305](https://github.com/nicrie/xeofs/commit/f8b33053bd2c2bd09808887b890a1d2fab611eb3)) - Niclas Rieger
+- add deprecation warning for verbose parameter - ([87b23f9](https://github.com/nicrie/xeofs/commit/87b23f9d8dfc219730dda22800c5ec98206dc9d3)) - Niclas Rieger
+- add deprecation warning for verbose parameter (#200) - ([f2f3354](https://github.com/nicrie/xeofs/commit/f2f335415aa49d575ce08e5a983a466b076fa0c0)) - Niclas Rieger
 
 ---
 ## [2.4.0](https://github.com/nicrie/xeofs/compare/v2.3.3..v2.4.0) - 2024-07-18
