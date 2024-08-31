@@ -11,7 +11,7 @@ from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray, DataObject
 from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
-from .mca import MCA, HilbertMCA
+from .mca import MCA, ComplexMCA, HilbertMCA
 
 
 class MCARotator(MCA):
@@ -409,6 +409,47 @@ class MCARotator(MCA):
             return results[0]
         else:
             return results
+
+
+class ComplexMCARotator(MCARotator, ComplexMCA):
+    """Rotate a solution obtained from ``xe.models.ComplexMCA``.
+
+    Parameters
+    ----------
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results
+        in a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and
+        terminate the iterative process.
+    squared_loadings : bool, default=False
+        Specify the method for constructing the combined vectors of loadings. If True,
+        the combined vectors are loaded with the singular values (termed "squared loadings"),
+        conserving the squared covariance under rotation. This allows estimation of mode importance
+        after rotation. If False, the combined vectors are loaded with the square root of the
+        singular values, following the method described by Cheng & Dunkerton.
+    compute: bool, default=True
+        Whether to compute the rotation immediately.
+
+    Examples
+    --------
+    >>> model = ComplexMCA(n_modes=5)
+    >>> model.fit(da1, da2, dim='time')
+    >>> rotator = ComplexMCARotator(n_modes=5, power=2)
+    >>> rotator.fit(model)
+    >>> rotator.components()
+
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({"model": "Rotated Complex MCA"})
+        self.model = ComplexMCA()
 
 
 class HilbertMCARotator(MCARotator, HilbertMCA):

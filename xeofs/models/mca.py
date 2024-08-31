@@ -119,6 +119,9 @@ class MCA(_BaseCrossModel):
 
         return xr.dot(X1.conj(), X2, dims=sample_name) / (n_samples - 1)
 
+    def _augment_data(self, data, dims):
+        return data
+
     def _fit_algorithm(
         self,
         data1: DataArray,
@@ -138,6 +141,11 @@ class MCA(_BaseCrossModel):
             # Get the PCA scores
             pca_scores1 = self.pca1.data["scores"] * self.pca1.singular_values()
             pca_scores2 = self.pca2.data["scores"] * self.pca2.singular_values()
+
+            # Augment data
+            pca_scores1 = self._augment_data(pca_scores1, dims=(sample_name, "mode"))
+            pca_scores2 = self._augment_data(pca_scores2, dims=(sample_name, "mode"))
+
             # Compute the cross-covariance matrix of the PCA scores
             pca_scores1 = pca_scores1.rename({"mode": "feature1"})
             pca_scores2 = pca_scores2.rename({"mode": "feature2"})
@@ -160,6 +168,10 @@ class MCA(_BaseCrossModel):
 
         # Perform SVD directly on data
         else:
+            # Augment data
+            data1 = self._augment_data(data1, dims=(sample_name, feature_name))
+            data2 = self._augment_data(data2, dims=(sample_name, feature_name))
+
             # Rename feature and associated dimensions of data objects to avoid index conflicts
             dim_renamer1 = DimensionRenamer(feature_name, "1")
             dim_renamer2 = DimensionRenamer(feature_name, "2")
@@ -554,32 +566,29 @@ class MCA(_BaseCrossModel):
             )
 
 
-class HilbertMCA(MCA):
-    """Hilbert MCA.
+class ComplexMCA(MCA):
+    """Complex Maximum Covariance Analysis.
 
-    Hilbert MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
-    enhances traditional MCA by accommodating both amplitude and phase information.
-    It achieves this by utilizing the Hilbert transform to preprocess the data,
-    thus allowing for a more comprehensive analysis in the subsequent MCA computation.
+    MCA applied to a complex-valued field obtained from a pair of variables such
+    as the zonal and meridional components, :math:`U` and :math:`V`, of the wind
+    field. Complex EOF analysis then maximizes the squared covariance between
+    two datasets of the form
 
-    An optional padding with exponentially decaying values can be applied prior to
-    the Hilbert transform in order to mitigate the impact of spectral leakage.
+    .. math::
+        Z_x = U_x + iV_x
+
+    and
+
+    .. math::
+        Z_y = U_y + iV_y
+
+    into a set of complex-valued components and PC scores.
+
 
     Parameters
     ----------
     n_modes: int, default=2
         Number of modes to calculate.
-    padding : str, optional
-        Specifies the method used for padding the data prior to applying the Hilbert
-        transform. This can help to mitigate the effect of spectral leakage.
-        Currently, only 'exp' for exponential padding is supported. Default is 'exp'.
-    decay_factor : float, optional
-        Specifies the decay factor used in the exponential padding. This parameter
-        is only used if padding='exp'. The recommended value typically ranges between 0.05 to 0.2
-        but ultimately depends on the variability in the data.
-        A smaller value (e.g. 0.05) is recommended for
-        data with high variability, while a larger value (e.g. 0.2) is recommended
-        for data with low variability. Default is 0.2.
     center: bool, default=True
         Whether to center the input data.
     standardize: bool, default=False
@@ -587,57 +596,53 @@ class HilbertMCA(MCA):
     use_coslat: bool, default=False
         Whether to use cosine of latitude for scaling.
     n_pca_modes: int, default=None
-        The number of principal components to retain during the PCA preprocessing
-        step applied to both data sets prior to executing MCA.
-        If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
-        Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
-        only the specified number of principal components. This reduction in dimensionality can be especially beneficial
-        when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
-        intensive or in scenarios where multicollinearity is a concern.
+        The number of principal components to retain during the PCA
+        preprocessing step applied to both data sets prior to executing MCA. If
+        set to None, PCA preprocessing will be bypassed, and the MCA will be
+        performed on the original datasets. Specifying an integer value greater
+        than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
+        only the specified number of principal components. This reduction in
+        dimensionality can be especially beneficial when dealing with
+        high-dimensional data, where computing the cross-covariance matrix can
+        become computationally intensive or in scenarios where multicollinearity
+        is a concern.
     compute : bool, default=True
-        Whether to compute elements of the model eagerly, or to defer computation.
-        If True, four pieces of the fit will be computed sequentially: 1) the
-        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
-        and components.
+        Whether to compute elements of the model eagerly, or to defer
+        computation. If True, four pieces of the fit will be computed
+        sequentially: 1) the preprocessor scaler, 2) optional NaN checks, 3) SVD
+        decomposition, 4) scores and components.
     sample_name: str, default="sample"
         Name of the new sample dimension.
     feature_name: str, default="feature"
         Name of the new feature dimension.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
-    random_state: int, optional
-        Random state for randomized SVD solver.
+    random_state: int, default=None
+        Seed for the random number generator.
     solver_kwargs: dict, default={}
-        Additional keyword arguments passed to the SVD solver.
-
-    Notes
-    -----
-    Hilbert MCA extends MCA to complex-valued data that contain both magnitude and phase information.
-    The Hilbert transform is used to transform real-valued data to complex-valued data, from which both
-    amplitude and phase can be extracted.
-
-    Similar to MCA, Hilbert MCA is used in climate science to identify coupled patterns of variability
-    between two different climate variables. But unlike MCA, Hilbert MCA can identify coupled patterns
-    that involve phase shifts.
-
-    References
-    ----------
-    .. [1] Elipot, S., Frajka-Williams, E., Hughes, C. W., Olhede, S. & Lankhorst, M. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054 (2017).
-
-
+        Additional keyword arguments passed to the SVD solver function.
 
     Examples
     --------
-    >>> model = HilbertMCA(n_modes=5, standardize=True)
-    >>> model.fit(data1, data2)
+
+    With two DataArrays `u_i` and `v_i` representing the zonal and meridional
+    components of the wind field for two different regions :math:`x` and
+    :math:`y`, construct
+
+    >>> X = u_x + 1j * v_x
+    >>> Y = u_y + 1j * v_y
+
+    and fit the Complex MCA model:
+
+    >>> model = ComplexMCA(n_modes=5)
+    >>> model.fit(X, Y, "time")
+
 
     """
 
     def __init__(
         self,
         n_modes: int = 2,
-        padding: str = "exp",
-        decay_factor: float = 0.2,
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
@@ -647,7 +652,7 @@ class HilbertMCA(MCA):
         sample_name: str = "sample",
         feature_name: str = "feature",
         solver: str = "auto",
-        random_state: Optional[bool] = None,
+        random_state: Optional[int] = None,
         solver_kwargs: Dict = {},
         **kwargs,
     ):
@@ -666,119 +671,15 @@ class HilbertMCA(MCA):
             solver_kwargs=solver_kwargs,
             **kwargs,
         )
-        self.attrs.update({"model": "Hilbert MCA"})
-        self._params.update({"padding": padding, "decay_factor": decay_factor})
+        self.attrs.update({"model": "Complex MCA"})
 
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
-        assert_not_complex(data1)
-        assert_not_complex(data2)
-
-        sample_name = self.sample_name
-        feature_name = self.feature_name
-
-        # Settings for Hilbert transform
-        hilbert_kwargs = {
-            "padding": self._params["padding"],
-            "decay_factor": self._params["decay_factor"],
-        }
-
-        # Initialize the SVD decomposer
-        decomposer = Decomposer(**self._decomposer_kwargs)
-
-        # Perform SVD on PCA-reduced data
-        if (self.pca1 is not None) and (self.pca2 is not None):
-            # Fit the PCA models
-            self.pca1.fit(data1, sample_name)
-            self.pca2.fit(data2, sample_name)
-            # Get the PCA scores
-            pca_scores1 = self.pca1.data["scores"] * self.pca1.singular_values()
-            pca_scores2 = self.pca2.data["scores"] * self.pca2.singular_values()
-            # Apply hilbert transform
-            pca_scores1 = hilbert_transform(
-                pca_scores1, dims=(sample_name, "mode"), **hilbert_kwargs
+        if not np.iscomplexobj(data1) and not np.iscomplexobj(data2):
+            warnings.warn(
+                "Expected complex-valued data but found real-valued data. For Hilbert MCA, use `HilbertMCA` model."
             )
-            pca_scores2 = hilbert_transform(
-                pca_scores2, dims=(sample_name, "mode"), **hilbert_kwargs
-            )
-            # Compute the cross-covariance matrix of the PCA scores
-            pca_scores1 = pca_scores1.rename({"mode": "feature_temp1"})
-            pca_scores2 = pca_scores2.rename({"mode": "feature_temp2"})
-            cov_matrix = self._compute_cross_covariance_matrix(pca_scores1, pca_scores2)
 
-            # Perform the SVD
-            decomposer.fit(cov_matrix, dims=("feature_temp1", "feature_temp2"))
-            V1 = decomposer.U_  # left singular vectors (feature_temp1 x mode)
-            V2 = decomposer.V_  # right singular vectors (feature_temp2 x mode)
-
-            # left and right PCA eigenvectors (feature_name x mode)
-            V1pre = self.pca1.data["components"]
-            V2pre = self.pca2.data["components"]
-
-            # Compute the singular vectors
-            V1pre = V1pre.rename({"mode": "feature_temp1"})
-            V2pre = V2pre.rename({"mode": "feature_temp2"})
-            singular_vectors1 = xr.dot(V1pre, V1, dims="feature_temp1")
-            singular_vectors2 = xr.dot(V2pre, V2, dims="feature_temp2")
-
-        # Perform SVD directly on data
-        else:
-            # Perform Hilbert transform
-            data1 = hilbert_transform(
-                data1, dims=(sample_name, feature_name), **hilbert_kwargs
-            )
-            data2 = hilbert_transform(
-                data2, dims=(sample_name, feature_name), **hilbert_kwargs
-            )
-            # Rename feature and associated dimensions of data objects to avoid index conflicts
-            dim_renamer1 = DimensionRenamer(feature_name, "1")
-            dim_renamer2 = DimensionRenamer(feature_name, "2")
-            data1_temp = dim_renamer1.fit_transform(data1)
-            data2_temp = dim_renamer2.fit_transform(data2)
-            # Compute the cross-covariance matrix
-            cov_matrix = self._compute_cross_covariance_matrix(data1_temp, data2_temp)
-
-            # Perform the SVD
-            decomposer.fit(cov_matrix, dims=("feature1", "feature2"))
-            singular_vectors1 = decomposer.U_
-            singular_vectors2 = decomposer.V_
-
-            # Rename the singular vectors
-            singular_vectors1 = dim_renamer1.inverse_transform(singular_vectors1)
-            singular_vectors2 = dim_renamer2.inverse_transform(singular_vectors2)
-
-        # Store the results
-        singular_values = decomposer.s_
-
-        # Compute total squared variance
-        squared_covariance = singular_values**2
-        total_squared_covariance = (abs(cov_matrix) ** 2).sum()
-
-        norm1 = np.sqrt(singular_values)
-        norm2 = np.sqrt(singular_values)
-
-        # Index of the sorted squared covariance
-        idx_sorted_modes = argsort_dask(squared_covariance, "mode")[::-1]
-        idx_sorted_modes.coords.update(squared_covariance.coords)
-
-        # Project the data onto the singular vectors
-        scores1 = xr.dot(data1, singular_vectors1) / norm1
-        scores2 = xr.dot(data2, singular_vectors2) / norm2
-
-        self.data.add(name="input_data1", data=data1, allow_compute=False)
-        self.data.add(name="input_data2", data=data2, allow_compute=False)
-        self.data.add(name="components1", data=singular_vectors1)
-        self.data.add(name="components2", data=singular_vectors2)
-        self.data.add(name="scores1", data=scores1)
-        self.data.add(name="scores2", data=scores2)
-        self.data.add(name="squared_covariance", data=squared_covariance)
-        self.data.add(name="total_squared_covariance", data=total_squared_covariance)
-        self.data.add(name="idx_modes_sorted", data=idx_sorted_modes)
-        self.data.add(name="norm1", data=norm1)
-        self.data.add(name="norm2", data=norm2)
-
-        # Assign analysis relevant meta data
-        self.data.set_attrs(self.attrs)
-        return self
+        return super()._fit_algorithm(data1, data2)
 
     def components_amplitude(self) -> Tuple[DataObject, DataObject]:
         """Compute the amplitude of the components.
@@ -899,6 +800,145 @@ class HilbertMCA(MCA):
 
         return (scores1, scores2)
 
+    def homogeneous_patterns(self, correction=None, alpha=0.05):
+        raise NotImplementedError(
+            "Compplex MCA does not support homogeneous_patterns method."
+        )
+
+    def heterogeneous_patterns(self, correction=None, alpha=0.05):
+        raise NotImplementedError(
+            "Complex MCA does not support heterogeneous_patterns method."
+        )
+
+
+class HilbertMCA(ComplexMCA):
+    """Hilbert MCA.
+
+    Hilbert MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
+    enhances traditional MCA by accommodating both amplitude and phase information.
+    It achieves this by utilizing the Hilbert transform to preprocess the data,
+    thus allowing for a more comprehensive analysis in the subsequent MCA computation.
+
+    An optional padding with exponentially decaying values can be applied prior to
+    the Hilbert transform in order to mitigate the impact of spectral leakage.
+
+    Parameters
+    ----------
+    n_modes: int, default=2
+        Number of modes to calculate.
+    padding : str, optional
+        Specifies the method used for padding the data prior to applying the Hilbert
+        transform. This can help to mitigate the effect of spectral leakage.
+        Currently, only 'exp' for exponential padding is supported. Default is 'exp'.
+    decay_factor : float, optional
+        Specifies the decay factor used in the exponential padding. This parameter
+        is only used if padding='exp'. The recommended value typically ranges between 0.05 to 0.2
+        but ultimately depends on the variability in the data.
+        A smaller value (e.g. 0.05) is recommended for
+        data with high variability, while a larger value (e.g. 0.2) is recommended
+        for data with low variability. Default is 0.2.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize: bool, default=False
+        Whether to standardize the input data.
+    use_coslat: bool, default=False
+        Whether to use cosine of latitude for scaling.
+    n_pca_modes: int, default=None
+        The number of principal components to retain during the PCA preprocessing
+        step applied to both data sets prior to executing MCA.
+        If set to None, PCA preprocessing will be bypassed, and the MCA will be performed on the original datasets.
+        Specifying an integer value greater than 0 for `n_pca_modes` will trigger the PCA preprocessing, retaining
+        only the specified number of principal components. This reduction in dimensionality can be especially beneficial
+        when dealing with high-dimensional data, where computing the cross-covariance matrix can become computationally
+        intensive or in scenarios where multicollinearity is a concern.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer computation.
+        If True, four pieces of the fit will be computed sequentially: 1) the
+        preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
+        and components.
+    sample_name: str, default="sample"
+        Name of the new sample dimension.
+    feature_name: str, default="feature"
+        Name of the new feature dimension.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    random_state: int, optional
+        Random state for randomized SVD solver.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments passed to the SVD solver.
+
+    Notes
+    -----
+    Hilbert MCA extends MCA to complex-valued data that contain both magnitude and phase information.
+    The Hilbert transform is used to transform real-valued data to complex-valued data, from which both
+    amplitude and phase can be extracted.
+
+    Similar to MCA, Hilbert MCA is used in climate science to identify coupled patterns of variability
+    between two different climate variables. But unlike MCA, Hilbert MCA can identify coupled patterns
+    that involve phase shifts.
+
+    References
+    ----------
+    .. [1] Elipot, S., Frajka-Williams, E., Hughes, C. W., Olhede, S. & Lankhorst, M. Observed Basin-Scale Response of the North Atlantic Meridional Overturning Circulation to Wind Stress Forcing. Journal of Climate 30, 2029–2054 (2017).
+
+
+
+    Examples
+    --------
+    >>> model = HilbertMCA(n_modes=5, standardize=True)
+    >>> model.fit(data1, data2)
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        padding: str = "exp",
+        decay_factor: float = 0.2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        check_nans: bool = True,
+        n_pca_modes: Optional[int] = None,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        solver: str = "auto",
+        random_state: Optional[bool] = None,
+        solver_kwargs: Dict = {},
+        **kwargs,
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            check_nans=check_nans,
+            n_pca_modes=n_pca_modes,
+            compute=compute,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            random_state=random_state,
+            solver_kwargs=solver_kwargs,
+            **kwargs,
+        )
+        self.attrs.update({"model": "Hilbert MCA"})
+        self._params.update({"padding": padding, "decay_factor": decay_factor})
+
+    def _augment_data(self, data, dims):
+        kwargs = dict(
+            padding=self._params["padding"], decay_factor=self._params["decay_factor"]
+        )
+        return hilbert_transform(data, dims=dims, **kwargs)
+
+    def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
+        assert_not_complex(data1)
+        assert_not_complex(data2)
+
+        MCA._fit_algorithm(self, data1, data2)
+        return self
+
     def transform(self, data1: DataObject, data2: DataObject):
         raise NotImplementedError("Hilbert MCA does not support transform method.")
 
@@ -907,13 +947,3 @@ class HilbertMCA(MCA):
 
         # Enforce real output
         return data1.real, data2.real
-
-    def homogeneous_patterns(self, correction=None, alpha=0.05):
-        raise NotImplementedError(
-            "Hilbert MCA does not support homogeneous_patterns method."
-        )
-
-    def heterogeneous_patterns(self, correction=None, alpha=0.05):
-        raise NotImplementedError(
-            "Hilbert MCA does not support heterogeneous_patterns method."
-        )
