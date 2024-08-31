@@ -1,36 +1,36 @@
 import warnings
-from typing import (
-    Optional,
-    Sequence,
-    Hashable,
-    Dict,
-    Any,
-    List,
-    Literal,
-)
-from typing_extensions import Self
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import (
+    Any,
+    Dict,
+    Hashable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+)
 
 import dask
 import xarray as xr
 from dask.diagnostics.progress import ProgressBar
+from typing_extensions import Self
 
 try:
     from xarray.core.datatree import DataTree
 except ImportError:
     from datatree import DataTree
 
-from ..preprocessing.preprocessor import Preprocessor
+from .._version import __version__
 from ..data_container import DataContainer
-from ..utils.data_types import DataObject, Data, DataArray
+from ..preprocessing.preprocessor import Preprocessor
+from ..utils.data_types import Data, DataArray, DataObject
 from ..utils.io import insert_placeholders, open_model_tree, write_model_tree
 from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import (
     convert_to_dim_type,
     data_is_dask,
 )
-from .._version import __version__
 
 # Ignore warnings from numpy casting with additional coordinates
 warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
@@ -93,6 +93,12 @@ class _BaseModel(ABC):
         solver="auto",
         solver_kwargs={},
     ):
+        if verbose:
+            warnings.warn(
+                "The 'verbose' parameter is deprecated and will be removed in a future release.",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
         self.n_modes = n_modes
         self.sample_name = sample_name
         self.feature_name = feature_name
