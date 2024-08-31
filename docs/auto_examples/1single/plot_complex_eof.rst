@@ -18,36 +18,49 @@
 .. _sphx_glr_auto_examples_1single_plot_complex_eof.py:
 
 
-Complex/Hilbert EOF analysis
+Complex EOF analysis
 ============================================
 
-We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.
-This method extends traditional EOF analysis into the complex domain, allowing
-the EOF components to have real and imaginary parts. This capability can reveal
-oscillatory patterns in datasets, which are common in Earth observations.
-For example, beyond typical examples like seasonal cycles, you can think of
-internal waves in the ocean, or the Quasi-Biennial Oscillation in the atmosphere.
-
-Using monthly sea surface temperature data from 1970 to 2021 as an example, we
-highlight the method's key features and address edge effects as a common challenge.
-
-.. [1] Rasmusson, E. M., Arkin, P. A., Chen, W.-Y. & Jalickee, J. B. Biennial variations in surface temperature over the United States as revealed by singular decomposition. Monthly Weather Review 109, 587–598 (1981).
-.. [2] Barnett, T. P. Interaction of the Monsoon and Pacific Trade Wind System at Interannual Time Scales Part I: The Equatorial Zone. Monthly Weather Review 111, 756–773 (1983).
-.. [3] Horel, J. Complex Principal Component Analysis: Theory and Examples. J. Climate Appl. Meteor. 23, 1660–1673 (1984).
+In this tutorial, we'll walk through how to perform a Complex EOF analysis on
+the zonal and meridional wind components.
 
 Let's start by importing the necessary packages and loading the data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 23-31
+.. GENERATED FROM PYTHON SOURCE LINES 12-19
 
-.. code-block:: Python
+.. code-block:: default
+
+    import matplotlib.pyplot as plt
+    import xarray as xr
 
     import xeofs as xe
-    import xarray as xr
 
     xr.set_options(display_expand_attrs=False)
 
-    sst = xr.tutorial.open_dataset("ersstv5").sst
-    sst
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+
+    <xarray.core.options.set_options object at 0x7a6bab9e66d0>
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 20-21
+
+For this example, we'll use the ERA-Interim tutorial dataset ``eraint_uvz``:
+
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
+
+.. code-block:: default
+
+
+    uvz = xr.tutorial.open_dataset("eraint_uvz")
+    uvz
 
 
 
@@ -420,76 +433,48 @@ Let's start by importing the necessary packages and loading the data:
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;sst&#x27; (time: 624, lat: 89, lon: 180)&gt; Size: 40MB
-    [9996480 values with dtype=float32]
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.Dataset&gt;
+    Dimensions:    (longitude: 480, latitude: 241, level: 3, month: 2)
     Coordinates:
-      * lat      (lat) float32 356B 88.0 86.0 84.0 82.0 ... -82.0 -84.0 -86.0 -88.0
-      * lon      (lon) float32 720B 0.0 2.0 4.0 6.0 8.0 ... 352.0 354.0 356.0 358.0
-      * time     (time) datetime64[ns] 5kB 1970-01-01 1970-02-01 ... 2021-12-01
-    Attributes: (9)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'sst'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 624</li><li><span class='xr-has-index'>lat</span>: 89</li><li><span class='xr-has-index'>lon</span>: 180</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-3d575c77-42aa-43f8-bd93-05ae9e25ddea' class='xr-array-in' type='checkbox' ><label for='section-3d575c77-42aa-43f8-bd93-05ae9e25ddea' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>...</span></div><div class='xr-array-data'><pre>[9996480 values with dtype=float32]</pre></div></div></li><li class='xr-section-item'><input id='section-45fef4d0-73d8-4c89-a36a-c17ad2509354' class='xr-section-summary-in' type='checkbox'  checked><label for='section-45fef4d0-73d8-4c89-a36a-c17ad2509354' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lat</span></div><div class='xr-var-dims'>(lat)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>88.0 86.0 84.0 ... -86.0 -88.0</div><input id='attrs-beddd774-e2ee-4413-a435-d45083dd6211' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-beddd774-e2ee-4413-a435-d45083dd6211' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f1e168d0-f66a-49de-82e6-5e189f8eed71' class='xr-var-data-in' type='checkbox'><label for='data-f1e168d0-f66a-49de-82e6-5e189f8eed71' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_north</dd><dt><span>long_name :</span></dt><dd>Latitude</dd><dt><span>actual_range :</span></dt><dd>[ 88. -88.]</dd><dt><span>standard_name :</span></dt><dd>latitude</dd><dt><span>axis :</span></dt><dd>Y</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([ 88.,  86.,  84.,  82.,  80.,  78.,  76.,  74.,  72.,  70.,  68.,  66.,
-            64.,  62.,  60.,  58.,  56.,  54.,  52.,  50.,  48.,  46.,  44.,  42.,
-            40.,  38.,  36.,  34.,  32.,  30.,  28.,  26.,  24.,  22.,  20.,  18.,
-            16.,  14.,  12.,  10.,   8.,   6.,   4.,   2.,   0.,  -2.,  -4.,  -6.,
-            -8., -10., -12., -14., -16., -18., -20., -22., -24., -26., -28., -30.,
-           -32., -34., -36., -38., -40., -42., -44., -46., -48., -50., -52., -54.,
-           -56., -58., -60., -62., -64., -66., -68., -70., -72., -74., -76., -78.,
-           -80., -82., -84., -86., -88.], dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>lon</span></div><div class='xr-var-dims'>(lon)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>0.0 2.0 4.0 ... 354.0 356.0 358.0</div><input id='attrs-f3c7049c-6590-47fb-af51-46ad84ad807b' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-f3c7049c-6590-47fb-af51-46ad84ad807b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-09dc4d09-acca-4690-ab60-4e59dcc7e644' class='xr-var-data-in' type='checkbox'><label for='data-09dc4d09-acca-4690-ab60-4e59dcc7e644' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_east</dd><dt><span>long_name :</span></dt><dd>Longitude</dd><dt><span>actual_range :</span></dt><dd>[  0. 358.]</dd><dt><span>standard_name :</span></dt><dd>longitude</dd><dt><span>axis :</span></dt><dd>X</dd><dt><span>coordinate_defines :</span></dt><dd>center</dd></dl></div><div class='xr-var-data'><pre>array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,  22.,
-            24.,  26.,  28.,  30.,  32.,  34.,  36.,  38.,  40.,  42.,  44.,  46.,
-            48.,  50.,  52.,  54.,  56.,  58.,  60.,  62.,  64.,  66.,  68.,  70.,
-            72.,  74.,  76.,  78.,  80.,  82.,  84.,  86.,  88.,  90.,  92.,  94.,
-            96.,  98., 100., 102., 104., 106., 108., 110., 112., 114., 116., 118.,
-           120., 122., 124., 126., 128., 130., 132., 134., 136., 138., 140., 142.,
-           144., 146., 148., 150., 152., 154., 156., 158., 160., 162., 164., 166.,
-           168., 170., 172., 174., 176., 178., 180., 182., 184., 186., 188., 190.,
-           192., 194., 196., 198., 200., 202., 204., 206., 208., 210., 212., 214.,
-           216., 218., 220., 222., 224., 226., 228., 230., 232., 234., 236., 238.,
-           240., 242., 244., 246., 248., 250., 252., 254., 256., 258., 260., 262.,
-           264., 266., 268., 270., 272., 274., 276., 278., 280., 282., 284., 286.,
-           288., 290., 292., 294., 296., 298., 300., 302., 304., 306., 308., 310.,
-           312., 314., 316., 318., 320., 322., 324., 326., 328., 330., 332., 334.,
-           336., 338., 340., 342., 344., 346., 348., 350., 352., 354., 356., 358.],
-          dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>datetime64[ns]</div><div class='xr-var-preview xr-preview'>1970-01-01 ... 2021-12-01</div><input id='attrs-675c9ad9-cd73-48c2-b6ba-8751c628b8ef' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-675c9ad9-cd73-48c2-b6ba-8751c628b8ef' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-00f6ade9-c439-426d-890a-ebf00a1a92bb' class='xr-var-data-in' type='checkbox'><label for='data-00f6ade9-c439-426d-890a-ebf00a1a92bb' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>delta_t :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>avg_period :</span></dt><dd>0000-01-00 00:00:00</dd><dt><span>prev_avg_period :</span></dt><dd>0000-00-07 00:00:00</dd><dt><span>standard_name :</span></dt><dd>time</dd><dt><span>axis :</span></dt><dd>T</dd><dt><span>actual_range :</span></dt><dd>[19723. 81204.]</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;1970-01-01T00:00:00.000000000&#x27;, &#x27;1970-02-01T00:00:00.000000000&#x27;,
-           &#x27;1970-03-01T00:00:00.000000000&#x27;, ..., &#x27;2021-10-01T00:00:00.000000000&#x27;,
-           &#x27;2021-11-01T00:00:00.000000000&#x27;, &#x27;2021-12-01T00:00:00.000000000&#x27;],
-          dtype=&#x27;datetime64[ns]&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-dbc7afa0-b3da-4b10-88a4-f7d06efc4abb' class='xr-section-summary-in' type='checkbox'  ><label for='section-dbc7afa0-b3da-4b10-88a4-f7d06efc4abb' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>lat</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-942e25bf-c90e-4b18-b514-f421b1c4be86' class='xr-index-data-in' type='checkbox'/><label for='index-942e25bf-c90e-4b18-b514-f421b1c4be86' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([ 88.0,  86.0,  84.0,  82.0,  80.0,  78.0,  76.0,  74.0,  72.0,  70.0,
-            68.0,  66.0,  64.0,  62.0,  60.0,  58.0,  56.0,  54.0,  52.0,  50.0,
-            48.0,  46.0,  44.0,  42.0,  40.0,  38.0,  36.0,  34.0,  32.0,  30.0,
-            28.0,  26.0,  24.0,  22.0,  20.0,  18.0,  16.0,  14.0,  12.0,  10.0,
-             8.0,   6.0,   4.0,   2.0,   0.0,  -2.0,  -4.0,  -6.0,  -8.0, -10.0,
-           -12.0, -14.0, -16.0, -18.0, -20.0, -22.0, -24.0, -26.0, -28.0, -30.0,
-           -32.0, -34.0, -36.0, -38.0, -40.0, -42.0, -44.0, -46.0, -48.0, -50.0,
-           -52.0, -54.0, -56.0, -58.0, -60.0, -62.0, -64.0, -66.0, -68.0, -70.0,
-           -72.0, -74.0, -76.0, -78.0, -80.0, -82.0, -84.0, -86.0, -88.0],
-          dtype=&#x27;float32&#x27;, name=&#x27;lat&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>lon</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-b8e01682-a154-4475-8756-91585e34e570' class='xr-index-data-in' type='checkbox'/><label for='index-b8e01682-a154-4475-8756-91585e34e570' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  0.0,   2.0,   4.0,   6.0,   8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
+      * longitude  (longitude) float32 -180.0 -179.2 -178.5 ... 177.8 178.5 179.2
+      * latitude   (latitude) float32 90.0 89.25 88.5 87.75 ... -88.5 -89.25 -90.0
+      * level      (level) int32 200 500 850
+      * month      (month) int32 1 7
+    Data variables:
+        z          (month, level, latitude, longitude) float64 ...
+        u          (month, level, latitude, longitude) float64 ...
+        v          (month, level, latitude, longitude) float64 ...
+    Attributes: (2)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-44db3cdb-d8a9-48cc-a722-592ca90e5797' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-44db3cdb-d8a9-48cc-a722-592ca90e5797' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>longitude</span>: 480</li><li><span class='xr-has-index'>latitude</span>: 241</li><li><span class='xr-has-index'>level</span>: 3</li><li><span class='xr-has-index'>month</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-c800878c-c2e5-481c-b885-5c420c512e4c' class='xr-section-summary-in' type='checkbox'  checked><label for='section-c800878c-c2e5-481c-b885-5c420c512e4c' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>longitude</span></div><div class='xr-var-dims'>(longitude)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>-180.0 -179.2 ... 178.5 179.2</div><input id='attrs-56738fc1-e8ff-4901-8395-6d4f1d818552' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-56738fc1-e8ff-4901-8395-6d4f1d818552' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fe5634d1-9790-4389-b7c2-8ce051ade008' class='xr-var-data-in' type='checkbox'><label for='data-fe5634d1-9790-4389-b7c2-8ce051ade008' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_east</dd><dt><span>long_name :</span></dt><dd>longitude</dd></dl></div><div class='xr-var-data'><pre>array([-180.  , -179.25, -178.5 , ...,  177.75,  178.5 ,  179.25],
+          dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>latitude</span></div><div class='xr-var-dims'>(latitude)</div><div class='xr-var-dtype'>float32</div><div class='xr-var-preview xr-preview'>90.0 89.25 88.5 ... -89.25 -90.0</div><input id='attrs-7f77cd23-298d-45f6-82ee-248cf7c689c2' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7f77cd23-298d-45f6-82ee-248cf7c689c2' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-1856e0a8-103e-4640-b546-70c72fafdb7d' class='xr-var-data-in' type='checkbox'><label for='data-1856e0a8-103e-4640-b546-70c72fafdb7d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>degrees_north</dd><dt><span>long_name :</span></dt><dd>latitude</dd></dl></div><div class='xr-var-data'><pre>array([ 90.  ,  89.25,  88.5 , ..., -88.5 , -89.25, -90.  ], dtype=float32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>level</span></div><div class='xr-var-dims'>(level)</div><div class='xr-var-dtype'>int32</div><div class='xr-var-preview xr-preview'>200 500 850</div><input id='attrs-6cb5d073-68ad-45f0-a7ca-ab3c56301d73' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-6cb5d073-68ad-45f0-a7ca-ab3c56301d73' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-949b2c05-77bf-4beb-a31e-8f6107ec17b8' class='xr-var-data-in' type='checkbox'><label for='data-949b2c05-77bf-4beb-a31e-8f6107ec17b8' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>units :</span></dt><dd>millibars</dd><dt><span>long_name :</span></dt><dd>pressure_level</dd></dl></div><div class='xr-var-data'><pre>array([200, 500, 850], dtype=int32)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>month</span></div><div class='xr-var-dims'>(month)</div><div class='xr-var-dtype'>int32</div><div class='xr-var-preview xr-preview'>1 7</div><input id='attrs-379ee583-2205-49f2-8508-63113633898f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-379ee583-2205-49f2-8508-63113633898f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fc26d4cc-d734-4f89-a57a-c9d9d8347bc3' class='xr-var-data-in' type='checkbox'><label for='data-fc26d4cc-d734-4f89-a57a-c9d9d8347bc3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 7], dtype=int32)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-22a57afd-fcf2-470d-b323-41576f101b62' class='xr-section-summary-in' type='checkbox'  checked><label for='section-22a57afd-fcf2-470d-b323-41576f101b62' class='xr-section-summary' >Data variables: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>z</span></div><div class='xr-var-dims'>(month, level, latitude, longitude)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-4e7a478c-c17b-417e-85ab-9478af8ed528' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-4e7a478c-c17b-417e-85ab-9478af8ed528' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a124fcf2-f00b-4efc-b1a2-905b2df76706' class='xr-var-data-in' type='checkbox'><label for='data-a124fcf2-f00b-4efc-b1a2-905b2df76706' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>number_of_significant_digits :</span></dt><dd>5</dd><dt><span>units :</span></dt><dd>m**2 s**-2</dd><dt><span>long_name :</span></dt><dd>Geopotential</dd><dt><span>standard_name :</span></dt><dd>geopotential</dd></dl></div><div class='xr-var-data'><pre>[694080 values with dtype=float64]</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>u</span></div><div class='xr-var-dims'>(month, level, latitude, longitude)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-584dee36-57cd-45cd-bdac-49b8a60a8ae9' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-584dee36-57cd-45cd-bdac-49b8a60a8ae9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-be40826c-0464-4852-ae32-0c509600ab3a' class='xr-var-data-in' type='checkbox'><label for='data-be40826c-0464-4852-ae32-0c509600ab3a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>number_of_significant_digits :</span></dt><dd>2</dd><dt><span>units :</span></dt><dd>m s**-1</dd><dt><span>long_name :</span></dt><dd>U component of wind</dd><dt><span>standard_name :</span></dt><dd>eastward_wind</dd></dl></div><div class='xr-var-data'><pre>[694080 values with dtype=float64]</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>v</span></div><div class='xr-var-dims'>(month, level, latitude, longitude)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-d647835b-94d8-49ff-95c2-5d54b9f7eb40' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-d647835b-94d8-49ff-95c2-5d54b9f7eb40' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-17778ca4-5be6-4c4c-b9f0-55b3b5afa8b4' class='xr-var-data-in' type='checkbox'><label for='data-17778ca4-5be6-4c4c-b9f0-55b3b5afa8b4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>number_of_significant_digits :</span></dt><dd>2</dd><dt><span>units :</span></dt><dd>m s**-1</dd><dt><span>long_name :</span></dt><dd>V component of wind</dd><dt><span>standard_name :</span></dt><dd>northward_wind</dd></dl></div><div class='xr-var-data'><pre>[694080 values with dtype=float64]</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-155417e9-e77b-4b05-8eb6-a0b5571bcfbf' class='xr-section-summary-in' type='checkbox'  ><label for='section-155417e9-e77b-4b05-8eb6-a0b5571bcfbf' class='xr-section-summary' >Indexes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>longitude</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-3737e17a-fc41-46f7-bfd8-bb50b26942b8' class='xr-index-data-in' type='checkbox'/><label for='index-3737e17a-fc41-46f7-bfd8-bb50b26942b8' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([ -180.0, -179.25,  -178.5, -177.75,  -177.0, -176.25,  -175.5, -174.75,
+            -174.0, -173.25,
            ...
-           340.0, 342.0, 344.0, 346.0, 348.0, 350.0, 352.0, 354.0, 356.0, 358.0],
-          dtype=&#x27;float32&#x27;, name=&#x27;lon&#x27;, length=180))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-ed9b650b-88ac-4cff-a209-d3983a5da69f' class='xr-index-data-in' type='checkbox'/><label for='index-ed9b650b-88ac-4cff-a209-d3983a5da69f' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(DatetimeIndex([&#x27;1970-01-01&#x27;, &#x27;1970-02-01&#x27;, &#x27;1970-03-01&#x27;, &#x27;1970-04-01&#x27;,
-                   &#x27;1970-05-01&#x27;, &#x27;1970-06-01&#x27;, &#x27;1970-07-01&#x27;, &#x27;1970-08-01&#x27;,
-                   &#x27;1970-09-01&#x27;, &#x27;1970-10-01&#x27;,
-                   ...
-                   &#x27;2021-03-01&#x27;, &#x27;2021-04-01&#x27;, &#x27;2021-05-01&#x27;, &#x27;2021-06-01&#x27;,
-                   &#x27;2021-07-01&#x27;, &#x27;2021-08-01&#x27;, &#x27;2021-09-01&#x27;, &#x27;2021-10-01&#x27;,
-                   &#x27;2021-11-01&#x27;, &#x27;2021-12-01&#x27;],
-                  dtype=&#x27;datetime64[ns]&#x27;, name=&#x27;time&#x27;, length=624, freq=None))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-03915e2d-6f7f-48ce-963b-63ac3b6cea1f' class='xr-section-summary-in' type='checkbox'  ><label for='section-03915e2d-6f7f-48ce-963b-63ac3b6cea1f' class='xr-section-summary' >Attributes: <span>(9)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Monthly Means of Sea Surface Temperature</dd><dt><span>units :</span></dt><dd>degC</dd><dt><span>var_desc :</span></dt><dd>Sea Surface Temperature</dd><dt><span>level_desc :</span></dt><dd>Surface</dd><dt><span>statistic :</span></dt><dd>Mean</dd><dt><span>dataset :</span></dt><dd>NOAA Extended Reconstructed SST V5</dd><dt><span>parent_stat :</span></dt><dd>Individual Values</dd><dt><span>actual_range :</span></dt><dd>[-1.8     42.32636]</dd><dt><span>valid_range :</span></dt><dd>[-1.8 45. ]</dd></dl></div></li></ul></div></div>
+             172.5,  173.25,   174.0,  174.75,   175.5,  176.25,   177.0,  177.75,
+             178.5,  179.25],
+          dtype=&#x27;float32&#x27;, name=&#x27;longitude&#x27;, length=480))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>latitude</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-174a05a3-4c3b-4d01-aa74-2d9d6bfedee8' class='xr-index-data-in' type='checkbox'/><label for='index-174a05a3-4c3b-4d01-aa74-2d9d6bfedee8' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  90.0,  89.25,   88.5,  87.75,   87.0,  86.25,   85.5,  84.75,   84.0,
+            83.25,
+           ...
+           -83.25,  -84.0, -84.75,  -85.5, -86.25,  -87.0, -87.75,  -88.5, -89.25,
+            -90.0],
+          dtype=&#x27;float32&#x27;, name=&#x27;latitude&#x27;, length=241))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>level</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-93dbfdfb-b6c0-4426-ac8f-d3c99412fa71' class='xr-index-data-in' type='checkbox'/><label for='index-93dbfdfb-b6c0-4426-ac8f-d3c99412fa71' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([200, 500, 850], dtype=&#x27;int32&#x27;, name=&#x27;level&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>month</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-25b71669-e2e8-459d-90a7-8c7b4f153fb3' class='xr-index-data-in' type='checkbox'/><label for='index-25b71669-e2e8-459d-90a7-8c7b4f153fb3' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 7], dtype=&#x27;int32&#x27;, name=&#x27;month&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-a254e84f-fd79-490b-891b-68ab0dd9c1b6' class='xr-section-summary-in' type='checkbox'  ><label for='section-a254e84f-fd79-490b-891b-68ab0dd9c1b6' class='xr-section-summary' >Attributes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>Conventions :</span></dt><dd>CF-1.0</dd><dt><span>Info :</span></dt><dd>Monthly ERA-Interim data. Downloaded and edited by fabien.maussion@uibk.ac.at</dd></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-37
+.. GENERATED FROM PYTHON SOURCE LINES 26-32
 
-We fit the Complex EOF model directly to the raw data, retaining the seasonal
-cycle for study. The model initialization specifies the desired number of
-modes. The ``use_coslat`` parameter is set to ``True`` to adjust for grid
-convergence at the poles. While the ``ComplexEOF`` class offers padding options
-to mitigate potential edge effects, we'll begin with no padding.
+This dataset contains the zonal, meridional, and vertical wind components at
+three different atmospheric levels. Note that the data only covers two months,
+so we have just two time steps (samples). While this isn't enough for a robust
+EOF analysis, we'll proceed for demonstration purposes. Now, let's combine the
+zonal (``u``) and meridional (``v``) wind components into a complex-valued
+dataset:
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-41
+.. GENERATED FROM PYTHON SOURCE LINES 32-35
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    kwargs = dict(n_modes=4, use_coslat=True, random_state=7)
-    model = xe.models.ComplexEOF(padding="none", **kwargs)
+    Z = uvz["u"] + 1j * uvz["v"]
 
 
 
@@ -498,958 +483,101 @@ to mitigate potential edge effects, we'll begin with no padding.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 42-43
+.. GENERATED FROM PYTHON SOURCE LINES 36-42
 
-Now, we fit the model to the data and extract the explained variance.
+Next, we'll initialize and fit the ``ComplexEOF`` model to our data. The
+``xeofs`` package makes this easy by allowing us to specify the sample
+dimension (``month``), automatically performing the Complex EOF analysis
+across all three atmospheric levels. As a standard practice, we'll also weigh
+each grid cell by the square root of the cosine of the latitude
+(``use_coslat=True``).
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-48
+.. GENERATED FROM PYTHON SOURCE LINES 42-46
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    model.fit(sst, dim="time")
-    expvar = model.explained_variance()
-    expvar_ratio = model.explained_variance_ratio()
+    model = xe.models.ComplexEOF(n_modes=1, use_coslat=True, random_state=7)
+    model.fit(Z, dim="month")
 
 
 
 
 
+.. rst-class:: sphx-glr-script-out
 
+ .. code-block:: none
 
+    /home/nrieger/miniconda3/envs/xeofs/lib/python3.11/site-packages/scipy/sparse/linalg/_eigen/_svds.py:299: UserWarning: The problem size 2 minus the constraints size 0 is too small relative to the block size 1. Using a dense eigensolver instead of LOBPCG.
+      _, eigvec = lobpcg(XH_X, X, tol=tol ** 2, maxiter=maxiter,
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-50
+    <xeofs.models.eof.ComplexEOF object at 0x7a6bab8ae410>
 
-Let's have a look at the explained variance of the first five modes:
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-54
 
-.. code-block:: Python
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
+Instead of just extracting the complex-valued components, we can also get the
+amplitude and phase of these components. Let's start by looking at the
+amplitude of the first mode:
 
-    expvar.round(0)
+.. GENERATED FROM PYTHON SOURCE LINES 50-58
 
+.. code-block:: default
 
 
 
+    spatial_ampltiudes = model.components_amplitude()
+    spatial_phases = model.components_phase()
 
-
-
-.. raw:: html
-
-    <div class="output_subarea output_html rendered_html output_result">
-    <div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
-    <defs>
-    <symbol id="icon-database" viewBox="0 0 32 32">
-    <path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
-    <path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
-    <path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
-    </symbol>
-    <symbol id="icon-file-text2" viewBox="0 0 32 32">
-    <path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
-    <path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    <path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    <path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    </symbol>
-    </defs>
-    </svg>
-    <style>/* CSS stylesheet for displaying xarray objects in jupyterlab.
-     *
-     */
-
-    :root {
-      --xr-font-color0: var(--jp-content-font-color0, rgba(0, 0, 0, 1));
-      --xr-font-color2: var(--jp-content-font-color2, rgba(0, 0, 0, 0.54));
-      --xr-font-color3: var(--jp-content-font-color3, rgba(0, 0, 0, 0.38));
-      --xr-border-color: var(--jp-border-color2, #e0e0e0);
-      --xr-disabled-color: var(--jp-layout-color3, #bdbdbd);
-      --xr-background-color: var(--jp-layout-color0, white);
-      --xr-background-color-row-even: var(--jp-layout-color1, white);
-      --xr-background-color-row-odd: var(--jp-layout-color2, #eeeeee);
-    }
-
-    html[theme=dark],
-    body[data-theme=dark],
-    body.vscode-dark {
-      --xr-font-color0: rgba(255, 255, 255, 1);
-      --xr-font-color2: rgba(255, 255, 255, 0.54);
-      --xr-font-color3: rgba(255, 255, 255, 0.38);
-      --xr-border-color: #1F1F1F;
-      --xr-disabled-color: #515151;
-      --xr-background-color: #111111;
-      --xr-background-color-row-even: #111111;
-      --xr-background-color-row-odd: #313131;
-    }
-
-    .xr-wrap {
-      display: block !important;
-      min-width: 300px;
-      max-width: 700px;
-    }
-
-    .xr-text-repr-fallback {
-      /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
-      display: none;
-    }
-
-    .xr-header {
-      padding-top: 6px;
-      padding-bottom: 6px;
-      margin-bottom: 4px;
-      border-bottom: solid 1px var(--xr-border-color);
-    }
-
-    .xr-header > div,
-    .xr-header > ul {
-      display: inline;
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    .xr-obj-type,
-    .xr-array-name {
-      margin-left: 2px;
-      margin-right: 10px;
-    }
-
-    .xr-obj-type {
-      color: var(--xr-font-color2);
-    }
-
-    .xr-sections {
-      padding-left: 0 !important;
-      display: grid;
-      grid-template-columns: 150px auto auto 1fr 20px 20px;
-    }
-
-    .xr-section-item {
-      display: contents;
-    }
-
-    .xr-section-item input {
-      display: none;
-    }
-
-    .xr-section-item input + label {
-      color: var(--xr-disabled-color);
-    }
-
-    .xr-section-item input:enabled + label {
-      cursor: pointer;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-section-item input:enabled + label:hover {
-      color: var(--xr-font-color0);
-    }
-
-    .xr-section-summary {
-      grid-column: 1;
-      color: var(--xr-font-color2);
-      font-weight: 500;
-    }
-
-    .xr-section-summary > span {
-      display: inline-block;
-      padding-left: 0.5em;
-    }
-
-    .xr-section-summary-in:disabled + label {
-      color: var(--xr-font-color2);
-    }
-
-    .xr-section-summary-in + label:before {
-      display: inline-block;
-      content: '►';
-      font-size: 11px;
-      width: 15px;
-      text-align: center;
-    }
-
-    .xr-section-summary-in:disabled + label:before {
-      color: var(--xr-disabled-color);
-    }
-
-    .xr-section-summary-in:checked + label:before {
-      content: '▼';
-    }
-
-    .xr-section-summary-in:checked + label > span {
-      display: none;
-    }
-
-    .xr-section-summary,
-    .xr-section-inline-details {
-      padding-top: 4px;
-      padding-bottom: 4px;
-    }
-
-    .xr-section-inline-details {
-      grid-column: 2 / -1;
-    }
-
-    .xr-section-details {
-      display: none;
-      grid-column: 1 / -1;
-      margin-bottom: 5px;
-    }
-
-    .xr-section-summary-in:checked ~ .xr-section-details {
-      display: contents;
-    }
-
-    .xr-array-wrap {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 20px auto;
-    }
-
-    .xr-array-wrap > label {
-      grid-column: 1;
-      vertical-align: top;
-    }
-
-    .xr-preview {
-      color: var(--xr-font-color3);
-    }
-
-    .xr-array-preview,
-    .xr-array-data {
-      padding: 0 5px !important;
-      grid-column: 2;
-    }
-
-    .xr-array-data,
-    .xr-array-in:checked ~ .xr-array-preview {
-      display: none;
-    }
-
-    .xr-array-in:checked ~ .xr-array-data,
-    .xr-array-preview {
-      display: inline-block;
-    }
-
-    .xr-dim-list {
-      display: inline-block !important;
-      list-style: none;
-      padding: 0 !important;
-      margin: 0;
-    }
-
-    .xr-dim-list li {
-      display: inline-block;
-      padding: 0;
-      margin: 0;
-    }
-
-    .xr-dim-list:before {
-      content: '(';
-    }
-
-    .xr-dim-list:after {
-      content: ')';
-    }
-
-    .xr-dim-list li:not(:last-child):after {
-      content: ',';
-      padding-right: 5px;
-    }
-
-    .xr-has-index {
-      font-weight: bold;
-    }
-
-    .xr-var-list,
-    .xr-var-item {
-      display: contents;
-    }
-
-    .xr-var-item > div,
-    .xr-var-item label,
-    .xr-var-item > .xr-var-name span {
-      background-color: var(--xr-background-color-row-even);
-      margin-bottom: 0;
-    }
-
-    .xr-var-item > .xr-var-name:hover span {
-      padding-right: 5px;
-    }
-
-    .xr-var-list > li:nth-child(odd) > div,
-    .xr-var-list > li:nth-child(odd) > label,
-    .xr-var-list > li:nth-child(odd) > .xr-var-name span {
-      background-color: var(--xr-background-color-row-odd);
-    }
-
-    .xr-var-name {
-      grid-column: 1;
-    }
-
-    .xr-var-dims {
-      grid-column: 2;
-    }
-
-    .xr-var-dtype {
-      grid-column: 3;
-      text-align: right;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-var-preview {
-      grid-column: 4;
-    }
-
-    .xr-index-preview {
-      grid-column: 2 / 5;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-var-name,
-    .xr-var-dims,
-    .xr-var-dtype,
-    .xr-preview,
-    .xr-attrs dt {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-right: 10px;
-    }
-
-    .xr-var-name:hover,
-    .xr-var-dims:hover,
-    .xr-var-dtype:hover,
-    .xr-attrs dt:hover {
-      overflow: visible;
-      width: auto;
-      z-index: 1;
-    }
-
-    .xr-var-attrs,
-    .xr-var-data,
-    .xr-index-data {
-      display: none;
-      background-color: var(--xr-background-color) !important;
-      padding-bottom: 5px !important;
-    }
-
-    .xr-var-attrs-in:checked ~ .xr-var-attrs,
-    .xr-var-data-in:checked ~ .xr-var-data,
-    .xr-index-data-in:checked ~ .xr-index-data {
-      display: block;
-    }
-
-    .xr-var-data > table {
-      float: right;
-    }
-
-    .xr-var-name span,
-    .xr-var-data,
-    .xr-index-name div,
-    .xr-index-data,
-    .xr-attrs {
-      padding-left: 25px !important;
-    }
-
-    .xr-attrs,
-    .xr-var-attrs,
-    .xr-var-data,
-    .xr-index-data {
-      grid-column: 1 / -1;
-    }
-
-    dl.xr-attrs {
-      padding: 0;
-      margin: 0;
-      display: grid;
-      grid-template-columns: 125px auto;
-    }
-
-    .xr-attrs dt,
-    .xr-attrs dd {
-      padding: 0;
-      margin: 0;
-      float: left;
-      padding-right: 10px;
-      width: auto;
-    }
-
-    .xr-attrs dt {
-      font-weight: normal;
-      grid-column: 1;
-    }
-
-    .xr-attrs dt:hover span {
-      display: inline-block;
-      background: var(--xr-background-color);
-      padding-right: 10px;
-    }
-
-    .xr-attrs dd {
-      grid-column: 2;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .xr-icon-database,
-    .xr-icon-file-text2,
-    .xr-no-icon {
-      display: inline-block;
-      vertical-align: middle;
-      width: 1em;
-      height: 1.5em !important;
-      stroke-width: 0;
-      stroke: currentColor;
-      fill: currentColor;
-    }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance&#x27; (mode: 4)&gt; Size: 32B
-    5.069e+04 1.705e+03 1.105e+03 519.0
-    Coordinates:
-      * mode     (mode) int64 32B 1 2 3 4
-    Attributes: (16)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-d1d2424b-99ec-4fde-9a1d-db92859e19fa' class='xr-array-in' type='checkbox' ><label for='section-d1d2424b-99ec-4fde-9a1d-db92859e19fa' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>5.069e+04 1.705e+03 1.105e+03 519.0</span></div><div class='xr-array-data'><pre>array([50686.,  1705.,  1105.,   519.])</pre></div></div></li><li class='xr-section-item'><input id='section-79b5d49f-d5e8-489f-9ff6-75f9ef0dd37d' class='xr-section-summary-in' type='checkbox'  checked><label for='section-79b5d49f-d5e8-489f-9ff6-75f9ef0dd37d' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-04dbce39-906d-46e5-baa8-b7c32543a332' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-04dbce39-906d-46e5-baa8-b7c32543a332' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0f72063e-42aa-4b13-b672-edabc9724b32' class='xr-var-data-in' type='checkbox'><label for='data-0f72063e-42aa-4b13-b672-edabc9724b32' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-b31a07d1-ee71-4d7d-8e53-c3d1cf5fb0a7' class='xr-section-summary-in' type='checkbox'  ><label for='section-b31a07d1-ee71-4d7d-8e53-c3d1cf5fb0a7' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-140af4df-9bde-49c3-b7a8-c19deed5fa63' class='xr-index-data-in' type='checkbox'/><label for='index-140af4df-9bde-49c3-b7a8-c19deed5fa63' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-11a185c5-b8df-4822-9f6a-2fd0d8d4a176' class='xr-section-summary-in' type='checkbox'  ><label for='section-11a185c5-b8df-4822-9f6a-2fd0d8d4a176' class='xr-section-summary' >Attributes: <span>(16)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>2.3.2</dd><dt><span>date :</span></dt><dd>2024-03-31 20:34:14</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>verbose :</span></dt><dd>False</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
-    </div>
-    <br />
-    <br />
-
-.. GENERATED FROM PYTHON SOURCE LINES 55-57
-
-Clearly, the first mode completely dominates and already explains a substantial amount of variance.
-If we look at the fraction of explained variance, we see that the first mode explains about 88.8 %.
-
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
-
-.. code-block:: Python
-
-
-    (expvar_ratio * 100).round(1)
-
-
-
-
-
-
-.. raw:: html
-
-    <div class="output_subarea output_html rendered_html output_result">
-    <div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
-    <defs>
-    <symbol id="icon-database" viewBox="0 0 32 32">
-    <path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
-    <path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
-    <path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
-    </symbol>
-    <symbol id="icon-file-text2" viewBox="0 0 32 32">
-    <path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
-    <path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    <path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    <path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
-    </symbol>
-    </defs>
-    </svg>
-    <style>/* CSS stylesheet for displaying xarray objects in jupyterlab.
-     *
-     */
-
-    :root {
-      --xr-font-color0: var(--jp-content-font-color0, rgba(0, 0, 0, 1));
-      --xr-font-color2: var(--jp-content-font-color2, rgba(0, 0, 0, 0.54));
-      --xr-font-color3: var(--jp-content-font-color3, rgba(0, 0, 0, 0.38));
-      --xr-border-color: var(--jp-border-color2, #e0e0e0);
-      --xr-disabled-color: var(--jp-layout-color3, #bdbdbd);
-      --xr-background-color: var(--jp-layout-color0, white);
-      --xr-background-color-row-even: var(--jp-layout-color1, white);
-      --xr-background-color-row-odd: var(--jp-layout-color2, #eeeeee);
-    }
-
-    html[theme=dark],
-    body[data-theme=dark],
-    body.vscode-dark {
-      --xr-font-color0: rgba(255, 255, 255, 1);
-      --xr-font-color2: rgba(255, 255, 255, 0.54);
-      --xr-font-color3: rgba(255, 255, 255, 0.38);
-      --xr-border-color: #1F1F1F;
-      --xr-disabled-color: #515151;
-      --xr-background-color: #111111;
-      --xr-background-color-row-even: #111111;
-      --xr-background-color-row-odd: #313131;
-    }
-
-    .xr-wrap {
-      display: block !important;
-      min-width: 300px;
-      max-width: 700px;
-    }
-
-    .xr-text-repr-fallback {
-      /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
-      display: none;
-    }
-
-    .xr-header {
-      padding-top: 6px;
-      padding-bottom: 6px;
-      margin-bottom: 4px;
-      border-bottom: solid 1px var(--xr-border-color);
-    }
-
-    .xr-header > div,
-    .xr-header > ul {
-      display: inline;
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    .xr-obj-type,
-    .xr-array-name {
-      margin-left: 2px;
-      margin-right: 10px;
-    }
-
-    .xr-obj-type {
-      color: var(--xr-font-color2);
-    }
-
-    .xr-sections {
-      padding-left: 0 !important;
-      display: grid;
-      grid-template-columns: 150px auto auto 1fr 20px 20px;
-    }
-
-    .xr-section-item {
-      display: contents;
-    }
-
-    .xr-section-item input {
-      display: none;
-    }
-
-    .xr-section-item input + label {
-      color: var(--xr-disabled-color);
-    }
-
-    .xr-section-item input:enabled + label {
-      cursor: pointer;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-section-item input:enabled + label:hover {
-      color: var(--xr-font-color0);
-    }
-
-    .xr-section-summary {
-      grid-column: 1;
-      color: var(--xr-font-color2);
-      font-weight: 500;
-    }
-
-    .xr-section-summary > span {
-      display: inline-block;
-      padding-left: 0.5em;
-    }
-
-    .xr-section-summary-in:disabled + label {
-      color: var(--xr-font-color2);
-    }
-
-    .xr-section-summary-in + label:before {
-      display: inline-block;
-      content: '►';
-      font-size: 11px;
-      width: 15px;
-      text-align: center;
-    }
-
-    .xr-section-summary-in:disabled + label:before {
-      color: var(--xr-disabled-color);
-    }
-
-    .xr-section-summary-in:checked + label:before {
-      content: '▼';
-    }
-
-    .xr-section-summary-in:checked + label > span {
-      display: none;
-    }
-
-    .xr-section-summary,
-    .xr-section-inline-details {
-      padding-top: 4px;
-      padding-bottom: 4px;
-    }
-
-    .xr-section-inline-details {
-      grid-column: 2 / -1;
-    }
-
-    .xr-section-details {
-      display: none;
-      grid-column: 1 / -1;
-      margin-bottom: 5px;
-    }
-
-    .xr-section-summary-in:checked ~ .xr-section-details {
-      display: contents;
-    }
-
-    .xr-array-wrap {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 20px auto;
-    }
-
-    .xr-array-wrap > label {
-      grid-column: 1;
-      vertical-align: top;
-    }
-
-    .xr-preview {
-      color: var(--xr-font-color3);
-    }
-
-    .xr-array-preview,
-    .xr-array-data {
-      padding: 0 5px !important;
-      grid-column: 2;
-    }
-
-    .xr-array-data,
-    .xr-array-in:checked ~ .xr-array-preview {
-      display: none;
-    }
-
-    .xr-array-in:checked ~ .xr-array-data,
-    .xr-array-preview {
-      display: inline-block;
-    }
-
-    .xr-dim-list {
-      display: inline-block !important;
-      list-style: none;
-      padding: 0 !important;
-      margin: 0;
-    }
-
-    .xr-dim-list li {
-      display: inline-block;
-      padding: 0;
-      margin: 0;
-    }
-
-    .xr-dim-list:before {
-      content: '(';
-    }
-
-    .xr-dim-list:after {
-      content: ')';
-    }
-
-    .xr-dim-list li:not(:last-child):after {
-      content: ',';
-      padding-right: 5px;
-    }
-
-    .xr-has-index {
-      font-weight: bold;
-    }
-
-    .xr-var-list,
-    .xr-var-item {
-      display: contents;
-    }
-
-    .xr-var-item > div,
-    .xr-var-item label,
-    .xr-var-item > .xr-var-name span {
-      background-color: var(--xr-background-color-row-even);
-      margin-bottom: 0;
-    }
-
-    .xr-var-item > .xr-var-name:hover span {
-      padding-right: 5px;
-    }
-
-    .xr-var-list > li:nth-child(odd) > div,
-    .xr-var-list > li:nth-child(odd) > label,
-    .xr-var-list > li:nth-child(odd) > .xr-var-name span {
-      background-color: var(--xr-background-color-row-odd);
-    }
-
-    .xr-var-name {
-      grid-column: 1;
-    }
-
-    .xr-var-dims {
-      grid-column: 2;
-    }
-
-    .xr-var-dtype {
-      grid-column: 3;
-      text-align: right;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-var-preview {
-      grid-column: 4;
-    }
-
-    .xr-index-preview {
-      grid-column: 2 / 5;
-      color: var(--xr-font-color2);
-    }
-
-    .xr-var-name,
-    .xr-var-dims,
-    .xr-var-dtype,
-    .xr-preview,
-    .xr-attrs dt {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-right: 10px;
-    }
-
-    .xr-var-name:hover,
-    .xr-var-dims:hover,
-    .xr-var-dtype:hover,
-    .xr-attrs dt:hover {
-      overflow: visible;
-      width: auto;
-      z-index: 1;
-    }
-
-    .xr-var-attrs,
-    .xr-var-data,
-    .xr-index-data {
-      display: none;
-      background-color: var(--xr-background-color) !important;
-      padding-bottom: 5px !important;
-    }
-
-    .xr-var-attrs-in:checked ~ .xr-var-attrs,
-    .xr-var-data-in:checked ~ .xr-var-data,
-    .xr-index-data-in:checked ~ .xr-index-data {
-      display: block;
-    }
-
-    .xr-var-data > table {
-      float: right;
-    }
-
-    .xr-var-name span,
-    .xr-var-data,
-    .xr-index-name div,
-    .xr-index-data,
-    .xr-attrs {
-      padding-left: 25px !important;
-    }
-
-    .xr-attrs,
-    .xr-var-attrs,
-    .xr-var-data,
-    .xr-index-data {
-      grid-column: 1 / -1;
-    }
-
-    dl.xr-attrs {
-      padding: 0;
-      margin: 0;
-      display: grid;
-      grid-template-columns: 125px auto;
-    }
-
-    .xr-attrs dt,
-    .xr-attrs dd {
-      padding: 0;
-      margin: 0;
-      float: left;
-      padding-right: 10px;
-      width: auto;
-    }
-
-    .xr-attrs dt {
-      font-weight: normal;
-      grid-column: 1;
-    }
-
-    .xr-attrs dt:hover span {
-      display: inline-block;
-      background: var(--xr-background-color);
-      padding-right: 10px;
-    }
-
-    .xr-attrs dd {
-      grid-column: 2;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .xr-icon-database,
-    .xr-icon-file-text2,
-    .xr-no-icon {
-      display: inline-block;
-      vertical-align: middle;
-      width: 1em;
-      height: 1.5em !important;
-      stroke-width: 0;
-      stroke: currentColor;
-      fill: currentColor;
-    }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;explained_variance_ratio&#x27; (mode: 4)&gt; Size: 32B
-    88.8 3.0 1.9 0.9
-    Coordinates:
-      * mode     (mode) int64 32B 1 2 3 4
-    Attributes: (16)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'explained_variance_ratio'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 4</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-16c5d432-011e-4450-ae9f-024303ebdee6' class='xr-array-in' type='checkbox' ><label for='section-16c5d432-011e-4450-ae9f-024303ebdee6' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>88.8 3.0 1.9 0.9</span></div><div class='xr-array-data'><pre>array([88.8,  3. ,  1.9,  0.9])</pre></div></div></li><li class='xr-section-item'><input id='section-b760ce90-1111-4d00-9960-390206f20253' class='xr-section-summary-in' type='checkbox'  checked><label for='section-b760ce90-1111-4d00-9960-390206f20253' class='xr-section-summary' >Coordinates: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4</div><input id='attrs-01302b7c-5e12-401b-8fe7-bce1c0515b80' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-01302b7c-5e12-401b-8fe7-bce1c0515b80' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-139af5f2-6db7-431f-af2d-c58f93ba0625' class='xr-var-data-in' type='checkbox'><label for='data-139af5f2-6db7-431f-af2d-c58f93ba0625' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-807c2e08-fed6-43a3-9d77-a440f87297c9' class='xr-section-summary-in' type='checkbox'  ><label for='section-807c2e08-fed6-43a3-9d77-a440f87297c9' class='xr-section-summary' >Indexes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-d364e86f-32fd-4448-b8fa-9c45ae39a311' class='xr-index-data-in' type='checkbox'/><label for='index-d364e86f-32fd-4448-b8fa-9c45ae39a311' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1fc858e5-73e5-46ee-83bb-d09931bf9c26' class='xr-section-summary-in' type='checkbox'  ><label for='section-1fc858e5-73e5-46ee-83bb-d09931bf9c26' class='xr-section-summary' >Attributes: <span>(16)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>Complex EOF analysis</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>2.3.2</dd><dt><span>date :</span></dt><dd>2024-03-31 20:34:14</dd><dt><span>n_modes :</span></dt><dd>4</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>False</dd><dt><span>use_coslat :</span></dt><dd>True</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>7</dd><dt><span>verbose :</span></dt><dd>False</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
-    </div>
-    <br />
-    <br />
-
-.. GENERATED FROM PYTHON SOURCE LINES 61-67
-
-In comparison to standard EOF analysis (check the corresponding example,
-S-mode), the first complex mode seems to integrate the first two standard
-modes in terms of explained variance.
-This makes sense as the two modes in standard EOF are both showing parts of
-an annual cycle (which are in quadrature) and thus the complex mode combines both of them.
-Let's confirm our hypothesis by looking at the real part the complex-valued scores:
-
-.. GENERATED FROM PYTHON SOURCE LINES 67-72
-
-.. code-block:: Python
-
-
-    scores = model.scores()
-    scores.real.plot.line(x="time", col="mode", lw=1, ylim=(-0.1, 0.1))
-
+    spatial_ampltiudes.sel(mode=1).plot(col="level")
+    plt.show()
 
 
 
 
 .. image-sg:: /auto_examples/1single/images/sphx_glr_plot_complex_eof_001.png
-   :alt: mode = 1, mode = 2, mode = 3, mode = 4
+   :alt: level = 200, level = 500, level = 850
    :srcset: /auto_examples/1single/images/sphx_glr_plot_complex_eof_001.png
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac67f2210>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-85
+.. GENERATED FROM PYTHON SOURCE LINES 59-64
 
-And indeed the annual cycle is completed incorporated into the first mode,
-while the second mode shows a semi-annual cycle (mode 3 in standard EOF).
+It looks like the first mode picks up a pattern resembling the location of the
+subtropical jet stream around ±30º latitude, particularly strong in the upper
+troposphere at 200 hPa and weaker toward the surface. We can also plot the
+phase of the first mode. To keep the plot clear, we'll only show the phase
+where the amplitude is above a certain threshold (e.g., 0.004):
 
-However, mode three and four look unusual. While showing some similarity to
-ENSO (e.g. in mode 3 peaks in 1982, 1998 and 2016), they exhibit a "running away"
-behaviour towards the boundaries of the time series.
-This a common issue in complex EOF analysis which is based on the Hilbert transform (a convolution)
-that suffers from the absence of information at the time series boundaries. One way to mitigate this
-is to artificially extend the time series also known as *padding*. In ``xeofs``, you can enable
-such a padding by setting the ``padding`` parameter to ``"exp"`` which will extent the boundaries by an exponential
-decaying function. The ``decay_factor`` parameter controls the decay rate of the exponential function measured in
-multiples of the time series length. Let's see how the decay parameter impacts the results:
+.. GENERATED FROM PYTHON SOURCE LINES 64-69
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-92
-
-.. code-block:: Python
+.. code-block:: default
 
 
-    model_ext = xe.models.ComplexEOF(padding="exp", decay_factor=0.01, **kwargs)
-    model_ext.fit(sst, dim="time")
-    scores_ext = model_ext.scores().sel(mode=slice(1, 4))
-
-    scores_ext.real.plot.line(x="time", col="mode", lw=1, ylim=(-0.1, 0.1))
+    relevant_phases = spatial_phases.where(spatial_ampltiudes > 0.004)
+    relevant_phases.sel(mode=1).plot(col="level", cmap="twilight")
+    plt.show()
 
 
 
 
 .. image-sg:: /auto_examples/1single/images/sphx_glr_plot_complex_eof_002.png
-   :alt: mode = 1, mode = 2, mode = 3, mode = 4
+   :alt: level = 200, level = 500, level = 850
    :srcset: /auto_examples/1single/images/sphx_glr_plot_complex_eof_002.png
    :class: sphx-glr-single-img
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac75c1390>
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 93-95
-
-And indeed, padding the time series effectively reduced the artifacts at the boundaries.
-Lastly, we examine the complex component amplitudes and phases.
-
-.. GENERATED FROM PYTHON SOURCE LINES 95-99
-
-.. code-block:: Python
-
-
-    comp_amps = model.components_amplitude()
-    comp_amps.plot(col="mode", vmin=0, vmax=0.025)
-
-
-
-
-.. image-sg:: /auto_examples/1single/images/sphx_glr_plot_complex_eof_003.png
-   :alt: mode = 1, mode = 2, mode = 3, mode = 4
-   :srcset: /auto_examples/1single/images/sphx_glr_plot_complex_eof_003.png
-   :class: sphx-glr-single-img
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac63c67d0>
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 100-105
-
-The component phases of the first mode clearly show the seasonal cycle as
-the northern and southern hemisphere are phase shifted by 180 degrees (white and black).
-Note the blueish regions in the central East Pacific and Indian Ocean which indicate
-a phase shift of 90 degrees compared to the main annual cycle. This is in agreement
-with mode 3 of the standard EOF analysis.
-
-.. GENERATED FROM PYTHON SOURCE LINES 105-108
-
-.. code-block:: Python
-
-
-    comp_phases = model.components_phase()
-    comp_phases.plot(col="mode", cmap="twilight")
-
-
-
-.. image-sg:: /auto_examples/1single/images/sphx_glr_plot_complex_eof_004.png
-   :alt: mode = 1, mode = 2, mode = 3, mode = 4
-   :srcset: /auto_examples/1single/images/sphx_glr_plot_complex_eof_004.png
-   :class: sphx-glr-single-img
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-
-    <xarray.plot.facetgrid.FacetGrid object at 0x7ffac7aee7d0>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.119 seconds)
+   **Total running time of the script:** (0 minutes 2.009 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_complex_eof.py:
@@ -1458,13 +586,16 @@ with mode 3 of the standard EOF analysis.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_complex_eof.ipynb <plot_complex_eof.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_complex_eof.py <plot_complex_eof.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_complex_eof.ipynb <plot_complex_eof.ipynb>`
 
 
 .. only:: html
