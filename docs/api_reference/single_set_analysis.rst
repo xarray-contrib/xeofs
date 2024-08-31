@@ -10,7 +10,7 @@ Methods that examine relationships among variables within a single dataset, or w
     :recursive:
 
     xeofs.models.EOF
-    xeofs.models.ComplexEOF
+    xeofs.models.HilbertEOF
     xeofs.models.ExtendedEOF
     xeofs.models.OPA
     xeofs.models.GWPCA
@@ -27,4 +27,4 @@ Sparse Solutions via Rotation
     :recursive:
 
     xeofs.models.EOFRotator
-    xeofs.models.ComplexEOFRotator
+    xeofs.models.HilbertEOFRotator

@@ -9,7 +9,7 @@ Methods that investigate relationships or patterns between variables across two 
    :recursive:
 
    xeofs.models.MCA
-   xeofs.models.ComplexMCA
+   xeofs.models.HilbertMCA
    xeofs.models.CCA
 
 ------------------------------
@@ -22,4 +22,4 @@ Sparse Solutions via Rotation
    :recursive:
 
    xeofs.models.MCARotator
-   xeofs.models.ComplexMCARotator
+   xeofs.models.HilbertMCARotator

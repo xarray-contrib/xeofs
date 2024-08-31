@@ -1,7 +1,7 @@
-from .eof import EOF, ComplexEOF
-from .eof_rotator import ComplexEOFRotator, EOFRotator
-from .mca import MCA, ComplexMCA
-from .mca_rotator import ComplexMCARotator, MCARotator
+from .eof import EOF, HilbertEOF
+from .eof_rotator import EOFRotator, HilbertEOFRotator
+from .mca import MCA, HilbertMCA
+from .mca_rotator import HilbertMCARotator, MCARotator
 
 
 class RotatorFactory:
@@ -25,11 +25,11 @@ class RotatorFactory:
 
     def __init__(self, **kwargs):
         self.params = kwargs
-        self._valid_types = (EOF, ComplexEOF, MCA, ComplexMCA)
+        self._valid_types = (EOF, HilbertEOF, MCA, HilbertMCA)
 
     def create_rotator(
-        self, model: EOF | ComplexEOF | MCA | ComplexMCA
-    ) -> EOFRotator | ComplexEOFRotator | MCARotator | ComplexMCARotator:
+        self, model: EOF | HilbertEOF | MCA | HilbertMCA
+    ) -> EOFRotator | HilbertEOFRotator | MCARotator | HilbertMCARotator:
         """Create a rotator for the given model.
 
         Parameters
@@ -46,12 +46,12 @@ class RotatorFactory:
         # of inheritance.
         if type(model) is EOF:
             return EOFRotator(**self.params)
-        elif type(model) is ComplexEOF:
-            return ComplexEOFRotator(**self.params)
+        elif type(model) is HilbertEOF:
+            return HilbertEOFRotator(**self.params)
         elif type(model) is MCA:
             return MCARotator(**self.params)
-        elif type(model) is ComplexMCA:
-            return ComplexMCARotator(**self.params)
+        elif type(model) is HilbertMCA:
+            return HilbertMCARotator(**self.params)
         else:
             err_msg = f"Invalid model type. Valid types are {self._valid_types}."
             raise TypeError(err_msg)

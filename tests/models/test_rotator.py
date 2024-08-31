@@ -1,7 +1,15 @@
 import pytest
 
-from xeofs.models import EOF, ComplexEOF, MCA, ComplexMCA
-from xeofs.models import EOFRotator, ComplexEOFRotator, MCARotator, ComplexMCARotator
+from xeofs.models import (
+    EOF,
+    MCA,
+    EOFRotator,
+    HilbertEOF,
+    HilbertEOFRotator,
+    HilbertMCA,
+    HilbertMCARotator,
+    MCARotator,
+)
 from xeofs.models.rotator_factory import RotatorFactory
 
 # RotatorFactory should be imported from its module
@@ -11,7 +19,7 @@ from xeofs.models.rotator_factory import RotatorFactory
 def test_rotator_factory_init():
     factory = RotatorFactory(n_modes=3, power=2, max_iter=1000, rtol=1e-8)
     assert factory.params == {"n_modes": 3, "power": 2, "max_iter": 1000, "rtol": 1e-8}
-    assert factory._valid_types == (EOF, ComplexEOF, MCA, ComplexMCA)
+    assert factory._valid_types == (EOF, HilbertEOF, MCA, HilbertMCA)
 
 
 def test_create_rotator_EOF():
@@ -21,11 +29,11 @@ def test_create_rotator_EOF():
     assert isinstance(rotator, EOFRotator)
 
 
-def test_create_rotator_ComplexEOF():
+def test_create_rotator_HilbertEOF():
     factory = RotatorFactory(n_modes=3, power=2, max_iter=1000, rtol=1e-8)
-    ComplexEOF_instance = ComplexEOF()  # creating instance of the mock class
-    rotator = factory.create_rotator(ComplexEOF_instance)
-    assert isinstance(rotator, ComplexEOFRotator)
+    HilbertEOF_instance = HilbertEOF()  # creating instance of the mock class
+    rotator = factory.create_rotator(HilbertEOF_instance)
+    assert isinstance(rotator, HilbertEOFRotator)
 
 
 def test_create_rotator_MCA():
@@ -35,11 +43,11 @@ def test_create_rotator_MCA():
     assert isinstance(rotator, MCARotator)
 
 
-def test_create_rotator_ComplexMCA():
+def test_create_rotator_HilbertMCA():
     factory = RotatorFactory(n_modes=3, power=2, max_iter=1000, rtol=1e-8)
-    ComplexMCA_instance = ComplexMCA()
-    rotator = factory.create_rotator(ComplexMCA_instance)
-    assert isinstance(rotator, ComplexMCARotator)
+    HilbertMCA_instance = HilbertMCA()
+    rotator = factory.create_rotator(HilbertMCA_instance)
+    assert isinstance(rotator, HilbertMCARotator)
 
 
 def test_create_rotator_invalid_model():

@@ -1,8 +1,9 @@
-import numpy as np
-import pytest
 import warnings
 
-from xeofs.models import ComplexEOF
+import numpy as np
+import pytest
+
+from xeofs.models import HilbertEOF
 
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
@@ -17,9 +18,9 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
     ],
 )
 def test_fit(mock_data_array, dim):
-    """Test fitting a ComplexEOF model"""
+    """Test fitting a HilbertEOF model"""
     # Create a xarray DataArray with random data
-    ceof = ComplexEOF(n_modes=2)
+    ceof = HilbertEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
 
     # Check that the fit method has properly populated the attributes
@@ -36,8 +37,8 @@ def test_fit(mock_data_array, dim):
     ],
 )
 def test_components_amplitude(mock_data_array, dim):
-    """Test computation of components amplitude in ComplexEOF model"""
-    ceof = ComplexEOF(n_modes=2)
+    """Test computation of components amplitude in HilbertEOF model"""
+    ceof = HilbertEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
 
     comp_amp = ceof.components_amplitude()
@@ -54,8 +55,8 @@ def test_components_amplitude(mock_data_array, dim):
     ],
 )
 def test_components_phase(mock_data_array, dim):
-    """Test computation of components phase in ComplexEOF model"""
-    ceof = ComplexEOF(n_modes=2)
+    """Test computation of components phase in HilbertEOF model"""
+    ceof = HilbertEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
 
     comp_phase = ceof.components_phase()
@@ -72,8 +73,8 @@ def test_components_phase(mock_data_array, dim):
     ],
 )
 def test_scores_amplitude(mock_data_array, dim):
-    """Test computation of scores amplitude in ComplexEOF model"""
-    ceof = ComplexEOF(n_modes=2)
+    """Test computation of scores amplitude in HilbertEOF model"""
+    ceof = HilbertEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
 
     scores_amp = ceof.scores_amplitude()
@@ -90,8 +91,8 @@ def test_scores_amplitude(mock_data_array, dim):
     ],
 )
 def test_scores_phase(mock_data_array, dim):
-    """Test computation of scores phase in ComplexEOF model"""
-    ceof = ComplexEOF(n_modes=2)
+    """Test computation of scores phase in HilbertEOF model"""
+    ceof = HilbertEOF(n_modes=2)
     ceof.fit(mock_data_array, dim)
 
     scores_phase = ceof.scores_phase()
@@ -110,7 +111,7 @@ def test_scores_phase(mock_data_array, dim):
     ],
 )
 def test_compute(mock_dask_data_array, dim):
-    """Test computation of all attributes in ComplexEOF model"""
-    ceof = ComplexEOF(n_modes=2)
+    """Test computation of all attributes in HilbertEOF model"""
+    ceof = HilbertEOF(n_modes=2)
     with pytest.raises(NotImplementedError):
         ceof.fit(mock_dask_data_array, dim)

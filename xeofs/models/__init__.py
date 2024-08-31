@@ -1,26 +1,26 @@
 from .cca import CCA
 from .eeof import ExtendedEOF
-from .eof import EOF, ComplexEOF
-from .eof_rotator import ComplexEOFRotator, EOFRotator
+from .eof import EOF, HilbertEOF
+from .eof_rotator import EOFRotator, HilbertEOFRotator
 from .gwpca import GWPCA
-from .mca import MCA, ComplexMCA
-from .mca_rotator import ComplexMCARotator, MCARotator
+from .mca import MCA, HilbertMCA
+from .mca_rotator import HilbertMCARotator, MCARotator
 from .opa import OPA
 from .rotator_factory import RotatorFactory
 from .sparse_pca import SparsePCA
 
 __all__ = [
     "EOF",
-    "ComplexEOF",
+    "HilbertEOF",
     "ExtendedEOF",
     "EOFRotator",
-    "ComplexEOFRotator",
+    "HilbertEOFRotator",
     "OPA",
     "GWPCA",
     "MCA",
-    "ComplexMCA",
+    "HilbertMCA",
     "MCARotator",
-    "ComplexMCARotator",
+    "HilbertMCARotator",
     "CCA",
     "RotatorFactory",
     "SparsePCA",

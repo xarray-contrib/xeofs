@@ -1,16 +1,17 @@
 from datetime import datetime
+from typing import Dict, List
+
 import numpy as np
 import xarray as xr
-from typing import List, Dict
 from typing_extensions import Self
 
-from .mca import MCA, ComplexMCA
-from ..preprocessing.preprocessor import Preprocessor
-from ..utils.rotation import promax
-from ..utils.data_types import DataArray, DataObject
-from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
-from ..data_container import DataContainer
 from .._version import __version__
+from ..data_container import DataContainer
+from ..preprocessing.preprocessor import Preprocessor
+from ..utils.data_types import DataArray, DataObject
+from ..utils.rotation import promax
+from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
+from .mca import MCA, HilbertMCA
 
 
 class MCARotator(MCA):
@@ -410,10 +411,10 @@ class MCARotator(MCA):
             return results
 
 
-class ComplexMCARotator(MCARotator, ComplexMCA):
-    """Rotate a solution obtained from ``xe.models.ComplexMCA``.
+class HilbertMCARotator(MCARotator, HilbertMCA):
+    """Rotate a solution obtained from ``xe.models.HilbertMCA``.
 
-    Complex Rotated MCA [1]_ [2]_ [3]_ extends MCA by incorporating both amplitude and phase information
+    Hilbert Rotated MCA [1]_ [2]_ [3]_ extends MCA by incorporating both amplitude and phase information
     using a Hilbert transform prior to performing MCA and subsequent Varimax or Promax rotation.
     This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation
     of complex relationships within the data, particularly useful when analyzing oscillatory data.
@@ -450,9 +451,9 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
 
     Examples
     --------
-    >>> model = ComplexMCA(n_modes=5)
+    >>> model = HilbertMCA(n_modes=5)
     >>> model.fit(da1, da2, dim='time')
-    >>> rotator = ComplexMCARotator(n_modes=5, power=2)
+    >>> rotator = HilbertMCARotator(n_modes=5, power=2)
     >>> rotator.fit(model)
     >>> rotator.components()
 
@@ -460,13 +461,13 @@ class ComplexMCARotator(MCARotator, ComplexMCA):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.attrs.update({"model": "Complex Rotated MCA"})
-        self.model = ComplexMCA()
+        self.attrs.update({"model": "Hilbert Rotated MCA"})
+        self.model = HilbertMCA()
 
     def transform(self, **kwargs):
         # Here we make use of the Method Resolution Order (MRO) to call the
         # transform method of the first class in the MRO after `MCARotator`
-        # that has a transform method. In this case it will be `ComplexMCA`,
+        # that has a transform method. In this case it will be `HilbertMCA`,
         # which will raise an error because it does not have a transform method.
         super(MCARotator, self).transform(**kwargs)
 
