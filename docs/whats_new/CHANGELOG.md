@@ -3,12 +3,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
-## [unreleased]
+## [2.4.1](https://github.com/nicrie/xeofs/compare/v2.4.0..v2.4.1) - 2024-08-31
+
+### 🐛 Bug Fixes
+
+- add deprecation warning for `Complex` model classes (#201) - ([6bac230](https://github.com/nicrie/xeofs/commit/6bac230423b33169d6e32adaf3e885277d83773b)) - Niclas Rieger
 
 ### 🔖 Documentation
 
 - **(changelog)** move log to documentation (#199) - ([c9de931](https://github.com/nicrie/xeofs/commit/c9de931327faae972747e3b0d3fbfded4c3b9a91)) - Niclas Rieger
 - **(changelog)** update changelog - ([280bd43](https://github.com/nicrie/xeofs/commit/280bd430383ae5fecc47275f1964945b1bd5479b)) - github-actions[bot]
+- **(changelog)** update changelog - ([8eed958](https://github.com/nicrie/xeofs/commit/8eed958bbc23dc2d3a5ae8195f02e1b8efb813e5)) - github-actions[bot]
 - **(decomposer)** improve error messages (#194) - ([9d34060](https://github.com/nicrie/xeofs/commit/9d34060617a45c60b02bf504e38d7b202285ccfc)) - Niclas Rieger
 - reorganize documentation (#171) - ([aa28770](https://github.com/nicrie/xeofs/commit/aa287706f590c7afe7eeb6d51c30d64b4d285cc0)) - Niclas Rieger
 - update color design (#181) - ([25598a1](https://github.com/nicrie/xeofs/commit/25598a1fc23e41560e9d85327f7c52c0420825f4)) - Niclas Rieger
