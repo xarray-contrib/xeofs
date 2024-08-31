@@ -1007,10 +1007,10 @@ class CPCCA(_BaseModelCrossSet):
         return X / X.std(dim)
 
 
-class ComplexCPCCA(CPCCA):
-    """Complex CPCCA.
+class HilbertCPCCA(CPCCA):
+    """Hilbert CPCCA.
 
-    Complex CPCCA (Hilbert CPCCA) extends classical CPCCA [1]_ by examining
+    Hilbert CPCCA extends classical CPCCA [1]_ by examining
     amplitude-phase relationships. It augments the input data with its Hilbert
     transform, creating a complex-valued field.
 
@@ -1079,10 +1079,10 @@ class ComplexCPCCA(CPCCA):
     Examples
     --------
 
-    Perform Complex CPCCA on two datasets `X` and `Y`, using exponential
+    Perform Hilbert CPCCA on two datasets `X` and `Y`, using exponential
     padding:
 
-    >>> model = ComplexCPCCA(n_modes=5, padding="exp")
+    >>> model = HilbertCPCCA(n_modes=5, padding="exp")
     >>> model.fit(X, Y)
 
     References
@@ -1128,7 +1128,7 @@ class ComplexCPCCA(CPCCA):
             random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
-        self.attrs.update({"model": "Complex Continuous Power CCA"})
+        self.attrs.update({"model": "Hilbert CPCCA"})
 
         padding = self._process_parameter("padding", padding, "epx")
         decay_factor = self._process_parameter("decay_factor", decay_factor, 0.2)

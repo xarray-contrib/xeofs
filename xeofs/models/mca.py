@@ -4,7 +4,7 @@ from typing import Sequence
 import numpy as np
 
 from ..utils.data_types import DataArray
-from .cpcca import CPCCA, ComplexCPCCA
+from .cpcca import CPCCA, HilbertCPCCA
 
 
 class MCA(CPCCA):
@@ -220,10 +220,10 @@ class MCA(CPCCA):
         return pseudo_tot_cov
 
 
-class ComplexMCA(ComplexCPCCA, MCA):
-    """Complex MCA.
+class HilbertMCA(HilbertCPCCA, MCA):
+    """Hilbert MCA.
 
-    Complex MCA [1]_ (aka Analytical SVD or Hilbert MCA),  extends MCA by
+    Hilbert MCA [1]_ (aka Analytical SVD),  extends MCA by
     examining amplitude-phase relationships. It augments the input data with its
     Hilbert transform, creating a complex-valued field.
 
@@ -297,6 +297,12 @@ class ComplexMCA(ComplexCPCCA, MCA):
         Climate 30, 2029–2054 (2017).
 
 
+
+    Examples
+    --------
+    >>> model = HilbertMCA(n_modes=5)
+    >>> model.fit(data1, data2)
+
     """
 
     def __init__(
@@ -336,4 +342,4 @@ class ComplexMCA(ComplexCPCCA, MCA):
             padding=padding,
             decay_factor=decay_factor,
         )
-        self.attrs.update({"model": "Complex MCA"})
+        self.attrs.update({"model": "Hilbert MCA"})

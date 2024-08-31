@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xeofs.models import ComplexCPCCA, ComplexCPCCARotator
+from xeofs.models import HilbertCPCCA, HilbertCPCCARotator
 
 
 def generate_random_data(shape, lazy=False, seed=142):
@@ -26,10 +26,10 @@ def test_transform_raises():
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ComplexCPCCA(n_modes=10, alpha=1, use_pca=False)
+    cpcca = HilbertCPCCA(n_modes=10, alpha=1, use_pca=False)
     cpcca.fit(X, Y, "sample")
 
-    rotator = ComplexCPCCARotator(n_modes=4)
+    rotator = HilbertCPCCARotator(n_modes=4)
     rotator.fit(cpcca)
 
     with pytest.raises(NotImplementedError):
@@ -51,11 +51,11 @@ def test_squared_covariance_fraction_conserved(alpha, use_pca):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = ComplexCPCCA(n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
+    cpcca = HilbertCPCCA(n_modes=10, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
     cpcca.fit(X, Y, "sample")
 
     n_rot_modes = 5
-    rotator = ComplexCPCCARotator(n_modes=n_rot_modes, power=1)
+    rotator = HilbertCPCCARotator(n_modes=n_rot_modes, power=1)
     rotator.fit(cpcca)
 
     scf = rotator.squared_covariance_fraction()

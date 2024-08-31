@@ -4,11 +4,11 @@ import pytest
 from xeofs.models import (
     EOF,
     MCA,
-    ComplexEOF,
-    ComplexEOFRotator,
-    ComplexMCA,
-    ComplexMCARotator,
     EOFRotator,
+    HilbertEOF,
+    HilbertEOFRotator,
+    HilbertMCA,
+    HilbertMCARotator,
     MCARotator,
 )
 
@@ -58,7 +58,7 @@ def test_eof_scores(dim, use_coslat, mock_data_array):
     ), "Scores are not orthogonal"
 
 
-# Complex EOF
+# Hilbert EOF
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -69,7 +69,7 @@ def test_eof_scores(dim, use_coslat, mock_data_array):
 )
 def test_ceof_components(dim, use_coslat, mock_data_array):
     """Components are unitary"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
     V = model.data["components"].values
     assert np.allclose(
@@ -87,7 +87,7 @@ def test_ceof_components(dim, use_coslat, mock_data_array):
 )
 def test_ceof_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
     U = model.data["scores"].values / model.data["norms"].values
     assert np.allclose(
@@ -150,7 +150,7 @@ def test_reof_scores(dim, use_coslat, power, mock_data_array):
         assert not np.allclose(K, np.eye(K.shape[1])), "Components are orthogonal"
 
 
-# Complex rotated EOF
+# Hilbert rotated EOF
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -164,9 +164,9 @@ def test_reof_scores(dim, use_coslat, power, mock_data_array):
 )
 def test_creof_components(dim, use_coslat, power, mock_data_array):
     """Components are NOT unitary"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    rot = ComplexEOFRotator(n_modes=5, power=power)
+    rot = HilbertEOFRotator(n_modes=5, power=power)
     rot.fit(model)
     V = rot.data["components"].values
     K = V.conj().T @ V
@@ -190,9 +190,9 @@ def test_creof_components(dim, use_coslat, power, mock_data_array):
 )
 def test_creof_scores(dim, use_coslat, power, mock_data_array):
     """Components are unitary only for Varimax rotation"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    rot = ComplexEOFRotator(n_modes=5, power=power)
+    rot = HilbertEOFRotator(n_modes=5, power=power)
     rot.fit(model)
     U = rot.data["scores"].values / rot.data["norms"].values
     K = U.conj().T @ U
@@ -254,7 +254,7 @@ def test_mca_scores(dim, use_coslat, mock_data_array):
     assert np.allclose(K, target, atol=1e-5), "Scores are not orthogonal"
 
 
-# Complex MCA
+# Hilbert MCA
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -267,7 +267,7 @@ def test_cmca_components(dim, use_coslat, mock_data_array):
     """Components are unitary"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     V1 = model.data["components1"].values
     V2 = model.data["components2"].values
@@ -293,7 +293,7 @@ def test_cmca_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(n_modes=6, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     U1 = model.data["scores1"].values
     U2 = model.data["scores2"].values
@@ -382,7 +382,7 @@ def test_rmca_scores(dim, use_coslat, power, mock_data_array):
         assert not is_diagonal(K), "Components are orthogonal"
 
 
-# Complex Rotated MCA
+# Hilbert Rotated MCA
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -398,11 +398,11 @@ def test_crmca_components(dim, use_coslat, power, mock_data_array):
     """Components are NOT orthogonal"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(
+    model = HilbertMCA(
         n_modes=19, standardize=True, use_coslat=use_coslat, use_pca=False
     )
     model.fit(data1, data2, dim=dim)
-    rot = ComplexMCARotator(n_modes=5, power=power)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
     V1 = rot.data["components1"].values
     V2 = rot.data["components2"].values
@@ -434,11 +434,11 @@ def test_crmca_scores(dim, use_coslat, power, mock_data_array):
     """Components are orthogonal only for Varimax rotation"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(
+    model = HilbertMCA(
         n_modes=5, standardize=True, use_coslat=use_coslat, use_pca=False
     )
     model.fit(data1, data2, dim=dim)
-    rot = ComplexMCARotator(n_modes=5, power=power)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
     W1 = rot.data["norm1"].values
     W2 = rot.data["norm2"].values
@@ -481,7 +481,7 @@ def test_eof_transform(dim, use_coslat, mock_data_array, normalized):
     ), "Transformed data does not match the scores"
 
 
-# Complex EOF
+# Hilbert EOF
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -493,7 +493,7 @@ def test_eof_transform(dim, use_coslat, mock_data_array, normalized):
 @pytest.mark.parametrize("normalized", [True, False])
 def test_ceof_transform(dim, use_coslat, mock_data_array, normalized):
     """Not implemented yet"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
     model.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
@@ -529,7 +529,7 @@ def test_reof_transform(dim, use_coslat, power, mock_data_array, normalized):
     )
 
 
-# Complex Rotated EOF
+# Hilbert Rotated EOF
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -544,9 +544,9 @@ def test_reof_transform(dim, use_coslat, power, mock_data_array, normalized):
 @pytest.mark.parametrize("normalized", [True, False])
 def test_creof_transform(dim, use_coslat, power, mock_data_array, normalized):
     """not implemented yet"""
-    model = ComplexEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(mock_data_array, dim=dim)
-    rot = ComplexEOFRotator(n_modes=5, power=power)
+    rot = HilbertEOFRotator(n_modes=5, power=power)
     rot.fit(model)
     rot.scores(normalized=normalized)
     with pytest.raises(NotImplementedError):
@@ -578,7 +578,7 @@ def test_mca_transform(dim, use_coslat, mock_data_array):
     ), "Transformed data does not match the scores"
 
 
-# Complex MCA
+# Hilbert MCA
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -591,7 +591,7 @@ def test_cmca_transform(dim, use_coslat, mock_data_array):
     """Transforming the original data results in the model scores"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     scores1, scores2 = model.scores()
     with pytest.raises(NotImplementedError):
@@ -628,7 +628,7 @@ def test_rmca_transform(dim, use_coslat, power, mock_data_array):
     ), "Transformed data does not match the scores"
 
 
-# Complex Rotated MCA
+# Hilbert Rotated MCA
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -644,9 +644,9 @@ def test_crmca_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    rot = ComplexMCARotator(n_modes=5, power=power)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
     scores1, scores2 = rot.scores()
     with pytest.raises(NotImplementedError):
@@ -702,7 +702,7 @@ def test_eof_inverse_transform(dim, use_coslat, mock_data_array, normalized):
     assert r2 > 0.95, "Inverse transform does not produce a good reconstruction"
 
 
-# Complex EOF
+# Hilbert EOF
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -715,7 +715,7 @@ def test_eof_inverse_transform(dim, use_coslat, mock_data_array, normalized):
 def test_ceof_inverse_transform(dim, use_coslat, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
-    model = ComplexEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
     scores = model.scores(normalized=normalized)
     data_rec = model.inverse_transform(scores, normalized=normalized).real
@@ -755,7 +755,7 @@ def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array, normali
     ), f"Inverse transform does not produce a good reconstruction (R2={r2.values:.2f})"
 
 
-# Complex Rotated EOF
+# Hilbert Rotated EOF
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -771,9 +771,9 @@ def test_reof_inverse_transform(dim, use_coslat, power, mock_data_array, normali
 def test_creof_inverse_transform(dim, use_coslat, power, mock_data_array, normalized):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data = mock_data_array
-    model = ComplexEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = HilbertEOF(n_modes=19, standardize=True, use_coslat=use_coslat)
     model.fit(data, dim=dim)
-    rot = ComplexEOFRotator(n_modes=19, power=power)
+    rot = HilbertEOFRotator(n_modes=19, power=power)
     rot.fit(model)
     scores = rot.scores(normalized=normalized)
     data_rec = rot.inverse_transform(scores, normalized=normalized).real
@@ -816,7 +816,7 @@ def test_mca_inverse_transform(dim, use_coslat, mock_data_array):
     ), f"Inverse transform does not produce a good reconstruction of right field (R2={r2_2.values:.2f})"
 
 
-# Complex MCA
+# Hilbert MCA
 @pytest.mark.parametrize(
     "dim, use_coslat",
     [
@@ -829,7 +829,7 @@ def test_cmca_inverse_transform(dim, use_coslat, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(
+    model = HilbertMCA(
         n_modes=19, standardize=True, use_coslat=use_coslat, n_pca_modes="all"
     )
     model.fit(data1, data2, dim=dim)
@@ -885,7 +885,7 @@ def test_rmca_inverse_transform(dim, use_coslat, power, mock_data_array):
     ), f"Inverse transform does not produce a good reconstruction of right field (R2={r2_2.values:.2f})"
 
 
-# Complex Rotated MCA
+# Hilbert Rotated MCA
 @pytest.mark.parametrize(
     "dim, use_coslat, power",
     [
@@ -899,17 +899,17 @@ def test_rmca_inverse_transform(dim, use_coslat, power, mock_data_array):
 )
 def test_crmca_inverse_transform(dim, use_coslat, power, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
-    # NOTE: The lobpcg SVD solver for complex matrices requires a small number of modes
+    # NOTE: The lobpcg SVD solver for Hilbert matrices requires a small number of modes
     # compared to the actual data size. Since we have a small test set here we only use
     # 10 modes for the test. Therefore, the threshold for the R2 score is lower than for
     # the other tests.
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = ComplexMCA(
+    model = HilbertMCA(
         n_modes=10, standardize=True, use_coslat=use_coslat, use_pca=False
     )
     model.fit(data1, data2, dim=dim)
-    rot = ComplexMCARotator(n_modes=10, power=power)
+    rot = HilbertMCARotator(n_modes=10, power=power)
     rot.fit(model)
     scores1 = rot.data["scores1"]
     scores2 = rot.data["scores2"]

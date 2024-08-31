@@ -1,16 +1,16 @@
 import pytest
 import xarray as xr
 
-from xeofs.models import ComplexMCA
+from xeofs.models import HilbertMCA
 
 
 @pytest.fixture
 def mca_model():
-    return ComplexMCA(n_modes=3)
+    return HilbertMCA(n_modes=3)
 
 
 def test_initialization():
-    mca = ComplexMCA(n_modes=1)
+    mca = HilbertMCA(n_modes=1)
     assert mca is not None
 
 
@@ -173,7 +173,7 @@ def test_scores_phase(mca_model, mock_data_array, dim):
     ],
 )
 def test_fit_empty_data(dim):
-    mca = ComplexMCA()
+    mca = HilbertMCA()
     with pytest.raises(ValueError):
         mca.fit(xr.DataArray(), xr.DataArray(), dim)
 

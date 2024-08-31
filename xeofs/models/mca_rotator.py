@@ -1,5 +1,5 @@
-from .cpcca_rotator import ComplexCPCCARotator, CPCCARotator
-from .mca import MCA, ComplexMCA
+from .cpcca_rotator import CPCCARotator, HilbertCPCCARotator
+from .mca import MCA, HilbertMCA
 
 
 class MCARotator(CPCCARotator, MCA):
@@ -74,8 +74,8 @@ class MCARotator(CPCCARotator, MCA):
         self.model = MCA()
 
 
-class ComplexMCARotator(ComplexCPCCARotator, MCA):
-    """Rotate a solution obtained from ``xe.models.ComplexMCA``.
+class HilbertMCARotator(HilbertCPCCARotator, MCA):
+    """Rotate a solution obtained from ``xe.models.HilbertMCA``.
 
     Rotate the obtained components and scores of a CPCCA model to increase
     interpretability. The algorithm here is based on the approach of Cheng &
@@ -114,14 +114,14 @@ class ComplexMCARotator(ComplexCPCCARotator, MCA):
     Examples
     --------
 
-    Perform a Complex MCA:
+    Perform a Hilbert MCA:
 
-    >>> model = ComplexMCA(n_modes=10)
+    >>> model = HilbertMCA(n_modes=10)
     >>> model.fit(X, Y, dim='time')
 
     Then, apply varimax rotation to first 5 components and scores:
 
-    >>> rotator = ComplexMCARotator(n_modes=5)
+    >>> rotator = HilbertMCARotator(n_modes=5)
     >>> rotator.fit(model)
 
     Retrieve the rotated components and scores:
@@ -146,5 +146,5 @@ class ComplexMCARotator(ComplexCPCCARotator, MCA):
             rtol=rtol,
             compute=compute,
         )
-        self.attrs.update({"model": "Complex Rotated MCA"})
-        self.model = ComplexMCA()
+        self.attrs.update({"model": "Rotated Hilbert MCA"})
+        self.model = HilbertMCA()

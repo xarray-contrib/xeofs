@@ -11,7 +11,7 @@ from ..utils.data_types import DataArray, DataObject
 from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ._base_model import _BaseModel
-from .cpcca import CPCCA, ComplexCPCCA
+from .cpcca import CPCCA, HilbertCPCCA
 
 
 class CPCCARotator(CPCCA):
@@ -455,8 +455,8 @@ class CPCCARotator(CPCCA):
         return self.model.feature_name
 
 
-class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
-    """Rotate a solution obtained from ``xe.models.ComplexCPCCA``.
+class HilbertCPCCARotator(CPCCARotator, HilbertCPCCA):
+    """Rotate a solution obtained from ``xe.models.HilbertCPCCA``.
 
     Rotate the obtained components and scores of a CPCCA model to increase
     interpretability. The algorithm here is based on the approach of Cheng &
@@ -499,12 +499,12 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
 
     Perform a CPCCA analysis:
 
-    >>> model = ComplexCPCCA(n_modes=10)
+    >>> model = HilbertCPCCA(n_modes=10)
     >>> model.fit(X, Y, dim='time')
 
     Then, apply varimax rotation to first 5 components and scores:
 
-    >>> rotator = ComplexCPCCARotator(n_modes=5)
+    >>> rotator = HilbertCPCCARotator(n_modes=5)
     >>> rotator.fit(model)
 
     Retrieve the rotated components and scores:
@@ -516,8 +516,8 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.attrs.update({"model": "Complex Rotated CPCCA"})
-        self.model = ComplexCPCCA()
+        self.attrs.update({"model": "Rotated Hilbert CPCCA"})
+        self.model = HilbertCPCCA()
 
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
@@ -525,6 +525,6 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
         """Transform the data."""
         # Here we make use of the Method Resolution Order (MRO) to call the
         # transform method of the first class in the MRO after `CPCCARotator`
-        # that has a transform method. In this case it will be `ComplexCPCCA`,
+        # that has a transform method. In this case it will be `HilbertCPCCA`,
         # which will raise an error because it does not have a transform method.
         return super(CPCCARotator, self).transform(X, Y, normalized)

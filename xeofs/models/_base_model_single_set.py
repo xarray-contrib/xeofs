@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 from typing import (
     Hashable,
@@ -74,6 +75,13 @@ class _BaseModelSingleSet(_BaseModel):
         solver="auto",
         solver_kwargs={},
     ):
+        if verbose:
+            warnings.warn(
+                "The 'verbose' parameter is deprecated and will be removed in a future release.",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+
         super().__init__()
 
         self.n_modes = n_modes

@@ -5,13 +5,13 @@ import numpy as np
 import xarray as xr
 from typing_extensions import Self
 
-from .eof import EOF, ComplexEOF
+from .._version import __version__
 from ..data_container import DataContainer
 from ..preprocessing.preprocessor import Preprocessor
-from ..utils.rotation import promax
 from ..utils.data_types import DataArray
+from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
-from .._version import __version__
+from .eof import EOF, HilbertEOF
 
 
 class EOFRotator(EOF):
@@ -287,10 +287,10 @@ class EOFRotator(EOF):
         return rotation_matrix
 
 
-class ComplexEOFRotator(EOFRotator, ComplexEOF):
-    """Rotate a solution obtained from ``xe.models.ComplexEOF``.
+class HilbertEOFRotator(EOFRotator, HilbertEOF):
+    """Rotate a solution obtained from ``xe.models.HilbertEOF``.
 
-    Complex Rotated EOF analysis [1]_ [2]_ [3]_ extends EOF analysis by incorporating both amplitude and phase information
+    Hilbert Rotated EOF analysis [1]_ [2]_ [3]_ extends EOF analysis by incorporating both amplitude and phase information
     using a Hilbert transform prior to performing MCA and subsequent Varimax or Promax rotation.
     This adds a further layer of dimensionality to the analysis, allowing for a more nuanced interpretation
     of complex relationships within the data, particularly useful when analyzing oscillatory data.
@@ -319,9 +319,9 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
 
     Examples
     --------
-    >>> model = xe.models.ComplexEOF(n_modes=10)
+    >>> model = xe.models.HilbertEOF(n_modes=10)
     >>> model.fit(data)
-    >>> rotator = xe.models.ComplexEOFRotator(n_modes=10)
+    >>> rotator = xe.models.HilbertEOFRotator(n_modes=10)
     >>> rotator.fit(model)
     >>> rotator.components()
 
@@ -339,13 +339,13 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
         super().__init__(
             n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
         )
-        self.attrs.update({"model": "Rotated Complex EOF analysis"})
-        self.model = ComplexEOF()
+        self.attrs.update({"model": "Rotated Hilbert EOF analysis"})
+        self.model = HilbertEOF()
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         # Here we leverage the Method Resolution Order (MRO) to invoke the
         # transform method of the first class in the MRO after EOFRotator that
-        # has a transform method. In this case, it will be ComplexEOF. However,
-        # please note that `transform` is not implemented for ComplexEOF, so this
+        # has a transform method. In this case, it will be HilbertEOF. However,
+        # please note that `transform` is not implemented for HilbertEOF, so this
         # line of code will actually raise an error.
         return super(EOFRotator, self)._transform_algorithm(data)

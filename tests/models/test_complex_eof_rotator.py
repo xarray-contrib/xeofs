@@ -1,27 +1,27 @@
 import pytest
 import xarray as xr
 
-from xeofs.models import ComplexEOF, ComplexEOFRotator
 from xeofs.data_container import DataContainer
+from xeofs.models import HilbertEOF, HilbertEOFRotator
 
 
 @pytest.fixture
 def ceof_model(mock_data_array, dim):
-    ceof = ComplexEOF(n_modes=5)
+    ceof = HilbertEOF(n_modes=5)
     ceof.fit(mock_data_array, dim)
     return ceof
 
 
 @pytest.fixture
 def ceof_model_delayed(mock_dask_data_array, dim):
-    ceof = ComplexEOF(n_modes=5)
+    ceof = HilbertEOF(n_modes=5)
     ceof.fit(mock_dask_data_array, dim)
     return ceof
 
 
 def test_init():
-    # Instantiate the ComplexEOFRotator class
-    ceof_rotator = ComplexEOFRotator(n_modes=3, power=2, max_iter=100, rtol=1e-6)
+    # Instantiate the HilbertEOFRotator class
+    ceof_rotator = HilbertEOFRotator(n_modes=3, power=2, max_iter=100, rtol=1e-6)
 
     assert ceof_rotator._params["n_modes"] == 3
     assert ceof_rotator._params["power"] == 2
@@ -38,7 +38,7 @@ def test_init():
     ],
 )
 def test_fit(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
     assert hasattr(
@@ -47,7 +47,7 @@ def test_fit(ceof_model):
     assert hasattr(
         ceof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
-    assert isinstance(ceof_rotator.model, ComplexEOF)
+    assert isinstance(ceof_rotator.model, HilbertEOF)
     assert isinstance(ceof_rotator.data, DataContainer)
 
 
@@ -60,7 +60,7 @@ def test_fit(ceof_model):
     ],
 )
 def test_transform_not_implemented(ceof_model, mock_data_array):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
     with pytest.raises(NotImplementedError):
@@ -76,7 +76,7 @@ def test_transform_not_implemented(ceof_model, mock_data_array):
     ],
 )
 def test_inverse_transform(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     scores = ceof_rotator.data["scores"].isel(mode=1)
     Xrec = ceof_rotator.inverse_transform(scores)
@@ -93,7 +93,7 @@ def test_inverse_transform(ceof_model):
     ],
 )
 def test_components_amplitude(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     comps_amp = ceof_rotator.components_amplitude()
 
@@ -109,7 +109,7 @@ def test_components_amplitude(ceof_model):
     ],
 )
 def test_components_phase(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     comps_phase = ceof_rotator.components_phase()
 
@@ -125,7 +125,7 @@ def test_components_phase(ceof_model):
     ],
 )
 def test_scores_amplitude(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     scores_amp = ceof_rotator.scores_amplitude()
 
@@ -141,7 +141,7 @@ def test_scores_amplitude(ceof_model):
     ],
 )
 def test_scores_phase(ceof_model):
-    ceof_rotator = ComplexEOFRotator(n_modes=3)
+    ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
     scores_phase = ceof_rotator.scores_phase()
 

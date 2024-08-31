@@ -17,22 +17,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v2
-        id: git-cliff
-        with:
-          config: cliff.toml
-          args: --verbose
-        env:
-          OUTPUT: CHANGELOG.md
-
-      - name: Add Changelog
-        run: |
-          git add CHANGELOG.md
 
       # This action uses Python Semantic Release v8
       - name: Python Semantic Release
@@ -55,3 +43,23 @@ jobs:
         if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Update Changelog; this must be done after the release
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v3
+        id: git-cliff
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: docs/whats_new/CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Commit Changelog
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          set +e
+          git add docs/whats_new/CHANGELOG.md
+          git commit -m "docs(changelog): update changelog"
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git main

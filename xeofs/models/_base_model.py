@@ -1,10 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import (
-    Any,
-    Literal,
-)
+from typing import Any, Literal
 
 import dask.base
 import xarray as xr

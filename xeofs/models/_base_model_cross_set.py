@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 from typing import Any, Hashable, Sequence
 
@@ -85,6 +86,13 @@ class _BaseModelCrossSet(_BaseModel):
         random_state: Generator | int | None = None,
         solver_kwargs: dict[str, Any] = {},
     ):
+        if verbose:
+            warnings.warn(
+                "The 'verbose' parameter is deprecated and will be removed in a future release.",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+
         super().__init__()
 
         # Process parameters
