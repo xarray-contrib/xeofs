@@ -1,14 +1,15 @@
-from typing import Optional, Dict
-from typing_extensions import Self
+from typing import Dict, Optional
+
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
+from ..utils.data_types import DataArray, DataObject
+from ..utils.hilbert_transform import hilbert_transform
+from ..utils.sanity_checks import assert_not_complex
+from ..utils.xarray_utils import total_variance as compute_total_variance
 from ._base_model import _BaseModel
 from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray
-from ..utils.hilbert_transform import hilbert_transform
-from ..utils.xarray_utils import total_variance as compute_total_variance
-from ..utils.sanity_checks import assert_not_complex
 
 
 class EOF(_BaseModel):
@@ -239,10 +240,10 @@ class EOF(_BaseModel):
         return exp_var_ratio
 
 
-class ComplexEOF(EOF):
-    """Complex EOF analysis.
+class HilbertEOF(EOF):
+    """Hilbert EOF analysis.
 
-    The Complex EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
+    The Hilbert EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
     to the data before performing the standard EOF analysis.
     The Hilbert transform is applied to each feature of the data individually.
 
@@ -299,7 +300,7 @@ class ComplexEOF(EOF):
 
     Examples
     --------
-    >>> model = ComplexEOF(n_modes=5, standardize=True)
+    >>> model = HilbertEOF(n_modes=5, standardize=True)
     >>> model.fit(data)
 
     """
@@ -337,7 +338,7 @@ class ComplexEOF(EOF):
             solver_kwargs=solver_kwargs,
             **kwargs,
         )
-        self.attrs.update({"model": "Complex EOF analysis"})
+        self.attrs.update({"model": "Hilbert EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data: DataArray) -> Self:
@@ -385,7 +386,7 @@ class ComplexEOF(EOF):
         return self
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
-        raise NotImplementedError("Complex EOF does not support transform method.")
+        raise NotImplementedError("Hilbert EOF does not support transform method.")
 
     def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:
         Xrec = super()._inverse_transform_algorithm(scores)

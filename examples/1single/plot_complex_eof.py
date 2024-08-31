@@ -1,8 +1,8 @@
 """
-Complex/Hilbert EOF analysis
+Hilbert EOF analysis
 ============================================
 
-We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_.
+We demonstrate how to execute a Hilbert EOF analysis [1]_ [2]_ [3]_.
 This method extends traditional EOF analysis into the complex domain, allowing
 the EOF components to have real and imaginary parts. This capability can reveal
 oscillatory patterns in datasets, which are common in Earth observations.
@@ -20,8 +20,9 @@ Let's start by importing the necessary packages and loading the data:
 """
 
 # %%
-import xeofs as xe
 import xarray as xr
+
+import xeofs as xe
 
 xr.set_options(display_expand_attrs=False)
 
@@ -29,14 +30,14 @@ sst = xr.tutorial.open_dataset("ersstv5").sst
 sst
 
 # %%
-# We fit the Complex EOF model directly to the raw data, retaining the seasonal
+# We fit the Hilbert EOF model directly to the raw data, retaining the seasonal
 # cycle for study. The model initialization specifies the desired number of
 # modes. The ``use_coslat`` parameter is set to ``True`` to adjust for grid
-# convergence at the poles. While the ``ComplexEOF`` class offers padding options
+# convergence at the poles. While the ``HilbertEOF`` class offers padding options
 # to mitigate potential edge effects, we'll begin with no padding.
 
 kwargs = dict(n_modes=4, use_coslat=True, random_state=7)
-model = xe.models.ComplexEOF(padding="none", **kwargs)
+model = xe.models.HilbertEOF(padding="none", **kwargs)
 
 # %%
 # Now, we fit the model to the data and extract the explained variance.
@@ -76,14 +77,14 @@ scores.real.plot.line(x="time", col="mode", lw=1, ylim=(-0.1, 0.1))
 # However, mode three and four look unusual. While showing some similarity to
 # ENSO (e.g. in mode 3 peaks in 1982, 1998 and 2016), they exhibit a "running away"
 # behaviour towards the boundaries of the time series.
-# This a common issue in complex EOF analysis which is based on the Hilbert transform (a convolution)
+# This a common issue in Hilbert EOF analysis which is based on the Hilbert transform (a convolution)
 # that suffers from the absence of information at the time series boundaries. One way to mitigate this
 # is to artificially extend the time series also known as *padding*. In ``xeofs``, you can enable
 # such a padding by setting the ``padding`` parameter to ``"exp"`` which will extent the boundaries by an exponential
 # decaying function. The ``decay_factor`` parameter controls the decay rate of the exponential function measured in
 # multiples of the time series length. Let's see how the decay parameter impacts the results:
 
-model_ext = xe.models.ComplexEOF(padding="exp", decay_factor=0.01, **kwargs)
+model_ext = xe.models.HilbertEOF(padding="exp", decay_factor=0.01, **kwargs)
 model_ext.fit(sst, dim="time")
 scores_ext = model_ext.scores().sel(mode=slice(1, 4))
 

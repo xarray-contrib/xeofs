@@ -1,18 +1,18 @@
 import warnings
-from typing import Tuple, Optional, Sequence, Dict
-from typing_extensions import Self
+from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
+from ..utils.data_types import DataArray, DataObject
+from ..utils.dimension_renamer import DimensionRenamer
+from ..utils.hilbert_transform import hilbert_transform
+from ..utils.sanity_checks import assert_not_complex
+from ..utils.statistics import pearson_correlation
+from ..utils.xarray_utils import argsort_dask
 from ._base_cross_model import _BaseCrossModel
 from .decomposer import Decomposer
-from ..utils.data_types import DataObject, DataArray
-from ..utils.statistics import pearson_correlation
-from ..utils.hilbert_transform import hilbert_transform
-from ..utils.dimension_renamer import DimensionRenamer
-from ..utils.xarray_utils import argsort_dask
-from ..utils.sanity_checks import assert_not_complex
 
 
 class MCA(_BaseCrossModel):
@@ -554,10 +554,10 @@ class MCA(_BaseCrossModel):
             )
 
 
-class ComplexMCA(MCA):
-    """Complex MCA.
+class HilbertMCA(MCA):
+    """Hilbert MCA.
 
-    Complex MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
+    Hilbert MCA, also referred to as Analytical SVD (ASVD) by Elipot et al. (2017) [1]_,
     enhances traditional MCA by accommodating both amplitude and phase information.
     It achieves this by utilizing the Hilbert transform to preprocess the data,
     thus allowing for a more comprehensive analysis in the subsequent MCA computation.
@@ -612,12 +612,12 @@ class ComplexMCA(MCA):
 
     Notes
     -----
-    Complex MCA extends MCA to complex-valued data that contain both magnitude and phase information.
+    Hilbert MCA extends MCA to complex-valued data that contain both magnitude and phase information.
     The Hilbert transform is used to transform real-valued data to complex-valued data, from which both
     amplitude and phase can be extracted.
 
-    Similar to MCA, Complex MCA is used in climate science to identify coupled patterns of variability
-    between two different climate variables. But unlike MCA, Complex MCA can identify coupled patterns
+    Similar to MCA, Hilbert MCA is used in climate science to identify coupled patterns of variability
+    between two different climate variables. But unlike MCA, Hilbert MCA can identify coupled patterns
     that involve phase shifts.
 
     References
@@ -628,7 +628,7 @@ class ComplexMCA(MCA):
 
     Examples
     --------
-    >>> model = ComplexMCA(n_modes=5, standardize=True)
+    >>> model = HilbertMCA(n_modes=5, standardize=True)
     >>> model.fit(data1, data2)
 
     """
@@ -666,7 +666,7 @@ class ComplexMCA(MCA):
             solver_kwargs=solver_kwargs,
             **kwargs,
         )
-        self.attrs.update({"model": "Complex MCA"})
+        self.attrs.update({"model": "Hilbert MCA"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
     def _fit_algorithm(self, data1: DataArray, data2: DataArray) -> Self:
@@ -900,7 +900,7 @@ class ComplexMCA(MCA):
         return (scores1, scores2)
 
     def transform(self, data1: DataObject, data2: DataObject):
-        raise NotImplementedError("Complex MCA does not support transform method.")
+        raise NotImplementedError("Hilbert MCA does not support transform method.")
 
     def _inverse_transform_algorithm(self, scores1: DataArray, scores2: DataArray):
         data1, data2 = super()._inverse_transform_algorithm(scores1, scores2)
@@ -910,10 +910,10 @@ class ComplexMCA(MCA):
 
     def homogeneous_patterns(self, correction=None, alpha=0.05):
         raise NotImplementedError(
-            "Complex MCA does not support homogeneous_patterns method."
+            "Hilbert MCA does not support homogeneous_patterns method."
         )
 
     def heterogeneous_patterns(self, correction=None, alpha=0.05):
         raise NotImplementedError(
-            "Complex MCA does not support heterogeneous_patterns method."
+            "Hilbert MCA does not support heterogeneous_patterns method."
         )
