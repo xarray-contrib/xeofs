@@ -95,14 +95,13 @@ class MCA(CPCCA):
         n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
+        verbose: bool = False,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
-        **kwargs,
     ):
-        # NOTE: **kwargs is only used here to catch any additional arguments that may be passed during deserialization. During .serialize(), the MCA model stores all model parameters from the parent class CPCCA. During deserialization, `use_pca` and `alpha` are passed to the child class MCA where there are not present and would raise an error. To avoid this, we catch all additional arguments here and ignore them.
         super().__init__(
             n_modes=n_modes,
             alpha=[1.0, 1.0],
@@ -113,6 +112,7 @@ class MCA(CPCCA):
             n_pca_modes=n_pca_modes,
             pca_init_rank_reduction=pca_init_rank_reduction,
             compute=compute,
+            verbose=verbose,
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
@@ -120,6 +120,8 @@ class MCA(CPCCA):
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "Maximum Covariance Analysis"})
+        # Renove alpha from the inherited CPCCA serialization params because it is hard-coded for MCA
+        self._params.pop("alpha")
 
     def covariance_fraction_CD95(self):
         """Get the covariance fraction (CF).

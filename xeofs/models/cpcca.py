@@ -132,6 +132,7 @@ class CPCCA(_BaseModelCrossSet):
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         check_nans: Sequence[bool] | bool = True,
         compute: bool = True,
+        verbose: bool = False,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
@@ -150,6 +151,7 @@ class CPCCA(_BaseModelCrossSet):
             pca_init_rank_reduction=pca_init_rank_reduction,
             alpha=alpha,
             compute=compute,
+            verbose=verbose,
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
@@ -157,6 +159,8 @@ class CPCCA(_BaseModelCrossSet):
             solver_kwargs=solver_kwargs,
         )
         self.attrs.update({"model": "Continuum Power CCA"})
+        # Remove center from the inherited serialization params because it is hard-coded for CPCCA
+        self._params.pop("center")
 
         params = self.get_params()
         self.sample_name: str = params["sample_name"]
