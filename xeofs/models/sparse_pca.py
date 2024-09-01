@@ -1,5 +1,4 @@
 # %%
-from typing import Dict, Optional
 
 import numpy as np
 import xarray as xr
@@ -68,7 +67,7 @@ class SparsePCA(_BaseModelSingleSet):
         2) optional NaN checks,
         3) SVD decomposition,
         4) scores and components.
-    random_state : Optional[int], default=None
+    random_state : int, optional
         Seed for the random number generator.
     solver : {"auto", "full", "randomized"}, default="randomized"
         Solver to use for the SVD computation.
@@ -109,9 +108,9 @@ class SparsePCA(_BaseModelSingleSet):
         feature_name: str = "feature",
         check_nans=True,
         compute: bool = True,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: Dict = {},
+        solver_kwargs: dict = {},
         **kwargs,
     ):
         super().__init__(
@@ -291,7 +290,7 @@ class SparsePCA(_BaseModelSingleSet):
 
         Returns
         -------
-        components: DataArray | Dataset | List[DataArray]
+        components: DataArray | Dataset | list[DataArray]
             Components of the fitted model.
 
         """
@@ -314,7 +313,7 @@ class SparsePCA(_BaseModelSingleSet):
 
         Returns
         -------
-        components: DataArray | Dataset | List[DataArray]
+        components: DataArray | Dataset | list[DataArray]
             Scores of the fitted model.
 
         """

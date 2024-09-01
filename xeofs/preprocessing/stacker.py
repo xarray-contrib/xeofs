@@ -1,11 +1,9 @@
-from typing import Dict
-from typing_extensions import Self
-
 import pandas as pd
 import xarray as xr
+from typing_extensions import Self
 
+from ..utils.data_types import Data, DataArray, DataSet, DataVar, DataVarBound, Dims
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataSet, Data, DataVar, DataVarBound
 
 
 class Stacker(Transformer):
@@ -24,15 +22,15 @@ class Stacker(Transformer):
         The name of the sample dimension (dim=0).
     feature_name : str
         The name of the feature dimension (dim=1).
-    dims_in : Tuple[str]
+    dims_in : tuple[str]
         The dimensions of the input data.
-    dims_out : Tuple[str]
+    dims_out : tuple[str]
         The dimensions of the output data.
-    dims_mapping : Dict[str, Tuple[str]]
+    dims_mapping : dict[str, tuple[str]]
         The mapping between the input and output dimensions.
-    coords_in : Dict[str, xr.Coordinates]
+    coords_in : dict[str, xr.Coordinates]
         The coordinates of the input data.
-    coords_out : Dict[str, xr.Coordinates]
+    coords_out : dict[str, xr.Coordinates]
         The coordinates of the output data.
     """
 
@@ -51,7 +49,7 @@ class Stacker(Transformer):
         self.coords_out = {}
         self.data_type = None
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             dims_in=self.dims_in,
             dims_out=self.dims_out,

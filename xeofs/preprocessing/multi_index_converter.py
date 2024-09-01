@@ -1,9 +1,8 @@
-from typing import Optional, Dict
-from typing_extensions import Self
 import pandas as pd
+from typing_extensions import Self
 
+from ..utils.data_types import Data, DataArray, DataVar, DataVarBound, Dims
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, Data, DataVar, DataVarBound
 
 
 class MultiIndexConverter(Transformer):
@@ -15,7 +14,7 @@ class MultiIndexConverter(Transformer):
         self.coords_from_fit = {}
         self.coords_from_transform = {}
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             modified_dimensions=self.modified_dimensions,
             coords_from_fit=self.coords_from_fit,
@@ -25,8 +24,8 @@ class MultiIndexConverter(Transformer):
     def fit(
         self,
         X: Data,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[Dims] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: Dims | None = None,
         **kwargs,
     ) -> Self:
         # Store original MultiIndexes
@@ -82,44 +81,3 @@ class MultiIndexConverter(Transformer):
 
     def inverse_transform_scores_unseen(self, X: DataArray) -> DataArray:
         return self._inverse_transform(X, reference="transform")
-
-
-# class DataListMultiIndexConverter(BaseEstimator, TransformerMixin):
-#     """Converts MultiIndexes to simple indexes and vice versa."""
-
-#     def __init__(self):
-#         self.converters: List[MultiIndexConverter] = []
-
-#     def fit(self, X: List[Data], y=None):
-#         for x in X:
-#             converter = MultiIndexConverter()
-#             converter.fit(x)
-#             self.converters.append(converter)
-
-#         return self
-
-#     def transform(self, X: List[Data]) -> List[Data]:
-#         X_transformed: List[Data] = []
-#         for x, converter in zip(X, self.converters):
-#             X_transformed.append(converter.transform(x))
-
-#         return X_transformed
-
-#     def fit_transform(self, X: List[Data], y=None) -> List[Data]:
-#         return self.fit(X, y).transform(X)
-
-#     def _inverse_transform(self, X: List[Data]) -> List[Data]:
-#         X_inverse_transformed: List[Data] = []
-#         for x, converter in zip(X, self.converters):
-#             X_inverse_transformed.append(converter._inverse_transform(x))
-
-#         return X_inverse_transformed
-
-#     def inverse_transform_data(self, X: List[Data]) -> List[Data]:
-#         return self._inverse_transform(X)
-
-#     def inverse_transform_components(self, X: List[Data]) -> List[Data]:
-#         return self._inverse_transform(X)
-
-#     def inverse_transform_scores(self, X: DataArray) -> DataArray:
-#         return self.converters[0].inverse_transform_scores(X)

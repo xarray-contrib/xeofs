@@ -1,4 +1,4 @@
-from typing import Dict, List, Sequence
+from typing import Sequence
 
 import numpy as np
 import xarray as xr
@@ -103,7 +103,7 @@ class CPCCARotator(CPCCA):
 
         self.sorted = False
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             data=self.data,
             preprocessor1=self.preprocessor1,
@@ -309,7 +309,7 @@ class CPCCARotator(CPCCA):
         X: DataObject | None = None,
         Y: DataObject | None = None,
         normalized: bool = False,
-    ) -> DataArray | List[DataArray]:
+    ) -> DataArray | list[DataArray]:
         """Transform the data.
 
         Parameters

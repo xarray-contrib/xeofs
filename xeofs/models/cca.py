@@ -9,7 +9,7 @@ Copyright (c) 2020 onward James Chapman
 
 from abc import abstractmethod
 from datetime import datetime
-from typing import Hashable, List, Sequence
+from typing import Hashable, Sequence
 
 import dask.array as da
 import numpy as np
@@ -143,7 +143,7 @@ class CCABaseModel(BaseEstimator):
             Preprocessor(with_coslat=self.use_coslat[i], **self._preprocessor_kwargs)
             for i in range(self.n_views_)
         ]
-        views2D: List[DataArray] = [
+        views2D: list[DataArray] = [
             preprocessor.fit_transform(data, dim)
             for preprocessor, data in zip(self.preprocessors, views)
         ]
@@ -215,7 +215,7 @@ class CCABaseModel(BaseEstimator):
         return view_transformed
 
     @abstractmethod
-    def _fit_algorithm(self, views: List[DataArray]) -> Self:
+    def _fit_algorithm(self, views: list[DataArray]) -> Self:
         raise NotImplementedError
 
 
@@ -304,7 +304,7 @@ class CCA(CCABaseModel):
         self.c = c
         self.eps = eps
 
-    def _fit_algorithm(self, views: List[DataArray]) -> Self:
+    def _fit_algorithm(self, views: list[DataArray]) -> Self:
         # Check input data
         [assert_not_complex(view) for view in views]
 
@@ -620,26 +620,26 @@ class CCA(CCABaseModel):
     def _smallest_eigval(self, D):
         return min(0, np.linalg.eigvalsh(D).min())
 
-    def weights(self) -> List[DataObject]:
+    def weights(self) -> list[DataObject]:
         weights = [
             prep.inverse_transform_components(wghts)
             for prep, wghts in zip(self.preprocessors, self.data["weights"])
         ]
         return weights
 
-    def _transform(self, views: Sequence[DataArray]) -> List[DataArray]:
+    def _transform(self, views: Sequence[DataArray]) -> list[DataArray]:
         transformed_views = []
         for i, view in enumerate(views):
             transformed_view = xr.dot(view, self.data["weights"][i], dims="feature")
             transformed_views.append(transformed_view)
         return transformed_views
 
-    def transform(self, views: Sequence[DataObject]) -> List[DataArray]:
+    def transform(self, views: Sequence[DataObject]) -> list[DataArray]:
         """Transform the input data into the canonical space.
 
         Parameters
         ----------
-        views : List[DataArray | Dataset]
+        views : list[DataArray | Dataset]
             Input data to transform
 
         """
@@ -655,7 +655,7 @@ class CCA(CCABaseModel):
             unstacked_transformed_views.append(unstacked_view)
         return unstacked_transformed_views
 
-    def components(self, normalize: bool = True) -> List[DataObject]:
+    def components(self, normalize: bool = True) -> list[DataObject]:
         """Get the canonical loadings for each view."""
         can_loads = self.data["canonical_loadings"]
         input_data = self.data["input_data"]
@@ -681,7 +681,7 @@ class CCA(CCABaseModel):
         ]
         return loadings
 
-    def scores(self) -> List[DataArray]:
+    def scores(self) -> list[DataArray]:
         """Get the canonical variates for each view."""
         variates = []
         for i, view in enumerate(self.data["variates"]):
@@ -689,11 +689,11 @@ class CCA(CCABaseModel):
             variates.append(vari)
         return variates
 
-    def explained_variance(self) -> List[DataArray]:
+    def explained_variance(self) -> list[DataArray]:
         """Get the explained variance for each view."""
         return self.data["explained_variance"]
 
-    def explained_variance_ratio(self) -> List[DataArray]:
+    def explained_variance_ratio(self) -> list[DataArray]:
         """Get the explained variance ratio for each view."""
         return self.data["explained_variance_ratio"]
 

@@ -1,5 +1,4 @@
 import warnings
-from typing import Dict, Optional
 
 import numpy as np
 import xarray as xr
@@ -41,7 +40,7 @@ class Whitener(Transformer):
         Name of the feature dimension.
     random_state: np.random.Generator | int | None, default=None
         Random seed for reproducibility.
-    solver_kwargs: Dict
+    solver_kwargs: dict
         Additional keyword arguments for the SVD solver.
 
     """
@@ -56,7 +55,7 @@ class Whitener(Transformer):
         sample_name: str = "sample",
         feature_name: str = "feature",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: Dict = {},
+        solver_kwargs: dict = {},
     ):
         super().__init__(sample_name, feature_name)
 
@@ -107,7 +106,7 @@ class Whitener(Transformer):
         else:
             return self.n_modes
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             alpha=self.alpha,
             n_modes=self.n_modes,
@@ -123,8 +122,8 @@ class Whitener(Transformer):
     def fit(
         self,
         X: DataArray,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[DimsList] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: DimsList | None = None,
     ) -> Self:
         self._sanity_check_input(X)
         n_samples, n_features = X.shape
@@ -223,8 +222,8 @@ class Whitener(Transformer):
     def fit_transform(
         self,
         X: DataArray,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[DimsList] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: DimsList | None = None,
     ) -> DataArray:
         return self.fit(X, sample_dims, feature_dims).transform(X)
 

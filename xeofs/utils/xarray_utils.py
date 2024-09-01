@@ -1,4 +1,4 @@
-from typing import Any, Hashable, List, Sequence, Tuple, TypeVar
+from typing import Any, Hashable, Sequence, TypeVar
 
 import numpy as np
 import xarray as xr
@@ -19,7 +19,7 @@ from .sanity_checks import convert_to_dim_type
 T = TypeVar("T")
 
 
-def unwrap_singleton_list(input_list: List[T]) -> T | List[T]:
+def unwrap_singleton_list(input_list: list[T]) -> T | list[T]:
     if len(input_list) == 1:
         return input_list[0]
     else:
@@ -47,7 +47,7 @@ def data_is_dask(data: DataArray | DataSet | DataList) -> bool:
 
 def process_parameter(
     parameter_name: str, parameter, default, n_data: int
-) -> List[Any]:
+) -> list[Any]:
     if parameter is None:
         return convert_to_list(default) * n_data
     elif isinstance(parameter, (list, tuple)):
@@ -57,7 +57,7 @@ def process_parameter(
         return convert_to_list(parameter) * n_data
 
 
-def convert_to_list(data: T | List[T] | Tuple[T]) -> List[T]:
+def convert_to_list(data: T | list[T] | tuple[T]) -> list[T]:
     if isinstance(data, list):
         return data
     elif isinstance(data, tuple):
@@ -162,21 +162,21 @@ def extract_latitude_dimension(feature_dims: Dims) -> Hashable:
 def get_dims(
     data: DataList,
     sample_dims: Hashable | Sequence[Hashable],
-) -> Tuple[Dims, DimsList]:
+) -> tuple[Dims, DimsList]:
     """Extracts the dimensions of a DataArray or Dataset that are not included in the sample dimensions.
 
     Parameters:
     ------------
     data: xr.DataArray or xr.Dataset or list of xr.DataArray
         Input data.
-    sample_dims: Hashable or Sequence[Hashable] or List[Sequence[Hashable]]
+    sample_dims: Hashable or Sequence[Hashable] or list[Sequence[Hashable]]
         Sample dimensions.
 
     Returns:
     ---------
-    sample_dims: Tuple[Hashable]
+    sample_dims: tuple[Hashable]
         Sample dimensions.
-    feature_dims: Tuple[Hashable]
+    feature_dims: tuple[Hashable]
         Feature dimensions.
 
     """
@@ -199,12 +199,12 @@ def _get_feature_dims(data: DataArray | DataSet, sample_dims: Dims) -> Dims:
     ------------
     data: xr.DataArray or xr.Dataset
         Input data.
-    sample_dims: Tuple[str]
+    sample_dims: tuple[str]
         Sample dimensions.
 
     Returns:
     ---------
-    feature_dims: Tuple[str]
+    feature_dims: tuple[str]
         Feature dimensions.
 
     """
