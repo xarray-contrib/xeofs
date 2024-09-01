@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 import xarray as xr
-import numpy as np
 
-from xeofs.models import EOF
+from xeofs.single import EOF
 from xeofs.validation import EOFBootstrapper
 
 

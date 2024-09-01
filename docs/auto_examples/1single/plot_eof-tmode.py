@@ -7,19 +7,19 @@ EOF analysis in T-mode maximises the spatial variance.
 Load packages and data:
 """
 
-import xarray as xr
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+import xarray as xr
 from cartopy.crs import EqualEarth, PlateCarree
+from matplotlib.gridspec import GridSpec
 
-from xeofs.models import EOF
+import xeofs as xe
 
 sst = xr.tutorial.open_dataset("ersstv5")["sst"]
 
 # %%
 # Perform the actual analysis
 
-model = EOF(n_modes=5)
+model = xe.single.EOF(n_modes=5)
 model.fit(sst, dim=("lat", "lon"))
 expvar = model.explained_variance_ratio()
 components = model.components()

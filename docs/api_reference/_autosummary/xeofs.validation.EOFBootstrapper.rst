@@ -1,11 +1,10 @@
-﻿xeofs.validation.EOFBootstrapper
-================================
+EOFBootstrapper
+===============
 
 .. currentmodule:: xeofs.validation
 
 .. autoclass:: EOFBootstrapper
    :members:
-   :show-inheritance: 
    :inherited-members:
 
    

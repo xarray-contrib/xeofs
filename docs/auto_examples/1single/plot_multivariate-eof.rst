@@ -25,16 +25,16 @@ Multivariate EOF analysis.
 
 .. GENERATED FROM PYTHON SOURCE LINES 7-24
 
-.. code-block:: Python
+.. code-block:: default
 
 
     # Load packages and data:
-    import xarray as xr
     import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
+    import xarray as xr
     from cartopy.crs import PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF
+    import xeofs as xe
 
     # Create four different dataarrayss
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
@@ -57,10 +57,10 @@ Perform the actual analysis
 
 .. GENERATED FROM PYTHON SOURCE LINES 26-32
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    pca = EOF(n_modes=10, standardize=False, use_coslat=True)
+    pca = xe.single.EOF(n_modes=10, standardize=False, use_coslat=True)
     pca.fit(multivariate_data, dim="time")
     components = pca.components()
     scores = pca.scores()
@@ -78,7 +78,7 @@ Plot mode 1
 
 .. GENERATED FROM PYTHON SOURCE LINES 34-68
 
-.. code-block:: Python
+.. code-block:: default
 
 
     mode = 5
@@ -129,7 +129,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.211 seconds)
+   **Total running time of the script:** (0 minutes 2.083 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_multivariate-eof.py:
@@ -138,13 +138,16 @@ Plot mode 1
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_multivariate-eof.ipynb <plot_multivariate-eof.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_multivariate-eof.py <plot_multivariate-eof.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_multivariate-eof.ipynb <plot_multivariate-eof.ipynb>`
 
 
 .. only:: html

@@ -51,22 +51,22 @@ Let's import the necessary packages.
 
 .. GENERATED FROM PYTHON SOURCE LINES 33-48
 
-.. code-block:: Python
+.. code-block:: default
 
 
     # For the analysis
-    import numpy as np
-    import xarray as xr
-    import xeofs as xe
-
     # For visualization
     import matplotlib.pyplot as plt
-    import seaborn as sns
+    import numpy as np
 
     # For accessing R packages
     import rpy2.robjects as ro
-    from rpy2.robjects.packages import importr
+    import seaborn as sns
+    import xarray as xr
     from rpy2.robjects import pandas2ri
+    from rpy2.robjects.packages import importr
+
+    import xeofs as xe
 
 
 
@@ -82,7 +82,7 @@ using the `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ package.
 
 .. GENERATED FROM PYTHON SOURCE LINES 51-57
 
-.. code-block:: Python
+.. code-block:: default
 
 
     xr.set_options(display_expand_data=False)
@@ -97,189 +97,6 @@ using the `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ package.
 .. rst-class:: sphx-glr-script-out
 
  .. code-block:: none
-
-    R[write to console]: also installing the dependencies ‘DEoptimR’, ‘sgeostat’, ‘robustbase’
-
-
-    R[write to console]: trying URL 'https://cloud.r-project.org/src/contrib/DEoptimR_1.1-3.tar.gz'
-
-    R[write to console]: Content type 'application/x-gzip'
-    R[write to console]:  length 19222 bytes (18 KB)
-
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: 
-
-    R[write to console]: downloaded 18 KB
-
-
-    R[write to console]: trying URL 'https://cloud.r-project.org/src/contrib/sgeostat_1.0-27.tar.gz'
-
-    R[write to console]: Content type 'application/x-gzip'
-    R[write to console]:  length 35685 bytes (34 KB)
-
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: 
-
-    R[write to console]: downloaded 34 KB
-
-
-    R[write to console]: trying URL 'https://cloud.r-project.org/src/contrib/robustbase_0.99-2.tar.gz'
-
-    R[write to console]: Content type 'application/x-gzip'
-    R[write to console]:  length 2292086 bytes (2.2 MB)
-
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: =
-    R[write to console]: 
-
-    R[write to console]: downloaded 2.2 MB
-
 
     R[write to console]: trying URL 'https://cloud.r-project.org/src/contrib/mvoutlier_2.1.1.tar.gz'
 
@@ -345,7 +162,7 @@ using the `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ package.
 
     R[write to console]: 
     R[write to console]: The downloaded source packages are in
-            ‘/tmp/Rtmpr8iXHn/downloaded_packages’
+            ‘/tmp/RtmpRG5HUi/downloaded_packages’
     R[write to console]: 
     R[write to console]: 
 
@@ -355,7 +172,7 @@ using the `rpy2 <https://rpy2.github.io/doc/latest/html/index.html>`_ package.
     R[write to console]:  done
 
 
-    <rpy2.rinterface_lib.sexp.NULLType object at 0x7fa747af2890> [0]
+    <rpy2.rinterface_lib.sexp.NULLType object at 0x77a35859c310> [0]
 
 
 
@@ -367,7 +184,7 @@ in the Baltic Sea region. This will help us visually represent the GWPCA results
 
 .. GENERATED FROM PYTHON SOURCE LINES 61-75
 
-.. code-block:: Python
+.. code-block:: default
 
 
     ro.r(
@@ -533,7 +350,7 @@ Since ``xeofs`` uses ``xarray``, we convert the data into an ``xarray.DataArray`
 
 .. GENERATED FROM PYTHON SOURCE LINES 77-86
 
-.. code-block:: Python
+.. code-block:: default
 
 
     data_df = data_df.rename(columns={"ID": "station"}).set_index("station")
@@ -915,22 +732,22 @@ Since ``xeofs`` uses ``xarray``, we convert the data into an ``xarray.DataArray`
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray (element: 10, station: 768)&gt; Size: 61kB
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray (element: 10, station: 768)&gt;
     43.61 58.73 58.14 43.98 60.9 54.0 82.72 ... 0.196 0.202 0.207 0.109 0.141 0.185
     Coordinates:
-      * station  (station) object 6kB MultiIndex
-      * x        (station) float64 6kB -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
-      * y        (station) float64 6kB 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06
-      * element  (element) object 80B &#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;K2O_T&#x27; &#x27;P2O5_T&#x27;</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'></div><ul class='xr-dim-list'><li><span class='xr-has-index'>element</span>: 10</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-2abbee88-8359-473d-8bb2-654e19dc9b90' class='xr-array-in' type='checkbox' ><label for='section-2abbee88-8359-473d-8bb2-654e19dc9b90' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>43.61 58.73 58.14 43.98 60.9 54.0 ... 0.202 0.207 0.109 0.141 0.185</span></div><div class='xr-array-data'><pre>array([[43.61 , 58.73 , 58.14 , ..., 87.92 , 85.42 , 58.04 ],
+      * station  (station) object MultiIndex
+      * x        (station) float64 -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
+      * y        (station) float64 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06
+      * element  (element) object &#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; &#x27;Al2O3_T&#x27; ... &#x27;K2O_T&#x27; &#x27;P2O5_T&#x27;</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'></div><ul class='xr-dim-list'><li><span class='xr-has-index'>element</span>: 10</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-3acc8616-16c9-4df7-a101-4d043a13b617' class='xr-array-in' type='checkbox' ><label for='section-3acc8616-16c9-4df7-a101-4d043a13b617' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>43.61 58.73 58.14 43.98 60.9 54.0 ... 0.202 0.207 0.109 0.141 0.185</span></div><div class='xr-array-data'><pre>array([[43.61 , 58.73 , 58.14 , ..., 87.92 , 85.42 , 58.04 ],
            [ 1.29 ,  0.913,  0.902, ...,  0.386,  0.25 ,  0.61 ],
            [13.07 , 14.78 , 11.89 , ...,  4.74 ,  3.96 , 13.87 ],
            ...,
            [ 1.14 ,  2.19 ,  2.13 , ...,  0.53 ,  0.38 ,  1.63 ],
            [ 2.01 ,  1.78 ,  1.16 , ...,  1.39 ,  1.06 ,  3.11 ],
-           [ 0.481,  0.298,  0.408, ...,  0.109,  0.141,  0.185]])</pre></div></div></li><li class='xr-section-item'><input id='section-312daa9d-adc9-4118-aee1-5ebeb239930b' class='xr-section-summary-in' type='checkbox'  checked><label for='section-312daa9d-adc9-4118-aee1-5ebeb239930b' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-a1bba177-ccff-4e3c-9076-b650d8aaedb3' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-a1bba177-ccff-4e3c-9076-b650d8aaedb3' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-63f99805-f348-4081-870a-73079318cf7b' class='xr-var-data-in' type='checkbox'><label for='data-63f99805-f348-4081-870a-73079318cf7b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
+           [ 0.481,  0.298,  0.408, ...,  0.109,  0.141,  0.185]])</pre></div></div></li><li class='xr-section-item'><input id='section-e5359089-0dfe-43f1-b5b0-a29e60cf45a6' class='xr-section-summary-in' type='checkbox'  checked><label for='section-e5359089-0dfe-43f1-b5b0-a29e60cf45a6' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-2d9c9288-d4ce-43d4-9d28-d0730553759e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-2d9c9288-d4ce-43d4-9d28-d0730553759e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f06547b9-036f-473e-a326-baec102544ce' class='xr-var-data-in' type='checkbox'><label for='data-f06547b9-036f-473e-a326-baec102544ce' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
            ..., (-271994.2, 5840418.4), (-282020.2, 5795588.8),
-           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-c403929b-a31a-440d-851f-9bb4b12b739b' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c403929b-a31a-440d-851f-9bb4b12b739b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-23f5517b-4fd5-4a2b-8abf-cc2d2dae2be4' class='xr-var-data-in' type='checkbox'><label for='data-23f5517b-4fd5-4a2b-8abf-cc2d2dae2be4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-4b0762f7-7280-4554-af7a-76ef3bf6cf6a' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-4b0762f7-7280-4554-af7a-76ef3bf6cf6a' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-e087d4f1-c29d-4248-ae18-6c4f6aa7a113' class='xr-var-data-in' type='checkbox'><label for='data-e087d4f1-c29d-4248-ae18-6c4f6aa7a113' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>element</span></div><div class='xr-var-dims'>(element)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;P2O5_T&#x27;</div><input id='attrs-6c97c92a-bcd3-4a37-9af8-6126167d03fe' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-6c97c92a-bcd3-4a37-9af8-6126167d03fe' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-184daca0-e26c-4a1c-8244-5797b986165a' class='xr-var-data-in' type='checkbox'><label for='data-184daca0-e26c-4a1c-8244-5797b986165a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
-           &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;], dtype=object)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-0ae3c898-5adf-4e91-ad2f-12fd131c2042' class='xr-section-summary-in' type='checkbox'  ><label for='section-0ae3c898-5adf-4e91-ad2f-12fd131c2042' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-f0d86bdb-413e-42d0-b38c-009e8370800b' class='xr-index-data-in' type='checkbox'/><label for='index-f0d86bdb-413e-42d0-b38c-009e8370800b' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
+           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-86d80ab7-6a14-4c7b-9a9c-c31c126a88c0' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-86d80ab7-6a14-4c7b-9a9c-c31c126a88c0' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9b8672cc-03b3-491f-837f-fd67a87c02d7' class='xr-var-data-in' type='checkbox'><label for='data-9b8672cc-03b3-491f-837f-fd67a87c02d7' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-e95e3de6-f475-4488-999d-ad02f245d8d8' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-e95e3de6-f475-4488-999d-ad02f245d8d8' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a380c52d-2f76-481d-8303-321955890077' class='xr-var-data-in' type='checkbox'><label for='data-a380c52d-2f76-481d-8303-321955890077' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>element</span></div><div class='xr-var-dims'>(element)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;P2O5_T&#x27;</div><input id='attrs-74ebb6a8-7804-4323-bfc7-6cf8bdb1d37a' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-74ebb6a8-7804-4323-bfc7-6cf8bdb1d37a' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-160f9e1a-ec6c-413d-b0d0-2fe8a33184cd' class='xr-var-data-in' type='checkbox'><label for='data-160f9e1a-ec6c-413d-b0d0-2fe8a33184cd' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
+           &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;], dtype=object)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-fa10c115-789d-40fd-9ed7-6d0fd98288c7' class='xr-section-summary-in' type='checkbox'  ><label for='section-fa10c115-789d-40fd-9ed7-6d0fd98288c7' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-f20e014b-527d-45ba-ad25-1ded3a90d66a' class='xr-index-data-in' type='checkbox'/><label for='index-f20e014b-527d-45ba-ad25-1ded3a90d66a' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
                 ( 214714.1, 7745546.6),
                 (-368415.5, 7065039.2),
                 ( 226609.0, 6922431.0),
@@ -951,9 +768,9 @@ Since ``xeofs`` uses ``xarray``, we convert the data into an ``xarray.DataArray`
                 (-271994.2, 5840418.4),
                 (-282020.2, 5795588.8),
                 (-127326.9, 6523470.9)],
-               name=&#x27;station&#x27;, length=768))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>element</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-6c63daca-b961-4f41-848a-6f73f7ec61e5' class='xr-index-data-in' type='checkbox'/><label for='index-6c63daca-b961-4f41-848a-6f73f7ec61e5' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
+               name=&#x27;station&#x27;, length=768))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>element</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-5a2ca0ca-b202-41c9-bf42-d1abd256e275' class='xr-index-data-in' type='checkbox'/><label for='index-5a2ca0ca-b202-41c9-bf42-d1abd256e275' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
            &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;],
-          dtype=&#x27;object&#x27;, name=&#x27;element&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-32108883-9ddc-49f7-85d4-4573d2bdeb15' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-32108883-9ddc-49f7-85d4-4573d2bdeb15' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
+          dtype=&#x27;object&#x27;, name=&#x27;element&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-b4148cad-e241-43f4-aef1-f669d95682ad' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-b4148cad-e241-43f4-aef1-f669d95682ad' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -974,10 +791,10 @@ for the chemical elements.
 
 .. GENERATED FROM PYTHON SOURCE LINES 98-110
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    gwpca = xe.models.GWPCA(
+    gwpca = xe.single.GWPCA(
         n_modes=5,
         standardize=True,
         metric="euclidean",
@@ -1359,28 +1176,15 @@ for the chemical elements.
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;components&#x27; (mode: 5, element: 10, station: 768)&gt; Size: 307kB
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;components&#x27; (mode: 5, element: 10, station: 768)&gt;
     0.1813 -0.3584 0.1243 0.2 -0.3812 ... 0.1229 -0.2865 0.4732 0.4197 -0.4249
     Coordinates:
-      * mode     (mode) int64 40B 1 2 3 4 5
-      * element  (element) object 80B &#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;K2O_T&#x27; &#x27;P2O5_T&#x27;
-      * station  (station) object 6kB MultiIndex
-      * x        (station) float64 6kB -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
-      * y        (station) float64 6kB 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06
-    Attributes: (12/16)
-        model:          GWPCA
-        software:       xeofs
-        version:        2.3.2
-        date:           2024-03-31 21:13:03
-        n_modes:        5
-        center:         True
-        ...             ...
-        feature_name:   feature
-        random_state:   None
-        verbose:        False
-        compute:        True
-        solver:         auto
-        solver_kwargs:  {}</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'components'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li><li><span class='xr-has-index'>element</span>: 10</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-54787f2a-438b-4917-bd43-a923d1227418' class='xr-array-in' type='checkbox' ><label for='section-54787f2a-438b-4917-bd43-a923d1227418' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>0.1813 -0.3584 0.1243 0.2 -0.3812 ... -0.2865 0.4732 0.4197 -0.4249</span></div><div class='xr-array-data'><pre>array([[[ 0.18125709, -0.3584175 ,  0.12428877, ...,  0.25671877,
+      * mode     (mode) int64 1 2 3 4 5
+      * element  (element) object &#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; &#x27;Al2O3_T&#x27; ... &#x27;K2O_T&#x27; &#x27;P2O5_T&#x27;
+      * station  (station) object MultiIndex
+      * x        (station) float64 -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
+      * y        (station) float64 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06
+    Attributes: (15)</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'components'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li><li><span class='xr-has-index'>element</span>: 10</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-7d357897-9234-4845-8196-1c1f35b02323' class='xr-array-in' type='checkbox' ><label for='section-7d357897-9234-4845-8196-1c1f35b02323' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>0.1813 -0.3584 0.1243 0.2 -0.3812 ... -0.2865 0.4732 0.4197 -0.4249</span></div><div class='xr-array-data'><pre>array([[[ 0.18125709, -0.3584175 ,  0.12428877, ...,  0.25671877,
               0.256246  ,  0.22973313],
             [-0.41417985, -0.39376878, -0.42011077, ..., -0.34732466,
              -0.36015219, -0.36847694],
@@ -1420,12 +1224,12 @@ for the chemical elements.
             [-0.20769618, -0.24960301, -0.29431265, ..., -0.37464037,
              -0.36863136, -0.20368482],
             [-0.2285085 , -0.07289737, -0.26811733, ...,  0.47324595,
-              0.41969128, -0.42492974]]])</pre></div></div></li><li class='xr-section-item'><input id='section-b931ac73-3b56-438c-8e94-4e8efef04a9b' class='xr-section-summary-in' type='checkbox'  checked><label for='section-b931ac73-3b56-438c-8e94-4e8efef04a9b' class='xr-section-summary' >Coordinates: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-bcf2ba83-b2e3-47ee-8a90-4723723bf4e8' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-bcf2ba83-b2e3-47ee-8a90-4723723bf4e8' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-688375e1-c58a-4da2-97a2-5f6d2b8ec56c' class='xr-var-data-in' type='checkbox'><label for='data-688375e1-c58a-4da2-97a2-5f6d2b8ec56c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>element</span></div><div class='xr-var-dims'>(element)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;P2O5_T&#x27;</div><input id='attrs-15025e1b-44f6-4651-937a-c739eb059c28' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-15025e1b-44f6-4651-937a-c739eb059c28' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-3b60db21-43be-4b1a-91a5-96dce022a30e' class='xr-var-data-in' type='checkbox'><label for='data-3b60db21-43be-4b1a-91a5-96dce022a30e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
-           &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-30d52d4a-09db-4c76-9f2b-67d9f36b9f97' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-30d52d4a-09db-4c76-9f2b-67d9f36b9f97' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-8508c7e5-8d28-45d6-a650-95303da5d678' class='xr-var-data-in' type='checkbox'><label for='data-8508c7e5-8d28-45d6-a650-95303da5d678' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
+              0.41969128, -0.42492974]]])</pre></div></div></li><li class='xr-section-item'><input id='section-c86823f9-12db-4e6f-9b21-a3efd52dfab8' class='xr-section-summary-in' type='checkbox'  checked><label for='section-c86823f9-12db-4e6f-9b21-a3efd52dfab8' class='xr-section-summary' >Coordinates: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-c175297d-ad5f-4096-8803-103122e84076' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c175297d-ad5f-4096-8803-103122e84076' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-dad1cabc-75fd-4c6f-bbb9-c66ccc6510ad' class='xr-var-data-in' type='checkbox'><label for='data-dad1cabc-75fd-4c6f-bbb9-c66ccc6510ad' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>element</span></div><div class='xr-var-dims'>(element)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;SiO2_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;P2O5_T&#x27;</div><input id='attrs-b453010c-9b12-445b-b8fe-f7afb2cc0107' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b453010c-9b12-445b-b8fe-f7afb2cc0107' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-455848ab-bbcc-4a33-a203-0ef19d54036c' class='xr-var-data-in' type='checkbox'><label for='data-455848ab-bbcc-4a33-a203-0ef19d54036c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
+           &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-e35be398-3032-446d-870a-2b11a79b738d' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-e35be398-3032-446d-870a-2b11a79b738d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-cea152bc-cc1e-4c58-a89d-d4374f586898' class='xr-var-data-in' type='checkbox'><label for='data-cea152bc-cc1e-4c58-a89d-d4374f586898' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
            ..., (-271994.2, 5840418.4), (-282020.2, 5795588.8),
-           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-d78364e4-08b9-4fc1-a941-78ef2c2eef8b' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-d78364e4-08b9-4fc1-a941-78ef2c2eef8b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7b63662f-71c0-4ef5-beba-70d5d0ddf2e4' class='xr-var-data-in' type='checkbox'><label for='data-7b63662f-71c0-4ef5-beba-70d5d0ddf2e4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-718bf623-f9e7-4348-ab90-59006db75c46' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-718bf623-f9e7-4348-ab90-59006db75c46' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5c060877-45cb-422d-af75-22c9a6cc631b' class='xr-var-data-in' type='checkbox'><label for='data-5c060877-45cb-422d-af75-22c9a6cc631b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-838e4551-4fff-4b9c-810e-ac114a382bd4' class='xr-section-summary-in' type='checkbox'  ><label for='section-838e4551-4fff-4b9c-810e-ac114a382bd4' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-d19f5ea9-9963-4375-9c42-43532c507217' class='xr-index-data-in' type='checkbox'/><label for='index-d19f5ea9-9963-4375-9c42-43532c507217' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4, 5], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>element</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-e1eaf160-b1eb-46b3-b1f7-53df91e46e40' class='xr-index-data-in' type='checkbox'/><label for='index-e1eaf160-b1eb-46b3-b1f7-53df91e46e40' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
+           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-6433fe44-86a4-45ec-a30d-21d7dfe77d0b' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-6433fe44-86a4-45ec-a30d-21d7dfe77d0b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ba3c88f8-7729-47fd-9561-7f58187eca6e' class='xr-var-data-in' type='checkbox'><label for='data-ba3c88f8-7729-47fd-9561-7f58187eca6e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-7f36facd-8080-42d1-b58d-cc40017c54b3' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-7f36facd-8080-42d1-b58d-cc40017c54b3' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-1aa591dd-2cfe-4657-8e6a-52adadf2d0cd' class='xr-var-data-in' type='checkbox'><label for='data-1aa591dd-2cfe-4657-8e6a-52adadf2d0cd' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-002c6ec1-452e-48d9-b74d-0cd1ce4c4671' class='xr-section-summary-in' type='checkbox'  ><label for='section-002c6ec1-452e-48d9-b74d-0cd1ce4c4671' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-aa9df1c7-ed88-4511-be86-5d9159098930' class='xr-index-data-in' type='checkbox'/><label for='index-aa9df1c7-ed88-4511-be86-5d9159098930' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4, 5], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>element</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-c9297efc-8132-4f63-92e3-867511911d29' class='xr-index-data-in' type='checkbox'/><label for='index-c9297efc-8132-4f63-92e3-867511911d29' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;SiO2_T&#x27;, &#x27;TiO2_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MgO_T&#x27;, &#x27;CaO_T&#x27;,
            &#x27;Na2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;P2O5_T&#x27;],
-          dtype=&#x27;object&#x27;, name=&#x27;element&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-0a036689-117b-4ad0-a734-0633aa3b3e0c' class='xr-index-data-in' type='checkbox'/><label for='index-0a036689-117b-4ad0-a734-0633aa3b3e0c' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
+          dtype=&#x27;object&#x27;, name=&#x27;element&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-79113d63-eaaa-4692-8b0a-0a3ffec2fb26' class='xr-index-data-in' type='checkbox'/><label for='index-79113d63-eaaa-4692-8b0a-0a3ffec2fb26' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
                 ( 214714.1, 7745546.6),
                 (-368415.5, 7065039.2),
                 ( 226609.0, 6922431.0),
@@ -1446,7 +1250,7 @@ for the chemical elements.
                 (-271994.2, 5840418.4),
                 (-282020.2, 5795588.8),
                 (-127326.9, 6523470.9)],
-               name=&#x27;station&#x27;, length=768))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-85922c95-2953-4076-97f6-41544cd8efdc' class='xr-section-summary-in' type='checkbox'  ><label for='section-85922c95-2953-4076-97f6-41544cd8efdc' class='xr-section-summary' >Attributes: <span>(16)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>GWPCA</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>2.3.2</dd><dt><span>date :</span></dt><dd>2024-03-31 21:13:03</dd><dt><span>n_modes :</span></dt><dd>5</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>True</dd><dt><span>use_coslat :</span></dt><dd>False</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>None</dd><dt><span>verbose :</span></dt><dd>False</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
+               name=&#x27;station&#x27;, length=768))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-fba5d576-559f-470f-b302-950946b28f01' class='xr-section-summary-in' type='checkbox'  ><label for='section-fba5d576-559f-470f-b302-950946b28f01' class='xr-section-summary' >Attributes: <span>(15)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>model :</span></dt><dd>GWPCA</dd><dt><span>software :</span></dt><dd>xeofs</dd><dt><span>version :</span></dt><dd>1.2.0</dd><dt><span>date :</span></dt><dd>2024-09-02 02:16:58</dd><dt><span>n_modes :</span></dt><dd>5</dd><dt><span>center :</span></dt><dd>True</dd><dt><span>standardize :</span></dt><dd>True</dd><dt><span>use_coslat :</span></dt><dd>False</dd><dt><span>check_nans :</span></dt><dd>True</dd><dt><span>sample_name :</span></dt><dd>sample</dd><dt><span>feature_name :</span></dt><dd>feature</dd><dt><span>random_state :</span></dt><dd>None</dd><dt><span>compute :</span></dt><dd>True</dd><dt><span>solver :</span></dt><dd>auto</dd><dt><span>solver_kwargs :</span></dt><dd>{}</dd></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -1461,7 +1265,7 @@ dominate the local PCAs.
 
 .. GENERATED FROM PYTHON SOURCE LINES 116-120
 
-.. code-block:: Python
+.. code-block:: default
 
 
     llwc = gwpca.largest_locally_weighted_components()
@@ -1838,20 +1642,20 @@ dominate the local PCAs.
       stroke: currentColor;
       fill: currentColor;
     }
-    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;largest_locally_weighted_components&#x27; (mode: 5, station: 768)&gt; Size: 31kB
+    </style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;largest_locally_weighted_components&#x27; (mode: 5, station: 768)&gt;
     &#x27;MgO_T&#x27; &#x27;Al2O3_T&#x27; &#x27;MgO_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;K2O_T&#x27; &#x27;Fe2O3_T&#x27; &#x27;Fe2O3_T&#x27; &#x27;CaO_T&#x27;
     Coordinates:
-      * mode     (mode) int64 40B 1 2 3 4 5
-      * station  (station) object 6kB MultiIndex
-      * x        (station) float64 6kB -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
-      * y        (station) float64 6kB 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'largest_locally_weighted_components'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-139725b5-ac86-4395-9398-da39fb64d4ae' class='xr-array-in' type='checkbox' ><label for='section-139725b5-ac86-4395-9398-da39fb64d4ae' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>&#x27;MgO_T&#x27; &#x27;Al2O3_T&#x27; &#x27;MgO_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;Fe2O3_T&#x27; &#x27;Fe2O3_T&#x27; &#x27;CaO_T&#x27;</span></div><div class='xr-array-data'><pre>array([[&#x27;MgO_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;MgO_T&#x27;, ..., &#x27;K2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;Fe2O3_T&#x27;],
+      * mode     (mode) int64 1 2 3 4 5
+      * station  (station) object MultiIndex
+      * x        (station) float64 -6.197e+05 2.147e+05 ... -2.82e+05 -1.273e+05
+      * y        (station) float64 6.805e+06 7.746e+06 ... 5.796e+06 6.523e+06</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-array-name'>'largest_locally_weighted_components'</div><ul class='xr-dim-list'><li><span class='xr-has-index'>mode</span>: 5</li><li><span class='xr-has-index'>station</span>: 768</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-fb9daf1d-9a65-416a-9501-19448bb080f4' class='xr-array-in' type='checkbox' ><label for='section-fb9daf1d-9a65-416a-9501-19448bb080f4' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>&#x27;MgO_T&#x27; &#x27;Al2O3_T&#x27; &#x27;MgO_T&#x27; &#x27;TiO2_T&#x27; ... &#x27;Fe2O3_T&#x27; &#x27;Fe2O3_T&#x27; &#x27;CaO_T&#x27;</span></div><div class='xr-array-data'><pre>array([[&#x27;MgO_T&#x27;, &#x27;Al2O3_T&#x27;, &#x27;MgO_T&#x27;, ..., &#x27;K2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;Fe2O3_T&#x27;],
            [&#x27;K2O_T&#x27;, &#x27;K2O_T&#x27;, &#x27;K2O_T&#x27;, ..., &#x27;CaO_T&#x27;, &#x27;CaO_T&#x27;, &#x27;K2O_T&#x27;],
            [&#x27;P2O5_T&#x27;, &#x27;MnO_T&#x27;, &#x27;P2O5_T&#x27;, ..., &#x27;MnO_T&#x27;, &#x27;MnO_T&#x27;, &#x27;Na2O_T&#x27;],
            [&#x27;MnO_T&#x27;, &#x27;P2O5_T&#x27;, &#x27;Na2O_T&#x27;, ..., &#x27;MnO_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MnO_T&#x27;],
            [&#x27;MnO_T&#x27;, &#x27;MnO_T&#x27;, &#x27;MnO_T&#x27;, ..., &#x27;Fe2O3_T&#x27;, &#x27;Fe2O3_T&#x27;, &#x27;CaO_T&#x27;]],
-          dtype=object)</pre></div></div></li><li class='xr-section-item'><input id='section-71656e53-79ad-4aef-b38f-60b6ac8a1939' class='xr-section-summary-in' type='checkbox'  checked><label for='section-71656e53-79ad-4aef-b38f-60b6ac8a1939' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-1d68258f-a078-4559-b7b1-6139fc8f82db' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-1d68258f-a078-4559-b7b1-6139fc8f82db' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-3c4463b7-2cc0-496c-9167-8b5b402bbc0a' class='xr-var-data-in' type='checkbox'><label for='data-3c4463b7-2cc0-496c-9167-8b5b402bbc0a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-7e9807bb-03b7-4e56-a8a9-633bb6d1b3d3' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-7e9807bb-03b7-4e56-a8a9-633bb6d1b3d3' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-479f13dd-681e-4a78-8fd5-9a8e1acd6958' class='xr-var-data-in' type='checkbox'><label for='data-479f13dd-681e-4a78-8fd5-9a8e1acd6958' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
+          dtype=object)</pre></div></div></li><li class='xr-section-item'><input id='section-45d58ef1-42c8-46fe-9b4d-17425a67c1ff' class='xr-section-summary-in' type='checkbox'  checked><label for='section-45d58ef1-42c8-46fe-9b4d-17425a67c1ff' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mode</span></div><div class='xr-var-dims'>(mode)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>1 2 3 4 5</div><input id='attrs-16dc3149-acf1-4af6-a03d-c4c14f85b450' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-16dc3149-acf1-4af6-a03d-c4c14f85b450' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-8d3e8467-204c-431a-aed1-2fcb5a5a5f26' class='xr-var-data-in' type='checkbox'><label for='data-8d3e8467-204c-431a-aed1-2fcb5a5a5f26' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1, 2, 3, 4, 5])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>station</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>MultiIndex</div><input id='attrs-9e574c20-42ea-4102-b07f-488da448dd20' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-9e574c20-42ea-4102-b07f-488da448dd20' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9d3dff47-2075-4351-8196-df908e19dc1c' class='xr-var-data-in' type='checkbox'><label for='data-9d3dff47-2075-4351-8196-df908e19dc1c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([(-619656.5, 6805304.1), (214714.1, 7745546.6), (-368415.5, 7065039.2),
            ..., (-271994.2, 5840418.4), (-282020.2, 5795588.8),
-           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-9445503f-77ba-43b6-8c18-3a7e1130b8e4' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-9445503f-77ba-43b6-8c18-3a7e1130b8e4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b12e4edd-a0c8-4ef9-85c5-9f66793c312d' class='xr-var-data-in' type='checkbox'><label for='data-b12e4edd-a0c8-4ef9-85c5-9f66793c312d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-c9ef7ec3-4520-426f-b435-6c6b57e50165' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c9ef7ec3-4520-426f-b435-6c6b57e50165' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-50686ee9-44ab-4adf-adf7-50c6375fb005' class='xr-var-data-in' type='checkbox'><label for='data-50686ee9-44ab-4adf-adf7-50c6375fb005' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-b63ecf55-efcb-42d6-bac0-0d532b6a31c2' class='xr-section-summary-in' type='checkbox'  ><label for='section-b63ecf55-efcb-42d6-bac0-0d532b6a31c2' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-06178aa0-57cd-4414-9e7d-03622de51b95' class='xr-index-data-in' type='checkbox'/><label for='index-06178aa0-57cd-4414-9e7d-03622de51b95' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4, 5], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-9f000f1f-7f56-4f94-92aa-24209b9d2245' class='xr-index-data-in' type='checkbox'/><label for='index-9f000f1f-7f56-4f94-92aa-24209b9d2245' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
+           (-127326.9, 6523470.9)], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>x</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-6.197e+05 2.147e+05 ... -1.273e+05</div><input id='attrs-b65c90e8-ddba-424a-9f0b-282660c51998' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b65c90e8-ddba-424a-9f0b-282660c51998' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fa358353-765b-4a32-a1c5-b8a1b35fb484' class='xr-var-data-in' type='checkbox'><label for='data-fa358353-765b-4a32-a1c5-b8a1b35fb484' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([-619656.5,  214714.1, -368415.5, ..., -271994.2, -282020.2, -127326.9])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>y</span></div><div class='xr-var-dims'>(station)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>6.805e+06 7.746e+06 ... 6.523e+06</div><input id='attrs-545c8801-5846-4e0a-82c6-d6664406bcc5' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-545c8801-5846-4e0a-82c6-d6664406bcc5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-e940fdeb-0bd3-443e-b833-0b3aefd75980' class='xr-var-data-in' type='checkbox'><label for='data-e940fdeb-0bd3-443e-b833-0b3aefd75980' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([6805304.1, 7745546.6, 7065039.2, ..., 5840418.4, 5795588.8, 6523470.9])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-82b606f3-5089-4701-a738-a7adf1986e93' class='xr-section-summary-in' type='checkbox'  ><label for='section-82b606f3-5089-4701-a738-a7adf1986e93' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>mode</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-0ea4fd57-09dd-4c11-99af-9805efc9d6ac' class='xr-index-data-in' type='checkbox'/><label for='index-0ea4fd57-09dd-4c11-99af-9805efc9d6ac' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([1, 2, 3, 4, 5], dtype=&#x27;int64&#x27;, name=&#x27;mode&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>station<br>x<br>y</div></div><div class='xr-index-preview'>PandasMultiIndex</div><div></div><input id='index-f84a1543-3ecc-4d5f-91da-1dd9b5767ac6' class='xr-index-data-in' type='checkbox'/><label for='index-f84a1543-3ecc-4d5f-91da-1dd9b5767ac6' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(MultiIndex([(-619656.5, 6805304.1),
                 ( 214714.1, 7745546.6),
                 (-368415.5, 7065039.2),
                 ( 226609.0, 6922431.0),
@@ -1872,7 +1676,7 @@ dominate the local PCAs.
                 (-271994.2, 5840418.4),
                 (-282020.2, 5795588.8),
                 (-127326.9, 6523470.9)],
-               name=&#x27;station&#x27;, length=768))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-b1b1d4ac-6e6e-41e7-ae26-fd623327a123' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-b1b1d4ac-6e6e-41e7-ae26-fd623327a123' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
+               name=&#x27;station&#x27;, length=768))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-abf14078-af1e-47eb-ac24-8030c185fb62' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-abf14078-af1e-47eb-ac24-8030c185fb62' class='xr-section-summary'  title='Expand/collapse section'>Attributes: <span>(0)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'></dl></div></li></ul></div></div>
     </div>
     <br />
     <br />
@@ -1887,7 +1691,7 @@ For demonstation, we'll concentrate on the first mode:
 
 .. GENERATED FROM PYTHON SOURCE LINES 126-157
 
-.. code-block:: Python
+.. code-block:: default
 
 
     llwc1_df = llwc.sel(mode=1).to_dataframe()
@@ -1942,7 +1746,7 @@ roughly 40% to 70%.
 
 .. GENERATED FROM PYTHON SOURCE LINES 163-176
 
-.. code-block:: Python
+.. code-block:: default
 
 
 
@@ -1972,7 +1776,7 @@ roughly 40% to 70%.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 34.593 seconds)
+   **Total running time of the script:** (0 minutes 39.918 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_gwpca.py:
@@ -1981,13 +1785,16 @@ roughly 40% to 70%.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_gwpca.ipynb <plot_gwpca.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_gwpca.py <plot_gwpca.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_gwpca.ipynb <plot_gwpca.ipynb>`
 
 
 .. only:: html

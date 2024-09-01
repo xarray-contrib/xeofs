@@ -26,14 +26,15 @@ to isolate and remove nonlinear trends within a dataset.
 
 Let's begin by setting up the required packages and fetching the data.
 
-.. GENERATED FROM PYTHON SOURCE LINES 10-17
+.. GENERATED FROM PYTHON SOURCE LINES 10-18
 
 .. code-block:: default
 
 
-    import xarray as xr
-    import xeofs as xe
     import matplotlib.pyplot as plt
+    import xarray as xr
+
+    import xeofs as xe
 
     xr.set_options(display_expand_data=False)
 
@@ -46,17 +47,17 @@ Let's begin by setting up the required packages and fetching the data.
  .. code-block:: none
 
 
-    <xarray.core.options.set_options object at 0x7f4de4c12bd0>
+    <xarray.core.options.set_options object at 0x74062165ab10>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 18-21
+.. GENERATED FROM PYTHON SOURCE LINES 19-22
 
 We load the sea surface temperature (SST) data from the xarray tutorial.
 The dataset consists of monthly averages from 1970 to 2021. To ensure the seasonal
 cycle doesn't overshadow the analysis, we remove the monthly climatologies.
 
-.. GENERATED FROM PYTHON SOURCE LINES 21-26
+.. GENERATED FROM PYTHON SOURCE LINES 22-27
 
 .. code-block:: default
 
@@ -72,16 +73,16 @@ cycle doesn't overshadow the analysis, we remove the monthly climatologies.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-28
+.. GENERATED FROM PYTHON SOURCE LINES 28-29
 
 We start by performing a standard EOF analysis on the dataset.
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-34
+.. GENERATED FROM PYTHON SOURCE LINES 29-35
 
 .. code-block:: default
 
 
-    eof = xe.models.EOF(n_modes=10)
+    eof = xe.single.EOF(n_modes=10)
     eof.fit(sst, dim="time")
     scores = eof.scores()
     components = eof.components()
@@ -93,14 +94,14 @@ We start by performing a standard EOF analysis on the dataset.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 35-39
+.. GENERATED FROM PYTHON SOURCE LINES 36-40
 
 We immediately see that the first mode represents the global warming trend.
 Yet, the signal is somewhat muddled by short-term and year-to-year variations.
 Note the pronounced spikes around 1998 and 2016, hinting at the leakage of
 ENSO signatures into this mode.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-45
+.. GENERATED FROM PYTHON SOURCE LINES 40-46
 
 .. code-block:: default
 
@@ -124,11 +125,11 @@ ENSO signatures into this mode.
  .. code-block:: none
 
 
-    <matplotlib.collections.QuadMesh object at 0x7f4de4399650>
+    <matplotlib.collections.QuadMesh object at 0x74062133c4d0>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-51
+.. GENERATED FROM PYTHON SOURCE LINES 47-52
 
 Now, let's try to identify this trend more cleanly. To this end, we perform an
 EEOF analysis on the same data with a suitably large embedding dimension.
@@ -136,12 +137,12 @@ We choose an embedding dimensioncorresponding to 120 months which is large enoug
 to capture long-term trends. To speed up computation, we apply the EEOF analysis
 to the extended (lag) covariance matrix derived from the first 50 PCs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-57
+.. GENERATED FROM PYTHON SOURCE LINES 52-58
 
 .. code-block:: default
 
 
-    eeof = xe.models.ExtendedEOF(n_modes=5, tau=1, embedding=120, n_pca_modes=50)
+    eeof = xe.single.ExtendedEOF(n_modes=5, tau=1, embedding=120, n_pca_modes=50)
     eeof.fit(sst, dim="time")
     components_ext = eeof.components()
     scores_ext = eeof.scores()
@@ -153,11 +154,11 @@ to the extended (lag) covariance matrix derived from the first 50 PCs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-59
+.. GENERATED FROM PYTHON SOURCE LINES 59-60
 
 The first mode now represents the global warming trend much more clearly.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-64
+.. GENERATED FROM PYTHON SOURCE LINES 60-65
 
 .. code-block:: default
 
@@ -180,21 +181,21 @@ The first mode now represents the global warming trend much more clearly.
  .. code-block:: none
 
 
-    <matplotlib.collections.QuadMesh object at 0x7f4de3952510>
+    <matplotlib.collections.QuadMesh object at 0x74062005ca90>
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-66
+.. GENERATED FROM PYTHON SOURCE LINES 66-67
 
 We can use this to the first mode to remove this nonlinear trend from our original dataset.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-71
+.. GENERATED FROM PYTHON SOURCE LINES 67-72
 
 .. code-block:: default
 
 
     sst_trends = eeof.inverse_transform(scores_ext.sel(mode=1))
-    sst_detrended = sst - sst_trends.drop_vars("mode")
+    sst_detrended = sst - sst_trends
 
 
 
@@ -204,16 +205,16 @@ We can use this to the first mode to remove this nonlinear trend from our origin
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-73
+.. GENERATED FROM PYTHON SOURCE LINES 73-74
 
 Reapplying the standard EOF analysis on our now detrended dataset:
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-80
+.. GENERATED FROM PYTHON SOURCE LINES 74-81
 
 .. code-block:: default
 
 
-    eof_model_detrended = xe.models.EOF(n_modes=5)
+    eof_model_detrended = xe.single.EOF(n_modes=5)
     eof_model_detrended.fit(sst_detrended, dim="time")
     scores_detrended = eof_model_detrended.scores()
     components_detrended = eof_model_detrended.components()
@@ -226,11 +227,11 @@ Reapplying the standard EOF analysis on our now detrended dataset:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-82
+.. GENERATED FROM PYTHON SOURCE LINES 82-83
 
 The first mode now represents ENSO without any trend component.
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-88
+.. GENERATED FROM PYTHON SOURCE LINES 83-89
 
 .. code-block:: default
 
@@ -254,14 +255,14 @@ The first mode now represents ENSO without any trend component.
  .. code-block:: none
 
 
-    <matplotlib.collections.QuadMesh object at 0x7f4de32a81d0>
+    <matplotlib.collections.QuadMesh object at 0x74062015e990>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 28.072 seconds)
+   **Total running time of the script:** (0 minutes 7.526 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eeof_trend.py:

@@ -50,7 +50,7 @@ release = __version__
 # ones.
 extensions = [
     "sphinx.ext.napoleon",
-    "sphinx.ext.autodoc",
+    # "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx_gallery.gen_gallery",
     "sphinx_design",
@@ -59,6 +59,11 @@ extensions = [
     "myst_parser",  # markdown support
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
+
+
+add_module_names = False
+toc_object_entries_show_parents = "hide"
+show_title_parents = False
 
 # Sphinx-gallery stuff
 sphinx_gallery_conf = {
@@ -225,3 +230,40 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
+
+
+# Remove parents from titles in all .rst files
+def shorten_titles(app):
+    # Recursively crawl through source directory and shorten titles in .rst files
+    def crawl_source_shorten_titles(path):
+        # List files in directory
+        for file_name in os.listdir(path):
+            # Build path to file
+            file_path = os.path.join(path, file_name)
+
+            # Recursively crawl to next directory level
+            if os.path.isdir(file_path):
+                crawl_source_shorten_titles(file_path)
+
+            # Modify .rst source file title
+            else:
+                _, extension = os.path.splitext(file_path)
+                if extension == ".rst":
+                    # Read file, modify title, write back to file
+                    with open(file_path, "r") as file:
+                        lines = file.readlines()
+                    lines[0] = lines[0].split(".")[-1]
+                    lines[1] = ("=" * (len(lines[0]) - 1)) + "\n"
+                    print(f"Shortened title in {file_path}")
+                    with open(file_path, "w") as file:
+                        file.writelines(lines)
+
+    path = os.path.join(os.path.abspath(".."), "docs/api_reference/_autosummary")
+    crawl_source_shorten_titles(path)
+
+
+# Connect to sphinx events (see https://www.sphinx-doc.org/en/master/extdev/event_callbacks.html#events)
+# to shorten titles in all .rst files after the sphinx autosummary extension has run
+# (otherwise the titles would be overwritten by the autosummary extension)
+def setup(app):
+    app.connect("builder-inited", shorten_titles)

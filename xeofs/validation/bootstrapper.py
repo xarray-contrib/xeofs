@@ -8,7 +8,7 @@ from tqdm import trange
 
 from .._version import __version__
 from ..data_container import DataContainer
-from ..models import EOF
+from ..single import EOF
 from ..utils.data_types import DataArray
 
 
