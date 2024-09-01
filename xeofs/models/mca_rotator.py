@@ -61,7 +61,8 @@ class MCARotator(CPCCARotator, MCA):
         rtol: float = 1e-8,
         compute: bool = True,
     ):
-        super().__init__(
+        CPCCARotator.__init__(
+            self,
             n_modes=n_modes,
             power=power,
             max_iter=max_iter,
@@ -139,7 +140,8 @@ class ComplexMCARotator(ComplexCPCCARotator, ComplexMCA):
         rtol: float = 1e-8,
         compute: bool = True,
     ):
-        super().__init__(
+        ComplexCPCCARotator.__init__(
+            self,
             n_modes=n_modes,
             power=power,
             max_iter=max_iter,
@@ -215,7 +217,8 @@ class HilbertMCARotator(HilbertCPCCARotator, HilbertMCA):
         rtol: float = 1e-8,
         compute: bool = True,
     ):
-        super().__init__(
+        HilbertCPCCARotator.__init__(
+            self,
             n_modes=n_modes,
             power=power,
             max_iter=max_iter,

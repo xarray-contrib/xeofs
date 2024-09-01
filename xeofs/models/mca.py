@@ -102,7 +102,8 @@ class MCA(CPCCA):
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
     ):
-        super().__init__(
+        CPCCA.__init__(
+            self,
             n_modes=n_modes,
             alpha=[1.0, 1.0],
             standardize=standardize,
@@ -316,10 +317,11 @@ class ComplexMCA(ComplexCPCCA, MCA):
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
-        **kwargs,
     ):
-        super().__init__(
+        ComplexCPCCA.__init__(
+            self,
             n_modes=n_modes,
+            alpha=[1.0, 1.0],
             standardize=standardize,
             use_coslat=use_coslat,
             check_nans=check_nans,
@@ -333,9 +335,10 @@ class ComplexMCA(ComplexCPCCA, MCA):
             solver=solver,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
-            **kwargs,
         )
         self.attrs.update({"model": "Complex MCA"})
+        # Renove alpha from the inherited CPCCA serialization params because it is hard-coded for MCA
+        self._params.pop("alpha")
 
 
 class HilbertMCA(HilbertCPCCA, ComplexMCA):
@@ -435,14 +438,15 @@ class HilbertMCA(HilbertCPCCA, ComplexMCA):
         n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
+        verbose: bool = False,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
-        **kwargs,
     ):
-        super().__init__(
+        HilbertCPCCA.__init__(
+            self,
             n_modes=n_modes,
             alpha=[1.0, 1.0],
             standardize=standardize,
@@ -452,6 +456,7 @@ class HilbertMCA(HilbertCPCCA, ComplexMCA):
             n_pca_modes=n_pca_modes,
             pca_init_rank_reduction=pca_init_rank_reduction,
             compute=compute,
+            verbose=verbose,
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
@@ -461,3 +466,5 @@ class HilbertMCA(HilbertCPCCA, ComplexMCA):
             decay_factor=decay_factor,
         )
         self.attrs.update({"model": "Hilbert MCA"})
+        # Renove alpha from the inherited CPCCA serialization params because it is hard-coded for MCA
+        self._params.pop("alpha")

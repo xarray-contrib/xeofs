@@ -1128,14 +1128,15 @@ class ComplexCPCCA(CPCCA):
         n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
+        verbose: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
-        **kwargs,
     ):
-        super().__init__(
+        CPCCA.__init__(
+            self,
             n_modes=n_modes,
             standardize=standardize,
             use_coslat=use_coslat,
@@ -1145,6 +1146,7 @@ class ComplexCPCCA(CPCCA):
             pca_init_rank_reduction=pca_init_rank_reduction,
             alpha=alpha,
             compute=compute,
+            verbose=verbose,
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,
@@ -1400,14 +1402,15 @@ class HilbertCPCCA(ComplexCPCCA):
         n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
+        verbose: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
-        **kwargs,
     ):
-        super().__init__(
+        ComplexCPCCA.__init__(
+            self,
             n_modes=n_modes,
             standardize=standardize,
             use_coslat=use_coslat,
@@ -1417,6 +1420,7 @@ class HilbertCPCCA(ComplexCPCCA):
             pca_init_rank_reduction=pca_init_rank_reduction,
             alpha=alpha,
             compute=compute,
+            verbose=verbose,
             sample_name=sample_name,
             feature_name=feature_name,
             solver=solver,

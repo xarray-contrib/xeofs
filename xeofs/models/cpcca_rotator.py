@@ -73,7 +73,6 @@ class CPCCARotator(CPCCA):
         power: int = 1,
         max_iter: int | None = None,
         rtol: float = 1e-8,
-        scaling: str = "singular_values",
         compute: bool = True,
     ):
         _BaseModel.__init__(self)
@@ -515,12 +514,12 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        CPCCARotator.__init__(self, **kwargs)
         self.attrs.update({"model": "Rotated Complex CPCCA"})
         self.model = ComplexCPCCA()
 
 
-class HilbertCPCCARotator(CPCCARotator, HilbertCPCCA):
+class HilbertCPCCARotator(ComplexCPCCARotator, HilbertCPCCA):
     """Rotate a solution obtained from ``xe.models.HilbertCPCCA``.
 
     Rotate the obtained components and scores of a CPCCA model to increase
@@ -580,7 +579,7 @@ class HilbertCPCCARotator(CPCCARotator, HilbertCPCCA):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        ComplexCPCCARotator.__init__(self, **kwargs)
         self.attrs.update({"model": "Rotated Hilbert CPCCA"})
         self.model = HilbertCPCCA()
 
