@@ -48,7 +48,7 @@ class EOFRotator(EOF):
     Examples
     --------
     >>> model = xe.models.EOF(n_modes=10)
-    >>> model.fit(data)
+    >>> model.fit(X, "time")
     >>> rotator = xe.models.EOFRotator(n_modes=10)
     >>> rotator.fit(model)
     >>> rotator.components()
@@ -222,7 +222,7 @@ class EOFRotator(EOF):
                     )
         self.sorted = True
 
-    def _transform_algorithm(self, data: DataArray) -> DataArray:
+    def _transform_algorithm(self, X: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]
 
         svals = self.model.singular_values().sel(mode=slice(1, self._params["n_modes"]))
@@ -231,7 +231,7 @@ class EOFRotator(EOF):
         components = self.model.data["components"].sel(mode=slice(1, n_modes))
 
         # Compute non-rotated scores by projecting the data onto non-rotated components
-        projections = xr.dot(data, components) / svals
+        projections = xr.dot(X, components) / svals
         projections.name = "scores"
 
         # Rotate the scores

@@ -55,7 +55,7 @@ class OPA(_BaseModelSingleSet):
     --------
     >>> from xeofs.models import OPA
     >>> model = OPA(n_modes=10, tau_max=50, n_pca_modes=100)
-    >>> model.fit(data, dim=("time"))
+    >>> model.fit(X, dim=("time"))
 
     Retrieve the optimally persistent patterns (OPP) and their time series:
 
@@ -127,8 +127,8 @@ class OPA(_BaseModelSingleSet):
             dask="allowed",
         )
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
-        assert_not_complex(data)
+    def _fit_algorithm(self, X: DataArray) -> Self:
+        assert_not_complex(X)
 
         sample_name = self.sample_name
         feature_name = self.feature_name
@@ -146,8 +146,8 @@ class OPA(_BaseModelSingleSet):
             check_nans=False,
             solver_kwargs=self._params["solver_kwargs"],
         )
-        pca.fit(data, dim=sample_name)
-        n_samples = data.coords[sample_name].size
+        pca.fit(X, dim=sample_name)
+        n_samples = X.coords[sample_name].size
         comps = pca.data["components"] * np.sqrt(n_samples - 1)
         # -> comps (feature x mode)
         scores = pca.data["scores"] / np.sqrt(n_samples - 1)
@@ -270,7 +270,7 @@ class OPA(_BaseModelSingleSet):
         self._C0 = C0  # store C0 for testing purposes of orthogonality
         return self
 
-    def _transform_algorithm(self, data: DataArray) -> DataArray:
+    def _transform_algorithm(self, X: DataArray) -> DataArray:
         raise NotImplementedError("OPA does not (yet) support transform()")
 
     def _inverse_transform_algorithm(self, scores) -> DataObject:

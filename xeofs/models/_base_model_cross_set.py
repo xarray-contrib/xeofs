@@ -343,11 +343,11 @@ class _BaseModelCrossSet(_BaseModel):
         data = self._transform_algorithm(X, Y, normalized=normalized)
         data_list = []
         if X is not None:
-            X = self.whitener1.inverse_transform_scores_unseen(data["data1"])
+            X = self.whitener1.inverse_transform_scores_unseen(data["X"])
             X = self.preprocessor1.inverse_transform_scores_unseen(X)
             data_list.append(X)
         if Y is not None:
-            Y = self.whitener2.inverse_transform_scores_unseen(data["data2"])
+            Y = self.whitener2.inverse_transform_scores_unseen(data["Y"])
             Y = self.preprocessor2.inverse_transform_scores_unseen(Y)
             data_list.append(Y)
 
