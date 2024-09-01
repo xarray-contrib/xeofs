@@ -68,8 +68,6 @@ class SparsePCA(_BaseModelSingleSet):
         2) optional NaN checks,
         3) SVD decomposition,
         4) scores and components.
-    verbose : bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
         Seed for the random number generator.
     solver : {"auto", "full", "randomized"}, default="randomized"
@@ -111,7 +109,6 @@ class SparsePCA(_BaseModelSingleSet):
         feature_name: str = "feature",
         check_nans=True,
         compute: bool = True,
-        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -126,7 +123,6 @@ class SparsePCA(_BaseModelSingleSet):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
-            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,

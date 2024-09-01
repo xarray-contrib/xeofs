@@ -1,4 +1,3 @@
-import warnings
 from abc import abstractmethod
 from typing import (
     Hashable,
@@ -49,8 +48,6 @@ class _BaseModelSingleSet(_BaseModel):
         If True, four pieces of the fit will be computed sequentially: 1) the
         preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
         and components.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     random_state: int | None, default=None
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
@@ -70,18 +67,10 @@ class _BaseModelSingleSet(_BaseModel):
         sample_name="sample",
         feature_name="feature",
         compute=True,
-        verbose=False,
         random_state=None,
         solver="auto",
         solver_kwargs={},
     ):
-        if verbose:
-            warnings.warn(
-                "The 'verbose' parameter is deprecated and will be removed in a future release.",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-
         super().__init__()
 
         self.n_modes = n_modes
@@ -98,7 +87,6 @@ class _BaseModelSingleSet(_BaseModel):
             "sample_name": sample_name,
             "feature_name": feature_name,
             "random_state": random_state,
-            "verbose": verbose,
             "compute": compute,
             "solver": solver,
             "solver_kwargs": solver_kwargs,
@@ -108,7 +96,6 @@ class _BaseModelSingleSet(_BaseModel):
             "solver": solver,
             "random_state": random_state,
             "compute": compute,
-            "verbose": verbose,
             "solver_kwargs": solver_kwargs,
         }
 

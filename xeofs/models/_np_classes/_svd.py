@@ -54,8 +54,6 @@ class _SVD:
         and optionally truncated afterwards.
     random_state : np.random.Generator | int | None, default=None
         Seed for the random number generator.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     solver_kwargs : dict, default={}
         Additional keyword arguments passed to the SVD solver.
     """
@@ -67,7 +65,6 @@ class _SVD:
         flip_signs: bool = True,
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        verbose: bool = False,
         solver_kwargs: dict = {},
     ):
         sanity_check_n_modes(n_modes)
@@ -83,7 +80,6 @@ class _SVD:
         self.n_modes_precompute = n_modes
         self.init_rank_reduction = init_rank_reduction
         self.flip_signs = flip_signs
-        self.verbose = verbose
         self.solver = solver
         self.random_state = random_state
         self.solver_kwargs = solver_kwargs
