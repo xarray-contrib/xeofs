@@ -1,11 +1,4 @@
-from typing import (
-    Hashable,
-    List,
-    Sequence,
-    Tuple,
-    TypeAlias,
-    TypeVar,
-)
+from typing import Hashable, Sequence, TypeAlias, TypeVar
 
 import dask.array as da
 from xarray.core import dataarray as xr_dataarray
@@ -17,10 +10,10 @@ Data: TypeAlias = DataArray | DataSet
 DataVar = TypeVar("DataVar", DataArray, DataSet)
 DataVarBound = TypeVar("DataVarBound", bound=Data)
 
-DataArrayList: TypeAlias = List[DataArray]
-DataSetList: TypeAlias = List[DataSet]
-DataList: TypeAlias = List[Data]
-DataVarList: TypeAlias = List[DataVar]
+DataArrayList: TypeAlias = list[DataArray]
+DataSetList: TypeAlias = list[DataSet]
+DataList: TypeAlias = list[Data]
+DataVarList: TypeAlias = list[DataVar]
 
 GenericType = TypeVar("GenericType")
 
@@ -28,6 +21,6 @@ DaskArray: TypeAlias = da.Array  # type: ignore
 DataObject: TypeAlias = DataArray | DataSet | DataList
 
 Dims: TypeAlias = Sequence[Hashable]
-DimsTuple: TypeAlias = Tuple[Dims, ...]
-DimsList: TypeAlias = List[Dims]
-DimsListTuple: TypeAlias = Tuple[DimsList, ...]
+DimsTuple: TypeAlias = tuple[Dims, ...]
+DimsList: TypeAlias = list[Dims]
+DimsListTuple: TypeAlias = tuple[DimsList, ...]

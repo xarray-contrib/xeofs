@@ -1,18 +1,19 @@
-from typing import List, TypeVar, Generic, Type, Dict, Any
+from typing import Any, Generic, Type, TypeVar
+
 from typing_extensions import Self
 
-from .dimension_renamer import DimensionRenamer
-from .scaler import Scaler
-from .sanitizer import Sanitizer
-from .multi_index_converter import MultiIndexConverter
-from .stacker import Stacker
 from ..utils.data_types import (
     Data,
-    DataVar,
     DataArray,
+    DataVar,
     Dims,
     DimsList,
 )
+from .dimension_renamer import DimensionRenamer
+from .multi_index_converter import MultiIndexConverter
+from .sanitizer import Sanitizer
+from .scaler import Scaler
+from .stacker import Stacker
 
 T = TypeVar(
     "T",
@@ -33,27 +34,27 @@ class GenericListTransformer(Generic[T]):
 
     def __init__(self, transformer: Type[T], **kwargs):
         self.transformer_class = transformer
-        self.transformers: List[T] = []
+        self.transformers: list[T] = []
         self.init_kwargs = kwargs
 
     def fit(
         self,
-        X: List[DataVar],
+        X: list[DataVar],
         sample_dims: Dims,
         feature_dims: DimsList,
-        iter_kwargs: Dict[str, List[Any]] = {},
+        iter_kwargs: dict[str, list[Any]] = {},
     ) -> Self:
         """Fit transformer to each data element in the list.
 
         Parameters
         ----------
-        X: List[Data]
-            List of data elements.
+        X: list[Data]
+            list of data elements.
         sample_dims: Dims
             Sample dimensions.
         feature_dims: DimsList
             Feature dimensions.
-        iter_kwargs: Dict[str, List[Any]]
+        iter_kwargs: dict[str, list[Any]]
             Keyword arguments for the transformer that should be iterated over.
 
         """
@@ -70,30 +71,30 @@ class GenericListTransformer(Generic[T]):
             self.transformers.append(proc)
         return self
 
-    def transform(self, X: List[Data]) -> List[Data]:
-        X_transformed: List[Data] = []
+    def transform(self, X: list[Data]) -> list[Data]:
+        X_transformed: list[Data] = []
         for x, proc in zip(X, self.transformers):
             X_transformed.append(proc.transform(x))  #  type: ignore
         return X_transformed
 
     def fit_transform(
         self,
-        X: List[Data],
+        X: list[Data],
         sample_dims: Dims,
         feature_dims: DimsList,
-        iter_kwargs: Dict[str, List[Any]] = {},
-    ) -> List[Data]:
+        iter_kwargs: dict[str, list[Any]] = {},
+    ) -> list[Data]:
         return self.fit(X, sample_dims, feature_dims, iter_kwargs).transform(X)  # type: ignore
 
-    def inverse_transform_data(self, X: List[Data]) -> List[Data]:
-        X_inverse_transformed: List[Data] = []
+    def inverse_transform_data(self, X: list[Data]) -> list[Data]:
+        X_inverse_transformed: list[Data] = []
         for x, proc in zip(X, self.transformers):
             x_inv_trans = proc.inverse_transform_data(x)  #  type: ignore
             X_inverse_transformed.append(x_inv_trans)
         return X_inverse_transformed
 
-    def inverse_transform_components(self, X: List[Data]) -> List[Data]:
-        X_inverse_transformed: List[Data] = []
+    def inverse_transform_components(self, X: list[Data]) -> list[Data]:
+        X_inverse_transformed: list[Data] = []
         for x, proc in zip(X, self.transformers):
             x_inv_trans = proc.inverse_transform_components(x)  #  type: ignore
             X_inverse_transformed.append(x_inv_trans)

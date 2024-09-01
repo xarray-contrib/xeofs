@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Sequence
 
 import numpy as np
 import xarray as xr
@@ -225,10 +225,10 @@ class CPCCA(_BaseModelCrossSet):
 
     def _transform_algorithm(
         self,
-        X: Optional[DataArray] = None,
-        Y: Optional[DataArray] = None,
+        X: DataArray | None = None,
+        Y: DataArray | None = None,
         normalized=False,
-    ) -> Dict[str, DataArray]:
+    ) -> dict[str, DataArray]:
         results = {}
         if X is not None:
             # Project data onto singular vectors
@@ -1159,7 +1159,7 @@ class ComplexCPCCA(CPCCA):
 
         return super()._fit_algorithm(X, Y)
 
-    def components_amplitude(self, normalized=True) -> Tuple[DataObject, DataObject]:
+    def components_amplitude(self, normalized=True) -> tuple[DataObject, DataObject]:
         """Get the amplitude of the components.
 
         The amplitudes of the components are defined as
@@ -1229,7 +1229,7 @@ class ComplexCPCCA(CPCCA):
 
         return Px, Py
 
-    def scores_amplitude(self, normalized=False) -> Tuple[DataArray, DataArray]:
+    def scores_amplitude(self, normalized=False) -> tuple[DataArray, DataArray]:
         """Get the amplitude of the scores.
 
         The amplitudes of the scores are defined as
@@ -1264,7 +1264,7 @@ class ComplexCPCCA(CPCCA):
 
         return Rx, Ry
 
-    def scores_phase(self, normalized=False) -> Tuple[DataArray, DataArray]:
+    def scores_phase(self, normalized=False) -> tuple[DataArray, DataArray]:
         """Get the phase of the scores.
 
         The phases of the scores are defined as

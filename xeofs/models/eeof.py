@@ -1,12 +1,10 @@
-from typing import Optional
-from typing_extensions import Self
-
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
-from .eof import EOF
-from ..utils.data_types import DataArray
 from ..data_container import DataContainer
+from ..utils.data_types import DataArray
+from .eof import EOF
 
 
 class ExtendedEOF(EOF):
@@ -29,7 +27,7 @@ class ExtendedEOF(EOF):
         Embedding dimension is the number of dimensions in the delay-coordinate space used to represent
         the dynamics of the system. It determines the number of delayed copies
         of the time series that are used to construct the delay-coordinate space.
-    n_pca_modes : Optional[int]
+    n_pca_modes : int, optional
         If provided, the input data is first preprocessed using PCA with the
         specified number of modes. The EEOF analysis is then performed on the
         resulting PCA scores. This approach can lead to important computational
@@ -64,7 +62,7 @@ class ExtendedEOF(EOF):
         n_modes: int,
         tau: int,
         embedding: int,
-        n_pca_modes: Optional[int] = None,
+        n_pca_modes: int | None = None,
         center: bool = True,
         standardize: bool = False,
         use_coslat: bool = False,
@@ -73,7 +71,7 @@ class ExtendedEOF(EOF):
         feature_name: str = "feature",
         compute: bool = True,
         solver: str = "auto",
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         solver_kwargs: dict = {},
         **kwargs,
     ):

@@ -1,5 +1,3 @@
-from typing import Dict
-
 import dask
 from typing_extensions import Self
 
@@ -66,7 +64,7 @@ class DataContainer(dict):
         else:
             return value
 
-    def _validate_attrs(self, attrs: Dict) -> Dict:
+    def _validate_attrs(self, attrs: dict) -> dict:
         """Convert any boolean and None values to strings"""
         for key, value in attrs.items():
             if isinstance(value, bool):
@@ -78,7 +76,7 @@ class DataContainer(dict):
 
         return attrs
 
-    def set_attrs(self, attrs: Dict):
+    def set_attrs(self, attrs: dict):
         attrs = self._validate_attrs(attrs)
         for key in self.keys():
             self[key].attrs = attrs

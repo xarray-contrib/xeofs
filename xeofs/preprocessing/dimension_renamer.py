@@ -1,8 +1,7 @@
-from typing import Dict
 from typing_extensions import Self
 
+from ..utils.data_types import Data, DataArray, DataVarBound, Dims
 from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, Data, DataVarBound
 
 
 class DimensionRenamer(Transformer):
@@ -23,7 +22,7 @@ class DimensionRenamer(Transformer):
         self.start = start
         self.dim_mapping = {}
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             dim_mapping=self.dim_mapping,
         )

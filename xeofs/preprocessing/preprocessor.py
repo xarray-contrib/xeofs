@@ -1,5 +1,3 @@
-from typing import Dict, List, Optional, Tuple
-
 import numpy as np
 from typing_extensions import Self
 
@@ -31,13 +29,13 @@ except ImportError:
     from datatree import DataTree
 
 
-def extract_new_dim_names(X: List[DimensionRenamer]) -> Tuple[Dims, DimsList]:
+def extract_new_dim_names(X: list[DimensionRenamer]) -> tuple[Dims, DimsList]:
     """Extract the new dimension names from a list of DimensionRenamer objects.
 
     Parameters
     ----------
     X : list of DimensionRenamer
-        List of DimensionRenamer objects.
+        list of DimensionRenamer objects.
 
     Returns
     -------
@@ -147,7 +145,7 @@ class Preprocessor(Transformer):
         # 7 | Concatenate into one 2D DataArray
         self.concatenator = Concatenator(**dim_names_as_kwargs)
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(n_data=self.n_data)
 
     def transformer_types(self):
@@ -170,9 +168,9 @@ class Preprocessor(Transformer):
 
     def fit(
         self,
-        X: List[Data] | Data,
+        X: list[Data] | Data,
         sample_dims: Dims,
-        weights: Optional[List[Data] | Data] = None,
+        weights: list[Data] | Data | None = None,
     ) -> Self:
         """Fit the preprocessor to the data.
 
@@ -196,10 +194,10 @@ class Preprocessor(Transformer):
 
     def _fit_algorithm(
         self,
-        X: List[Data] | Data,
+        X: list[Data] | Data,
         sample_dims: Dims,
-        weights: Optional[List[Data] | Data] = None,
-    ) -> Tuple[Self, Data]:
+        weights: list[Data] | Data | None = None,
+    ) -> tuple[Self, Data]:
         self._set_return_list(X)
         X = convert_to_list(X)
         self.n_data = len(X)
@@ -235,7 +233,7 @@ class Preprocessor(Transformer):
 
         return self, X
 
-    def transform(self, X: List[Data] | Data) -> DataArray:
+    def transform(self, X: list[Data] | Data) -> DataArray:
         """Transform the data.
 
         Parameters
@@ -266,16 +264,16 @@ class Preprocessor(Transformer):
 
     def fit_transform(
         self,
-        X: List[Data] | Data,
+        X: list[Data] | Data,
         sample_dims: Dims,
-        weights: Optional[List[Data] | Data] = None,
+        weights: list[Data] | Data | None = None,
     ) -> DataArray:
         # Take advantage of the fact that `.fit()` already transforms the data
         # to avoid duplicate computation
         self, X = self._fit_algorithm(X, sample_dims, weights)
         return X
 
-    def inverse_transform_data(self, X: DataArray) -> List[Data] | Data:
+    def inverse_transform_data(self, X: DataArray) -> list[Data] | Data:
         """Inverse transform the data.
 
         Parameters:
@@ -295,7 +293,7 @@ class Preprocessor(Transformer):
 
         return self._process_output(X_it)
 
-    def inverse_transform_components(self, X: DataArray) -> List[Data] | Data:
+    def inverse_transform_components(self, X: DataArray) -> list[Data] | Data:
         """Inverse transform the components.
 
         Parameters:
@@ -359,7 +357,7 @@ class Preprocessor(Transformer):
 
         return X_it
 
-    def _process_output(self, X: List[Data]) -> List[Data] | Data:
+    def _process_output(self, X: list[Data]) -> list[Data] | Data:
         if self.return_list:
             return X
         else:

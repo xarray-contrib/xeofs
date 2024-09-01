@@ -1,5 +1,3 @@
-from typing import Dict, Optional
-
 import numpy as np
 import xarray as xr
 from typing_extensions import Self
@@ -80,8 +78,8 @@ class OPA(_BaseModelSingleSet):
         sample_name: str = "sample",
         feature_name: str = "feature",
         solver: str = "auto",
-        random_state: Optional[int] = None,
-        solver_kwargs: Dict = {},
+        random_state: int | None = None,
+        solver_kwargs: dict = {},
     ):
         if n_modes > n_pca_modes:
             raise ValueError(

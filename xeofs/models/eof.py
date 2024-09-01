@@ -1,5 +1,4 @@
 import warnings
-from typing import Dict, Optional
 
 import numpy as np
 import xarray as xr
@@ -37,7 +36,7 @@ class EOF(_BaseModelSingleSet):
         If True, four pieces of the fit will be computed sequentially: 1) the
         preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
         and components.
-    random_state : Optional[int], default=None
+    random_state : int, optional
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
@@ -62,9 +61,9 @@ class EOF(_BaseModelSingleSet):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: Dict = {},
+        solver_kwargs: dict = {},
         **kwargs,
     ):
         super().__init__(
@@ -144,7 +143,7 @@ class EOF(_BaseModelSingleSet):
 
         Returns
         -------
-        data: DataArray | Dataset | List[DataArray]
+        data: DataArray | Dataset | list[DataArray]
             Reconstructed data.
 
         """
@@ -163,7 +162,7 @@ class EOF(_BaseModelSingleSet):
 
         Returns
         -------
-        components: DataArray | Dataset | List[DataArray]
+        components: DataArray | Dataset | list[DataArray]
             Components of the fitted model.
 
         """
@@ -183,7 +182,7 @@ class EOF(_BaseModelSingleSet):
 
         Returns
         -------
-        components: DataArray | Dataset | List[DataArray]
+        components: DataArray | Dataset | list[DataArray]
             Scores of the fitted model.
 
         """
@@ -273,7 +272,7 @@ class ComplexEOF(EOF):
         computation. If True, four pieces of the fit will be computed
         sequentially: 1) the preprocessor scaler, 2) optional NaN checks, 3) SVD
         decomposition, 4) scores and components.
-    random_state : Optional[int], default=None
+    random_state : int, optional
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
@@ -311,9 +310,9 @@ class ComplexEOF(EOF):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: Dict = {},
+        solver_kwargs: dict = {},
         **kwargs,
     ):
         super().__init__(
@@ -358,7 +357,7 @@ class ComplexEOF(EOF):
 
         Returns
         -------
-        components_amplitude: DataArray | Dataset | List[DataArray]
+        components_amplitude: DataArray | Dataset | list[DataArray]
             Amplitude of the components of the fitted model.
 
         """
@@ -383,7 +382,7 @@ class ComplexEOF(EOF):
 
         Returns
         -------
-        components_phase: DataArray | Dataset | List[DataArray]
+        components_phase: DataArray | Dataset | list[DataArray]
             Phase of the components of the fitted model.
 
         """
@@ -410,7 +409,7 @@ class ComplexEOF(EOF):
 
         Returns
         -------
-        scores_amplitude: DataArray | Dataset | List[DataArray]
+        scores_amplitude: DataArray | Dataset | list[DataArray]
             Amplitude of the scores of the fitted model.
 
         """
@@ -435,7 +434,7 @@ class ComplexEOF(EOF):
 
         Returns
         -------
-        scores_phase: DataArray | Dataset | List[DataArray]
+        scores_phase: DataArray | Dataset | list[DataArray]
             Phase of the scores of the fitted model.
 
         """
@@ -485,7 +484,7 @@ class HilbertEOF(ComplexEOF):
         If True, four pieces of the fit will be computed sequentially: 1) the
         preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
         and components.
-    random_state : Optional[int], default=None
+    random_state : int, optional
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
         Solver to use for the SVD computation.
@@ -520,9 +519,9 @@ class HilbertEOF(ComplexEOF):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: Dict = {},
+        solver_kwargs: dict = {},
         **kwargs,
     ):
         super().__init__(

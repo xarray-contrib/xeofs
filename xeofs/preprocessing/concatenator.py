@@ -1,15 +1,13 @@
-from typing import List, Optional, Dict
-from typing_extensions import Self
-
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
-from .transformer import Transformer
 from ..utils.data_types import (
+    DataArray,
     Dims,
     DimsList,
-    DataArray,
 )
+from .transformer import Transformer
 
 
 class Concatenator(Transformer):
@@ -22,7 +20,7 @@ class Concatenator(Transformer):
         self.n_features = []
         self.coords_in = {}
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             n_data=self.n_data,
             n_features=self.n_features,
@@ -31,9 +29,9 @@ class Concatenator(Transformer):
 
     def fit(
         self,
-        X: List[DataArray],
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[DimsList] = None,
+        X: list[DataArray],
+        sample_dims: Dims | None = None,
+        feature_dims: DimsList | None = None,
     ) -> Self:
         # Check that all inputs are DataArrays
         if not all([isinstance(data, DataArray) for data in X]):
@@ -57,14 +55,14 @@ class Concatenator(Transformer):
 
         return self
 
-    def transform(self, X: List[DataArray]) -> DataArray:
+    def transform(self, X: list[DataArray]) -> DataArray:
         # Test whether the input list has same length as the number of stackers
         if len(X) != self.n_data:
             raise ValueError(
                 f"Invalid input. Number of DataArrays ({len(X)}) does not match the number of fitted DataArrays ({self.n_data})."
             )
 
-        reindexed_data_list: List[DataArray] = []
+        reindexed_data_list: list[DataArray] = []
 
         idx_range = np.cumsum([0] + self.n_features)
         for i, data in enumerate(X):
@@ -84,15 +82,15 @@ class Concatenator(Transformer):
 
     def fit_transform(
         self,
-        X: List[DataArray],
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[DimsList] = None,
+        X: list[DataArray],
+        sample_dims: Dims | None = None,
+        feature_dims: DimsList | None = None,
     ) -> DataArray:
         return self.fit(X, sample_dims, feature_dims).transform(X)
 
-    def _split_dataarray_into_list(self, data: DataArray) -> List[DataArray]:
+    def _split_dataarray_into_list(self, data: DataArray) -> list[DataArray]:
         feature_name = self.feature_name
-        data_list: List[DataArray] = []
+        data_list: list[DataArray] = []
 
         idx_range = np.cumsum([0] + self.n_features)
         for i, coords in enumerate(self.coords_in.values()):
@@ -106,11 +104,11 @@ class Concatenator(Transformer):
 
         return data_list
 
-    def inverse_transform_data(self, X: DataArray) -> List[DataArray]:
+    def inverse_transform_data(self, X: DataArray) -> list[DataArray]:
         """Reshape the 2D data (sample x feature) back into its original shape."""
         return self._split_dataarray_into_list(X)
 
-    def inverse_transform_components(self, X: DataArray) -> List[DataArray]:
+    def inverse_transform_components(self, X: DataArray) -> list[DataArray]:
         """Reshape the 2D components (sample x feature) back into its original shape."""
         return self._split_dataarray_into_list(X)
 

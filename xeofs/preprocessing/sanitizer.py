@@ -1,5 +1,3 @@
-from typing import Dict, Optional
-
 import xarray as xr
 from dask.base import compute
 from typing_extensions import Self
@@ -24,7 +22,7 @@ class Sanitizer(Transformer):
         self.sample_coords = xr.DataArray()
         self.is_valid_feature = xr.DataArray()
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             feature_coords=self.feature_coords,
             sample_coords=self.sample_coords,
@@ -60,8 +58,8 @@ class Sanitizer(Transformer):
     def fit(
         self,
         X: Data,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[Dims] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: Dims | None = None,
         **kwargs,
     ) -> Self:
         # Check if input is a DataArray

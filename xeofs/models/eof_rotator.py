@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict
 
 import numpy as np
 import xarray as xr
@@ -93,7 +92,7 @@ class EOFRotator(EOF):
 
         self.sorted = False
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             data=self.data,
             preprocessor=self.preprocessor,
