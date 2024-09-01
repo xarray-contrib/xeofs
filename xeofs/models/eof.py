@@ -156,11 +156,10 @@ class EOF(_BaseModelSingleSet):
 
         return reconstructed_data
 
-    def components(self) -> DataObject:
-        """Return the (EOF) components.
+    def components(self, normalized: bool = True) -> DataObject:
+        """Return the components.
 
-        The components in EOF anaylsis are the eigenvectors of the covariance/correlation matrix.
-        Other names include the principal components or EOFs.
+        The components are also refered to as eigenvectors, EOFs or loadings depending on the context.
 
         Returns
         -------
@@ -168,9 +167,9 @@ class EOF(_BaseModelSingleSet):
             Components of the fitted model.
 
         """
-        return super().components()
+        return super().components(normalized=normalized)
 
-    def scores(self, normalized: bool = True) -> DataArray:
+    def scores(self, normalized: bool = False) -> DataArray:
         """Return the (PC) scores.
 
         The scores in EOF anaylsis are the projection of the data matrix onto the
@@ -341,7 +340,7 @@ class ComplexEOF(EOF):
 
         return super()._fit_algorithm(X)
 
-    def components_amplitude(self) -> DataObject:
+    def components_amplitude(self, normalized=True) -> DataObject:
         """Return the amplitude of the (EOF) components.
 
         The amplitude of the components are defined as
@@ -352,6 +351,11 @@ class ComplexEOF(EOF):
         where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
         :math:`|\\cdot|` denotes the absolute value.
 
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the components by the singular values
+
         Returns
         -------
         components_amplitude: DataArray | Dataset | List[DataArray]
@@ -359,6 +363,10 @@ class ComplexEOF(EOF):
 
         """
         amplitudes = abs(self.data["components"])
+
+        if not normalized:
+            amplitudes = amplitudes * self.data["norms"]
+
         amplitudes.name = "components_amplitude"
         return self.preprocessor.inverse_transform_components(amplitudes)
 

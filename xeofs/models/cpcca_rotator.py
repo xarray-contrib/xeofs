@@ -310,19 +310,19 @@ class CPCCARotator(CPCCA):
         Y: DataObject | None = None,
         normalized: bool = False,
     ) -> DataArray | List[DataArray]:
-        """Project new "unseen" data onto the rotated singular vectors.
+        """Transform the data.
 
         Parameters
         ----------
-        X : DataObject
-            Data to be projected onto the rotated singular vectors of the first dataset.
-        Y : DataObject
-            Data to be projected onto the rotated singular vectors of the second dataset.
+        X, Y: DataObject | None
+            Data to be transformed. At least one of them must be provided.
+        normalized: bool, default=False
+            Whether to return L2 normalized scores.
 
         Returns
         -------
-        DataArray | List[DataArray]
-            Projected data.
+        Sequence[DataArray] | DataArray
+            Transformed data.
 
         """
         # raise error if no data is provided

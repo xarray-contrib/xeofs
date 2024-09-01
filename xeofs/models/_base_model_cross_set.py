@@ -317,7 +317,7 @@ class _BaseModelCrossSet(_BaseModel):
         X, Y: DataObject | None
             Data to be transformed. At least one of them must be provided.
         normalized: bool, default=False
-            Whether to return normalized scores.
+            Whether to return L2 normalized scores.
 
         Returns
         -------

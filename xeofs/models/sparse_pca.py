@@ -297,7 +297,7 @@ class SparsePCA(_BaseModelSingleSet):
         """
         return super().components()
 
-    def scores(self, normalized: bool = True) -> DataArray:
+    def scores(self, normalized: bool = False) -> DataArray:
         """Return the component scores.
 
         The component scores :math:`U` are defined as the projection of the fitted
@@ -309,7 +309,7 @@ class SparsePCA(_BaseModelSingleSet):
 
         Parameters
         ----------
-        normalized : bool, default=True
+        normalized : bool, default=False
             Whether to normalize the scores by the L2 norm.
 
         Returns
