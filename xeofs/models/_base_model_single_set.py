@@ -178,14 +178,14 @@ class _BaseModelSingleSet(_BaseModel):
         """
         raise NotImplementedError
 
-    def transform(self, data: DataObject, normalized=True) -> DataArray:
+    def transform(self, data: DataObject, normalized=False) -> DataArray:
         """Project data onto the components.
 
         Parameters
         ----------
         data: DataObject
             Data to be transformed.
-        normalized: bool, default=True
+        normalized: bool, default=False
             Whether to normalize the scores by the L2 norm.
 
         Returns
@@ -250,7 +250,7 @@ class _BaseModelSingleSet(_BaseModel):
         return self.fit(data, dim, weights).transform(data, **kwargs)
 
     def inverse_transform(
-        self, scores: DataArray, normalized: bool = True
+        self, scores: DataArray, normalized: bool = False
     ) -> DataObject:
         """Reconstruct the original data from transformed data.
 
@@ -260,7 +260,7 @@ class _BaseModelSingleSet(_BaseModel):
             Transformed data to be reconstructed. This could be a subset
             of the `scores` data of a fitted model, or unseen data. Must
             have a 'mode' dimension.
-        normalized: bool, default=True
+        normalized: bool, default=False
             Whether the scores data have been normalized by the L2 norm.
 
         Returns
@@ -305,12 +305,23 @@ class _BaseModelSingleSet(_BaseModel):
         """
         raise NotImplementedError
 
-    def components(self) -> DataObject:
-        """Get the components."""
+    def components(self, normalized: bool = True) -> DataObject:
+        """Get the components.
+
+        Parameters
+        ----------
+        normalized: bool, default=True
+            Whether to normalize the components by the L2 norm.
+
+        """
         components = self.data["components"]
+        if not normalized:
+            name = components.name
+            components = components * self.data["norms"]
+            components.name = name
         return self.preprocessor.inverse_transform_components(components)
 
-    def scores(self, normalized=True) -> DataArray:
+    def scores(self, normalized: bool = False) -> DataArray:
         """Get the scores.
 
         Parameters
@@ -320,8 +331,7 @@ class _BaseModelSingleSet(_BaseModel):
         """
         scores = self.data["scores"].copy()
         if normalized:
-            attrs = scores.attrs.copy()
+            name = scores.name
             scores = scores / self.data["norms"]
-            scores.attrs.update(attrs)
-            scores.name = "scores"
+            scores.name = name
         return self.preprocessor.inverse_transform_scores(scores)
