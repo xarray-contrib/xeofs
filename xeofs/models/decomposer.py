@@ -5,7 +5,6 @@ import numpy as np
 import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
-from dask.diagnostics.progress import ProgressBar
 from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from sklearn.utils.extmath import randomized_svd
 
@@ -38,8 +37,6 @@ class Decomposer:
         and optionally truncated afterwards.
     random_state : np.random.Generator | int | None, default=None
         Seed for the random number generator.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     component_dim_name : str, default='mode'
         Name of the component dimension in the output DataArrays.
     solver_kwargs : dict, default={}
@@ -54,7 +51,6 @@ class Decomposer:
         compute: bool = True,
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        verbose: bool = False,
         component_dim_name: str = "mode",
         solver_kwargs: dict = {},
     ):
@@ -72,7 +68,6 @@ class Decomposer:
         self.init_rank_reduction = init_rank_reduction
         self.flip_signs = flip_signs
         self.compute = compute
-        self.verbose = verbose
         self.solver = solver
         self.random_state = random_state
         self.component_dim_name = component_dim_name
@@ -299,10 +294,5 @@ class Decomposer:
             case False:
                 pass
             case True:
-                match self.verbose:
-                    case True:
-                        with ProgressBar():
-                            U, s, VT = dask.compute(U, s, VT)
-                    case False:
-                        U, s, VT = dask.compute(U, s, VT)
+                U, s, VT = dask.compute(U, s, VT)
         return U, s, VT

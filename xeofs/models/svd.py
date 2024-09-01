@@ -15,7 +15,6 @@ class SVD:
         solver: str = "auto",
         compute: bool = True,
         random_state: np.random.Generator | int | None = None,
-        verbose: bool = False,
         solver_kwargs: dict = {},
         sample_name: str = "sample",
         feature_name: str = "feature",
@@ -25,7 +24,6 @@ class SVD:
         self.flip_signs = flip_signs
         self.solver = solver
         self.random_state = random_state
-        self.verbose = verbose
         self.solver_kwargs = solver_kwargs
         self.compute_svd = compute
 
@@ -56,7 +54,6 @@ class SVD:
             flip_signs=self.flip_signs,
             solver=self.solver,
             random_state=self.random_state,
-            verbose=self.verbose,
             **self.solver_kwargs,
         )
         U, s, V = xr.apply_ufunc(

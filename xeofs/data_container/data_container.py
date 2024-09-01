@@ -1,7 +1,6 @@
 from typing import Dict
 
 import dask
-from dask.diagnostics.progress import ProgressBar
 from typing_extensions import Self
 
 try:
@@ -52,13 +51,9 @@ class DataContainer(dict):
             container._allow_compute[key] = node.attrs["allow_compute"]
         return container
 
-    def compute(self, verbose=False, **kwargs):
+    def compute(self, **kwargs):
         computed_data = {k: v for k, v in self.items() if self._allow_compute[k]}
-        if verbose:
-            with ProgressBar():
-                (computed_data,) = dask.compute(computed_data, **kwargs)
-        else:
-            (computed_data,) = dask.compute(computed_data, **kwargs)
+        (computed_data,) = dask.compute(computed_data, **kwargs)
         for k, v in computed_data.items():
             self[k] = v
 
