@@ -1,16 +1,21 @@
 ![xeofs logo](docs/logos/xeofs_logo_dark.png)
 
-| Versions                   | ![PyPI](https://img.shields.io/pypi/v/xeofs) ![Conda](https://img.shields.io/conda/vn/conda-forge/xeofs) |
+<p align="center">
+
+| Versions                   | [![PyPI](https://img.shields.io/pypi/v/xeofs)](https://pypi.org/project/xeofs/) [![Conda](https://img.shields.io/conda/vn/conda-forge/xeofs)](https://anaconda.org/conda-forge/xeofs) |
 |----------------------------|:---------------------------------------------------------------------------------------------:|
-| Build & Testing            | ![Build](https://img.shields.io/github/actions/workflow/status/xarray-contrib/xeofs/ci.yml?branch=main) ![Coverage](https://codecov.io/gh/xarray-contrib/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7) |
+| Build & Testing            | [![Build](https://img.shields.io/github/actions/workflow/status/xarray-contrib/xeofs/ci.yml?branch=main)](https://github.com/xarray-contrib/xeofs/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/nicrie/xeofs/branch/main/graph/badge.svg?token=8040ZDH6U7)](https://codecov.io/github/nicrie/xeofs) |
 | Code Quality               | ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)   [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json)](https://github.com/charliermarsh/ruff)                           |
-| Documentation              | ![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)                          |
-| Citation & Licensing       | [![JOSS](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180/status.svg)](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180) ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg) ![License](https://img.shields.io/pypi/l/xeofs) |
+| Documentation              | [![Docs](https://readthedocs.org/projects/xeofs/badge/?version=latest)](https://xeofs.readthedocs.io/en/latest/index.html)                          |
+| Citation                   | [![JOSS](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180/status.svg)](https://joss.theoj.org/papers/4f50349ee1777b8a61761183047b1180) [![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.6323012.svg)](https://zenodo.org/doi/10.5281/zenodo.6323011) 
+| Licensing                  |  [![License](https://img.shields.io/pypi/l/xeofs)](https://github.com/xarray-contrib/xeofs/blob/main/LICENSE) |
 | User Engagement            | ![Downloads](https://img.shields.io/pypi/dw/xeofs)                                          |
+
+</p>
 
 ## Overview
 
-`xeofs` is a dedicated Python package for dimensionality reduction in the realm of climate science, offering methods like PCA, known as EOF analysis within the field, and related variants. Seamlessly integrated with `xarray` and `Dask`, it's tailored for easy handling and scalable computation on large, multi-dimensional datasets, making advanced climate data analysis both accessible and efficient.
+`xeofs` is a specialized Python package designed for dimensionality reduction in climate science, aimed at extracting meaningful patterns from large datasets. It provides eigenmethods such as Principal Component Analysis (EOF analysis) and several related variants. Seamlessly integrated with [xarray](https://docs.xarray.dev/en/stable/) and [Dask](https://www.dask.org/), xeofs enables efficient handling and scalable computation of large, multi-dimensional datasets. 
 
 - **Multi-Dimensional**: Designed for `xarray` objects, it applies dimensionality reduction to multi-dimensional data while maintaining data labels.
 - **Dask-Integrated**: Supports large datasets via `Dask` xarray objects
