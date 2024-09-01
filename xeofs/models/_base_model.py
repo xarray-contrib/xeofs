@@ -5,7 +5,6 @@ from typing import Any, Literal
 
 import dask.base
 import xarray as xr
-from dask.diagnostics.progress import ProgressBar
 from typing_extensions import Self
 
 from .._version import __version__
@@ -54,13 +53,11 @@ class _BaseModel(ABC):
         """Get the attributes to serialize."""
         raise NotImplementedError
 
-    def compute(self, verbose: bool = False, **kwargs):
+    def compute(self, **kwargs):
         """Compute and load delayed model results.
 
         Parameters
         ----------
-        verbose : bool
-            Whether or not to provide additional information about the computing progress.
         **kwargs
             Additional keyword arguments to pass to `dask.compute()`.
         """
@@ -74,11 +71,7 @@ class _BaseModel(ABC):
             if data_is_dask(v) and v.attrs.get("allow_compute", True)
         }
 
-        if verbose:
-            with ProgressBar():
-                (data_objs,) = dask.base.compute(data_objs, **kwargs)
-        else:
-            (data_objs,) = dask.base.compute(data_objs, **kwargs)
+        (data_objs,) = dask.base.compute(data_objs, **kwargs)
 
         for k, v in data_objs.items():
             dt[k] = DataTree(v)

@@ -619,9 +619,6 @@ def compute_rspca(
     tol : float, (default ``tol = 1e-5``).
         Stopping tolerance for reconstruction error.
 
-    verbose : bool ``{'True', 'False'}``, optional (default ``verbose = True``).
-        Display progress.
-
     oversample : integer, optional (default: 10)
         Controls the oversampling of column space. Increasing this parameter
         may improve numerical accuracy.

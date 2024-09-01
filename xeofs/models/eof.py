@@ -37,8 +37,6 @@ class EOF(_BaseModelSingleSet):
         If True, four pieces of the fit will be computed sequentially: 1) the
         preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
         and components.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
@@ -64,7 +62,6 @@ class EOF(_BaseModelSingleSet):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -79,7 +76,6 @@ class EOF(_BaseModelSingleSet):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
-            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
@@ -278,8 +274,6 @@ class ComplexEOF(EOF):
         computation. If True, four pieces of the fit will be computed
         sequentially: 1) the preprocessor scaler, 2) optional NaN checks, 3) SVD
         decomposition, 4) scores and components.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
@@ -318,7 +312,6 @@ class ComplexEOF(EOF):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -333,7 +326,6 @@ class ComplexEOF(EOF):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
-            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
@@ -485,8 +477,6 @@ class HilbertEOF(ComplexEOF):
         If True, four pieces of the fit will be computed sequentially: 1) the
         preprocessor scaler, 2) optional NaN checks, 3) SVD decomposition, 4) scores
         and components.
-    verbose: bool, default=False
-        Whether to show a progress bar when computing the decomposition.
     random_state : Optional[int], default=None
         Seed for the random number generator.
     solver: {"auto", "full", "randomized"}, default="auto"
@@ -522,7 +512,6 @@ class HilbertEOF(ComplexEOF):
         sample_name: str = "sample",
         feature_name: str = "feature",
         compute: bool = True,
-        verbose: bool = False,
         random_state: Optional[int] = None,
         solver: str = "auto",
         solver_kwargs: Dict = {},
@@ -537,7 +526,6 @@ class HilbertEOF(ComplexEOF):
             sample_name=sample_name,
             feature_name=feature_name,
             compute=compute,
-            verbose=verbose,
             random_state=random_state,
             solver=solver,
             solver_kwargs=solver_kwargs,
