@@ -1,3 +1,4 @@
+import warnings
 from typing import Dict, Optional
 
 import numpy as np
@@ -6,7 +7,6 @@ from typing_extensions import Self
 
 from ..utils.data_types import DataArray, DataObject
 from ..utils.hilbert_transform import hilbert_transform
-from ..utils.sanity_checks import assert_not_complex
 from ..utils.xarray_utils import total_variance as compute_total_variance
 from ._base_model_single_set import _BaseModelSingleSet
 from .decomposer import Decomposer
@@ -91,6 +91,9 @@ class EOF(_BaseModelSingleSet):
         sample_name = self.sample_name
         feature_name = self.feature_name
 
+        # Augment the data
+        data = self._augment_data(data)
+
         # Compute the total variance
         total_variance = compute_total_variance(data, dim=sample_name)
 
@@ -118,6 +121,9 @@ class EOF(_BaseModelSingleSet):
 
         self.data.set_attrs(self.attrs)
         return self
+
+    def _augment_data(self, data: DataArray) -> DataArray:
+        return data
 
     def _transform_algorithm(self, data: DataObject) -> DataArray:
         feature_name = self.preprocessor.feature_name
@@ -240,7 +246,206 @@ class EOF(_BaseModelSingleSet):
         return exp_var_ratio
 
 
-class HilbertEOF(EOF):
+class ComplexEOF(EOF):
+    """Complex EOF analysis.
+
+    EOF analysis applied to a complex-valued field obtained from a pair of
+    variables such as the zonal and meridional components, :math:`U` and
+    :math:`V`, of the wind field. Complex EOF analysis then decomposes the
+    dataset
+
+    .. math::
+        Z = U + iV
+
+    into a set of complex-valued components (EOFs) and PC scores [1]_.
+
+    Parameters
+    ----------
+    n_modes : int
+        Number of modes to calculate.
+    center: bool, default=True
+        Whether to center the input data.
+    standardize : bool
+        Whether to standardize the input data.
+    use_coslat : bool
+        Whether to use cosine of latitude for scaling.
+    sample_name: str, default="sample"
+        Name of the sample dimension.
+    feature_name: str, default="feature"
+        Name of the feature dimension.
+    compute : bool, default=True
+        Whether to compute elements of the model eagerly, or to defer
+        computation. If True, four pieces of the fit will be computed
+        sequentially: 1) the preprocessor scaler, 2) optional NaN checks, 3) SVD
+        decomposition, 4) scores and components.
+    verbose: bool, default=False
+        Whether to show a progress bar when computing the decomposition.
+    random_state : Optional[int], default=None
+        Seed for the random number generator.
+    solver: {"auto", "full", "randomized"}, default="auto"
+        Solver to use for the SVD computation.
+    solver_kwargs: dict, default={}
+        Additional keyword arguments to be passed to the SVD solver.
+
+    References
+    ----------
+    .. [1] Storch, H. von & Zwiers, F. W. Statistical Analysis in Climate
+        Research. (Cambridge University Press (Virtual Publishing), 2003).
+
+
+    Examples
+    --------
+
+    With two DataArrays `u` and `v` representing the zonal and meridional
+    components of the wind field, construct
+
+    >>> X = u + 1j * v
+
+    and fit the Complex EOF model:
+
+    >>> model = ComplexEOF(n_modes=5, standardize=True)
+    >>> model.fit(X, "time")
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        center: bool = True,
+        standardize: bool = False,
+        use_coslat: bool = False,
+        check_nans: bool = True,
+        sample_name: str = "sample",
+        feature_name: str = "feature",
+        compute: bool = True,
+        verbose: bool = False,
+        random_state: Optional[int] = None,
+        solver: str = "auto",
+        solver_kwargs: Dict = {},
+        **kwargs,
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            center=center,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            check_nans=check_nans,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            compute=compute,
+            verbose=verbose,
+            random_state=random_state,
+            solver=solver,
+            solver_kwargs=solver_kwargs,
+            **kwargs,
+        )
+        self.attrs.update({"model": "Complex EOF analysis"})
+
+    def _fit_algorithm(self, data: DataArray) -> Self:
+        if not np.iscomplexobj(data):
+            warnings.warn(
+                "Expected complex-valued data but found real-valued data. For Hilbert EOF analysis, use `HilbertEOF` model."
+            )
+
+        return super()._fit_algorithm(data)
+
+    def components_amplitude(self) -> DataObject:
+        """Return the amplitude of the (EOF) components.
+
+        The amplitude of the components are defined as
+
+        .. math::
+            A_{ij} = |C_{ij}|
+
+        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
+        :math:`|\\cdot|` denotes the absolute value.
+
+        Returns
+        -------
+        components_amplitude: DataArray | Dataset | List[DataArray]
+            Amplitude of the components of the fitted model.
+
+        """
+        amplitudes = abs(self.data["components"])
+        amplitudes.name = "components_amplitude"
+        return self.preprocessor.inverse_transform_components(amplitudes)
+
+    def components_phase(self) -> DataObject:
+        """Return the phase of the (EOF) components.
+
+        The phase of the components are defined as
+
+        .. math::
+            \\phi_{ij} = \\arg(C_{ij})
+
+        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
+        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
+
+        Returns
+        -------
+        components_phase: DataArray | Dataset | List[DataArray]
+            Phase of the components of the fitted model.
+
+        """
+        comps = self.data["components"]
+        comp_phase = xr.apply_ufunc(np.angle, comps, dask="allowed", keep_attrs=True)
+        comp_phase.name = "components_phase"
+        return self.preprocessor.inverse_transform_components(comp_phase)
+
+    def scores_amplitude(self, normalized=True) -> DataArray:
+        """Return the amplitude of the (PC) scores.
+
+        The amplitude of the scores are defined as
+
+        .. math::
+            A_{ij} = |S_{ij}|
+
+        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
+        :math:`|\\cdot|` denotes the absolute value.
+
+        Parameters
+        ----------
+        normalized : bool, default=True
+            Whether to normalize the scores by the singular values.
+
+        Returns
+        -------
+        scores_amplitude: DataArray | Dataset | List[DataArray]
+            Amplitude of the scores of the fitted model.
+
+        """
+        scores = self.data["scores"].copy()
+        if normalized:
+            scores = scores / self.data["norms"]
+
+        amplitudes = abs(scores)
+        amplitudes.name = "scores_amplitude"
+        return self.preprocessor.inverse_transform_scores(amplitudes)
+
+    def scores_phase(self) -> DataArray:
+        """Return the phase of the (PC) scores.
+
+        The phase of the scores are defined as
+
+        .. math::
+            \\phi_{ij} = \\arg(S_{ij})
+
+        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
+        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
+
+        Returns
+        -------
+        scores_phase: DataArray | Dataset | List[DataArray]
+            Phase of the scores of the fitted model.
+
+        """
+        scores = self.data["scores"]
+        phases = xr.apply_ufunc(np.angle, scores, dask="allowed", keep_attrs=True)
+        phases.name = "scores_phase"
+        return self.preprocessor.inverse_transform_scores(phases)
+
+
+class HilbertEOF(ComplexEOF):
     """Hilbert EOF analysis.
 
     The Hilbert EOF analysis [1]_ [2]_ [3]_ [4]_ (also known as Hilbert EOF analysis) applies a Hilbert transform
@@ -341,48 +546,19 @@ class HilbertEOF(EOF):
         self.attrs.update({"model": "Hilbert EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
-        assert_not_complex(data)
-
-        sample_name = self.sample_name
-        feature_name = self.feature_name
-
+    def _augment_data(self, data: DataArray) -> DataArray:
         # Apply hilbert transform:
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
-        data = hilbert_transform(
+        return hilbert_transform(
             data,
-            dims=(sample_name, feature_name),
+            dims=(self.sample_name, self.feature_name),
             padding=padding,
             decay_factor=decay_factor,
         )
 
-        # Compute the total variance
-        total_variance = compute_total_variance(data, dim=sample_name)
-
-        # Decompose the complex data
-        decomposer = Decomposer(**self._decomposer_kwargs)
-        decomposer.fit(data)
-
-        singular_values = decomposer.s_
-        components = decomposer.V_
-        scores = decomposer.U_ * decomposer.s_
-
-        # Compute the explained variance per mode
-        n_samples = data.coords[self.sample_name].size
-        exp_var = singular_values**2 / (n_samples - 1)
-        exp_var.name = "explained_variance"
-
-        # Store the results
-        self.data.add(data, "input_data", allow_compute=False)
-        self.data.add(components, "components")
-        self.data.add(scores, "scores")
-        self.data.add(singular_values, "norms")
-        self.data.add(exp_var, "explained_variance")
-        self.data.add(total_variance, "total_variance")
-
-        # Assign analysis-relevant meta data to the results
-        self.data.set_attrs(self.attrs)
+    def _fit_algorithm(self, data: DataArray) -> Self:
+        EOF._fit_algorithm(self, data)
         return self
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
@@ -392,98 +568,3 @@ class HilbertEOF(EOF):
         Xrec = super()._inverse_transform_algorithm(scores)
         # Enforce real output
         return Xrec.real
-
-    def components_amplitude(self) -> DataObject:
-        """Return the amplitude of the (EOF) components.
-
-        The amplitude of the components are defined as
-
-        .. math::
-            A_{ij} = |C_{ij}|
-
-        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
-        :math:`|\\cdot|` denotes the absolute value.
-
-        Returns
-        -------
-        components_amplitude: DataArray | Dataset | List[DataArray]
-            Amplitude of the components of the fitted model.
-
-        """
-        amplitudes = abs(self.data["components"])
-        amplitudes.name = "components_amplitude"
-        return self.preprocessor.inverse_transform_components(amplitudes)
-
-    def components_phase(self) -> DataObject:
-        """Return the phase of the (EOF) components.
-
-        The phase of the components are defined as
-
-        .. math::
-            \\phi_{ij} = \\arg(C_{ij})
-
-        where :math:`C_{ij}` is the :math:`i`-th entry of the :math:`j`-th component and
-        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
-
-        Returns
-        -------
-        components_phase: DataArray | Dataset | List[DataArray]
-            Phase of the components of the fitted model.
-
-        """
-        comps = self.data["components"]
-        comp_phase = xr.apply_ufunc(np.angle, comps, dask="allowed", keep_attrs=True)
-        comp_phase.name = "components_phase"
-        return self.preprocessor.inverse_transform_components(comp_phase)
-
-    def scores_amplitude(self, normalized=True) -> DataArray:
-        """Return the amplitude of the (PC) scores.
-
-        The amplitude of the scores are defined as
-
-        .. math::
-            A_{ij} = |S_{ij}|
-
-        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
-        :math:`|\\cdot|` denotes the absolute value.
-
-        Parameters
-        ----------
-        normalized : bool, default=True
-            Whether to normalize the scores by the singular values.
-
-        Returns
-        -------
-        scores_amplitude: DataArray | Dataset | List[DataArray]
-            Amplitude of the scores of the fitted model.
-
-        """
-        scores = self.data["scores"].copy()
-        if normalized:
-            scores = scores / self.data["norms"]
-
-        amplitudes = abs(scores)
-        amplitudes.name = "scores_amplitude"
-        return self.preprocessor.inverse_transform_scores(amplitudes)
-
-    def scores_phase(self) -> DataArray:
-        """Return the phase of the (PC) scores.
-
-        The phase of the scores are defined as
-
-        .. math::
-            \\phi_{ij} = \\arg(S_{ij})
-
-        where :math:`S_{ij}` is the :math:`i`-th entry of the :math:`j`-th score and
-        :math:`\\arg(\\cdot)` denotes the argument of a complex number.
-
-        Returns
-        -------
-        scores_phase: DataArray | Dataset | List[DataArray]
-            Phase of the scores of the fitted model.
-
-        """
-        scores = self.data["scores"]
-        phases = xr.apply_ufunc(np.angle, scores, dask="allowed", keep_attrs=True)
-        phases.name = "scores_phase"
-        return self.preprocessor.inverse_transform_scores(phases)

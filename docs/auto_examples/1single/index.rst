@@ -31,6 +31,23 @@
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="In this tutorial, we&#x27;ll walk through how to perform a Complex EOF analysis on the zonal and mer...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_complex_eof_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Complex EOF analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in T-mode maximises the spatial variance.">
 
 .. only:: html
@@ -48,18 +65,18 @@
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. This meth...">
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Hilbert EOF analysis [1]_ [2]_ [3]_. This method extends tradit...">
 
 .. only:: html
 
-  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_complex_eof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_hilbert_eof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_hilbert_eof.py`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Complex/Hilbert EOF analysis</div>
+      <div class="sphx-glr-thumbnail-title">Hilbert EOF analysis</div>
     </div>
 
 
@@ -191,8 +208,9 @@
    :hidden:
 
    /auto_examples/1single/plot_eeof
-   /auto_examples/1single/plot_eof-tmode
    /auto_examples/1single/plot_complex_eof
+   /auto_examples/1single/plot_eof-tmode
+   /auto_examples/1single/plot_hilbert_eof
    /auto_examples/1single/plot_eof-smode
    /auto_examples/1single/plot_eeof_trend
    /auto_examples/1single/plot_multivariate-eof

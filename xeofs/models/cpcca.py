@@ -1011,12 +1011,21 @@ class CPCCA(_BaseModelCrossSet):
         return X / X.std(dim)
 
 
-class HilbertCPCCA(CPCCA):
-    """Hilbert CPCCA.
+class ComplexCPCCA(CPCCA):
+    """Complex CPCCA.
 
-    Hilbert CPCCA extends classical CPCCA [1]_ by examining
-    amplitude-phase relationships. It augments the input data with its Hilbert
-    transform, creating a complex-valued field.
+    Complex CPCCA extends classical CPCCA [1]_ by examining amplitude-phase
+    relationships. It is based on complex-valued fields obtained from a pair of
+    variables such as the zonal and meridional components, :math:`U` and
+    :math:`V`, of the wind field, leading to complex-valued data matrices:
+
+        .. math::
+        X = U_x + iV_x
+
+    and
+
+    .. math::
+        Y = U_y + iV_y
 
     This method solves the following optimization problem:
 
@@ -1028,8 +1037,8 @@ class HilbertCPCCA(CPCCA):
         (Y^HY)^{1-\\alpha_y} q_y = 1`
 
     where :math:`H` denotes the conjugate transpose, :math:`X` and :math:`Y` are
-    the augmented data matrices, and :math:`\\alpha_x` and :math:`\\alpha_y`
-    control the degree of whitening applied to the data.
+    the complex-valued data matrices, and :math:`\\alpha_x` and
+    :math:`\\alpha_y` control the degree of whitening applied to the data.
 
     Parameters
     ----------
@@ -1083,11 +1092,23 @@ class HilbertCPCCA(CPCCA):
     Examples
     --------
 
-    Perform Hilbert CPCCA on two datasets `X` and `Y`, using exponential
-    padding:
+    With two DataArrays :math:`u_i` and :math:`v_i` representing the zonal and
+    meridional components of the wind field for two different regions :math:`x`
+    and :math:`y`, construct
 
-    >>> model = HilbertCPCCA(n_modes=5, padding="exp")
-    >>> model.fit(X, Y)
+    >>> X = u_x + 1j * v_x
+    >>> Y = u_y + 1j * v_y
+
+    and fit the Complex CPCCA model:
+
+    >>> model = ComplexCPCCA(n_modes=5)
+    >>> model.fit(X, Y, "time")
+
+    Finally, extract the amplitude and phase patterns:
+
+    >>> amp_x, amp_y = model.components_amplitude()
+    >>> phase_x, phase_y = model.components_phase()
+
 
     References
     ----------
@@ -1100,8 +1121,6 @@ class HilbertCPCCA(CPCCA):
         self,
         n_modes: int = 2,
         alpha: Sequence[float] | float = 0.2,
-        padding: Sequence[str] | str | None = "exp",
-        decay_factor: Sequence[float] | float = 0.2,
         standardize: Sequence[bool] | bool = False,
         use_coslat: Sequence[bool] | bool = False,
         check_nans: Sequence[bool] | bool = True,
@@ -1132,12 +1151,15 @@ class HilbertCPCCA(CPCCA):
             random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
-        self.attrs.update({"model": "Hilbert CPCCA"})
+        self.attrs.update({"model": "Complex CPCCA"})
 
-        padding = self._process_parameter("padding", padding, "epx")
-        decay_factor = self._process_parameter("decay_factor", decay_factor, 0.2)
-        self._params["padding"] = padding
-        self._params["decay_factor"] = decay_factor
+    def _fit_algorithm(self, X: DataArray, Y: DataArray) -> Self:
+        if (not np.iscomplexobj(X)) or (not np.iscomplexobj(Y)):
+            warnings.warn(
+                "Expected complex-valued data but found real-valued data. For Hilbert model, use corresponding `Hilbert` class."
+            )
+
+        return super()._fit_algorithm(X, Y)
 
     def components_amplitude(self, normalized=True) -> Tuple[DataObject, DataObject]:
         """Get the amplitude of the components.
@@ -1279,11 +1301,144 @@ class HilbertCPCCA(CPCCA):
 
         return Rx, Ry
 
+
+class HilbertCPCCA(ComplexCPCCA):
+    """Hilbert CPCCA.
+
+    Hilbert CPCCA extends classical CPCCA [1]_ by examining
+    amplitude-phase relationships. It augments the input data with its Hilbert
+    transform, creating a complex-valued field.
+
+    This method solves the following optimization problem:
+
+        :math:`\\max_{q_x, q_y} \\left( q_x^H X^H Y q_y \\right)`
+
+    subject to the constraints:
+
+        :math:`q_x^H (X^HX)^{1-\\alpha_x} q_x = 1, \\quad q_y^H
+        (Y^HY)^{1-\\alpha_y} q_y = 1`
+
+    where :math:`H` denotes the conjugate transpose, :math:`X` and :math:`Y` are
+    the augmented data matrices, and :math:`\\alpha_x` and :math:`\\alpha_y`
+    control the degree of whitening applied to the data.
+
+    Parameters
+    ----------
+    n_modes : int, default=2
+        Number of modes to calculate.
+    alpha : Sequence[float] | float, default=0.2
+        Degree of whitening applied to the data. If float, the same value is
+        applied to both data sets.
+    padding : Sequence[str] | str | None, default="exp"
+        Padding method for the Hilbert transform. Available options are: - None:
+        no padding - "exp": exponential decay
+    decay_factor : Sequence[float] | float, default=0.2
+        Decay factor for the exponential padding.
+    standardize : Squence[bool] | bool, default=False
+        Whether to standardize the input data. Generally not recommended as
+        standardization can be managed by the degree of whitening.
+    use_coslat : Sequence[bool] | bool, default=False
+        For data on a longitude-latitude grid, whether to correct for varying
+        grid cell areas towards the poles by scaling each grid point with the
+        square root of the cosine of its latitude.
+    use_pca : Sequence[bool] | bool, default=False
+        Whether to preprocess each field individually by reducing dimensionality
+        through PCA. The cross-covariance matrix is computed in the reduced
+        principal component space.
+    n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
+        Number of modes to retain during PCA preprocessing step. If int,
+        specifies the exact number of modes; if float, specifies the fraction of
+        variance to retain; if "all", all modes are retained.
+    pca_init_rank_reduction : Sequence[float] | float, default=0.3
+        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the
+        initial fraction of rank reduction for faster PCA computation via
+        randomized SVD.
+    check_nans : Sequence[bool] | bool, default=True
+        Whether to check for NaNs in the input data. Set to False for lazy model
+        evaluation.
+    compute : bool, default=True
+        Whether to compute the model elements eagerly. If True, the following
+        are computed sequentially: preprocessor scaler, optional NaN checks, SVD
+        decomposition, scores, and components.
+    random_state : numpy.random.Generator | int | None, default=None
+        Seed for the random number generator.
+    sample_name : str, default="sample"
+        Name for the new sample dimension.
+    feature_name : Sequence[str] | str, default="feature"
+        Name for the new feature dimension.
+    solver : {"auto", "full", "randomized"}
+        Solver to use for the SVD computation.
+    solver_kwargs : dict, default={}
+        Additional keyword arguments passed to the SVD solver function.
+
+    Examples
+    --------
+
+    Perform Hilbert CPCCA on two real-valued datasets `X` and `Y`, using
+    exponential padding:
+
+    >>> model = HilbertCPCCA(n_modes=5, padding="exp")
+    >>> model.fit(X, Y)
+
+    References
+    ----------
+    .. [1] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        alpha: Sequence[float] | float = 0.2,
+        padding: Sequence[str] | str | None = "exp",
+        decay_factor: Sequence[float] | float = 0.2,
+        standardize: Sequence[bool] | bool = False,
+        use_coslat: Sequence[bool] | bool = False,
+        check_nans: Sequence[bool] | bool = True,
+        use_pca: Sequence[bool] | bool = True,
+        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        pca_init_rank_reduction: Sequence[float] | float = 0.3,
+        compute: bool = True,
+        sample_name: str = "sample",
+        feature_name: Sequence[str] | str = "feature",
+        solver: str = "auto",
+        random_state: np.random.Generator | int | None = None,
+        solver_kwargs: dict = {},
+        **kwargs,
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            check_nans=check_nans,
+            use_pca=use_pca,
+            n_pca_modes=n_pca_modes,
+            pca_init_rank_reduction=pca_init_rank_reduction,
+            alpha=alpha,
+            compute=compute,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            random_state=random_state,
+            solver_kwargs=solver_kwargs,
+        )
+        self.attrs.update({"model": "Hilbert CPCCA"})
+
+        padding = self._process_parameter("padding", padding, "epx")
+        decay_factor = self._process_parameter("decay_factor", decay_factor, 0.2)
+        self._params["padding"] = padding
+        self._params["decay_factor"] = decay_factor
+
+    def _fit_algorithm(self, X: DataArray, Y: DataArray) -> Self:
+        CPCCA._fit_algorithm(self, X, Y)
+        return self
+
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False
     ) -> Sequence[DataArray]:
         """Transform the input data into the component space."""
-        raise NotImplementedError("Complex models do not support the transform method.")
+        raise NotImplementedError("Hilbert models do not support the transform method.")
 
     def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
         """Augment the data with the Hilbert transform."""

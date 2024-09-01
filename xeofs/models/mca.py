@@ -4,7 +4,7 @@ from typing import Sequence
 import numpy as np
 
 from ..utils.data_types import DataArray
-from .cpcca import CPCCA, HilbertCPCCA
+from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
 
 
 class MCA(CPCCA):
@@ -222,7 +222,123 @@ class MCA(CPCCA):
         return pseudo_tot_cov
 
 
-class HilbertMCA(HilbertCPCCA, MCA):
+class ComplexMCA(ComplexCPCCA, MCA):
+    """Complex MCA.
+
+    MCA applied to a complex-valued field obtained from a pair of variables such
+    as the zonal and meridional components, :math:`U` and :math:`V`, of the wind
+    field. Complex EOF analysis then maximizes the squared covariance between
+    two datasets of the form
+
+    .. math::
+        Z_x = U_x + iV_x
+
+    and
+
+    .. math::
+        Z_y = U_y + iV_y
+
+    into a set of complex-valued components and PC scores.
+
+
+    Parameters
+    ----------
+    n_modes : int, default=2
+        Number of modes to calculate.
+    standardize : Squence[bool] | bool, default=False
+        Whether to standardize the input data. Generally not recommended as
+        standardization can be managed by the degree of whitening.
+    use_coslat : Sequence[bool] | bool, default=False
+        For data on a longitude-latitude grid, whether to correct for varying
+        grid cell areas towards the poles by scaling each grid point with the
+        square root of the cosine of its latitude.
+    use_pca : Sequence[bool] | bool, default=False
+        Whether to preprocess each field individually by reducing dimensionality
+        through PCA. The cross-covariance matrix is then computed in the reduced
+        principal component space.
+    n_pca_modes : Sequence[int | float | str] | int | float | str, default=0.999
+        Number of modes to retain during PCA preprocessing step. If int,
+        specifies the exact number of modes; if float, specifies the fraction of
+        variance to retain; if "all", all modes are retained.
+    pca_init_rank_reduction : Sequence[float] | float, default=0.3
+        Relevant when `use_pca=True` and `n_pca_modes` is a float. Specifies the
+        initial fraction of rank reduction for faster PCA computation via
+        randomized SVD.
+    check_nans : Sequence[bool] | bool, default=True
+        Whether to check for NaNs in the input data. Set to False for lazy model
+        evaluation.
+    compute : bool, default=True
+        Whether to compute the model elements eagerly. If True, the following
+        are computed sequentially: preprocessor scaler, optional NaN checks, SVD
+        decomposition, scores, and components.
+    random_state : numpy.random.Generator | int | None, default=None
+        Seed for the random number generator.
+    sample_name : str, default="sample"
+        Name for the new sample dimension.
+    feature_name : Sequence[str] | str, default="feature"
+        Name for the new feature dimension.
+    solver : {"auto", "full", "randomized"}
+        Solver to use for the SVD computation.
+    solver_kwargs : dict, default={}
+        Additional keyword arguments passed to the SVD solver function.
+
+    Examples
+    --------
+
+    With two DataArrays `u_i` and `v_i` representing the zonal and meridional
+    components of the wind field for two different regions :math:`x` and
+    :math:`y`, construct
+
+    >>> X = u_x + 1j * v_x
+    >>> Y = u_y + 1j * v_y
+
+    and fit the Complex MCA model:
+
+    >>> model = ComplexMCA(n_modes=5)
+    >>> model.fit(X, Y, "time")
+
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        standardize: Sequence[bool] | bool = False,
+        use_coslat: Sequence[bool] | bool = False,
+        check_nans: Sequence[bool] | bool = True,
+        use_pca: Sequence[bool] | bool = True,
+        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        pca_init_rank_reduction: Sequence[float] | float = 0.3,
+        compute: bool = True,
+        verbose: bool = False,
+        sample_name: str = "sample",
+        feature_name: Sequence[str] | str = "feature",
+        solver: str = "auto",
+        random_state: np.random.Generator | int | None = None,
+        solver_kwargs: dict = {},
+        **kwargs,
+    ):
+        super().__init__(
+            n_modes=n_modes,
+            standardize=standardize,
+            use_coslat=use_coslat,
+            check_nans=check_nans,
+            use_pca=use_pca,
+            n_pca_modes=n_pca_modes,
+            pca_init_rank_reduction=pca_init_rank_reduction,
+            compute=compute,
+            verbose=verbose,
+            sample_name=sample_name,
+            feature_name=feature_name,
+            solver=solver,
+            random_state=random_state,
+            solver_kwargs=solver_kwargs,
+            **kwargs,
+        )
+        self.attrs.update({"model": "Complex MCA"})
+
+
+class HilbertMCA(HilbertCPCCA, ComplexMCA):
     """Hilbert MCA.
 
     Hilbert MCA [1]_ (aka Analytical SVD),  extends MCA by
@@ -303,7 +419,7 @@ class HilbertMCA(HilbertCPCCA, MCA):
     Examples
     --------
     >>> model = HilbertMCA(n_modes=5)
-    >>> model.fit(data1, data2)
+    >>> model.fit(X, Y, "time")
 
     """
 

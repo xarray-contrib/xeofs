@@ -11,7 +11,7 @@ from ..utils.data_types import DataArray, DataObject
 from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from ._base_model import _BaseModel
-from .cpcca import CPCCA, HilbertCPCCA
+from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
 
 
 class CPCCARotator(CPCCA):
@@ -453,6 +453,71 @@ class CPCCARotator(CPCCA):
 
     def _get_feature_name(self):
         return self.model.feature_name
+
+
+class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
+    """Rotate a solution obtained from ``xe.models.ComplexCPCCA``.
+
+    Rotate the obtained components and scores of a CPCCA model to increase
+    interpretability. The algorithm here is based on the approach of Cheng &
+    Dunkerton (1995) [1]_ and adapted to the CPCCA framework [2]_.
+
+
+    Parameters
+    ----------
+    n_modes : int, default=10
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results in
+        a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and
+        terminate the iterative process.
+    squared_loadings : bool, default=False
+        Specify the method for constructing the combined vectors of loadings. If
+        True, the combined vectors are loaded with the singular values (termed
+        "squared loadings"), conserving the squared covariance under rotation.
+        This allows estimation of mode importance after rotation. If False, the
+        combined vectors are loaded with the square root of the singular values,
+        following the method described by Cheng & Dunkerton.
+    compute: bool, default=True
+        Whether to compute the rotation immediately.
+
+    References
+    ----------
+    .. [1] Cheng, X. & Dunkerton, T. J. Orthogonal Rotation of Spatial Patterns
+        Derived from Singular Value Decomposition Analysis. J. Climate 8,
+        2631–2643 (1995).
+    .. [3] Swenson, E. Continuum Power CCA: A Unified Approach for Isolating
+        Coupled Modes. Journal of Climate 28, 1016–1030 (2015).
+
+    Examples
+    --------
+
+    Perform a CPCCA analysis:
+
+    >>> model = ComplexCPCCA(n_modes=10)
+    >>> model.fit(X, Y, dim='time')
+
+    Then, apply varimax rotation to first 5 components and scores:
+
+    >>> rotator = ComplexCPCCARotator(n_modes=5)
+    >>> rotator.fit(model)
+
+    Retrieve the rotated components and scores:
+
+    >>> rotator.components()
+    >>> rotator.scores()
+
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.attrs.update({"model": "Rotated Complex CPCCA"})
+        self.model = ComplexCPCCA()
 
 
 class HilbertCPCCARotator(CPCCARotator, HilbertCPCCA):

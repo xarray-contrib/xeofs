@@ -11,7 +11,7 @@ from ..preprocessing.preprocessor import Preprocessor
 from ..utils.data_types import DataArray
 from ..utils.rotation import promax
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
-from .eof import EOF, HilbertEOF
+from .eof import EOF, ComplexEOF, HilbertEOF
 
 
 class EOFRotator(EOF):
@@ -285,6 +285,52 @@ class EOFRotator(EOF):
             # transpose matrix
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix
+
+
+class ComplexEOFRotator(EOFRotator, ComplexEOF):
+    """Rotate a solution obtained from ``xe.models.ComplexEOF``.
+
+    Parameters
+    ----------
+    n_modes : int, default=2
+        Specify the number of modes to be rotated.
+    power : int, default=1
+        Set the power for the Promax rotation. A ``power`` value of 1 results in
+        a Varimax rotation.
+    max_iter : int, default=1000
+        Determine the maximum number of iterations for the computation of the
+        rotation matrix.
+    rtol : float, default=1e-8
+        Define the relative tolerance required to achieve convergence and
+        terminate the iterative process.
+    compute: bool, default=True
+        Whether to compute the rotation immediately.
+
+
+    Examples
+    --------
+    >>> model = xe.models.ComplexEOF(n_modes=10)
+    >>> model.fit(data)
+    >>> rotator = xe.models.ComplexEOFRotator(n_modes=10)
+    >>> rotator.fit(model)
+    >>> rotator.components()
+
+
+    """
+
+    def __init__(
+        self,
+        n_modes: int = 2,
+        power: int = 1,
+        max_iter: int = 1000,
+        rtol: float = 1e-8,
+        compute: bool = True,
+    ):
+        super().__init__(
+            n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
+        )
+        self.attrs.update({"model": "Rotated Complex EOF analysis"})
+        self.model = ComplexEOF()
 
 
 class HilbertEOFRotator(EOFRotator, HilbertEOF):
