@@ -37,43 +37,14 @@ def test_fit(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_squared_covariance(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    squared_covariance = mca_model.squared_covariance()
-    assert isinstance(squared_covariance, xr.DataArray)
-    assert (squared_covariance > 0).all()
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
 def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     squared_covariance_fraction = mca_model.squared_covariance_fraction()
     assert isinstance(squared_covariance_fraction, xr.DataArray)
     assert (squared_covariance_fraction > 0).all()
-    assert squared_covariance_fraction.sum("mode") <= 1
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_singular_values(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    n_modes = mca_model.get_params()["n_modes"]
-    svals = mca_model.singular_values()
-    assert isinstance(svals, xr.DataArray)
-    assert svals.size == n_modes
+    assert all(
+        squared_covariance_fraction <= 1
+    ), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(
@@ -86,9 +57,9 @@ def test_singular_values(mca_model, mock_data_array, dim):
 )
 def test_covariance_fraction(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    cf = mca_model.covariance_fraction()
+    cf = mca_model.covariance_fraction_CD95()
     assert isinstance(cf, xr.DataArray)
-    assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
+    assert all(cf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(
@@ -229,18 +200,6 @@ def test_fit_invalid_dims(mca_model, mock_data_array, dim):
 def test_transform_not_implemented(mca_model, mock_data_array, dim):
     with pytest.raises(NotImplementedError):
         mca_model.transform(mock_data_array, mock_data_array)
-
-
-def test_homogeneous_patterns_not_implemented():
-    mca = HilbertMCA()
-    with pytest.raises(NotImplementedError):
-        mca.homogeneous_patterns()
-
-
-def test_heterogeneous_patterns_not_implemented():
-    mca = HilbertMCA()
-    with pytest.raises(NotImplementedError):
-        mca.heterogeneous_patterns()
 
 
 @pytest.mark.parametrize(

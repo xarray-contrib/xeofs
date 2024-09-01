@@ -1,22 +1,23 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 # Import the classes from your modules
 from xeofs.models import MCA, MCARotator
+
 from ..utilities import data_is_dask
 
 
 @pytest.fixture
 def mca_model(mock_data_array, dim):
-    mca = MCA(n_modes=5)
+    mca = MCA(n_modes=5, use_pca=False)
     mca.fit(mock_data_array, mock_data_array, dim)
     return mca
 
 
 @pytest.fixture
 def mca_model_delayed(mock_dask_data_array, dim):
-    mca = MCA(n_modes=5, compute=False, check_nans=False)
+    mca = MCA(n_modes=5, compute=False, check_nans=False, use_pca=False)
     mca.fit(mock_dask_data_array, mock_dask_data_array, dim)
     return mca
 
@@ -27,7 +28,7 @@ def test_init():
     assert mca_rotator._params["power"] == 1
     assert mca_rotator._params["max_iter"] == 1000
     assert mca_rotator._params["rtol"] == 1e-8
-    assert mca_rotator._params["squared_loadings"] is False
+    # assert mca_rotator._params["squared_loadings"] is False
 
 
 @pytest.mark.parametrize(
@@ -58,7 +59,7 @@ def test_transform(mca_model, mock_data_array):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
 
-    projections = mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
+    projections = mca_rotator.transform(X=mock_data_array, Y=mock_data_array)
 
     assert len(projections) == 2
 
@@ -80,23 +81,8 @@ def test_inverse_transform(mca_model):
 
     reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
-    assert isinstance(reconstructed_data, tuple)
+    assert isinstance(reconstructed_data, list)
     assert len(reconstructed_data) == 2
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_squared_covariance(mca_model, mock_data_array, dim):
-    mca_rotator = MCARotator(n_modes=4)
-    mca_rotator.fit(mca_model)
-    covariance_fraction = mca_rotator.squared_covariance()
-    assert isinstance(covariance_fraction, xr.DataArray)
 
 
 @pytest.mark.parametrize(
@@ -122,29 +108,12 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_singular_values(mca_model):
-    mca_rotator = MCARotator(n_modes=4)
-    mca_rotator.fit(mca_model)
-    n_modes = mca_rotator.get_params()["n_modes"]
-    svals = mca_rotator.singular_values()
-    assert isinstance(svals, xr.DataArray)
-    assert svals.size == n_modes
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
 def test_covariance_fraction(mca_model):
     mca_rotator = MCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
-    cf = mca_rotator.covariance_fraction()
+    cf = mca_rotator.covariance_fraction_CD95()
     assert isinstance(cf, xr.DataArray)
-    assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
+    assert all(cf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(

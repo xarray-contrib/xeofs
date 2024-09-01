@@ -1,19 +1,37 @@
 import warnings
 
-import dask
 import numpy as np
-import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 from dask.array.linalg import svd_compressed as dask_svd
-from dask.diagnostics.progress import ProgressBar
+from dask.graph_manipulation import wait_on
 from scipy.sparse.linalg import svds as complex_svd  # type: ignore
 from sklearn.utils.extmath import randomized_svd
 
-from ..utils.sanity_checks import sanity_check_n_modes
-from ..utils.xarray_utils import get_deterministic_sign_multiplier
+from ...utils.sanity_checks import sanity_check_n_modes
 
 
-class Decomposer:
+def get_deterministic_sign_multiplier(data, axis: int):
+    """Compute a sign multiplier that ensures deterministic output using Dask.
+
+    Parameters:
+    ------------
+    data: da.Array
+        Input data to determine sorting order.
+    axis: int
+        Axis along which to compute the sign multiplier.
+
+    Returns:
+    ---------
+    sign_multiplier: da.Array
+        Sign multiplier that ensures deterministic output.
+    """
+    max_vals = np.max(data, axis=axis)
+    min_vals = np.min(data, axis=axis)
+    sign_multiplier = np.where(np.abs(max_vals) >= np.abs(min_vals), 1, -1)
+    return sign_multiplier
+
+
+class _SVD:
     """Decomposes a data object using Singular Value Decomposition (SVD).
 
     The data object will be decomposed like X = U * S * V.T, where U and V are
@@ -22,14 +40,12 @@ class Decomposer:
 
     Parameters
     ----------
-    n_modes : int | float
-        Number of components to be computed. If float, it represents the fraction of variance to keep.
+    n_modes : int | float | str
+        Number of components to be computed. If float, it represents the fraction of variance to keep. If "all", all components are kept.
     init_rank_reduction : float, default=0.0
         Used only when `n_modes` is given as a float. Specifiy the initial target rank to be computed by randomized SVD before truncating the solution to the desired fraction of explained variance. Must be in the half open interval (0, 1]. Lower values will speed up the computation. If the rank is too low and the fraction of explained variance is not reached, a warning will be raised.
     flip_signs : bool, default=True
         Whether to flip the sign of the components to ensure deterministic output.
-    compute : bool, default=True
-        Whether to compute the decomposition immediately.
     solver : {'auto', 'full', 'randomized'}, default='auto'
         The solver is selected by a default policy based on size of `X` and `n_modes`:
         if the input data is larger than 500x500 and the number of modes to extract is lower
@@ -40,26 +56,22 @@ class Decomposer:
         Seed for the random number generator.
     verbose: bool, default=False
         Whether to show a progress bar when computing the decomposition.
-    component_dim_name : str, default='mode'
-        Name of the component dimension in the output DataArrays.
     solver_kwargs : dict, default={}
         Additional keyword arguments passed to the SVD solver.
     """
 
     def __init__(
         self,
-        n_modes: int | float,
+        n_modes: int | float | str,
         init_rank_reduction: float = 0.3,
         flip_signs: bool = True,
-        compute: bool = True,
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         verbose: bool = False,
-        component_dim_name: str = "mode",
         solver_kwargs: dict = {},
     ):
         sanity_check_n_modes(n_modes)
-        self.is_based_on_variance = False if isinstance(n_modes, int) else True
+        self.is_based_on_variance = True if isinstance(n_modes, float) else False
 
         if self.is_based_on_variance:
             if not (0 < init_rank_reduction <= 1.0):
@@ -71,38 +83,40 @@ class Decomposer:
         self.n_modes_precompute = n_modes
         self.init_rank_reduction = init_rank_reduction
         self.flip_signs = flip_signs
-        self.compute = compute
         self.verbose = verbose
         self.solver = solver
         self.random_state = random_state
-        self.component_dim_name = component_dim_name
         self.solver_kwargs = solver_kwargs
 
-    def fit(self, X, dims=("sample", "feature")):
+    def _get_n_modes_precompute(self, rank: int) -> int:
+        if self.is_based_on_variance:
+            n_modes_precompute = int(rank * self.init_rank_reduction)
+            if n_modes_precompute < 1:
+                warnings.warn(
+                    f"`init_rank_reduction={self.init_rank_reduction}` is too low resulting in zero components. One component will be computed instead."
+                )
+                n_modes_precompute = 1
+        elif self.n_modes_precompute == "all":
+            n_modes_precompute = rank
+
+        elif isinstance(self.n_modes_precompute, int):
+            if self.n_modes_precompute > rank:
+                raise ValueError(
+                    f"n_modes must be less than or equal to the rank of the dataset (rank = {rank})."
+                )
+            n_modes_precompute = self.n_modes_precompute
+        return n_modes_precompute
+
+    def fit_transform(self, X):
         """Decomposes the data object.
 
         Parameters
         ----------
         X : DataArray
             A 2-dimensional data object to be decomposed.
-        dims : tuple of str
-            Dimensions of the data object.
         """
         rank = min(X.shape)
-
-        if self.is_based_on_variance:
-            self.n_modes_precompute = int(rank * self.init_rank_reduction)
-            if self.n_modes_precompute < 1:
-                warnings.warn(
-                    f"`init_rank_reduction={self.init_rank_reduction}` is too low resulting in zero components. One component will be computed instead."
-                )
-                self.n_modes_precompute = 1
-
-        # TODO(nicrie): perhaps we can just set n_modes to rank if it is larger than rank (possible solution for #158)
-        if self.n_modes_precompute > rank:
-            raise ValueError(
-                f"n_modes must be less than or equal to the rank of the dataset (rank = {rank})."
-            )
+        self.n_modes_precompute = self._get_n_modes_precompute(rank)
 
         # Check if data is small enough to use exact SVD
         # If not, use randomized SVD
@@ -111,8 +125,8 @@ class Decomposer:
         # Conditions for using exact SVD follow scitkit-learn's PCA implementation
         # Source: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
-        use_dask = True if isinstance(X.data, DaskArray) else False
-        use_complex = True if np.iscomplexobj(X.data) else False
+        use_dask = True if isinstance(X, DaskArray) else False
+        use_complex = True if np.iscomplexobj(X) else False
 
         is_small_data = max(X.shape) < 500
 
@@ -120,10 +134,9 @@ class Decomposer:
             # TODO(nicrie): implement more performant case for tall and skinny problems which are best handled by precomputing the covariance matrix.
             # if X.shape[1] <= 1_000 and X.shape[0] >= 10 * X.shape[1]: -> covariance_eigh" (see sklearn PCA implementation: https://github.com/scikit-learn/scikit-learn/blob/e87b32a81c70abed8f2e97483758eb64df8255e9/sklearn/decomposition/_pca.py#L526)
             case "auto":
+                has_many_modes = self.n_modes_precompute > int(0.8 * rank)
                 use_exact = (
-                    True
-                    if is_small_data and self.n_modes_precompute > int(0.8 * rank)
-                    else False
+                    True if is_small_data and has_many_modes and not use_dask else False
                 )
             case "full":
                 use_exact = True
@@ -137,7 +150,7 @@ class Decomposer:
 
         # Use exact SVD for small data sets
         if use_exact:
-            U, s, VT = self._svd(X, dims, np.linalg.svd, self.solver_kwargs)
+            U, s, VT = self._svd(X, np.linalg.svd, self.solver_kwargs)
             U = U[:, : self.n_modes_precompute]
             s = s[: self.n_modes_precompute]
             VT = VT[: self.n_modes_precompute, :]
@@ -148,7 +161,7 @@ class Decomposer:
                 "n_components": self.n_modes_precompute,
                 "random_state": self.random_state,
             }
-            U, s, VT = self._svd(X, dims, randomized_svd, solver_kwargs)
+            U, s, VT = self._svd(X, randomized_svd, solver_kwargs)
 
         # Use scipy sparse SVD for large, complex-valued data sets
         elif use_complex and (not use_dask):
@@ -158,7 +171,7 @@ class Decomposer:
                 "solver": "lobpcg",
                 "random_state": self.random_state,
             }
-            U, s, VT = self._svd(X, dims, complex_svd, solver_kwargs)
+            U, s, VT = self._svd(X, complex_svd, solver_kwargs)
             idx_sort = np.argsort(s)[::-1]
             U = U[:, idx_sort]
             s = s[idx_sort]
@@ -170,10 +183,9 @@ class Decomposer:
                 "k": self.n_modes_precompute,
                 "seed": self.random_state,
             }
-            solver_kwargs.setdefault("compute", self.compute)
+            solver_kwargs.setdefault("compute", False)
             solver_kwargs.setdefault("n_power_iter", 4)
-            U, s, VT = self._svd(X, dims, dask_svd, solver_kwargs)
-            U, s, VT = self._compute_svd_result(U, s, VT)
+            U, s, VT = self._svd(X, dask_svd, solver_kwargs)
         else:
             err_msg = (
                 "Complex data together with dask is currently not implemented. See dask issue 7639 "
@@ -181,13 +193,15 @@ class Decomposer:
             )
             raise NotImplementedError(err_msg)
 
-        U = U.assign_coords(mode=range(1, U.mode.size + 1))
-        s = s.assign_coords(mode=range(1, U.mode.size + 1))
-        VT = VT.assign_coords(mode=range(1, U.mode.size + 1))
+        U, s, VT = wait_on(U, s, VT)
 
-        U.name = "U"
-        s.name = "s"
-        VT.name = "V"
+        V = VT.conj().T
+
+        # Flip signs of components to ensure deterministic output
+        if self.flip_signs:
+            sign_multiplier = get_deterministic_sign_multiplier(V, axis=0)
+            V *= sign_multiplier
+            U *= sign_multiplier
 
         # Truncate the decomposition to the desired number of modes
         if self.is_based_on_variance:
@@ -199,15 +213,13 @@ class Decomposer:
 
             # Compute the fraction of explained variance per mode
             N = X.shape[0] - 1
-            total_variance = X.var(X.dims[0], ddof=1).sum(X.dims[1])
+            total_variance = X.var(axis=0, ddof=1).sum()
             explained_variance = s**2 / N / total_variance
-            cum_expvar = explained_variance.cumsum(self.component_dim_name)
+            cum_expvar = explained_variance.cumsum()
             total_explained_variance = cum_expvar[-1].item()
 
             n_modes_required = (
-                self.n_modes_precompute
-                - (cum_expvar >= self.n_modes).sum(self.component_dim_name)
-                + 1
+                self.n_modes_precompute - (cum_expvar >= self.n_modes).sum() + 1
             )
             if n_modes_required > self.n_modes_precompute:
                 warnings.warn(
@@ -216,29 +228,19 @@ class Decomposer:
                 n_modes_required = self.n_modes_precompute
 
             # Truncate solution to the desired fraction of explained variance
-            U = U.sel(mode=slice(1, n_modes_required))
-            s = s.sel(mode=slice(1, n_modes_required))
-            VT = VT.sel(mode=slice(1, n_modes_required))
+            U = U[:, :n_modes_required]
+            s = s[:n_modes_required]
+            V = V[:, :n_modes_required]
 
-        # Flip signs of components to ensure deterministic output
-        if self.flip_signs:
-            sign_multiplier = get_deterministic_sign_multiplier(VT, dims[1])
-            VT *= sign_multiplier
-            U *= sign_multiplier
+        return U, s, V
 
-        self.U_ = U
-        self.s_ = s
-        self.V_ = VT.conj().transpose(dims[1], self.component_dim_name)
-
-    def _svd(self, X, dims, func, kwargs):
+    def _svd(self, X, func, kwargs):
         """Performs SVD on the data
 
         Parameters
         ----------
         X : DataArray
             A 2-dimensional data object to be decomposed.
-        dims : tuple of str
-            Dimensions of the data object.
         func : Callable
             Method to perform SVD.
         kwargs : dict
@@ -254,18 +256,7 @@ class Decomposer:
             Right singular vectors.
         """
         try:
-            U, s, VT = xr.apply_ufunc(
-                func,
-                X,
-                kwargs=kwargs,
-                input_core_dims=[dims],
-                output_core_dims=[
-                    [dims[0], self.component_dim_name],
-                    [self.component_dim_name],
-                    [self.component_dim_name, dims[1]],
-                ],
-                dask="allowed",
-            )
+            U, s, VT = func(X, **kwargs)
             return U, s, VT
         except np.linalg.LinAlgError:
             raise np.linalg.LinAlgError(
@@ -273,36 +264,3 @@ class Decomposer:
                 "1. Check for and remove any isolated NaNs in your dataset.\n"
                 "2. If the error persists, please raise an issue at https://github.com/xarray-contrib/xeofs/issues."
             )
-
-    def _compute_svd_result(self, U, s, VT):
-        """Computes the SVD result.
-
-        Parameters
-        ----------
-        U : DataArray
-            Left singular vectors.
-        s : DataArray
-            Singular values.
-        VT : DataArray
-            Right singular vectors.
-
-        Returns
-        -------
-        U : DataArray
-            Left singular vectors.
-        s : DataArray
-            Singular values.
-        VT : DataArray
-            Right singular vectors.
-        """
-        match self.compute:
-            case False:
-                pass
-            case True:
-                match self.verbose:
-                    case True:
-                        with ProgressBar():
-                            U, s, VT = dask.compute(U, s, VT)
-                    case False:
-                        U, s, VT = dask.compute(U, s, VT)
-        return U, s, VT

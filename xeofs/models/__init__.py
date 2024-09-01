@@ -1,6 +1,8 @@
 import warnings
 
 from .cca import CCA
+from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
+from .cpcca_rotator import ComplexCPCCARotator, CPCCARotator, HilbertCPCCARotator
 from .eeof import ExtendedEOF
 from .eof import EOF, ComplexEOF, HilbertEOF
 from .eof_rotator import ComplexEOFRotator, EOFRotator, HilbertEOFRotator
@@ -13,23 +15,29 @@ from .sparse_pca import SparsePCA
 
 __all__ = [
     "EOF",
-    "ComplexEOF",
-    "HilbertEOF",
     "ExtendedEOF",
+    "SparsePCA",
+    "OPA",
+    "GWPCA",
+    "ComplexEOF",
+    "ComplexMCA",
+    "ComplexCPCCA",
+    "HilbertEOF",
+    "HilbertMCA",
+    "HilbertCPCCA",
     "EOFRotator",
     "ComplexEOFRotator",
     "HilbertEOFRotator",
-    "OPA",
-    "GWPCA",
     "MCA",
-    "ComplexMCA",
-    "HilbertMCA",
-    "MCARotator",
-    "ComplexMCARotator",
-    "HilbertMCARotator",
     "CCA",
+    "CPCCA",
+    "MCARotator",
+    "CPCCARotator",
+    "ComplexMCARotator",
+    "ComplexCPCCARotator",
+    "HilbertMCARotator",
+    "HilbertCPCCARotator",
     "RotatorFactory",
-    "SparsePCA",
 ]
 
 

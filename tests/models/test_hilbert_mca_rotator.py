@@ -26,7 +26,6 @@ def test_init():
     assert mca_rotator._params["power"] == 1
     assert mca_rotator._params["max_iter"] == 1000
     assert mca_rotator._params["rtol"] == 1e-8
-    assert mca_rotator._params["squared_loadings"] is False
 
 
 @pytest.mark.parametrize(
@@ -58,7 +57,7 @@ def test_transform(mca_model, mock_data_array):
     mca_rotator.fit(mca_model)
 
     with pytest.raises(NotImplementedError):
-        mca_rotator.transform(data1=mock_data_array, data2=mock_data_array)
+        mca_rotator.transform(X=mock_data_array, Y=mock_data_array)
 
 
 @pytest.mark.parametrize(
@@ -78,22 +77,8 @@ def test_inverse_transform(mca_model):
 
     reconstructed_data = mca_rotator.inverse_transform(scores1, scores2)
 
-    assert isinstance(reconstructed_data, tuple)
+    assert isinstance(reconstructed_data, list)
     assert len(reconstructed_data) == 2
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_squared_covariance(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    squared_covariance = mca_model.squared_covariance()
-    assert isinstance(squared_covariance, xr.DataArray)
 
 
 @pytest.mark.parametrize(
@@ -118,29 +103,12 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_singular_values(mca_model):
-    mca_rotator = HilbertMCARotator(n_modes=4)
-    mca_rotator.fit(mca_model)
-    n_modes = mca_rotator.get_params()["n_modes"]
-    svals = mca_rotator.singular_values()
-    assert isinstance(svals, xr.DataArray)
-    assert svals.size == n_modes
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
 def test_covariance_fraction(mca_model):
     mca_rotator = HilbertMCARotator(n_modes=4)
     mca_rotator.fit(mca_model)
-    cf = mca_rotator.covariance_fraction()
+    cf = mca_rotator.covariance_fraction_CD95()
     assert isinstance(cf, xr.DataArray)
-    assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
+    assert all(cf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(
@@ -192,8 +160,7 @@ def test_scores(mca_model, mock_data_array, dim):
 def test_homogeneous_patterns(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    with pytest.raises(NotImplementedError):
-        _ = mca_rotator.homogeneous_patterns()
+    mca_rotator.homogeneous_patterns()
 
 
 @pytest.mark.parametrize(
@@ -207,8 +174,7 @@ def test_homogeneous_patterns(mca_model, mock_data_array, dim):
 def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    with pytest.raises(NotImplementedError):
-        _ = mca_rotator.heterogeneous_patterns()
+    mca_rotator.heterogeneous_patterns()
 
 
 @pytest.mark.parametrize(

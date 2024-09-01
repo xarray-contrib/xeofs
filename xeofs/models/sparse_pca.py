@@ -9,11 +9,11 @@ from ..utils.data_types import DataArray, DataObject
 from ..utils.sanity_checks import assert_not_complex
 from ..utils.xarray_utils import get_matrix_rank
 from ..utils.xarray_utils import total_variance as compute_total_variance
-from ._base_model import _BaseModel
+from ._base_model_single_set import _BaseModelSingleSet
 from ._np_classes._sparse_pca import compute_rspca, compute_spca
 
 
-class SparsePCA(_BaseModel):
+class SparsePCA(_BaseModelSingleSet):
     """
     Sparse PCA via Variable Projection.
 

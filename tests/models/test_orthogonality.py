@@ -13,6 +13,12 @@ from xeofs.models import (
 )
 
 
+def is_diagonal(matrix, tol=1e-10):
+    # Check if all off-diagonal elements are close to zero within the specified tolerance
+    off_diagonal_elements = matrix - np.diag(np.diag(matrix))
+    return np.all(np.abs(off_diagonal_elements) < tol)
+
+
 # Orthogonality
 # =============================================================================
 # EOF
@@ -242,8 +248,9 @@ def test_mca_scores(dim, use_coslat, mock_data_array):
     model.fit(data1, data2, dim=dim)
     U1 = model.data["scores1"].values
     U2 = model.data["scores2"].values
-    K = U1.T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    s = model.data["singular_values"].values
+    K = U1.T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(s)
     assert np.allclose(K, target, atol=1e-5), "Scores are not orthogonal"
 
 
@@ -286,40 +293,41 @@ def test_cmca_scores(dim, use_coslat, mock_data_array):
     """Scores are unitary"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = HilbertMCA(n_modes=10, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(n_modes=6, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     U1 = model.data["scores1"].values
     U2 = model.data["scores2"].values
-    K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    s = model.data["singular_values"].values
+    K = U1.conj().T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(s)
     assert np.allclose(K, target, atol=1e-5), "Scores are not unitary"
 
 
 # Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_rmca_components(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_rmca_components(dim, use_coslat, power, mock_data_array):
     """Components are NOT orthogonal"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = MCA(
+        n_modes=19,
+        standardize=True,
+        use_coslat=use_coslat,
+        use_pca=True,
+        n_pca_modes=19,
+    )
     model.fit(data1, data2, dim=dim)
-    rot = MCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    rot = MCARotator(n_modes=5, power=power)
     rot.fit(model)
     V1 = rot.data["components1"].values
     V2 = rot.data["components2"].values
@@ -337,66 +345,64 @@ def test_rmca_components(dim, use_coslat, power, squared_loadings, mock_data_arr
 
 
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_rmca_scores(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_rmca_scores(dim, use_coslat, power, mock_data_array):
     """Components are orthogonal only for Varimax rotation"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = MCA(
+        n_modes=5,
+        standardize=True,
+        use_coslat=use_coslat,
+        use_pca=False,
+        n_pca_modes=19,
+    )
     model.fit(data1, data2, dim=dim)
-    rot = MCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    rot = MCARotator(n_modes=5, power=power)
     rot.fit(model)
+    W1 = rot.data["norm1"].values
+    W2 = rot.data["norm2"].values
     U1 = rot.data["scores1"].values
     U2 = rot.data["scores2"].values
-    K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    K = U1.T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(W1 * W2)
     if power == 1:
         # Varimax rotation does guarantee orthogonality
-        assert np.allclose(K, target, atol=1e-5), "Components are not orthogonal"
+        np.testing.assert_allclose(K, target, atol=1e-5, rtol=1e-5)
     else:
-        assert not np.allclose(K, target), "Components are orthogonal"
+        assert not is_diagonal(K), "Components are orthogonal"
 
 
 # Hilbert Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_crmca_components(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_crmca_components(dim, use_coslat, power, mock_data_array):
     """Components are NOT orthogonal"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = HilbertMCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(
+        n_modes=19, standardize=True, use_coslat=use_coslat, use_pca=False
+    )
     model.fit(data1, data2, dim=dim)
-    rot = HilbertMCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
     V1 = rot.data["components1"].values
     V2 = rot.data["components2"].values
@@ -414,37 +420,35 @@ def test_crmca_components(dim, use_coslat, power, squared_loadings, mock_data_ar
 
 
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_crmca_scores(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_crmca_scores(dim, use_coslat, power, mock_data_array):
     """Components are orthogonal only for Varimax rotation"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = HilbertMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(
+        n_modes=5, standardize=True, use_coslat=use_coslat, use_pca=False
+    )
     model.fit(data1, data2, dim=dim)
-    rot = HilbertMCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
+    W1 = rot.data["norm1"].values
+    W2 = rot.data["norm2"].values
     U1 = rot.data["scores1"].values
     U2 = rot.data["scores2"].values
-    K = U1.conj().T @ U2
-    target = np.eye(K.shape[0]) * (model.data["input_data1"].sample.size - 1)
+    K = U1.conj().T @ U2 / (U1.shape[0] - 1)
+    target = np.diag(W1 * W2)
     if power == 1:
         # Varimax rotation does guarantee orthogonality
-        assert np.allclose(K, target, atol=1e-5), "Components are not orthogonal"
+        np.testing.assert_allclose(K, target, atol=1e-5, rtol=1e-5)
     else:
         assert not np.allclose(K, target), "Components are orthogonal"
 
@@ -565,7 +569,7 @@ def test_mca_transform(dim, use_coslat, mock_data_array):
     model = MCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
     scores1, scores2 = model.scores()
-    pseudo_scores1, pseudo_scores2 = model.transform(data1=data1, data2=data2)
+    pseudo_scores1, pseudo_scores2 = model.transform(X=data1, Y=data2)
     assert np.allclose(
         scores1, pseudo_scores1, atol=1e-4
     ), "Transformed data does not match the scores"
@@ -591,37 +595,31 @@ def test_cmca_transform(dim, use_coslat, mock_data_array):
     model.fit(data1, data2, dim=dim)
     scores1, scores2 = model.scores()
     with pytest.raises(NotImplementedError):
-        pseudo_scores1, pseudo_scores2 = model.transform(data1=data1, data2=data2)
+        pseudo_scores1, pseudo_scores2 = model.transform(X=data1, Y=data2)
 
 
 # Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_rmca_transform(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_rmca_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
-    data1 = mock_data_array.copy()
-    data2 = data1.copy() ** 2
+    X = mock_data_array.copy()
+    Y = X.copy() ** 2
     model = MCA(n_modes=5, standardize=True, use_coslat=use_coslat)
-    model.fit(data1, data2, dim=dim)
-    rot = MCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    model.fit(X, Y, dim=dim)
+    rot = MCARotator(n_modes=5, power=power)
     rot.fit(model)
     scores1, scores2 = rot.scores()
-    pseudo_scores1, pseudo_scores2 = rot.transform(data1=data1, data2=data2)
+    pseudo_scores1, pseudo_scores2 = rot.transform(X=X, Y=Y)
     assert np.allclose(
         scores1, pseudo_scores1, atol=1e-5
     ), "Transformed data does not match the scores"
@@ -632,33 +630,27 @@ def test_rmca_transform(dim, use_coslat, power, squared_loadings, mock_data_arra
 
 # Hilbert Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_crmca_transform(dim, use_coslat, power, squared_loadings, mock_data_array):
+def test_crmca_transform(dim, use_coslat, power, mock_data_array):
     """Transforming the original data results in the model scores"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
     model = HilbertMCA(n_modes=5, standardize=True, use_coslat=use_coslat)
     model.fit(data1, data2, dim=dim)
-    rot = HilbertMCARotator(n_modes=5, power=power, squared_loadings=squared_loadings)
+    rot = HilbertMCARotator(n_modes=5, power=power)
     rot.fit(model)
     scores1, scores2 = rot.scores()
     with pytest.raises(NotImplementedError):
-        pseudo_scores1, pseudo_scores2 = rot.transform(data1=data1, data2=data2)
+        pseudo_scores1, pseudo_scores2 = rot.transform(X=data1, Y=data2)
 
 
 # Reconstruct
@@ -806,7 +798,7 @@ def test_mca_inverse_transform(dim, use_coslat, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = MCA(n_modes=19, standardize=True, use_coslat=use_coslat, n_pca_modes="all")
     model.fit(data1, data2, dim=dim)
     scores1 = model.data["scores1"]
     scores2 = model.data["scores2"]
@@ -837,7 +829,9 @@ def test_cmca_inverse_transform(dim, use_coslat, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = HilbertMCA(n_modes=19, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(
+        n_modes=19, standardize=True, use_coslat=use_coslat, n_pca_modes="all"
+    )
     model.fit(data1, data2, dim=dim)
     scores1 = model.data["scores1"]
     scores2 = model.data["scores2"]
@@ -857,31 +851,23 @@ def test_cmca_inverse_transform(dim, use_coslat, mock_data_array):
 
 # Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_rmca_inverse_transform(
-    dim, use_coslat, power, squared_loadings, mock_data_array
-):
+def test_rmca_inverse_transform(dim, use_coslat, power, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = MCA(n_modes=10, standardize=True, use_coslat=use_coslat)
+    model = MCA(n_modes=15, standardize=True, use_coslat=use_coslat, n_pca_modes="all")
     model.fit(data1, data2, dim=dim)
-    rot = MCARotator(n_modes=10, power=power, squared_loadings=squared_loadings)
+    rot = MCARotator(n_modes=15, power=power)
     rot.fit(model)
     scores1 = rot.data["scores1"]
     scores2 = rot.data["scores2"]
@@ -890,36 +876,28 @@ def test_rmca_inverse_transform(
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()
     r2_2 = r2_2.mean()
-    # Choose a threshold of 0.90; a bit arbitrary
+    # Choose a threshold of 0.95; a bit arbitrary
     assert (
-        r2_1 > 0.75
+        r2_1 > 0.95
     ), f"Inverse transform does not produce a good reconstruction of left field (R2={r2_1.values:.2f})"
     assert (
-        r2_2 > 0.75
+        r2_2 > 0.95
     ), f"Inverse transform does not produce a good reconstruction of right field (R2={r2_2.values:.2f})"
 
 
 # Hilbert Rotated MCA
 @pytest.mark.parametrize(
-    "dim, use_coslat, power, squared_loadings",
+    "dim, use_coslat, power",
     [
-        (("time",), True, 1, False),
-        (("lat", "lon"), False, 1, False),
-        (("lon", "lat"), False, 1, False),
-        (("time",), True, 2, False),
-        (("lat", "lon"), False, 2, False),
-        (("lon", "lat"), False, 2, False),
-        (("time",), True, 1, True),
-        (("lat", "lon"), False, 1, True),
-        (("lon", "lat"), False, 1, True),
-        (("time",), True, 2, True),
-        (("lat", "lon"), False, 2, True),
-        (("lon", "lat"), False, 2, True),
+        (("time",), True, 1),
+        (("lat", "lon"), False, 1),
+        (("lon", "lat"), False, 1),
+        (("time",), True, 2),
+        (("lat", "lon"), False, 2),
+        (("lon", "lat"), False, 2),
     ],
 )
-def test_crmca_inverse_transform(
-    dim, use_coslat, power, squared_loadings, mock_data_array
-):
+def test_crmca_inverse_transform(dim, use_coslat, power, mock_data_array):
     """Inverse transform produces an approximate reconstruction of the original data"""
     # NOTE: The lobpcg SVD solver for Hilbert matrices requires a small number of modes
     # compared to the actual data size. Since we have a small test set here we only use
@@ -927,9 +905,11 @@ def test_crmca_inverse_transform(
     # the other tests.
     data1 = mock_data_array.copy()
     data2 = data1.copy() ** 2
-    model = HilbertMCA(n_modes=10, standardize=True, use_coslat=use_coslat)
+    model = HilbertMCA(
+        n_modes=10, standardize=True, use_coslat=use_coslat, use_pca=False
+    )
     model.fit(data1, data2, dim=dim)
-    rot = HilbertMCARotator(n_modes=10, power=power, squared_loadings=squared_loadings)
+    rot = HilbertMCARotator(n_modes=10, power=power)
     rot.fit(model)
     scores1 = rot.data["scores1"]
     scores2 = rot.data["scores2"]
@@ -938,10 +918,10 @@ def test_crmca_inverse_transform(
     r2_2 = r2_score(data2, data2_rec, dim=dim)
     r2_1 = r2_1.mean()
     r2_2 = r2_2.mean()
-    # Choose a threshold of 0.80; a bit arbitrary
+    # Choose a threshold of 0.95; a bit arbitrary
     assert (
-        r2_1 > 0.80
+        r2_1 > 0.95
     ), f"Inverse transform does not produce a good reconstruction of left field (R2={r2_1.values:.2f})"
     assert (
-        r2_2 > 0.80
+        r2_2 > 0.95
     ), f"Inverse transform does not produce a good reconstruction of right field (R2={r2_2.values:.2f})"

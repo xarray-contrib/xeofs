@@ -8,11 +8,11 @@ from typing_extensions import Self
 from ..utils.data_types import DataArray, DataObject
 from ..utils.hilbert_transform import hilbert_transform
 from ..utils.xarray_utils import total_variance as compute_total_variance
-from ._base_model import _BaseModel
+from ._base_model_single_set import _BaseModelSingleSet
 from .decomposer import Decomposer
 
 
-class EOF(_BaseModel):
+class EOF(_BaseModelSingleSet):
     """EOF analysis.
 
     Empirical Orthogonal Functions (EOF) analysis, more commonly known

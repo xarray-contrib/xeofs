@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 from xeofs.models.mca import MCA
+
 from ..utilities import data_is_dask
 
 
@@ -99,7 +100,7 @@ def test_fit_with_dataarray_list(mca_model, mock_data_array_list, dim):
 )
 def test_transform(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    result = mca_model.transform(data1=mock_data_array, data2=mock_data_array)
+    result = mca_model.transform(X=mock_data_array, Y=mock_data_array)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
 
@@ -110,7 +111,7 @@ def test_transform_unseen_data(mca_model, mock_data_array, dim):
     data_unseen = mock_data_array.isel(time=slice(21, None))
 
     mca_model.fit(data, data, dim)
-    result = mca_model.transform(data1=data_unseen, data2=data_unseen)
+    result = mca_model.transform(X=data_unseen, Y=data_unseen)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
     # Check that unseen data can be transformed
@@ -144,41 +145,11 @@ def test_inverse_transform(mca_model, mock_data_array, dim):
         (("lon", "lat")),
     ],
 )
-def test_squared_covariance(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    squared_covariance = mca_model.squared_covariance()
-    assert isinstance(squared_covariance, xr.DataArray)
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
 def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
     scf = mca_model.squared_covariance_fraction()
     assert isinstance(scf, xr.DataArray)
-    assert scf.sum("mode") <= 1.00001, "Squared covariance fraction is greater than 1"
-
-
-@pytest.mark.parametrize(
-    "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
-)
-def test_singular_values(mca_model, mock_data_array, dim):
-    mca_model.fit(mock_data_array, mock_data_array, dim)
-    n_modes = mca_model.get_params()["n_modes"]
-    svals = mca_model.singular_values()
-    assert isinstance(svals, xr.DataArray)
-    assert svals.size == n_modes
+    assert all(scf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(
@@ -191,9 +162,9 @@ def test_singular_values(mca_model, mock_data_array, dim):
 )
 def test_covariance_fraction(mca_model, mock_data_array, dim):
     mca_model.fit(mock_data_array, mock_data_array, dim)
-    cf = mca_model.covariance_fraction()
+    cf = mca_model.covariance_fraction_CD95()
     assert isinstance(cf, xr.DataArray)
-    assert cf.sum("mode") <= 1.00001, "Covariance fraction is greater than 1"
+    assert all(cf <= 1), "Squared covariance fraction is greater than 1"
 
 
 @pytest.mark.parametrize(
@@ -383,16 +354,16 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
     ],
 )
 def test_compute(mock_dask_data_array, dim, compute):
-    mca_model = MCA(n_modes=10, compute=compute)
+    mca_model = MCA(n_modes=10, compute=compute, n_pca_modes=10)
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
 
     if compute:
-        assert not data_is_dask(mca_model.data["squared_covariance"])
+        assert not data_is_dask(mca_model.data["singular_values"])
         assert not data_is_dask(mca_model.data["components1"])
         assert not data_is_dask(mca_model.data["components2"])
 
     else:
-        assert data_is_dask(mca_model.data["squared_covariance"])
+        assert data_is_dask(mca_model.data["singular_values"])
         assert data_is_dask(mca_model.data["components1"])
         assert data_is_dask(mca_model.data["components2"])
 

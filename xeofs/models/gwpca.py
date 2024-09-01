@@ -1,23 +1,22 @@
+import numpy as np
+import xarray as xr
 from typing_extensions import Self
 
-
 from xeofs.utils.data_types import DataArray
-from ._base_model import _BaseModel
-from ..utils.sanity_checks import assert_not_complex
+
 from ..utils.constants import (
     VALID_CARTESIAN_X_NAMES,
     VALID_CARTESIAN_Y_NAMES,
     VALID_LATITUDE_NAMES,
     VALID_LONGITUDE_NAMES,
 )
-import numpy as np
-import xarray as xr
-
 from ..utils.distance_metrics import VALID_METRICS
 from ..utils.kernels import VALID_KERNELS
+from ..utils.sanity_checks import assert_not_complex
+from ._base_model_single_set import _BaseModelSingleSet
 
 
-class GWPCA(_BaseModel):
+class GWPCA(_BaseModelSingleSet):
     """Geographically weighted PCA.
 
     Geographically weighted PCA (GWPCA) [1]_ uses a geographically weighted approach to perform PCA for
