@@ -239,7 +239,7 @@ class CPCCA(_BaseModelCrossSet):
             scores1 = xr.dot(X, comps1)
             if normalized:
                 scores1 = scores1 / norm1
-            results["data1"] = scores1
+            results["X"] = scores1
 
         if Y is not None:
             # Project data onto singular vectors
@@ -248,7 +248,7 @@ class CPCCA(_BaseModelCrossSet):
             scores2 = xr.dot(Y, comps2)
             if normalized:
                 scores2 = scores2 / norm2
-            results["data2"] = scores2
+            results["Y"] = scores2
 
         return results
 

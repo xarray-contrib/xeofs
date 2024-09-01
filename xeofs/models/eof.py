@@ -49,7 +49,7 @@ class EOF(_BaseModelSingleSet):
     Examples
     --------
     >>> model = xe.models.EOF(n_modes=5)
-    >>> model.fit(data)
+    >>> model.fit(X)
     >>> scores = model.scores()
 
     """
@@ -87,19 +87,19 @@ class EOF(_BaseModelSingleSet):
         )
         self.attrs.update({"model": "EOF analysis"})
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
+    def _fit_algorithm(self, X: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
 
         # Augment the data
-        data = self._augment_data(data)
+        X = self._augment_data(X)
 
         # Compute the total variance
-        total_variance = compute_total_variance(data, dim=sample_name)
+        total_variance = compute_total_variance(X, dim=sample_name)
 
         # Decompose the data
         decomposer = Decomposer(**self._decomposer_kwargs)
-        decomposer.fit(data, dims=(sample_name, feature_name))
+        decomposer.fit(X, dims=(sample_name, feature_name))
 
         singular_values = decomposer.s_
         components = decomposer.V_
@@ -107,12 +107,12 @@ class EOF(_BaseModelSingleSet):
         scores.name = "scores"
 
         # Compute the explained variance per mode
-        n_samples = data.coords[self.sample_name].size
+        n_samples = X.coords[self.sample_name].size
         exp_var = singular_values**2 / (n_samples - 1)
         exp_var.name = "explained_variance"
 
         # Store the results
-        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(X, "input_data", allow_compute=False)
         self.data.add(components, "components")
         self.data.add(scores, "scores")
         self.data.add(singular_values, "norms")
@@ -122,16 +122,16 @@ class EOF(_BaseModelSingleSet):
         self.data.set_attrs(self.attrs)
         return self
 
-    def _augment_data(self, data: DataArray) -> DataArray:
-        return data
+    def _augment_data(self, X: DataArray) -> DataArray:
+        return X
 
-    def _transform_algorithm(self, data: DataObject) -> DataArray:
+    def _transform_algorithm(self, X: DataObject) -> DataArray:
         feature_name = self.preprocessor.feature_name
 
         components = self.data["components"]
 
         # Project the data
-        projections = xr.dot(data, components, dims=feature_name)
+        projections = xr.dot(X, components, dims=feature_name)
         projections.name = "scores"
 
         return projections
@@ -341,13 +341,13 @@ class ComplexEOF(EOF):
         )
         self.attrs.update({"model": "Complex EOF analysis"})
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
-        if not np.iscomplexobj(data):
+    def _fit_algorithm(self, X: DataArray) -> Self:
+        if not np.iscomplexobj(X):
             warnings.warn(
                 "Expected complex-valued data but found real-valued data. For Hilbert EOF analysis, use `HilbertEOF` model."
             )
 
-        return super()._fit_algorithm(data)
+        return super()._fit_algorithm(X)
 
     def components_amplitude(self) -> DataObject:
         """Return the amplitude of the (EOF) components.
@@ -506,7 +506,7 @@ class HilbertEOF(ComplexEOF):
     Examples
     --------
     >>> model = HilbertEOF(n_modes=5, standardize=True)
-    >>> model.fit(data)
+    >>> model.fit(X)
 
     """
 
@@ -546,22 +546,22 @@ class HilbertEOF(ComplexEOF):
         self.attrs.update({"model": "Hilbert EOF analysis"})
         self._params.update({"padding": padding, "decay_factor": decay_factor})
 
-    def _augment_data(self, data: DataArray) -> DataArray:
+    def _augment_data(self, X: DataArray) -> DataArray:
         # Apply hilbert transform:
         padding = self._params["padding"]
         decay_factor = self._params["decay_factor"]
         return hilbert_transform(
-            data,
+            X,
             dims=(self.sample_name, self.feature_name),
             padding=padding,
             decay_factor=decay_factor,
         )
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
-        EOF._fit_algorithm(self, data)
+    def _fit_algorithm(self, X: DataArray) -> Self:
+        EOF._fit_algorithm(self, X)
         return self
 
-    def _transform_algorithm(self, data: DataArray) -> DataArray:
+    def _transform_algorithm(self, X: DataArray) -> DataArray:
         raise NotImplementedError("Hilbert EOF does not support transform method.")
 
     def _inverse_transform_algorithm(self, scores: DataArray) -> DataArray:

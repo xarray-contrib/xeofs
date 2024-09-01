@@ -193,6 +193,6 @@ class _BaseModel(ABC):
         model = cls.deserialize(dt)
         return model
 
-    def _validate_loaded_data(self, data: DataArray):
+    def _validate_loaded_data(self, X: DataArray):
         """Optionally check the loaded data for placeholders."""
         pass

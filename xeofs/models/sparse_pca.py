@@ -147,7 +147,7 @@ class SparsePCA(_BaseModelSingleSet):
             }
         )
 
-    def _fit_algorithm(self, data: DataArray) -> Self:
+    def _fit_algorithm(self, X: DataArray) -> Self:
         sample_name = self.sample_name
         feature_name = self.feature_name
 
@@ -155,16 +155,16 @@ class SparsePCA(_BaseModelSingleSet):
         # NOTE: Complex data is not supported, it's likely possible but current numpy implementation
         # of sparse_pca needs to be adpated, mainly changing matrix transpose to conjugate transpose.
         # http://arxiv.org/abs/1804.00341
-        assert_not_complex(data)
+        assert_not_complex(X)
 
         # Compute the total variance
-        total_variance = compute_total_variance(data, dim=sample_name)
+        total_variance = compute_total_variance(X, dim=sample_name)
 
         # Compute matrix rank
-        rank = get_matrix_rank(data)
+        rank = get_matrix_rank(X)
 
         # Decide whether to use exact or randomized algorithm
-        is_small_data = max(data.shape) < 500
+        is_small_data = max(X.shape) < 500
         solver = self._params["solver"]
 
         match solver:
@@ -213,7 +213,7 @@ class SparsePCA(_BaseModelSingleSet):
         # exp_var : eigenvalues
         components, components_normal, exp_var = xr.apply_ufunc(
             decomposing_algorithm,
-            data,
+            X,
             input_core_dims=[[sample_name, feature_name]],
             output_core_dims=[[feature_name, "mode"], [feature_name, "mode"], ["mode"]],
             dask="allowed",
@@ -227,7 +227,7 @@ class SparsePCA(_BaseModelSingleSet):
         components.name = "sparse_weight_vectors"
         components = components.assign_coords(
             {
-                feature_name: data.coords[feature_name],
+                feature_name: X.coords[feature_name],
                 "mode": np.arange(1, self.n_modes + 1),
             },
         )
@@ -235,13 +235,13 @@ class SparsePCA(_BaseModelSingleSet):
         components_normal.name = "orthonormal_weight_vectors"
         components_normal = components_normal.assign_coords(
             {
-                feature_name: data.coords[feature_name],
+                feature_name: X.coords[feature_name],
                 "mode": np.arange(1, self.n_modes + 1),
             },
         )
 
         # Transform the data
-        scores = xr.dot(data, components, dims=feature_name)
+        scores = xr.dot(X, components, dims=feature_name)
         scores.name = "scores"
 
         norms = xr.apply_ufunc(
@@ -257,7 +257,7 @@ class SparsePCA(_BaseModelSingleSet):
         norms.name = "component_norms"
 
         # Store the results
-        self.data.add(data, "input_data", allow_compute=False)
+        self.data.add(X, "input_data", allow_compute=False)
         self.data.add(components, "components")
         self.data.add(components_normal, "components_normal")
         self.data.add(scores, "scores")
@@ -268,13 +268,13 @@ class SparsePCA(_BaseModelSingleSet):
         self.data.set_attrs(self.attrs)
         return self
 
-    def _transform_algorithm(self, data: DataObject) -> DataArray:
+    def _transform_algorithm(self, X: DataObject) -> DataArray:
         feature_name = self.preprocessor.feature_name
 
         components = self.data["components"]
 
         # Project the data
-        projections = xr.dot(data, components, dims=feature_name)
+        projections = xr.dot(X, components, dims=feature_name)
         projections.name = "scores"
 
         return projections
