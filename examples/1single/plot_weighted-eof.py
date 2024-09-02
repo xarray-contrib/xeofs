@@ -11,13 +11,13 @@ and finally (4) correlation matrix + coslat weighting.
 Load packages and data:
 """
 
-import xarray as xr
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.gridspec import GridSpec
+import xarray as xr
 from cartopy.crs import Orthographic, PlateCarree
+from matplotlib.gridspec import GridSpec
 
-from xeofs.models import EOF
+import xeofs as xe
 
 sns.set_context("paper")
 
@@ -29,22 +29,22 @@ t2m = xr.tutorial.load_dataset("air_temperature")["air"]
 components = []
 scores = []
 # (1) Based on covariance matrix
-model_cov = EOF(n_modes=5, standardize=False, use_coslat=False)
+model_cov = xe.single.EOF(n_modes=5, standardize=False, use_coslat=False)
 model_cov.fit(t2m, "time")
 components.append(model_cov.components())
 scores.append(model_cov.scores())
 # (2) Based on coslat weighted covariance matrix
-model_lat = EOF(n_modes=5, standardize=False, use_coslat=True)
+model_lat = xe.single.EOF(n_modes=5, standardize=False, use_coslat=True)
 model_lat.fit(t2m, "time")
 components.append(model_lat.components())
 scores.append(model_lat.scores())
 # (3) Based on correlation matrix
-model_cor = EOF(n_modes=5, standardize=True, use_coslat=False)
+model_cor = xe.single.EOF(n_modes=5, standardize=True, use_coslat=False)
 model_cor.fit(t2m, "time")
 components.append(model_cor.components())
 scores.append(model_cor.scores())
 # (4) Based on coslat weighted correlation matrix
-model_cor_lat = EOF(n_modes=5, standardize=True, use_coslat=True)
+model_cor_lat = xe.single.EOF(n_modes=5, standardize=True, use_coslat=True)
 model_cor_lat.fit(t2m, "time")
 components.append(model_cor_lat.components())
 scores.append(model_cor_lat.scores())

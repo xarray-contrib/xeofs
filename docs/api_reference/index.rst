@@ -6,22 +6,24 @@ API Reference
 
    The package is under development, and its API may change.
 
-The xeofs package focuses on eigenmethods for dimensionality reduction in climate science. These methods are categorized into two groups:
+The xeofs package focuses on eigenmethods for dimensionality reduction in climate science. It is organized into methods that examine relationships between variables 
 
-1. :doc:`Single-Set Analysis <single_set_analysis>`: Methods that examine relationships or patterns within a single dataset.
-2. :doc:`Multi-Set Analysis <multi_set_analysis>`: Methods that investigate relationships or patterns between variables across two or more distinct datasets.
+1. within a **single dataset** (``xeofs.single``),
+2. across **two datasets**  (``xeofs.cross``) and
+3. across **more than two datasets** (``xeofs.multi``).
 
 --------------------
 Single-Set Analysis
 --------------------
 
-A classic example of single-set analysis is Principal Component Analysis (PCA/EOF analysis), used to extract the dominant patterns of variability within a single dataset. While PCA can be applied to multiple (standardized) datasets simultaneously, it treats all datasets as one large dataset, maximizing overall variability without considering inter-dataset relationships. Consequently, the most important variables may come from only one dataset, ignoring others.
+A classic example of :doc:`single-set analysis <single_set_analysis>` is Principal Component Analysis (PCA/EOF analysis), used to extract the dominant patterns of variability within a single dataset. While PCA can be applied to multiple (standardized) datasets simultaneously, it treats all datasets as one large dataset, maximizing overall variability without considering inter-dataset relationships. Consequently, the most important variables may come from only one dataset, ignoring others.
 
---------------------
-Multi-Set Analysis
---------------------
+----------------------------
+Cross and Multi-Set Analysis
+----------------------------
 
-Examples of multi-set analysis methods include Canonical Correlation Analysis (CCA) and Maximum Covariance Analysis (MCA). These techniques identify shared patterns of variability between two or more datasets, focusing on common patterns rather than those unique to each dataset. For instance, if you have two datasets (e.g., monthly temperatures from tropical and polar regions over 70 years), CCA or MCA would likely highlight the global warming signal as the dominant pattern common to both datasets, while the seasonal cycle would not be dominant as it is only prominent in the polar region.
+Classic examples of :doc:`cross <cross_set_analysis>` or :doc:`multi<multi_set_analysis>`-set analysis methods include Canonical Correlation Analysis (CCA), Maximum Covariance Analysis (MCA) and Redundancy Analyis (RDA). These techniques identify shared patterns of variability between two distinct datasets, focusing on common patterns rather than those unique to each dataset. 
+
 
 Additionally, xeofs offers tools for :doc:`model evaluation <model_evaluation>`, though these are still in early development stages.
 
@@ -30,9 +32,17 @@ Additionally, xeofs offers tools for :doc:`model evaluation <model_evaluation>`,
 .. toctree::
    :maxdepth: 3
    :hidden:
+   :caption: Methods
 
    single_set_analysis
+   cross_set_analysis
    multi_set_analysis
-   model_evaluation
    utilities
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+   :caption: Significance Testing
+
+   model_evaluation
 

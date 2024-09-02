@@ -40,7 +40,7 @@ Z = uvz["u"] + 1j * uvz["v"]
 # each grid cell by the square root of the cosine of the latitude
 # (``use_coslat=True``).
 
-model = xe.models.ComplexEOF(n_modes=1, use_coslat=True, random_state=7)
+model = xe.single.ComplexEOF(n_modes=1, use_coslat=True, random_state=7)
 model.fit(Z, dim="month")
 
 # %%

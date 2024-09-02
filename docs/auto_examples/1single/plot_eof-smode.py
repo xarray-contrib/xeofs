@@ -18,7 +18,7 @@ import xarray as xr
 from cartopy.crs import EqualEarth, PlateCarree
 from matplotlib.gridspec import GridSpec
 
-from xeofs.models import SparsePCA
+import xeofs as xe
 
 # %%
 # We use sea surface temperature data from 1990 to 2017, consistent with the original paper.
@@ -29,7 +29,7 @@ sst = sst.sel(time=slice("1990", "2017"))
 # %%
 # We perform sparse PCA using the `alpha` and `beta` parameters, which define the sparsity imposed by the elastic net (refer to Table 1 in the paper). In our analysis, we set `alpha` to 1e-5, as specified by the authors. Although the authors do not specify a value for `beta`, it appears that the results are not highly sensitive to this parameter. Therefore, we use the default `beta` value of 1e-4.
 
-model = SparsePCA(n_modes=4, alpha=1e-5)
+model = xe.single.SparsePCA(n_modes=4, alpha=1e-5)
 model.fit(sst, dim="time")
 expvar = model.explained_variance()
 expvar_ratio = model.explained_variance_ratio()

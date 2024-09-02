@@ -31,16 +31,16 @@ Load packages and data:
 
 .. GENERATED FROM PYTHON SOURCE LINES 13-26
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    import xarray as xr
     import matplotlib.pyplot as plt
     import seaborn as sns
-    from matplotlib.gridspec import GridSpec
+    import xarray as xr
     from cartopy.crs import Orthographic, PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF
+    import xeofs as xe
 
     sns.set_context("paper")
 
@@ -59,28 +59,28 @@ Perform the actual analysis
 
 .. GENERATED FROM PYTHON SOURCE LINES 28-53
 
-.. code-block:: Python
+.. code-block:: default
 
 
     components = []
     scores = []
     # (1) Based on covariance matrix
-    model_cov = EOF(n_modes=5, standardize=False, use_coslat=False)
+    model_cov = xe.single.EOF(n_modes=5, standardize=False, use_coslat=False)
     model_cov.fit(t2m, "time")
     components.append(model_cov.components())
     scores.append(model_cov.scores())
     # (2) Based on coslat weighted covariance matrix
-    model_lat = EOF(n_modes=5, standardize=False, use_coslat=True)
+    model_lat = xe.single.EOF(n_modes=5, standardize=False, use_coslat=True)
     model_lat.fit(t2m, "time")
     components.append(model_lat.components())
     scores.append(model_lat.scores())
     # (3) Based on correlation matrix
-    model_cor = EOF(n_modes=5, standardize=True, use_coslat=False)
+    model_cor = xe.single.EOF(n_modes=5, standardize=True, use_coslat=False)
     model_cor.fit(t2m, "time")
     components.append(model_cor.components())
     scores.append(model_cor.scores())
     # (4) Based on coslat weighted correlation matrix
-    model_cor_lat = EOF(n_modes=5, standardize=True, use_coslat=True)
+    model_cor_lat = xe.single.EOF(n_modes=5, standardize=True, use_coslat=True)
     model_cor_lat.fit(t2m, "time")
     components.append(model_cor_lat.components())
     scores.append(model_cor_lat.scores())
@@ -99,7 +99,7 @@ Create figure showing the first mode for all 4 cases
 
 .. GENERATED FROM PYTHON SOURCE LINES 55-89
 
-.. code-block:: Python
+.. code-block:: default
 
 
     proj = Orthographic(central_latitude=30, central_longitude=-80)
@@ -150,7 +150,7 @@ Create figure showing the first mode for all 4 cases
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.928 seconds)
+   **Total running time of the script:** (0 minutes 2.990 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_weighted-eof.py:
@@ -159,13 +159,16 @@ Create figure showing the first mode for all 4 cases
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_weighted-eof.ipynb <plot_weighted-eof.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_weighted-eof.py <plot_weighted-eof.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_weighted-eof.ipynb <plot_weighted-eof.ipynb>`
 
 
 .. only:: html

@@ -40,19 +40,18 @@ without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
 
 We'll start by loading the necessary packages and data:
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-39
+.. GENERATED FROM PYTHON SOURCE LINES 24-38
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    import xarray as xr
     import matplotlib.pyplot as plt
     import seaborn as sns
+    import xarray as xr
+    from cartopy.crs import PlateCarree, Robinson
     from matplotlib.gridspec import GridSpec
-    from cartopy.crs import Robinson, PlateCarree
 
-    from xeofs.models import EOF, EOFRotator
-
+    import xeofs as xe
 
     sns.set_context("paper")
 
@@ -66,29 +65,29 @@ We'll start by loading the necessary packages and data:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-41
+.. GENERATED FROM PYTHON SOURCE LINES 39-40
 
 Perform the actual analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-61
+.. GENERATED FROM PYTHON SOURCE LINES 40-60
 
-.. code-block:: Python
+.. code-block:: default
 
 
     components = []
     scores = []
     # (1) Standard EOF without regularization
-    model = EOF(n_modes=100, standardize=True, use_coslat=True)
+    model = xe.single.EOF(n_modes=100, standardize=True, use_coslat=True)
     model.fit(sst, dim="time")
     components.append(model.components())
     scores.append(model.scores())
     # (2) Varimax-rotated EOF analysis
-    rot_var = EOFRotator(n_modes=50, power=1)
+    rot_var = xe.single.EOFRotator(n_modes=50, power=1)
     rot_var.fit(model)
     components.append(rot_var.components())
     scores.append(rot_var.scores())
     # (3) Promax-rotated EOF analysis
-    rot_pro = EOFRotator(n_modes=50, power=4)
+    rot_pro = xe.single.EOFRotator(n_modes=50, power=4)
     rot_pro.fit(model)
     components.append(rot_pro.components())
     scores.append(rot_pro.scores())
@@ -98,17 +97,10 @@ Perform the actual analysis
 
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    /home/slevang/miniconda3/envs/xeofs-docs/lib/python3.11/site-packages/numpy/lib/nanfunctions.py:1879: RuntimeWarning: Degrees of freedom <= 0 for slice.
-      var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
 
 
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 61-66
 
 Create figure showing the first 6 modes for all 3 cases. While the first mode
 is very similar in all three cases the subsequent modes of the standard
@@ -116,9 +108,9 @@ solution exhibit dipole and tripole-like patterns. Under Varimax and Promax
 rotation, these structures completely disappear suggesting that these patterns
 were mere artifacts due to the orthogonality.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-99
+.. GENERATED FROM PYTHON SOURCE LINES 66-98
 
-.. code-block:: Python
+.. code-block:: default
 
 
     proj = Robinson(central_longitude=180)
@@ -167,7 +159,7 @@ were mere artifacts due to the orthogonality.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.472 seconds)
+   **Total running time of the script:** (0 minutes 11.973 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_rotated_eof.py:
@@ -176,13 +168,16 @@ were mere artifacts due to the orthogonality.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_rotated_eof.py <plot_rotated_eof.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_rotated_eof.ipynb <plot_rotated_eof.ipynb>`
 
 
 .. only:: html

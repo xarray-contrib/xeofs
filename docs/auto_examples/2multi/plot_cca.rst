@@ -31,15 +31,15 @@ First, we'll import the necessary modules.
 
 .. GENERATED FROM PYTHON SOURCE LINES 13-21
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    import xarray as xr
-    import xeofs as xe
-
-    import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
     import cartopy.crs as ccrs
+    import matplotlib.pyplot as plt
+    import xarray as xr
+    from matplotlib.gridspec import GridSpec
+
+    import xeofs as xe
 
 
 
@@ -55,7 +55,7 @@ monthly climatologies, so the seasonal cycle doesn't impact our CCA.
 
 .. GENERATED FROM PYTHON SOURCE LINES 24-29
 
-.. code-block:: Python
+.. code-block:: default
 
 
     sst = xr.tutorial.load_dataset("ersstv5").sst
@@ -75,7 +75,7 @@ Now, we define the three regions of interest and store them in a list.
 
 .. GENERATED FROM PYTHON SOURCE LINES 31-38
 
-.. code-block:: Python
+.. code-block:: default
 
 
     indian = sst.sel(lon=slice(35, 115), lat=slice(30, -30))
@@ -115,10 +115,10 @@ will give a warning.
 
 .. GENERATED FROM PYTHON SOURCE LINES 58-70
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    model = xe.models.CCA(
+    model = xe.multi.CCA(
         n_modes=2,
         use_coslat=True,
         pca=True,
@@ -142,7 +142,7 @@ Let's look at the canonical loadings (components) of the first mode.
 
 .. GENERATED FROM PYTHON SOURCE LINES 72-95
 
-.. code-block:: Python
+.. code-block:: default
 
 
     mode = 1
@@ -185,7 +185,7 @@ And lastly, we'll check out the canonical variates (scores) of the first mode.
 
 .. GENERATED FROM PYTHON SOURCE LINES 97-103
 
-.. code-block:: Python
+.. code-block:: default
 
 
     fig, ax = plt.subplots(figsize=(12, 4))
@@ -207,14 +207,14 @@ And lastly, we'll check out the canonical variates (scores) of the first mode.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7fa6fa2bb3d0>
+    <matplotlib.legend.Legend object at 0x778d1fcac190>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.632 seconds)
+   **Total running time of the script:** (0 minutes 2.798 seconds)
 
 
 .. _sphx_glr_download_auto_examples_2multi_plot_cca.py:
@@ -223,13 +223,16 @@ And lastly, we'll check out the canonical variates (scores) of the first mode.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_cca.ipynb <plot_cca.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_cca.py <plot_cca.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_cca.ipynb <plot_cca.ipynb>`
 
 
 .. only:: html

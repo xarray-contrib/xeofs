@@ -4,7 +4,8 @@ Implement Your Own Model
 
 The xeofs package has been designed with modularity in mind, allowing you to seamlessly incorporate new methods. 
 For instance, if you'd like to introduce a new dimensionality reduction technique named ``MyModel``, 
-you can achieve this by inheriting the ``_BaseModel`` class and implementing its ``_fit_algorithm()`` method.
+you can achieve this by inheriting of either the ``BaseModelSingleSet`` or ``BaseModelCrossSet`` class and 
+implementing its ``_fit_algorithm()`` method.
 
 Here's a detailed walkthrough on how to incorporate a new model:
 
@@ -12,17 +13,17 @@ Here's a detailed walkthrough on how to incorporate a new model:
 1. Inherit the BaseModel
 --------------------------------------------
     
-Your new model should inherit from the `_BaseModel` class. This abstract base class enables 
+Your new model should inherit from the `BaseModel` class. This abstract base class enables 
 the transformation of any ND xarray object into a 2D ``xarray.DataArray`` with dimensions 
 (sample, feature) and back. Additionally, it grants access to handy parameters like 
 ``n_modes``, ``standardize``, and ``use_coslat``.
 
 .. code-block:: python
 
-  from xeofs.models._base_model import _BaseModel
-  from xeofs.models.decomposer import Decomposer
+  from xeofs.single.base_model_single_set import BaseModelSingleSet
+  from xeofs.linalg.decomposer import Decomposer
 
-  class MyModel(_BaseModel):
+  class MyModel(BaseModelSingleSet):
       def __init__(self, **kwargs):
           super().__init__(**kwargs)
 

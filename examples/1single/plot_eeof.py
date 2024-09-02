@@ -13,9 +13,10 @@ decomposed to yield its eigenvectors (components) and eigenvalues (explained var
 Let's begin by setting up the required packages and fetching the data:
 """
 
-import xarray as xr
-import xeofs as xe
 import matplotlib.pyplot as plt
+import xarray as xr
+
+import xeofs as xe
 
 xr.set_options(display_expand_data=False)
 
@@ -51,7 +52,7 @@ t2m.shape
 # With these parameters set, we proceed to instantiate the ``ExtendedEOF``
 # model and fit our data.
 
-model = xe.models.ExtendedEOF(
+model = xe.single.ExtendedEOF(
     n_modes=10, tau=4, embedding=40, n_pca_modes=50, use_coslat=True
 )
 model.fit(t2m, dim="time")

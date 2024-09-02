@@ -45,7 +45,7 @@ sst
 # options to mitigate potential edge effects, we'll begin with no padding.
 
 kwargs = dict(n_modes=4, use_coslat=True, random_state=7)
-model = xe.models.HilbertEOF(padding="none", **kwargs)
+model = xe.single.HilbertEOF(padding="none", **kwargs)
 
 # %%
 # Now, we fit the model to the data and extract the explained variance.
@@ -95,7 +95,7 @@ plt.show()
 # controls the decay rate of the exponential function measured in multiples of
 # the time series length. Let's see how the decay parameter impacts the results:
 
-model_ext = xe.models.HilbertEOF(padding="exp", decay_factor=0.01, **kwargs)
+model_ext = xe.single.HilbertEOF(padding="exp", decay_factor=0.01, **kwargs)
 model_ext.fit(sst, dim="time")
 scores_ext = model_ext.scores().sel(mode=slice(1, 4))
 

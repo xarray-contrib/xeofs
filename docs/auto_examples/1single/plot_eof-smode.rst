@@ -40,7 +40,7 @@ References
     from cartopy.crs import EqualEarth, PlateCarree
     from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import SparsePCA
+    import xeofs as xe
 
 
 
@@ -77,7 +77,7 @@ We perform sparse PCA using the `alpha` and `beta` parameters, which define the 
 .. code-block:: default
 
 
-    model = SparsePCA(n_modes=4, alpha=1e-5)
+    model = xe.single.SparsePCA(n_modes=4, alpha=1e-5)
     model.fit(sst, dim="time")
     expvar = model.explained_variance()
     expvar_ratio = model.explained_variance_ratio()
@@ -159,7 +159,7 @@ Examining the first four modes, we clearly identify ENSO as the fourth mode.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.992 seconds)
+   **Total running time of the script:** (0 minutes 7.551 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eof-smode.py:

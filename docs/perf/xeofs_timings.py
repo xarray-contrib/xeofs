@@ -1,11 +1,13 @@
 # %%
-import numpy as np
-import eofs
-import xeofs as xe
-import xarray as xr
-import dask
-from tqdm import tqdm
 import timeit
+
+import dask
+import eofs
+import numpy as np
+import xarray as xr
+from tqdm import tqdm
+
+import xeofs as xe
 
 
 # %%
@@ -14,7 +16,7 @@ def fit_eofs(X, n_modes=2):
 
 
 def fit_xeofs(X, n_modes=2):
-    model = xe.models.EOF(n_modes=n_modes, random_state=5)
+    model = xe.single.EOF(n_modes=n_modes, random_state=5)
     model.fit(X, dim="time")
 
 

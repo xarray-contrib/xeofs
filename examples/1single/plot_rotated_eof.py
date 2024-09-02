@@ -22,14 +22,13 @@ without regularization, (2) with Varimax rotation, and (3) with Promax rotation.
 We'll start by loading the necessary packages and data:
 """
 
-import xarray as xr
 import matplotlib.pyplot as plt
 import seaborn as sns
+import xarray as xr
+from cartopy.crs import PlateCarree, Robinson
 from matplotlib.gridspec import GridSpec
-from cartopy.crs import Robinson, PlateCarree
 
-from xeofs.models import EOF, EOFRotator
-
+import xeofs as xe
 
 sns.set_context("paper")
 
@@ -42,17 +41,17 @@ sst = xr.tutorial.open_dataset("ersstv5")["sst"]
 components = []
 scores = []
 # (1) Standard EOF without regularization
-model = EOF(n_modes=100, standardize=True, use_coslat=True)
+model = xe.single.EOF(n_modes=100, standardize=True, use_coslat=True)
 model.fit(sst, dim="time")
 components.append(model.components())
 scores.append(model.scores())
 # (2) Varimax-rotated EOF analysis
-rot_var = EOFRotator(n_modes=50, power=1)
+rot_var = xe.single.EOFRotator(n_modes=50, power=1)
 rot_var.fit(model)
 components.append(rot_var.components())
 scores.append(rot_var.scores())
 # (3) Promax-rotated EOF analysis
-rot_pro = EOFRotator(n_modes=50, power=4)
+rot_pro = xe.single.EOFRotator(n_modes=50, power=4)
 rot_pro.fit(model)
 components.append(rot_pro.components())
 scores.append(rot_pro.scores())

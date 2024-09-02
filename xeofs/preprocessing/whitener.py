@@ -4,13 +4,13 @@ import numpy as np
 import xarray as xr
 from typing_extensions import Self
 
-from ..models.svd import SVD
+from ..linalg._numpy import _fractional_matrix_power
+from ..linalg.svd import SVD
 from ..utils.data_types import (
     DataArray,
     Dims,
     DimsList,
 )
-from ..utils.linalg import fractional_matrix_power
 from ..utils.sanity_checks import assert_single_dataarray
 from .transformer import Transformer
 
@@ -184,7 +184,7 @@ class Whitener(Transformer):
         C = X.conj().T @ X / nc
         power = (self.alpha - 1) / 2
         svd_kwargs = {"random_state": self.random_state}
-        T = fractional_matrix_power(C, power, **svd_kwargs)
+        T = _fractional_matrix_power(C, power, **svd_kwargs)
         Tinv = np.linalg.inv(T)
         return T, Tinv
 
