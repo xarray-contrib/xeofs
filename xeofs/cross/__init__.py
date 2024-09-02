@@ -1,17 +1,21 @@
 import warnings
 
+from .cca import CCA, ComplexCCA, HilbertCCA
 from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
 from .cpcca_rotator import ComplexCPCCARotator, CPCCARotator, HilbertCPCCARotator
 from .mca import MCA, ComplexMCA, HilbertMCA
 from .mca_rotator import ComplexMCARotator, HilbertMCARotator, MCARotator
 
 __all__ = [
-    "ComplexMCA",
-    "ComplexCPCCA",
-    "HilbertMCA",
-    "HilbertCPCCA",
+    "CCA",
     "MCA",
     "CPCCA",
+    "ComplexCCA",
+    "ComplexMCA",
+    "ComplexCPCCA",
+    "HilbertCCA",
+    "HilbertMCA",
+    "HilbertCPCCA",
     "MCARotator",
     "CPCCARotator",
     "ComplexMCARotator",
