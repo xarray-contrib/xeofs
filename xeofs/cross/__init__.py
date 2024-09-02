@@ -5,16 +5,20 @@ from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
 from .cpcca_rotator import ComplexCPCCARotator, CPCCARotator, HilbertCPCCARotator
 from .mca import MCA, ComplexMCA, HilbertMCA
 from .mca_rotator import ComplexMCARotator, HilbertMCARotator, MCARotator
+from .rda import RDA, ComplexRDA, HilbertRDA
 
 __all__ = [
     "CCA",
     "MCA",
+    "RDA",
     "CPCCA",
     "ComplexCCA",
     "ComplexMCA",
+    "ComplexRDA",
     "ComplexCPCCA",
     "HilbertCCA",
     "HilbertMCA",
+    "HilbertRDA",
     "HilbertCPCCA",
     "MCARotator",
     "CPCCARotator",
