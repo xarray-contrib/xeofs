@@ -10,12 +10,15 @@ Methods that investigate relationships or patterns between variables **across tw
 
    ~xeofs.cross.CCA
    ~xeofs.cross.MCA
+   ~xeofs.cross.RDA
    ~xeofs.cross.CPCCA
    ~xeofs.cross.ComplexCCA
    ~xeofs.cross.ComplexMCA
+   ~xeofs.cross.ComplexRDA
    ~xeofs.cross.ComplexCPCCA
    ~xeofs.cross.HilbertCCA
    ~xeofs.cross.HilbertMCA
+   ~xeofs.cross.HilbertRDA
    ~xeofs.cross.HilbertCPCCA
 
 ------------------------------
