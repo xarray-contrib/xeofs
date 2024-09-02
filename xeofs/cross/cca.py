@@ -245,11 +245,11 @@ class HilbertCCA(HilbertCPCCA, ComplexCCA):
 
     This method solves the following optimization problem:
 
-        :math:`\\max_{q_x, q_y} \\left( q_x^T X^T Y q_y \\right)`
+        :math:`\\max_{q_x, q_y} \\left( q_x^H X^H Y q_y \\right)`
 
     subject to the constraints:
 
-        :math:`q_x^T (X^TX) q_x = 1, \\quad q_y^T (Y^TY) q_y = 1`
+        :math:`q_x^H (X^HX) q_x = 1, \\quad q_y^H (Y^HY) q_y = 1`
 
     where :math:`H` denotes the conjugate transpose and :math:`X` and :math:`Y`
     are the augmented data matrices.
@@ -335,7 +335,7 @@ class HilbertCCA(HilbertCPCCA, ComplexCCA):
         HilbertCPCCA.__init__(
             self,
             n_modes=n_modes,
-            alpha=[1.0, 1.0],
+            alpha=[0.0, 0.0],
             standardize=standardize,
             use_coslat=use_coslat,
             check_nans=check_nans,
