@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from xeofs.cross import CPCCA
+from xeofs.cross import CCA
 
 
 def generate_random_data(shape, lazy=False, seed=142):
@@ -53,51 +53,51 @@ def generate_well_conditioned_data(lazy=False):
 
 
 @pytest.fixture
-def cpcca():
-    return CPCCA(n_modes=1)
+def cca():
+    return CCA(n_modes=1)
 
 
 def test_initialization():
-    model = CPCCA()
+    model = CCA()
     assert model is not None
 
 
-def test_fit(cpcca):
+def test_fit(cca):
     X, Y = generate_well_conditioned_data()
-    cpcca.fit(X, Y, dim="sample")
-    assert hasattr(cpcca, "preprocessor1")
-    assert hasattr(cpcca, "preprocessor2")
-    assert hasattr(cpcca, "data")
+    cca.fit(X, Y, dim="sample")
+    assert hasattr(cca, "preprocessor1")
+    assert hasattr(cca, "preprocessor2")
+    assert hasattr(cca, "data")
 
 
-def test_fit_empty_data(cpcca):
+def test_fit_empty_data(cca):
     with pytest.raises(ValueError):
-        cpcca.fit(xr.DataArray(), xr.DataArray(), "time")
+        cca.fit(xr.DataArray(), xr.DataArray(), "time")
 
 
-def test_fit_invalid_dims(cpcca):
+def test_fit_invalid_dims(cca):
     X, Y = generate_well_conditioned_data()
     with pytest.raises(ValueError):
-        cpcca.fit(X, Y, dim=("invalid_dim1", "invalid_dim2"))
+        cca.fit(X, Y, dim=("invalid_dim1", "invalid_dim2"))
 
 
-def test_transform(cpcca):
+def test_transform(cca):
     X, Y = generate_well_conditioned_data()
-    cpcca.fit(X, Y, dim="sample")
-    result = cpcca.transform(X, Y)
+    cca.fit(X, Y, dim="sample")
+    result = cca.transform(X, Y)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
 
 
-def test_transform_unseen_data(cpcca):
+def test_transform_unseen_data(cca):
     X, Y = generate_well_conditioned_data()
     x = X.isel(sample=slice(151, 200))
     y = Y.isel(sample=slice(151, 200))
     X = X.isel(sample=slice(None, 150))
     Y = Y.isel(sample=slice(None, 150))
 
-    cpcca.fit(X, Y, "sample")
-    result = cpcca.transform(x, y)
+    cca.fit(X, Y, "sample")
+    result = cca.transform(x, y)
     assert isinstance(result, list)
     assert isinstance(result[0], xr.DataArray)
     # Check that unseen data can be transformed
@@ -105,49 +105,29 @@ def test_transform_unseen_data(cpcca):
     assert result[1].notnull().all()
 
 
-def test_inverse_transform(cpcca):
+def test_inverse_transform(cca):
     X, Y = generate_well_conditioned_data()
-    cpcca.fit(X, Y, "sample")
+    cca.fit(X, Y, "sample")
     # Assuming mode as 1 for simplicity
-    scores1 = cpcca.data["scores1"].sel(mode=1)
-    scores2 = cpcca.data["scores2"].sel(mode=1)
-    Xrec1, Xrec2 = cpcca.inverse_transform(scores1, scores2)
+    scores1 = cca.data["scores1"].sel(mode=1)
+    scores2 = cca.data["scores2"].sel(mode=1)
+    Xrec1, Xrec2 = cca.inverse_transform(scores1, scores2)
     assert isinstance(Xrec1, xr.DataArray)
     assert isinstance(Xrec2, xr.DataArray)
 
 
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (1.0, False),
-        (0.5, False),
-        (0.0, False),
-        (1.0, True),
-        (0.5, True),
-        (0.0, True),
-    ],
-)
-def test_squared_covariance_fraction(alpha, use_pca):
+@pytest.mark.parametrize("use_pca", [False, True])
+def test_squared_covariance_fraction(use_pca):
     X, Y = generate_well_conditioned_data()
-    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
-    cpcca.fit(X, Y, "sample")
-    scf = cpcca.squared_covariance_fraction()
+    cca = CCA(n_modes=2, use_pca=use_pca, n_pca_modes="all")
+    cca.fit(X, Y, "sample")
+    scf = cca.squared_covariance_fraction()
     assert isinstance(scf, xr.DataArray)
     assert all(scf <= 1), "Squared covariance fraction is greater than 1"
 
 
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (1.0, False),
-        (0.5, False),
-        (0.0, False),
-        (1.0, True),
-        (0.5, True),
-        (0.0, True),
-    ],
-)
-def test_total_squared_covariance(alpha, use_pca):
+@pytest.mark.parametrize("use_pca", [False, True])
+def test_total_squared_covariance(use_pca):
     X, Y = generate_well_conditioned_data()
 
     # Compute total squared covariance
@@ -156,17 +136,10 @@ def test_total_squared_covariance(alpha, use_pca):
     cov_mat = xr.cov(X_, Y_, dim="sample")
     tsc = (cov_mat**2).sum()
 
-    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
-    cpcca.fit(X, Y, "sample")
-    tsc_model = cpcca.data["total_squared_covariance"]
+    cca = CCA(n_modes=2, use_pca=use_pca, n_pca_modes="all")
+    cca.fit(X, Y, "sample")
+    tsc_model = cca.data["total_squared_covariance"]
     xr.testing.assert_allclose(tsc, tsc_model)
-
-
-def test_alpha_integer():
-    X, Y = generate_well_conditioned_data()
-
-    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
-    cpcca.fit(X, Y, "sample")
 
 
 def test_fit_different_coordinates():
@@ -174,25 +147,21 @@ def test_fit_different_coordinates():
     X, Y = generate_well_conditioned_data()
     X = X.isel(sample=slice(0, 99))
     Y = Y.isel(sample=slice(100, 199))
-    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
-    cpcca.fit(X, Y, "sample")
-    r = cpcca.cross_correlation_coefficients()
+    cca = CCA(n_modes=2, use_pca=False)
+    cca.fit(X, Y, "sample")
+    r = cca.cross_correlation_coefficients()
     # Correlation coefficents are not zero
     assert np.all(r > np.finfo(r.dtype).eps)
 
 
 @pytest.mark.parametrize(
     "dim",
-    [
-        (("time",)),
-        (("lat", "lon")),
-        (("lon", "lat")),
-    ],
+    [(("time",)), (("lat", "lon")), (("lon", "lat"))],
 )
 def test_components(mock_data_array, dim):
-    cpcca = CPCCA(n_modes=2, alpha=1, use_pca=False)
-    cpcca.fit(mock_data_array, mock_data_array, dim)
-    components1, components2 = cpcca.components()
+    cca = CCA(n_modes=2, use_pca=False)
+    cca.fit(mock_data_array, mock_data_array, dim)
+    components1, components2 = cca.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
     assert isinstance(components1, xr.DataArray)
     assert isinstance(components2, xr.DataArray)
@@ -204,47 +173,30 @@ def test_components(mock_data_array, dim):
     ), "Components2 does not have the right feature dimensions"
 
 
-@pytest.mark.parametrize(
-    "shapeX,shapeY,alpha,use_pca",
-    [
-        ((20, 10), (20, 10), 1.0, False),
-        ((20, 40), (20, 30), 1.0, False),
-        ((20, 10), (20, 40), 1.0, False),
-        ((20, 10), (20, 10), 0.5, False),
-        ((20, 40), (20, 30), 0.5, False),
-        ((20, 10), (20, 40), 0.5, False),
-        ((20, 10), (20, 10), 1.0, True),
-        ((20, 40), (20, 30), 1.0, True),
-        ((20, 10), (20, 40), 1.0, True),
-        ((20, 10), (20, 10), 0.5, True),
-        ((20, 40), (20, 30), 0.5, True),
-        ((20, 10), (20, 40), 0.5, True),
-    ],
-)
-def test_components_coordinates(shapeX, shapeY, alpha, use_pca):
+@pytest.mark.parametrize("shapeX", [(30, 10)])
+@pytest.mark.parametrize("shapeY", [(30, 10), (30, 5), (30, 15)])
+@pytest.mark.parametrize("use_pca", [False, True])
+def test_components_coordinates(shapeX, shapeY, use_pca):
     # Test that the components have the right coordinates
     X = generate_random_data(shapeX)
     Y = generate_random_data(shapeY)
 
-    cpcca = CPCCA(n_modes=2, alpha=alpha, use_pca=use_pca, n_pca_modes="all")
-    cpcca.fit(X, Y, "sample")
-    components1, components2 = cpcca.components()
+    cca = CCA(n_modes=2, use_pca=use_pca, n_pca_modes="all")
+    cca.fit(X, Y, "sample")
+    components1, components2 = cca.components()
     xr.testing.assert_equal(components1.coords["feature"], X.coords["feature"])
     xr.testing.assert_equal(components2.coords["feature"], Y.coords["feature"])
 
 
-@pytest.mark.parametrize(
-    "correction",
-    [(None), ("fdr_bh")],
-)
+@pytest.mark.parametrize("correction", [(None), ("fdr_bh")])
 def test_homogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
-    cpcca.fit(X, Y, "sample")
+    cca = CCA(n_modes=10, use_pca=False)
+    cca.fit(X, Y, "sample")
 
-    _ = cpcca.homogeneous_patterns(correction=correction)
+    _ = cca.homogeneous_patterns(correction=correction)
 
 
 @pytest.mark.parametrize(
@@ -255,45 +207,44 @@ def test_heterogeneous_patterns(correction):
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = CPCCA(n_modes=10, alpha=1, use_pca=False)
-    cpcca.fit(X, Y, "sample")
+    cca = CCA(n_modes=10, use_pca=False)
+    cca.fit(X, Y, "sample")
 
-    _ = cpcca.heterogeneous_patterns(correction=correction)
+    _ = cca.heterogeneous_patterns(correction=correction)
 
 
 def test_predict():
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    cpcca = CPCCA(n_modes=10, alpha=0.2, use_pca=False)
-    cpcca.fit(X, Y, "sample")
+    cca = CCA(n_modes=10, use_pca=False)
+    cca.fit(X, Y, "sample")
 
     Xnew = generate_random_data((200, 10), seed=123)
 
-    Ry_pred = cpcca.predict(Xnew)
-    _ = cpcca.inverse_transform(Y=Ry_pred)
+    Ry_pred = cca.predict(Xnew)
+    _ = cca.inverse_transform(Y=Ry_pred)
 
 
 @pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
-@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
-def test_save_load(tmp_path, engine, alpha):
+def test_save_load(tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
-    original = CPCCA(alpha=alpha)
+    original = CCA()
     original.fit(X, Y, "sample")
 
-    # Save the CPCCA model
-    original.save(tmp_path / "cpcca", engine=engine)
+    # Save the CCA model
+    original.save(tmp_path / "cca", engine=engine)
 
-    # Check that the CPCCA model has been saved
-    assert (tmp_path / "cpcca").exists()
+    # Check that the CCA model has been saved
+    assert (tmp_path / "cca").exists()
 
     # Recreate the model from saved file
-    loaded = CPCCA.load(tmp_path / "cpcca", engine=engine)
+    loaded = CCA.load(tmp_path / "cca", engine=engine)
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
@@ -321,10 +272,10 @@ def test_save_load(tmp_path, engine, alpha):
 
 def test_serialize_deserialize_dataarray(mock_data_array):
     """Test roundtrip serialization when the model is fit on a DataArray."""
-    model = CPCCA()
+    model = CCA()
     model.fit(mock_data_array, mock_data_array, "time")
     dt = model.serialize()
-    rebuilt_model = CPCCA.deserialize(dt)
+    rebuilt_model = CCA.deserialize(dt)
     assert np.allclose(
         model.transform(mock_data_array), rebuilt_model.transform(mock_data_array)
     )
@@ -332,10 +283,10 @@ def test_serialize_deserialize_dataarray(mock_data_array):
 
 def test_serialize_deserialize_dataset(mock_dataset):
     """Test roundtrip serialization when the model is fit on a Dataset."""
-    model = CPCCA()
+    model = CCA()
     model.fit(mock_dataset, mock_dataset, "time")
     dt = model.serialize()
-    rebuilt_model = CPCCA.deserialize(dt)
+    rebuilt_model = CCA.deserialize(dt)
     assert np.allclose(
         model.transform(mock_dataset), rebuilt_model.transform(mock_dataset)
     )

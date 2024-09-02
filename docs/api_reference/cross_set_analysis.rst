@@ -8,10 +8,13 @@ Methods that investigate relationships or patterns between variables **across tw
    :template: custom-class-template.rst
    :recursive:
 
+   ~xeofs.cross.CCA
    ~xeofs.cross.MCA
    ~xeofs.cross.CPCCA
+   ~xeofs.cross.ComplexCCA
    ~xeofs.cross.ComplexMCA
    ~xeofs.cross.ComplexCPCCA
+   ~xeofs.cross.HilbertCCA
    ~xeofs.cross.HilbertMCA
    ~xeofs.cross.HilbertCPCCA
 
