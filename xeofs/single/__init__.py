@@ -5,12 +5,14 @@ from .eof import EOF, ComplexEOF, HilbertEOF
 from .eof_rotator import ComplexEOFRotator, EOFRotator, HilbertEOFRotator
 from .gwpca import GWPCA
 from .opa import OPA
+from .pop import POP
 from .sparse_pca import SparsePCA
 
 __all__ = [
     "EOF",
     "ExtendedEOF",
     "SparsePCA",
+    "POP",
     "OPA",
     "GWPCA",
     "ComplexEOF",

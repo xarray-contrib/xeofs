@@ -10,6 +10,7 @@ class SVD:
     def __init__(
         self,
         n_modes: int | float | str,
+        is_complex: bool | str = "auto",
         init_rank_reduction: float = 0.3,
         flip_signs: bool = True,
         solver: str = "auto",
@@ -20,6 +21,7 @@ class SVD:
         feature_name: str = "feature",
     ):
         self.n_modes = n_modes
+        self.is_complex = is_complex
         self.init_rank_reduction = init_rank_reduction
         self.flip_signs = flip_signs
         self.solver = solver
@@ -54,6 +56,7 @@ class SVD:
             flip_signs=self.flip_signs,
             solver=self.solver,
             random_state=self.random_state,
+            is_complex=self.is_complex,
             **self.solver_kwargs,
         )
         U, s, V = xr.apply_ufunc(

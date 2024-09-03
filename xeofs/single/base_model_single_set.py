@@ -156,6 +156,7 @@ class BaseModelSingleSet(BaseModel):
 
         if self._params["compute"]:
             self.data.compute()
+            self._post_compute()
 
         return self
 

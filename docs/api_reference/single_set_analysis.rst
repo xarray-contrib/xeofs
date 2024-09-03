@@ -13,6 +13,7 @@ Methods that investigate relationships or patterns between variables within a si
     ~xeofs.single.ComplexEOF
     ~xeofs.single.HilbertEOF
     ~xeofs.single.ExtendedEOF
+    ~xeofs.single.POP
     ~xeofs.single.OPA
     ~xeofs.single.GWPCA
     ~xeofs.single.SparsePCA
