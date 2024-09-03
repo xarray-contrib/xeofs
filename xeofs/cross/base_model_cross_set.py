@@ -304,6 +304,7 @@ class BaseModelCrossSet(BaseModel):
 
         if self.get_params()["compute"]:
             self.data.compute()
+            self._post_compute()
 
         return self
 

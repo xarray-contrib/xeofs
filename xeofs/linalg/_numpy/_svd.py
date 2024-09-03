@@ -66,6 +66,7 @@ class _SVD:
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         solver_kwargs: dict = {},
+        is_complex: bool | str = "auto",
     ):
         sanity_check_n_modes(n_modes)
         self.is_based_on_variance = True if isinstance(n_modes, float) else False
@@ -83,6 +84,7 @@ class _SVD:
         self.solver = solver
         self.random_state = random_state
         self.solver_kwargs = solver_kwargs
+        self.is_complex = is_complex
 
     def _get_n_modes_precompute(self, rank: int) -> int:
         if self.is_based_on_variance:
@@ -122,7 +124,17 @@ class _SVD:
         # Source: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
         use_dask = True if isinstance(X, DaskArray) else False
-        use_complex = True if np.iscomplexobj(X) else False
+
+        match self.is_complex:
+            case bool():
+                use_complex = self.is_complex
+            case "auto":
+                use_complex = True if np.iscomplexobj(X) else False
+            case _:
+                raise ValueError(
+                    f"Unrecognized value for is_complex '{self.is_complex}'. "
+                    "Valid options are True, False, and 'auto'."
+                )
 
         is_small_data = max(X.shape) < 500
 
