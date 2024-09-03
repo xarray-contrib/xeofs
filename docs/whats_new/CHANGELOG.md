@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [unreleased]
+
+### 🔖 Documentation
+
+- **(changelog)** update changelog - ([be6664d](https://github.com/nicrie/xeofs/commit/be6664d08c49e5f588bc44bcd8f1852d4bea2c43)) - github-actions[bot]
+- **(readme)** fix broken badges (#204) - ([72e8c60](https://github.com/nicrie/xeofs/commit/72e8c60941bd00a091e5d6d27635622a26aa9bcf)) - Niclas Rieger
+
+---
 ## [2.4.1](https://github.com/nicrie/xeofs/compare/v2.4.0..v2.4.1) - 2024-08-31
 
 ### 🐛 Bug Fixes
