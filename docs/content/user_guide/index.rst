@@ -31,7 +31,7 @@ Finally, if you're using xeofs in your academic work, please consider citing the
   :caption: Getting Started
 
   why
-  is_this_for_me
+  should_i_use_this
   installation
   quickstart
 
