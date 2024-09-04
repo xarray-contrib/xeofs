@@ -1,12 +1,12 @@
 
-.. image:: ../logos/xeofs_logo_dark.png
+.. image:: logos/xeofs_logo_dark.png
   :class: only-dark
   :align: center
   :width: 1000
   :alt: logo of xeofs
 
 
-.. image:: ../logos/xeofs_logo_light.png
+.. image:: logos/xeofs_logo_light.png
   :class: only-light
   :align: center
   :width: 1000
@@ -24,11 +24,11 @@ Extracting Patterns from Climate Data
   :maxdepth: 3
   :hidden:
 
-  user_guide/index
-  user_guide/installation
-  api_reference/index
-  whats_new/CHANGELOG
-  contributing
+  content/user_guide/index
+  content/user_guide/installation
+  content/api_reference/index
+  content/whats_new/CHANGELOG
+  content/contributing
 
 
 
@@ -38,7 +38,7 @@ xeofs is a specialized Python package designed for dimensionality reduction in c
 
     .. grid-item-card:: 
       :octicon:`repo;10em`
-      :link: user_guide/index
+      :link: content/user_guide/index
       :link-type: doc
       :text-align: center
 
@@ -48,7 +48,7 @@ xeofs is a specialized Python package designed for dimensionality reduction in c
 
     .. grid-item-card::
       :octicon:`gear;10em`
-      :link: user_guide/installation
+      :link: content/user_guide/installation
       :link-type: doc
       :text-align: center
 
@@ -61,7 +61,7 @@ xeofs is a specialized Python package designed for dimensionality reduction in c
 
     .. grid-item-card::
       :octicon:`search;10em`
-      :link: api_reference/index
+      :link: content/api_reference/index
       :link-type: doc
       :text-align: center
 
@@ -71,7 +71,7 @@ xeofs is a specialized Python package designed for dimensionality reduction in c
 
     .. grid-item-card::
       :octicon:`people;10em`
-      :link: contributing
+      :link: content/contributing
       :link-type: doc
       :text-align: center
 
@@ -87,7 +87,7 @@ xeofs is a specialized Python package designed for dimensionality reduction in c
 
 .. note:: 
 
-    Version 3 has been released! Check out the :doc:`CHANGELOG<whats_new/CHANGELOG>` for more details. For users of previous versions, see the :doc:`migration guide<user_guide/migration_v3>`.
+    Version 3 has been released! Check out the :doc:`CHANGELOG<content/whats_new/CHANGELOG>` for more details. For users of previous versions, see the :doc:`migration guide<content/user_guide/migration_v3>`.
 
 .. _xarray: https://docs.xarray.dev/en/stable/index.html
 .. _Dask: https://dask.org/
