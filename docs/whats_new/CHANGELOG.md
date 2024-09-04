@@ -3,12 +3,37 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
-## [unreleased]
+## [3.0.0](https://github.com/nicrie/xeofs/compare/v2.4.1..v3.0.0) - 2024-09-04
+
+### ⭐ Features
+
+-  [**BREAKING**] Support for Complex and Hilbert models (#202) - ([77ac921](https://github.com/nicrie/xeofs/commit/77ac921cbbbec8db91143d40a144ef65eab1098c)) - Niclas Rieger
+- add Continuum Power CCA (#196) - ([de9eaa7](https://github.com/nicrie/xeofs/commit/de9eaa7819c9237d2b8011e6940baa6511d1cd51)) - Niclas Rieger
+-  [**BREAKING**] remove verbose parameter (#205) - ([2fd90dd](https://github.com/nicrie/xeofs/commit/2fd90dd06dd2ca919c21fed6eb53a14aee61a5bb)) - Niclas Rieger
+- change default value of parameter `normalized` (#207) - ([278d2ee](https://github.com/nicrie/xeofs/commit/278d2ee28e9366631537c78de5a4778ae6c76b0d)) - Niclas Rieger
+- add CCA as cross-set analysis (#211) - ([fcba987](https://github.com/nicrie/xeofs/commit/fcba987d513674bccdf5b25226eb2a5c9a9d83e2)) - Niclas Rieger
+- add Redundancy Analysis (#212) - ([76c4605](https://github.com/nicrie/xeofs/commit/76c4605917213af33cd030b730589f5c1b4daa95)) - Niclas Rieger
+- add POP analysis (#215) - ([5a0cc95](https://github.com/nicrie/xeofs/commit/5a0cc95346963a73b1a44f61ce1d2e097867edbd)) - Niclas Rieger
+
+### 🐛 Bug Fixes
+
+- standardize variable names to `X` and `Y` for consistency (#206) - ([a1ebe58](https://github.com/nicrie/xeofs/commit/a1ebe582ef8c4714f864d67c3ab5d64ecd2f596b)) - Niclas Rieger
+- alpha paramter in Hilbert CCA (#213) - ([dba4478](https://github.com/nicrie/xeofs/commit/dba44787e6cb25c61301cdc7031e0acab9c72854)) - Niclas Rieger
 
 ### 🔖 Documentation
 
 - **(changelog)** update changelog - ([be6664d](https://github.com/nicrie/xeofs/commit/be6664d08c49e5f588bc44bcd8f1852d4bea2c43)) - github-actions[bot]
+- **(changelog)** update changelog - ([a4e1be2](https://github.com/nicrie/xeofs/commit/a4e1be220ed572e6bd8490a0e1a7f4e1ad6ac34d)) - github-actions[bot]
 - **(readme)** fix broken badges (#204) - ([72e8c60](https://github.com/nicrie/xeofs/commit/72e8c60941bd00a091e5d6d27635622a26aa9bcf)) - Niclas Rieger
+
+### 🛠️ Refactoring
+
+- **(typing)** use built-in types for annotations (#208) - ([7505350](https://github.com/nicrie/xeofs/commit/75053507a2a4128d25e2c46fe24ef0f85a07364a)) - Niclas Rieger
+-  [**BREAKING**] reorganize methods into new namespaces (#210) - ([675983f](https://github.com/nicrie/xeofs/commit/675983fbb030380e6bde5ce7ede02346d8c9debe)) - Niclas Rieger
+
+### ⚙️ Miscellaneous
+
+- merge branch 'main' into develop - ([8acc4ae](https://github.com/nicrie/xeofs/commit/8acc4ae213ce2d91a3ce78fb07dabfff180e0f9f)) - Niclas Rieger
 
 ---
 ## [2.4.1](https://github.com/nicrie/xeofs/compare/v2.4.0..v2.4.1) - 2024-08-31
