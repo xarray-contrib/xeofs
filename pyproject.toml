@@ -1,6 +1,6 @@
 [project]
 name = "xeofs"
-version = "2.4.1"
+version = "3.0.0"
 description = "Comprehensive EOF analysis in Python with xarray: A versatile, multidimensional, and scalable tool for advanced climate data analysis"
 authors = [
     {name = "Niclas Rieger", email = "niclasrieger@gmail.com"},
