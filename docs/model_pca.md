@@ -20,7 +20,7 @@ import cartopy.feature as cfeature
 import ipywidgets as widgets
 from IPython.display import display
 from cartopy.crs import LambertAzimuthalEqualArea, PlateCarree
-from xeofs.models import EOF
+from xeofs.single import EOF
 
 t2m = xr.tutorial.load_dataset('air_temperature')['air']
 

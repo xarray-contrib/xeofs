@@ -45,6 +45,23 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="In this tutorial, we&#x27;ll walk through how to perform a Complex EOF analysis on the zonal and mer...">
+
+.. only:: html
+
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_complex_eof_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Complex EOF analysis</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="EOF analysis in T-mode maximises the spatial variance.">
 
 .. only:: html
@@ -62,18 +79,18 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Complex EOF (or Hilbert EOF) analysis [1]_ [2]_ [3]_. This meth...">
+    <div class="sphx-glr-thumbcontainer" tooltip="We demonstrate how to execute a Hilbert EOF analysis [1]_ [2]_ [3]_. This method extends tradit...">
 
 .. only:: html
 
-  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_complex_eof_thumb.png
+  .. image:: /auto_examples/1single/images/thumb/sphx_glr_plot_hilbert_eof_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_1single_plot_complex_eof.py`
+  :ref:`sphx_glr_auto_examples_1single_plot_hilbert_eof.py`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Complex/Hilbert EOF analysis</div>
+      <div class="sphx-glr-thumbnail-title">Hilbert EOF analysis</div>
     </div>
 
 
@@ -200,7 +217,55 @@ Here you can find some examples of how to use the library.
 
     </div>
 
-2 | Multi-Set Analysis
+2 | Cross-Set Analysis
+========================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+  .. image:: /auto_examples/2cross/images/thumb/sphx_glr_plot_mca_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_2cross_plot_mca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Maximum Covariance Analysis</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Rotated Maximum Covariance Analysis (MCA) between two data sets.">
+
+.. only:: html
+
+  .. image:: /auto_examples/2cross/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_2cross_plot_rotated_mca.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Rotated Maximum Covariance Analysis</div>
+    </div>
+
+
+.. raw:: html
+
+    </div>
+
+3 | Multi-Set Analysis
 ========================
 
 
@@ -216,10 +281,10 @@ Here you can find some examples of how to use the library.
 
 .. only:: html
 
-  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_cca_thumb.png
+  .. image:: /auto_examples/3multi/images/thumb/sphx_glr_plot_cca_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_2multi_plot_cca.py`
+  :ref:`sphx_glr_auto_examples_3multi_plot_cca.py`
 
 .. raw:: html
 
@@ -229,43 +294,9 @@ Here you can find some examples of how to use the library.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Maximum Covariance Analysis (MCA) between two data sets.">
-
-.. only:: html
-
-  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_mca_thumb.png
-    :alt:
-
-  :ref:`sphx_glr_auto_examples_2multi_plot_mca.py`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Maximum Covariance Analysis</div>
     </div>
 
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="Rotated Maximum Covariance Analysis (MCA) between two data sets.">
-
-.. only:: html
-
-  .. image:: /auto_examples/2multi/images/thumb/sphx_glr_plot_rotated_mca_thumb.png
-    :alt:
-
-  :ref:`sphx_glr_auto_examples_2multi_plot_rotated_mca.py`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Rotated Maximum Covariance Analysis</div>
-    </div>
-
-
-.. raw:: html
-
-    </div>
-
-3 | Validation
+4 | Validation
 ===============
 
 
@@ -280,10 +311,10 @@ Here you can find some examples of how to use the library.
 
 .. only:: html
 
-  .. image:: /auto_examples/3validation/images/thumb/sphx_glr_plot_bootstrap_thumb.png
+  .. image:: /auto_examples/4validation/images/thumb/sphx_glr_plot_bootstrap_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_3validation_plot_bootstrap.py`
+  :ref:`sphx_glr_auto_examples_4validation_plot_bootstrap.py`
 
 .. raw:: html
 
@@ -302,8 +333,9 @@ Here you can find some examples of how to use the library.
 
 
    /auto_examples/1single/index.rst
-   /auto_examples/2multi/index.rst
-   /auto_examples/3validation/index.rst
+   /auto_examples/2cross/index.rst
+   /auto_examples/3multi/index.rst
+   /auto_examples/4validation/index.rst
 
 
 .. only:: html

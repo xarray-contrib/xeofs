@@ -37,7 +37,7 @@ then be evaluated later using ``.compute()``.
   import numpy as np
   import xarray as xr
 
-  from xeofs.models import EOF, EOFRotator
+  from xeofs.single import EOF, EOFRotator
 
   data = xr.DataArray(
       da.random.random((5000, 720, 360), chunks=(100, 100, 100)),

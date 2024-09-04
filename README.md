@@ -65,9 +65,9 @@ In order to get started with `xeofs`, follow these simple steps:
 Initiate and fit the EOF/PCA model to the data
 
 ```python
->>> eof = xe.models.EOF(n_modes=10)
+>>> eof = xe.single.EOF(n_modes=10)
 >>> eof.fit(t2m, dim="time")  # doctest: +ELLIPSIS
-<xeofs.models.eof.EOF object at ...>
+<xeofs.single.eof.EOF object at ...>
 
 ```
 Now, you can access the model's EOF components and PC scores:
@@ -82,9 +82,9 @@ Now, you can access the model's EOF components and PC scores:
 Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated EOF analysis
 
 ```python
->>> rotator = xe.models.EOFRotator(n_modes=3)
+>>> rotator = xe.single.EOFRotator(n_modes=3)
 >>> rotator.fit(eof) # doctest: +ELLIPSIS
-<xeofs.models.eof_rotator.EOFRotator object at ...>
+<xeofs.single.eof_rotator.EOFRotator object at ...>
 
 >>> rot_comps = rotator.components()  # Rotated EOFs (spatial patterns)
 >>> rot_scores = rotator.scores()  # Rotated PCs (temporal patterns)
@@ -94,9 +94,9 @@ Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated 
 **Maximum Covariance Analysis (MCA)**
 
 ```python
->>> mca = xe.models.MCA(n_modes=10)
+>>> mca = xe.cross.MCA(n_modes=10)
 >>> mca.fit(t2m_west, t2m_east, dim="time")  # doctest: +ELLIPSIS
-<xeofs.models.mca.MCA object at ...>
+<xeofs.cross.mca.MCA object at ...>
 
 >>> comps1, comps2 = mca.components()  # Singular vectors (spatial patterns)
 >>> scores1, scores2 = mca.scores()  # Expansion coefficients (temporal patterns)
@@ -106,9 +106,9 @@ Initiate and fit an `EOFRotator` class to the model to obtain a varimax-rotated 
 **Varimax-rotated MCA**
 
 ```python
->>> rotator = xe.models.MCARotator(n_modes=10)
+>>> rotator = xe.cross.MCARotator(n_modes=10)
 >>> rotator.fit(mca)  # doctest: +ELLIPSIS
-<xeofs.models.mca_rotator.MCARotator object at ...>
+<xeofs.cross.mca_rotator.MCARotator object at ...>
 
 >>> rot_comps = rotator.components()  # Rotated singular vectors (spatial patterns)
 >>> rot_scores = rotator.scores()  # Rotated expansion coefficients (temporal patterns)

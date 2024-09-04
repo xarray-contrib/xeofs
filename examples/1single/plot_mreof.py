@@ -6,12 +6,12 @@ Multivariate EOF analysis with additional Varimax rotation.
 """
 
 # Load packages and data:
-import xarray as xr
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+import xarray as xr
 from cartopy.crs import PlateCarree
+from matplotlib.gridspec import GridSpec
 
-from xeofs.models import EOF, EOFRotator
+import xeofs as xe
 
 # %%
 # Create four different dataarrayss
@@ -25,9 +25,9 @@ subset4 = sst.isel(lon=slice(136, None))
 # Perform the actual analysis
 
 multivariate_data = [subset1, subset2, subset3, subset4]
-mpca = EOF(n_modes=100, standardize=False, use_coslat=True)
+mpca = xe.single.EOF(n_modes=100, standardize=False, use_coslat=True)
 mpca.fit(multivariate_data, dim="time")
-rotator = EOFRotator(n_modes=20)
+rotator = xe.single.EOFRotator(n_modes=20)
 rotator.fit(mpca)
 rcomponents = rotator.components()
 rscores = rotator.scores()

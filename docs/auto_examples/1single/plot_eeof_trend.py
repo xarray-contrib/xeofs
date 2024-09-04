@@ -8,9 +8,10 @@ to isolate and remove nonlinear trends within a dataset.
 Let's begin by setting up the required packages and fetching the data.
 """
 
-import xarray as xr
-import xeofs as xe
 import matplotlib.pyplot as plt
+import xarray as xr
+
+import xeofs as xe
 
 xr.set_options(display_expand_data=False)
 
@@ -26,7 +27,7 @@ sst = sst.groupby("time.month") - sst.groupby("time.month").mean("time")
 # %%
 # We start by performing a standard EOF analysis on the dataset.
 
-eof = xe.models.EOF(n_modes=10)
+eof = xe.single.EOF(n_modes=10)
 eof.fit(sst, dim="time")
 scores = eof.scores()
 components = eof.components()
@@ -49,7 +50,7 @@ components.sel(mode=1).plot(ax=ax[1])
 # to capture long-term trends. To speed up computation, we apply the EEOF analysis
 # to the extended (lag) covariance matrix derived from the first 50 PCs.
 
-eeof = xe.models.ExtendedEOF(n_modes=5, tau=1, embedding=120, n_pca_modes=50)
+eeof = xe.single.ExtendedEOF(n_modes=5, tau=1, embedding=120, n_pca_modes=50)
 eeof.fit(sst, dim="time")
 components_ext = eeof.components()
 scores_ext = eeof.scores()
@@ -65,13 +66,13 @@ components_ext.sel(mode=1, embedding=0).plot(ax=ax[1])
 # We can use this to the first mode to remove this nonlinear trend from our original dataset.
 
 sst_trends = eeof.inverse_transform(scores_ext.sel(mode=1))
-sst_detrended = sst - sst_trends.drop_vars("mode")
+sst_detrended = sst - sst_trends
 
 
 # %%
 # Reapplying the standard EOF analysis on our now detrended dataset:
 
-eof_model_detrended = xe.models.EOF(n_modes=5)
+eof_model_detrended = xe.single.EOF(n_modes=5)
 eof_model_detrended.fit(sst_detrended, dim="time")
 scores_detrended = eof_model_detrended.scores()
 components_detrended = eof_model_detrended.components()

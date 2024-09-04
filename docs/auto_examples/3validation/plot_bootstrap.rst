@@ -24,31 +24,30 @@ Significance testing of EOF analysis via bootstrap
 Test the significance of individual modes and obtain confidence intervals
 for both EOFs and PCs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-19
+.. GENERATED FROM PYTHON SOURCE LINES 8-18
 
-.. code-block:: Python
+.. code-block:: default
 
 
     # Load packages and data:
+    import matplotlib.pyplot as plt
     import numpy as np
     import xarray as xr
-    import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
     from cartopy.crs import Orthographic, PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF
-    from xeofs.validation import EOFBootstrapper
-
-
+    import xeofs as xe
 
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-23
 
-.. code-block:: Python
+
+.. GENERATED FROM PYTHON SOURCE LINES 19-22
+
+.. code-block:: default
 
 
     t2m = xr.tutorial.load_dataset("air_temperature")["air"]
@@ -60,16 +59,16 @@ for both EOFs and PCs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-25
+.. GENERATED FROM PYTHON SOURCE LINES 23-24
 
 Perform EOF analysis
 
-.. GENERATED FROM PYTHON SOURCE LINES 25-33
+.. GENERATED FROM PYTHON SOURCE LINES 24-32
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    model = EOF(n_modes=5, standardize=False)
+    model = xe.single.EOF(n_modes=5, standardize=False)
     model.fit(t2m, dim="time")
     expvar = model.explained_variance_ratio()
     components = model.components()
@@ -83,21 +82,21 @@ Perform EOF analysis
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-38
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 Perform bootstrapping of the model to identy the number of significant modes.
 We perform 50 bootstraps.
 Note - if computationallly feasible - you typically want to choose higher
 numbers of bootstraps e.g. 1000.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-55
+.. GENERATED FROM PYTHON SOURCE LINES 37-54
 
-.. code-block:: Python
+.. code-block:: default
 
 
     n_boot = 50
 
-    bs = EOFBootstrapper(n_bootstraps=n_boot)
+    bs = xe.validation.EOFBootstrapper(n_bootstraps=n_boot)
     bs.fit(model)
     bs_expvar = bs.explained_variance()
     ci_expvar = bs_expvar.quantile([0.025, 0.975], "n")  # 95% confidence intervals
@@ -119,21 +118,21 @@ numbers of bootstraps e.g. 1000.
 
  .. code-block:: none
 
-      0%|          | 0/50 [00:00<?, ?it/s]      2%|▏         | 1/50 [00:00<00:13,  3.65it/s]      4%|▍         | 2/50 [00:00<00:12,  3.85it/s]      6%|▌         | 3/50 [00:00<00:12,  3.89it/s]      8%|▊         | 4/50 [00:01<00:11,  3.93it/s]     10%|█         | 5/50 [00:01<00:11,  3.93it/s]     12%|█▏        | 6/50 [00:01<00:11,  3.75it/s]     14%|█▍        | 7/50 [00:01<00:11,  3.82it/s]     16%|█▌        | 8/50 [00:02<00:10,  3.85it/s]     18%|█▊        | 9/50 [00:02<00:10,  3.89it/s]     20%|██        | 10/50 [00:02<00:10,  3.91it/s]     22%|██▏       | 11/50 [00:02<00:10,  3.84it/s]     24%|██▍       | 12/50 [00:03<00:09,  3.86it/s]     26%|██▌       | 13/50 [00:03<00:09,  3.89it/s]     28%|██▊       | 14/50 [00:03<00:09,  3.93it/s]     30%|███       | 15/50 [00:03<00:08,  3.92it/s]     32%|███▏      | 16/50 [00:04<00:08,  3.89it/s]     34%|███▍      | 17/50 [00:04<00:08,  3.91it/s]     36%|███▌      | 18/50 [00:04<00:08,  3.93it/s]     38%|███▊      | 19/50 [00:04<00:07,  3.94it/s]     40%|████      | 20/50 [00:05<00:07,  3.96it/s]     42%|████▏     | 21/50 [00:05<00:07,  3.96it/s]     44%|████▍     | 22/50 [00:05<00:07,  3.97it/s]     46%|████▌     | 23/50 [00:05<00:06,  3.95it/s]     48%|████▊     | 24/50 [00:06<00:06,  3.95it/s]     50%|█████     | 25/50 [00:06<00:06,  3.95it/s]     52%|█████▏    | 26/50 [00:06<00:06,  3.96it/s]     54%|█████▍    | 27/50 [00:06<00:05,  3.96it/s]     56%|█████▌    | 28/50 [00:07<00:05,  3.97it/s]     58%|█████▊    | 29/50 [00:07<00:05,  3.97it/s]     60%|██████    | 30/50 [00:07<00:05,  3.98it/s]     62%|██████▏   | 31/50 [00:07<00:04,  3.97it/s]     64%|██████▍   | 32/50 [00:08<00:04,  3.84it/s]     66%|██████▌   | 33/50 [00:08<00:04,  3.86it/s]     68%|██████▊   | 34/50 [00:08<00:04,  3.90it/s]     70%|███████   | 35/50 [00:08<00:03,  3.91it/s]     72%|███████▏  | 36/50 [00:09<00:03,  3.92it/s]     74%|███████▍  | 37/50 [00:09<00:03,  3.93it/s]     76%|███████▌  | 38/50 [00:09<00:03,  3.94it/s]     78%|███████▊  | 39/50 [00:09<00:02,  3.94it/s]     80%|████████  | 40/50 [00:10<00:02,  3.93it/s]     82%|████████▏ | 41/50 [00:10<00:02,  3.88it/s]     84%|████████▍ | 42/50 [00:10<00:02,  3.88it/s]     86%|████████▌ | 43/50 [00:11<00:01,  3.73it/s]     88%|████████▊ | 44/50 [00:11<00:01,  3.79it/s]     90%|█████████ | 45/50 [00:11<00:01,  3.76it/s]     92%|█████████▏| 46/50 [00:11<00:01,  3.74it/s]     94%|█████████▍| 47/50 [00:12<00:00,  3.78it/s]     96%|█████████▌| 48/50 [00:12<00:00,  3.61it/s]     98%|█████████▊| 49/50 [00:12<00:00,  3.50it/s]    100%|██████████| 50/50 [00:12<00:00,  3.51it/s]    100%|██████████| 50/50 [00:12<00:00,  3.85it/s]
+      0%|          | 0/50 [00:00<?, ?it/s]      2%|▏         | 1/50 [00:00<00:47,  1.02it/s]      4%|▍         | 2/50 [00:02<00:49,  1.03s/it]      6%|▌         | 3/50 [00:03<00:49,  1.05s/it]      8%|▊         | 4/50 [00:03<00:39,  1.17it/s]     10%|█         | 5/50 [00:04<00:34,  1.31it/s]     12%|█▏        | 6/50 [00:04<00:30,  1.44it/s]     14%|█▍        | 7/50 [00:05<00:26,  1.60it/s]     16%|█▌        | 8/50 [00:05<00:24,  1.72it/s]     18%|█▊        | 9/50 [00:06<00:22,  1.86it/s]     20%|██        | 10/50 [00:06<00:21,  1.89it/s]     22%|██▏       | 11/50 [00:07<00:22,  1.72it/s]     24%|██▍       | 12/50 [00:08<00:33,  1.15it/s]     26%|██▌       | 13/50 [00:10<00:37,  1.02s/it]     28%|██▊       | 14/50 [00:11<00:36,  1.02s/it]     30%|███       | 15/50 [00:12<00:34,  1.00it/s]     32%|███▏      | 16/50 [00:12<00:29,  1.17it/s]     34%|███▍      | 17/50 [00:13<00:24,  1.33it/s]     36%|███▌      | 18/50 [00:14<00:23,  1.35it/s]     38%|███▊      | 19/50 [00:15<00:31,  1.02s/it]     40%|████      | 20/50 [00:17<00:34,  1.15s/it]     42%|████▏     | 21/50 [00:18<00:31,  1.08s/it]     44%|████▍     | 22/50 [00:18<00:26,  1.06it/s]     46%|████▌     | 23/50 [00:19<00:21,  1.25it/s]     48%|████▊     | 24/50 [00:19<00:18,  1.37it/s]     50%|█████     | 25/50 [00:20<00:16,  1.54it/s]     52%|█████▏    | 26/50 [00:20<00:15,  1.54it/s]     54%|█████▍    | 27/50 [00:21<00:14,  1.58it/s]     56%|█████▌    | 28/50 [00:22<00:18,  1.22it/s]     58%|█████▊    | 29/50 [00:24<00:20,  1.02it/s]     60%|██████    | 30/50 [00:24<00:17,  1.12it/s]     62%|██████▏   | 31/50 [00:25<00:15,  1.22it/s]     64%|██████▍   | 32/50 [00:26<00:15,  1.20it/s]     66%|██████▌   | 33/50 [00:27<00:14,  1.18it/s]     68%|██████▊   | 34/50 [00:28<00:14,  1.09it/s]     70%|███████   | 35/50 [00:29<00:15,  1.06s/it]     72%|███████▏  | 36/50 [00:30<00:12,  1.10it/s]     74%|███████▍  | 37/50 [00:31<00:11,  1.09it/s]     76%|███████▌  | 38/50 [00:31<00:10,  1.19it/s]     78%|███████▊  | 39/50 [00:32<00:08,  1.32it/s]     80%|████████  | 40/50 [00:32<00:06,  1.48it/s]     82%|████████▏ | 41/50 [00:33<00:05,  1.61it/s]     84%|████████▍ | 42/50 [00:34<00:05,  1.45it/s]     86%|████████▌ | 43/50 [00:35<00:05,  1.26it/s]     88%|████████▊ | 44/50 [00:35<00:04,  1.31it/s]     90%|█████████ | 45/50 [00:36<00:03,  1.46it/s]     92%|█████████▏| 46/50 [00:37<00:02,  1.47it/s]     94%|█████████▍| 47/50 [00:37<00:02,  1.50it/s]     96%|█████████▌| 48/50 [00:38<00:01,  1.61it/s]     98%|█████████▊| 49/50 [00:39<00:00,  1.37it/s]    100%|██████████| 50/50 [00:39<00:00,  1.47it/s]    100%|██████████| 50/50 [00:39<00:00,  1.26it/s]
     0.0 modes are significant at alpha=0.05
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 55-58
 
 The bootstrapping procedure identifies 3 significant modes. We can also
 compute the 95 % confidence intervals of the EOFs/PCs and mask out
 insignificant elements of the obtained EOFs.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-66
+.. GENERATED FROM PYTHON SOURCE LINES 58-65
 
-.. code-block:: Python
+.. code-block:: default
 
 
     ci_components = bs.components().quantile([0.025, 0.975], "n")
@@ -149,13 +148,13 @@ insignificant elements of the obtained EOFs.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-68
+.. GENERATED FROM PYTHON SOURCE LINES 66-67
 
 Summarize the results in a figure.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-97
+.. GENERATED FROM PYTHON SOURCE LINES 67-96
 
-.. code-block:: Python
+.. code-block:: default
 
 
 
@@ -201,7 +200,7 @@ Summarize the results in a figure.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 16.004 seconds)
+   **Total running time of the script:** (0 minutes 46.918 seconds)
 
 
 .. _sphx_glr_download_auto_examples_3validation_plot_bootstrap.py:
@@ -210,13 +209,16 @@ Summarize the results in a figure.
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_bootstrap.ipynb <plot_bootstrap.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_bootstrap.py <plot_bootstrap.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_bootstrap.ipynb <plot_bootstrap.ipynb>`
 
 
 .. only:: html

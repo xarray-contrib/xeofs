@@ -1,13 +1,11 @@
-from typing import Optional, Dict
-from typing_extensions import Self
-
 import dask
 import numpy as np
 import xarray as xr
+from typing_extensions import Self
 
-from .transformer import Transformer
-from ..utils.data_types import Dims, DataArray, DataVar, DataVarBound
+from ..utils.data_types import DataArray, DataVar, DataVarBound, Dims
 from ..utils.xarray_utils import compute_sqrt_cos_lat_weights, feature_ones_like
+from .transformer import Transformer
 
 
 class Scaler(Transformer):
@@ -48,7 +46,7 @@ class Scaler(Transformer):
         self.coslat_weights_ = xr.DataArray(name="coslat_weights_")
         self.weights_ = xr.DataArray(name="weights_")
 
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         return dict(
             mean_=self.mean_,
             std_=self.std_,
@@ -73,7 +71,7 @@ class Scaler(Transformer):
         X: DataVar,
         sample_dims: Dims,
         feature_dims: Dims,
-        weights: Optional[DataVar] = None,
+        weights: DataVar | None = None,
     ) -> Self:
         """Fit the scaler to the data.
 
@@ -160,7 +158,7 @@ class Scaler(Transformer):
         X: DataVarBound,
         sample_dims: Dims,
         feature_dims: Dims,
-        weights: Optional[DataVarBound] = None,
+        weights: DataVarBound | None = None,
     ) -> DataVarBound:
         return self.fit(X, sample_dims, feature_dims, weights).transform(X)
 

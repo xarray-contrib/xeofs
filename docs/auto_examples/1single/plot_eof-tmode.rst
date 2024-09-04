@@ -27,15 +27,15 @@ Load packages and data:
 
 .. GENERATED FROM PYTHON SOURCE LINES 9-19
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    import xarray as xr
     import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
+    import xarray as xr
     from cartopy.crs import EqualEarth, PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF
+    import xeofs as xe
 
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
 
@@ -52,10 +52,10 @@ Perform the actual analysis
 
 .. GENERATED FROM PYTHON SOURCE LINES 21-28
 
-.. code-block:: Python
+.. code-block:: default
 
 
-    model = EOF(n_modes=5)
+    model = xe.single.EOF(n_modes=5)
     model.fit(sst, dim=("lat", "lon"))
     expvar = model.explained_variance_ratio()
     components = model.components()
@@ -74,7 +74,7 @@ Create figure showing the first two modes
 
 .. GENERATED FROM PYTHON SOURCE LINES 30-48
 
-.. code-block:: Python
+.. code-block:: default
 
 
     proj = EqualEarth(central_longitude=180)
@@ -109,7 +109,7 @@ Create figure showing the first two modes
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.323 seconds)
+   **Total running time of the script:** (0 minutes 3.854 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_eof-tmode.py:
@@ -118,13 +118,16 @@ Create figure showing the first two modes
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_eof-tmode.py <plot_eof-tmode.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_eof-tmode.ipynb <plot_eof-tmode.ipynb>`
 
 
 .. only:: html

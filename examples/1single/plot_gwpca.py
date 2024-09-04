@@ -32,18 +32,18 @@ Let's import the necessary packages.
 """
 
 # For the analysis
-import numpy as np
-import xarray as xr
-import xeofs as xe
-
 # For visualization
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 
 # For accessing R packages
 import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
+import seaborn as sns
+import xarray as xr
 from rpy2.robjects import pandas2ri
+from rpy2.robjects.packages import importr
+
+import xeofs as xe
 
 # %%
 # Next, we'll install the R package `mvoutlier <https://cran.r-project.org/web/packages/mvoutlier/mvoutlier.pdf>`_
@@ -96,7 +96,7 @@ da
 # kilometers. Lastly, we'll standardize the input to ensure consistent scales
 # for the chemical elements.
 
-gwpca = xe.models.GWPCA(
+gwpca = xe.single.GWPCA(
     n_modes=5,
     standardize=True,
     metric="euclidean",

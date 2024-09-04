@@ -25,16 +25,16 @@ Multivariate EOF analysis with additional Varimax rotation.
 
 .. GENERATED FROM PYTHON SOURCE LINES 7-16
 
-.. code-block:: Python
+.. code-block:: default
 
 
     # Load packages and data:
-    import xarray as xr
     import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
+    import xarray as xr
     from cartopy.crs import PlateCarree
+    from matplotlib.gridspec import GridSpec
 
-    from xeofs.models import EOF, EOFRotator
+    import xeofs as xe
 
 
 
@@ -49,7 +49,7 @@ Create four different dataarrayss
 
 .. GENERATED FROM PYTHON SOURCE LINES 18-24
 
-.. code-block:: Python
+.. code-block:: default
 
     sst = xr.tutorial.open_dataset("ersstv5")["sst"]
     subset1 = sst.isel(lon=slice(0, 45))
@@ -70,13 +70,13 @@ Perform the actual analysis
 
 .. GENERATED FROM PYTHON SOURCE LINES 26-35
 
-.. code-block:: Python
+.. code-block:: default
 
 
     multivariate_data = [subset1, subset2, subset3, subset4]
-    mpca = EOF(n_modes=100, standardize=False, use_coslat=True)
+    mpca = xe.single.EOF(n_modes=100, standardize=False, use_coslat=True)
     mpca.fit(multivariate_data, dim="time")
-    rotator = EOFRotator(n_modes=20)
+    rotator = xe.single.EOFRotator(n_modes=20)
     rotator.fit(mpca)
     rcomponents = rotator.components()
     rscores = rotator.scores()
@@ -94,7 +94,7 @@ Plot mode 1
 
 .. GENERATED FROM PYTHON SOURCE LINES 37-71
 
-.. code-block:: Python
+.. code-block:: default
 
 
     mode = 5
@@ -145,7 +145,7 @@ Plot mode 1
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.727 seconds)
+   **Total running time of the script:** (0 minutes 3.255 seconds)
 
 
 .. _sphx_glr_download_auto_examples_1single_plot_mreof.py:
@@ -154,13 +154,16 @@ Plot mode 1
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-      :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
+
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_mreof.py <plot_mreof.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download Jupyter notebook: plot_mreof.ipynb <plot_mreof.ipynb>`
 
 
 .. only:: html

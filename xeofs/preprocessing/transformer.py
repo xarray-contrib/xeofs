@@ -1,18 +1,16 @@
-from abc import ABC
-from typing import Optional, Dict
-from typing_extensions import Self
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import pandas as pd
 import xarray as xr
 from sklearn.base import BaseEstimator, TransformerMixin
+from typing_extensions import Self
 
 try:
     from xarray.core.datatree import DataTree
 except ImportError:
     from datatree import DataTree
 
-from ..utils.data_types import Dims, DataArray, DataSet, Data
+from ..utils.data_types import Data, DataArray, DataSet, Dims
 
 
 class Transformer(BaseEstimator, TransformerMixin, ABC):
@@ -30,7 +28,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
         self.feature_name = feature_name
 
     @abstractmethod
-    def get_serialization_attrs(self) -> Dict:
+    def get_serialization_attrs(self) -> dict:
         """Return a dictionary containing the attributes that need to be serialized
         as part of a saved transformer.
 
@@ -46,8 +44,8 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
     def fit(
         self,
         X: Data,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[Dims] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: Dims | None = None,
         **kwargs,
     ) -> Self:
         """Fit transformer to data.
@@ -70,8 +68,8 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
     def fit_transform(
         self,
         X: Data,
-        sample_dims: Optional[Dims] = None,
-        feature_dims: Optional[Dims] = None,
+        sample_dims: Dims | None = None,
+        feature_dims: Dims | None = None,
         **kwargs,
     ) -> Data:
         return self.fit(X, sample_dims, feature_dims, **kwargs).transform(X)

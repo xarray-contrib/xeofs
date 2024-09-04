@@ -16,7 +16,7 @@ Provide a concise Python code snippet that demonstrates your approach. To displa
 ```python
 import xeofs as xe
 
-model = xe.models.EOF()
+model = xe.single.EOF()
 ...
 ```
 

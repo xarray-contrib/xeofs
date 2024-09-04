@@ -1,20 +1,22 @@
-====================
-Single-Set Analysis
-====================
+================
+``xeofs.single``
+================
 
-Methods that examine relationships among variables within a single dataset, or when multiple datasets are combined and analyzed as one.
+Methods that investigate relationships or patterns between variables within a single dataset.
 
 .. autosummary::
     :toctree: _autosummary
     :template: custom-class-template.rst
     :recursive:
 
-    xeofs.models.EOF
-    xeofs.models.HilbertEOF
-    xeofs.models.ExtendedEOF
-    xeofs.models.OPA
-    xeofs.models.GWPCA
-    xeofs.models.SparsePCA
+    ~xeofs.single.EOF
+    ~xeofs.single.ComplexEOF
+    ~xeofs.single.HilbertEOF
+    ~xeofs.single.ExtendedEOF
+    ~xeofs.single.POP
+    ~xeofs.single.OPA
+    ~xeofs.single.GWPCA
+    ~xeofs.single.SparsePCA
 
 
 ------------------------------
@@ -26,5 +28,6 @@ Sparse Solutions via Rotation
     :template: custom-class-template.rst
     :recursive:
 
-    xeofs.models.EOFRotator
-    xeofs.models.HilbertEOFRotator
+    ~xeofs.single.EOFRotator
+    ~xeofs.single.ComplexEOFRotator
+    ~xeofs.single.HilbertEOFRotator

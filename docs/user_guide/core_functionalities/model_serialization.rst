@@ -7,7 +7,7 @@ fitted models to a portable format.
 
 .. code-block:: python
 
-  from xeofs.models import EOF
+  from xeofs.single import EOF
 
   model = EOF()
   model.fit(data, dim="time")

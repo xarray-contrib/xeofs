@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import xarray as xr
 from tqdm import trange
 
-from ..models import EOF
-from ..data_container import DataContainer
-from ..utils.data_types import DataArray
 from .._version import __version__
+from ..data_container import DataContainer
+from ..single import EOF
+from ..utils.data_types import DataArray
 
 
 class _BaseBootstrapper(ABC):
@@ -22,7 +22,7 @@ class _BaseBootstrapper(ABC):
         }
 
         # Define analysis-relevant meta data
-        self.attrs: Dict[str, Any] = {"model": "BaseBootstrapper"}
+        self.attrs: dict[str, Any] = {"model": "BaseBootstrapper"}
         self.attrs.update(self._params)
         self.attrs.update(
             {

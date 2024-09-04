@@ -6,12 +6,12 @@ Multivariate EOF analysis.
 """
 
 # Load packages and data:
-import xarray as xr
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+import xarray as xr
 from cartopy.crs import PlateCarree
+from matplotlib.gridspec import GridSpec
 
-from xeofs.models import EOF
+import xeofs as xe
 
 # Create four different dataarrayss
 sst = xr.tutorial.open_dataset("ersstv5")["sst"]
@@ -24,7 +24,7 @@ multivariate_data = [subset1, subset2, subset3, subset4]
 # %%
 # Perform the actual analysis
 
-pca = EOF(n_modes=10, standardize=False, use_coslat=True)
+pca = xe.single.EOF(n_modes=10, standardize=False, use_coslat=True)
 pca.fit(multivariate_data, dim="time")
 components = pca.components()
 scores = pca.scores()
