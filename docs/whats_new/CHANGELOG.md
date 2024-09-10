@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
-## [unreleased]
+## [3.0.1](https://github.com/nicrie/xeofs/compare/v3.0.0..v3.0.1) - 2024-09-10
+
+### 🐛 Bug Fixes
+
+- **(cross)** fix data augmentation in Hilbert cross-set models (#222) - ([960f744](https://github.com/nicrie/xeofs/commit/960f74429a01d614bd9289d762550128206330a0)) - Niclas Rieger
+- **(cross)** compute total squared covariance in PC space (#221) - ([2dd3e86](https://github.com/nicrie/xeofs/commit/2dd3e86d1b41416346a31c6dffd261834990426b)) - Niclas Rieger
 
 ### 🔖 Documentation
 
 - **(changelog)** update changelog - ([800e608](https://github.com/nicrie/xeofs/commit/800e6086d3f7032f8e9917fd3c4ff2f118f9e84e)) - github-actions[bot]
+- **(changelog)** update changelog - ([75bbe7a](https://github.com/nicrie/xeofs/commit/75bbe7af4a9eb072d660c9e331d0284410910e55)) - github-actions[bot]
 - add migration guide (#217) - ([dfaab53](https://github.com/nicrie/xeofs/commit/dfaab53734f33042d6762aba4799afa5479585c4)) - Niclas Rieger
 
 ---
