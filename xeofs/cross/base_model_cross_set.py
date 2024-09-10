@@ -298,7 +298,7 @@ class BaseModelCrossSet(BaseModel):
         X = self.whitener1.fit_transform(X)
         Y = self.whitener2.fit_transform(Y)
         # Augment data
-        X, y = self._augment_data(X, Y)
+        X, Y = self._augment_data(X, Y)
         # Fit the model
         self._fit_algorithm(X, Y)
 
