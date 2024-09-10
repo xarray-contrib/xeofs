@@ -982,8 +982,8 @@ class CPCCA(BaseModelCrossSet):
 
         Requires the unwhitened covariance matrix which we can obtain by multiplying the whitened covariance matrix with the inverse of the whitening transformation matrix.
         """
-        C = self.whitener2.inverse_transform_data(C)
-        C = self.whitener1.inverse_transform_data(C.conj().T)
+        C = self.whitener2.inverse_transform_data(C, unwhiten_only=True)
+        C = self.whitener1.inverse_transform_data(C.conj().T, unwhiten_only=True)
         # Not necessary to conjugate transpose for total squared covariance
         # C = C.conj().T
         return (abs(C) ** 2).sum()
