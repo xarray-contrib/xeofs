@@ -111,6 +111,8 @@ class CPCCARotator(CPCCA):
             whitener2=self.whitener2,
             model=self.model,
             sorted=self.sorted,
+            sample_name=self.sample_name,
+            feature_name=self.feature_name,
         )
 
     def _fit_algorithm(self, model) -> Self:

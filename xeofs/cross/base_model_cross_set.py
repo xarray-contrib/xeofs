@@ -511,6 +511,8 @@ class BaseModelCrossSet(BaseModel):
             preprocessor2=self.preprocessor2,
             whitener1=self.whitener1,
             whitener2=self.whitener2,
+            sample_name=self.sample_name,
+            feature_name=self.feature_name,
         )
 
     def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:

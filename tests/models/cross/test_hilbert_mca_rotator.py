@@ -231,3 +231,52 @@ def test_scores_phase(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
     amps1, amps2 = mca_rotator.scores_phase()
+
+
+@pytest.mark.parametrize(
+    "dim",
+    [
+        (("time",)),
+        (("lat", "lon")),
+        (("lon", "lat")),
+    ],
+)
+# Currently, netCDF4 does not support complex numbers, so skip this test
+@pytest.mark.parametrize("engine", ["zarr"])
+def test_save_load_with_data(tmp_path, engine, mca_model):
+    """Test save/load methods in HilbertMCARotator class, ensuring that we can
+    roundtrip the model and get the same results."""
+    original = HilbertMCARotator(n_modes=2)
+    original.fit(mca_model)
+
+    # Save the HilbertMCARotator model
+    original.save(tmp_path / "mca", engine=engine, save_data=True)
+
+    # Check that the HilbertMCARotator model has been saved
+    assert (tmp_path / "mca").exists()
+
+    # Recreate the model from saved file
+    loaded = HilbertMCARotator.load(tmp_path / "mca", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        assert loaded.data[key].equals(original.data[key])
+
+    # Test that the recreated model can compute the SCF
+    assert np.allclose(
+        original.squared_covariance_fraction(), loaded.squared_covariance_fraction()
+    )
+
+    # Test that the recreated model can compute the components amplitude
+    A1_original, A2_original = original.components_amplitude()
+    A1_loaded, A2_loaded = loaded.components_amplitude()
+    assert np.allclose(A1_original, A1_loaded)
+    assert np.allclose(A2_original, A2_loaded)
+
+    # Test that the recreated model can compute the components phase
+    P1_original, P2_original = original.components_phase()
+    P1_loaded, P2_loaded = loaded.components_phase()
+    assert np.allclose(P1_original, P1_loaded)
+    assert np.allclose(P2_original, P2_loaded)
