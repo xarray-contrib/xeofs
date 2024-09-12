@@ -140,7 +140,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
             if isinstance(attr, (xr.DataArray, xr.Dataset)):
                 # attach data to data_vars or coords
                 ds = self._serialize_data(key, attr)
-                dt[key] = DataTree(name=key, data=ds)
+                dt[key] = DataTree(ds, name=key)
                 dt.attrs[key] = "_is_node"
             elif isinstance(attr, dict) and any(
                 [isinstance(val, xr.DataArray) for val in attr.values()]
@@ -149,7 +149,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
                 dt_attr = DataTree()
                 for k, v in attr.items():
                     ds = self._serialize_data(k, v)
-                    dt_attr[k] = DataTree(name=k, data=ds)
+                    dt_attr[k] = DataTree(ds, name=k)
                 dt[key] = dt_attr
                 dt.attrs[key] = "_is_tree"
             else:

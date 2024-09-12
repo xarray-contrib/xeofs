@@ -90,7 +90,7 @@ class BaseModel(ABC):
         """Serialize a complete model with its preprocessor."""
         # Create a root node for this object with its params as attrs
         ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
-        dt = DataTree(data=ds_root, name=type(self).__name__)
+        dt = DataTree(ds_root, name=type(self).__name__)
 
         # Retrieve the tree representation of each attached object, or set basic attrs
         for key, attr in self.get_serialization_attrs().items():
