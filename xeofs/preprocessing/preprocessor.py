@@ -391,7 +391,6 @@ class Preprocessor(Transformer):
                 dt_transformer = transformer_obj.serialize()
             # Place the serialized transformer in the tree
             dt[name] = dt_transformer
-            dt[name].parent = dt
 
         return dt
 
