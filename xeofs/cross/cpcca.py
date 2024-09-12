@@ -1218,8 +1218,8 @@ class ComplexCPCCA(CPCCA):
         Px = self.whitener1.inverse_transform_components(Px)
         Py = self.whitener2.inverse_transform_components(Py)
 
-        Px = xr.apply_ufunc(np.angle, Px, keep_attrs=True)
-        Py = xr.apply_ufunc(np.angle, Py, keep_attrs=True)
+        Px = xr.apply_ufunc(np.angle, Px, keep_attrs=True, dask="allowed")
+        Py = xr.apply_ufunc(np.angle, Py, keep_attrs=True, dask="allowed")
 
         Px.name = "components_phase_X"
         Py.name = "components_phase_Y"
@@ -1288,8 +1288,8 @@ class ComplexCPCCA(CPCCA):
         Rx = self.whitener1.inverse_transform_scores(Rx)
         Ry = self.whitener2.inverse_transform_scores(Ry)
 
-        Rx = xr.apply_ufunc(np.angle, Rx, keep_attrs=True)
-        Ry = xr.apply_ufunc(np.angle, Ry, keep_attrs=True)
+        Rx = xr.apply_ufunc(np.angle, Rx, keep_attrs=True, dask="allowed")
+        Ry = xr.apply_ufunc(np.angle, Ry, keep_attrs=True, dask="allowed")
 
         Rx.name = "scores_phase_X"
         Ry.name = "scores_phase_Y"
