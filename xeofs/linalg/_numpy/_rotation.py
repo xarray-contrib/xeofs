@@ -161,16 +161,15 @@ def _varimax(
 
     # Seek for rotation matrix based on varimax criteria
     delta = 0.0
+    XH = X.conj().T
+    alpha = gamma / n_samples
     for i in range(max_iter):
         delta_old = delta
         basis = X @ R
 
         basis2 = basis * basis.conj()
-        basis3 = basis2 * basis
-        W = np.diag(np.sum(basis2, axis=0))
-        alpha = gamma / n_samples
-
-        transformed = X.conj().T @ (basis3 - (alpha * basis @ W))
+        W = np.sum(basis2, axis=0)
+        transformed = XH @ (basis * (basis2 - (alpha * W)))
         U, svals, VT = svd_func(transformed, *svd_args)
         R = U @ VT
         delta = np.sum(svals)
