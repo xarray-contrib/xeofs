@@ -45,12 +45,12 @@ def test_fit(eof_model):
     eof_rotator.fit(eof_model)
 
     assert hasattr(
-        eof_rotator, "model"
-    ), 'The attribute "model" should be populated after fitting.'
+        eof_rotator, "model_data"
+    ), 'The attribute "model_data" should be populated after fitting.'
     assert hasattr(
         eof_rotator, "data"
     ), 'The attribute "data" should be populated after fitting.'
-    assert isinstance(eof_rotator.model, EOF)
+    assert isinstance(eof_rotator.model_data, DataContainer)
     assert isinstance(eof_rotator.data, DataContainer)
 
 
