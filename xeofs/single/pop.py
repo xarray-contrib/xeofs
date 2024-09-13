@@ -5,7 +5,7 @@ import xarray as xr
 from typing_extensions import Self
 
 from ..linalg import total_variance
-from ..preprocessing import Whitener
+from ..preprocessing import PCA
 from ..utils.data_types import DataArray, DataObject
 from ..utils.xarray_utils import argsort_dask
 from .base_model_single_set import BaseModelSingleSet
@@ -133,14 +133,13 @@ class POP(BaseModelSingleSet):
         )
         self.attrs.update({"model": "Principal Oscillation Pattern analysis"})
 
-        self.whitener = Whitener(
-            alpha=1.0,
+        self.pca = PCA(
             use_pca=use_pca,
             n_modes=n_pca_modes,
             init_rank_reduction=pca_init_rank_reduction,
             sample_name=sample_name,
             feature_name=feature_name,
-            compute_svd=compute,
+            compute_eagerly=compute,
             random_state=random_state,
             solver_kwargs=solver_kwargs,
         )
@@ -151,7 +150,7 @@ class POP(BaseModelSingleSet):
         return dict(
             data=self.data,
             preprocessor=self.preprocessor,
-            whitener=self.whitener,
+            pca=self.pca,
             sorted=self.sorted,
         )
 
@@ -201,7 +200,7 @@ class POP(BaseModelSingleSet):
         feature_name = self.feature_name
 
         # Transform in PC space
-        X = self.whitener.fit_transform(X)
+        X = self.pca.fit_transform(X)
 
         P, Z, lbda, T, tau = xr.apply_ufunc(
             self._np_solve_pop_system,
@@ -235,7 +234,7 @@ class POP(BaseModelSingleSet):
         idx_modes_sorted = argsort_dask(norms, "mode")[::-1]  # type: ignore
         idx_modes_sorted.coords.update(norms.coords)
 
-        P = self.whitener.inverse_transform_components(P)
+        P = self.pca.inverse_transform_components(P)
 
         # Store the results
         self.data.add(X, "input_data", allow_compute=False)
@@ -274,8 +273,8 @@ class POP(BaseModelSingleSet):
         P = self.data["components"]
 
         # Transform into PC spcae
-        P = self.whitener.transform_components(P)
-        X = self.whitener.transform(X)
+        P = self.pca.transform_components(P)
+        X = self.pca.transform(X)
 
         # Project the data
         Z = xr.apply_ufunc(
@@ -288,7 +287,7 @@ class POP(BaseModelSingleSet):
         )
         Z.name = "scores"
 
-        Z = self.whitener.inverse_transform_scores(Z)
+        Z = self.pca.inverse_transform_scores(Z)
 
         return Z
 
@@ -312,13 +311,13 @@ class POP(BaseModelSingleSet):
         P = self.data["components"].sel(mode=scores.mode)
 
         # Transform in PC space
-        P = self.whitener.transform_components(P)
+        P = self.pca.transform_components(P)
 
         reconstructed_data = xr.dot(scores, P, dims="mode")
         reconstructed_data.name = "reconstructed_data"
 
         # Inverse transform the data into physical space
-        reconstructed_data = self.whitener.inverse_transform_data(reconstructed_data)
+        reconstructed_data = self.pca.inverse_transform_data(reconstructed_data)
 
         return reconstructed_data
 

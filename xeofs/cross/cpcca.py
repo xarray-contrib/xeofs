@@ -453,8 +453,8 @@ class CPCCA(BaseModelCrossSet):
         X2 = self.data["input_data2"]
 
         # Unwhiten the data
-        X1 = self.whitener1.inverse_transform_data(X1, unwhiten_only=True)
-        X2 = self.whitener2.inverse_transform_data(X2, unwhiten_only=True)
+        X1 = self.whitener1.inverse_transform_data(X1)
+        X2 = self.whitener2.inverse_transform_data(X2)
 
         # Rename the sample dimension to avoid conflicts for
         # different coordinates with same length
@@ -477,8 +477,8 @@ class CPCCA(BaseModelCrossSet):
             )
 
             # Unwhitend the reconstructed data
-            X1r = self.whitener1.inverse_transform_data(X1r, unwhiten_only=True)
-            X2r = self.whitener2.inverse_transform_data(X2r, unwhiten_only=True)
+            X1r = self.whitener1.inverse_transform_data(X1r)
+            X2r = self.whitener2.inverse_transform_data(X2r)
 
             # Compute fraction variance explained
             X1r = X1r.rename({self.sample_name: sample_name_x})
@@ -536,7 +536,7 @@ class CPCCA(BaseModelCrossSet):
         X = self.data["input_data1"]
 
         # Unwhiten the data
-        X = self.whitener1.inverse_transform_data(X, unwhiten_only=True)
+        X = self.whitener1.inverse_transform_data(X)
 
         # Compute the total variance
         total_variance: DataArray = self._compute_total_variance(X, self.sample_name)
@@ -551,7 +551,7 @@ class CPCCA(BaseModelCrossSet):
             Xr = xr.dot(Rx.sel(mode=[mode]), Qx.sel(mode=[mode]).conj().T, dims="mode")
 
             # Unwhitend the reconstructed data
-            Xr = self.whitener1.inverse_transform_data(Xr, unwhiten_only=True)
+            Xr = self.whitener1.inverse_transform_data(Xr)
 
             # Compute fraction variance explained
             residual_variance = self._compute_total_variance(X - Xr, self.sample_name)
@@ -588,7 +588,7 @@ class CPCCA(BaseModelCrossSet):
         Y = self.data["input_data2"]
 
         # Unwhiten the data
-        Y = self.whitener2.inverse_transform_data(Y, unwhiten_only=True)
+        Y = self.whitener2.inverse_transform_data(Y)
 
         # Compute the total variance
         total_variance: DataArray = self._compute_total_variance(Y, self.sample_name)
@@ -603,7 +603,7 @@ class CPCCA(BaseModelCrossSet):
             Yr = xr.dot(Ry.sel(mode=[mode]), Qy.sel(mode=[mode]).conj().T, dims="mode")
 
             # Unwhitend the reconstructed data
-            Yr = self.whitener2.inverse_transform_data(Yr, unwhiten_only=True)
+            Yr = self.whitener2.inverse_transform_data(Yr)
 
             # Compute fraction variance explained
             residual_variance = self._compute_total_variance(Y - Yr, self.sample_name)
@@ -660,8 +660,8 @@ class CPCCA(BaseModelCrossSet):
         X2 = self.data["input_data2"]
 
         # Unwhiten the data
-        X1 = self.whitener1.inverse_transform_data(X1, unwhiten_only=True)
-        X2 = self.whitener2.inverse_transform_data(X2, unwhiten_only=True)
+        X1 = self.whitener1.inverse_transform_data(X1)
+        X2 = self.whitener2.inverse_transform_data(X2)
 
         # Compute the total variance
         X1 = X1.rename({self.sample_name: sample_name_x})
@@ -694,8 +694,8 @@ class CPCCA(BaseModelCrossSet):
             )
 
             # Unwhitend the reconstructed data
-            X1r = self.whitener1.inverse_transform_data(X1r, unwhiten_only=True)
-            X2r = self.whitener2.inverse_transform_data(X2r, unwhiten_only=True)
+            X1r = self.whitener1.inverse_transform_data(X1r)
+            X2r = self.whitener2.inverse_transform_data(X2r)
 
             # Compute fraction variance explained
             X1r = X1r.rename({self.sample_name: sample_name_x})
@@ -769,6 +769,9 @@ class CPCCA(BaseModelCrossSet):
 
         input_data1 = self.whitener1.inverse_transform_data(input_data1)
         input_data2 = self.whitener2.inverse_transform_data(input_data2)
+
+        input_data1 = self.pca1.inverse_transform_data(input_data1)
+        input_data2 = self.pca2.inverse_transform_data(input_data2)
 
         scores1 = self.data["scores1"]
         scores2 = self.data["scores2"]
@@ -850,6 +853,9 @@ class CPCCA(BaseModelCrossSet):
 
         input_data1 = self.whitener1.inverse_transform_data(input_data1)
         input_data2 = self.whitener2.inverse_transform_data(input_data2)
+
+        input_data1 = self.pca1.inverse_transform_data(input_data1)
+        input_data2 = self.pca2.inverse_transform_data(input_data2)
 
         scores1 = self.data["scores1"]
         scores2 = self.data["scores2"]
@@ -982,8 +988,8 @@ class CPCCA(BaseModelCrossSet):
 
         Requires the unwhitened covariance matrix which we can obtain by multiplying the whitened covariance matrix with the inverse of the whitening transformation matrix.
         """
-        C = self.whitener2.inverse_transform_data(C, unwhiten_only=True)
-        C = self.whitener1.inverse_transform_data(C.conj().T, unwhiten_only=True)
+        C = self.whitener2.inverse_transform_data(C)
+        C = self.whitener1.inverse_transform_data(C.conj().T)
         # Not necessary to conjugate transpose for total squared covariance
         # C = C.conj().T
         return (abs(C) ** 2).sum()
@@ -1183,6 +1189,9 @@ class ComplexCPCCA(CPCCA):
         Px = self.whitener1.inverse_transform_components(Px)
         Py = self.whitener2.inverse_transform_components(Py)
 
+        Px = self.pca1.inverse_transform_components(Px)
+        Py = self.pca2.inverse_transform_components(Py)
+
         Px = abs(Px)
         Py = abs(Py)
 
@@ -1217,6 +1226,9 @@ class ComplexCPCCA(CPCCA):
 
         Px = self.whitener1.inverse_transform_components(Px)
         Py = self.whitener2.inverse_transform_components(Py)
+
+        Px = self.pca1.inverse_transform_components(Px)
+        Py = self.pca2.inverse_transform_components(Py)
 
         Px = xr.apply_ufunc(np.angle, Px, keep_attrs=True, dask="allowed")
         Py = xr.apply_ufunc(np.angle, Py, keep_attrs=True, dask="allowed")
@@ -1253,6 +1265,9 @@ class ComplexCPCCA(CPCCA):
         Rx = self.whitener1.inverse_transform_scores(Rx)
         Ry = self.whitener2.inverse_transform_scores(Ry)
 
+        Rx = self.pca1.inverse_transform_scores(Rx)
+        Ry = self.pca2.inverse_transform_scores(Ry)
+
         Rx = abs(Rx)
         Ry = abs(Ry)
 
@@ -1287,6 +1302,9 @@ class ComplexCPCCA(CPCCA):
 
         Rx = self.whitener1.inverse_transform_scores(Rx)
         Ry = self.whitener2.inverse_transform_scores(Ry)
+
+        Rx = self.pca1.inverse_transform_scores(Rx)
+        Ry = self.pca2.inverse_transform_scores(Ry)
 
         Rx = xr.apply_ufunc(np.angle, Rx, keep_attrs=True, dask="allowed")
         Ry = xr.apply_ufunc(np.angle, Ry, keep_attrs=True, dask="allowed")

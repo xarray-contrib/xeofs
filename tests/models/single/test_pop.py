@@ -12,7 +12,7 @@ def test_init():
     # Assert preprocessor has been initialized
     assert hasattr(pop, "_params")
     assert hasattr(pop, "preprocessor")
-    assert hasattr(pop, "whitener")
+    assert hasattr(pop, "pca")
 
 
 def test_fit(mock_data_array):
