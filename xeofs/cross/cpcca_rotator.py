@@ -98,35 +98,34 @@ class CPCCARotator(CPCCA):
         self.whitener1 = Whitener()
         self.whitener2 = Whitener()
         self.data = DataContainer()
-        self.model = CPCCA()
+        self.model_data = DataContainer()
 
         self.sorted = False
 
     def get_serialization_attrs(self) -> dict:
         return dict(
             data=self.data,
+            model_data=self.model_data,
             preprocessor1=self.preprocessor1,
             preprocessor2=self.preprocessor2,
             whitener1=self.whitener1,
             whitener2=self.whitener2,
-            model=self.model,
             sorted=self.sorted,
             sample_name=self.sample_name,
             feature_name=self.feature_name,
         )
 
     def _fit_algorithm(self, model) -> Self:
-        self.model = model
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
         self.whitener1 = model.whitener1
         self.whitener2 = model.whitener2
-        self.sample_name = self.model.sample_name
-        self.feature_name = self.model.feature_name
+        self.sample_name = model.sample_name
+        self.feature_name = model.feature_name
         self.sorted = False
 
         common_feature_dim = "common_feature_dim"
-        feature_name = self._get_feature_name()
+        feature_name = model.feature_name
 
         n_modes = self._params["n_modes"]
         power = self._params["power"]
@@ -145,12 +144,12 @@ class CPCCARotator(CPCCA):
         # fraction" which is conserved under rotation, but does not have a clear
         # interpretation as the term covariance fraction is only correct when
         # both data sets X and Y are equal and MCA reduces to PCA.
-        svalues = self.model.data["singular_values"].sel(mode=slice(1, n_modes))
+        svalues = model.data["singular_values"].sel(mode=slice(1, n_modes))
         scaling = np.sqrt(svalues)
 
         # Get unrotated singular vectors
-        Qx = self.model.data["components1"].sel(mode=slice(1, n_modes))
-        Qy = self.model.data["components2"].sel(mode=slice(1, n_modes))
+        Qx = model.data["components1"].sel(mode=slice(1, n_modes))
+        Qy = model.data["components2"].sel(mode=slice(1, n_modes))
 
         # Unwhiten and back-transform into physical space
         Qx = self.whitener1.inverse_transform_components(Qx)
@@ -233,8 +232,8 @@ class CPCCARotator(CPCCA):
         idx_modes_sorted.coords.update(squared_covariance.coords)
 
         # Rotate scores using rotation matrix
-        scores1 = self.model.data["scores1"].sel(mode=slice(1, n_modes))
-        scores2 = self.model.data["scores2"].sel(mode=slice(1, n_modes))
+        scores1 = model.data["scores1"].sel(mode=slice(1, n_modes))
+        scores2 = model.data["scores2"].sel(mode=slice(1, n_modes))
 
         scores1 = self.whitener1.inverse_transform_scores(scores1)
         scores2 = self.whitener2.inverse_transform_scores(scores2)
@@ -260,12 +259,18 @@ class CPCCARotator(CPCCA):
         scores1_rot = scores1_rot * modes_sign
         scores2_rot = scores2_rot * modes_sign
 
-        # Create data container
+        # Create data container for Rotator and original model data
+        self.model_data.add(name="singular_values", data=model.data["singular_values"])
+        self.model_data.add(name="components1", data=model.data["components1"])
+        self.model_data.add(name="components2", data=model.data["components2"])
+
+        # Assigning input data to the Rotator object allows us to inherit some functionalities from the original model
+        # like squared_covariance_fraction(), homogeneous_patterns() etc.
         self.data.add(
-            name="input_data1", data=self.model.data["input_data1"], allow_compute=False
+            name="input_data1", data=model.data["input_data1"], allow_compute=False
         )
         self.data.add(
-            name="input_data2", data=self.model.data["input_data2"], allow_compute=False
+            name="input_data2", data=model.data["input_data2"], allow_compute=False
         )
         self.data.add(name="components1", data=Qx_rot)
         self.data.add(name="components2", data=Qy_rot)
@@ -274,7 +279,7 @@ class CPCCARotator(CPCCA):
         self.data.add(name="squared_covariance", data=squared_covariance)
         self.data.add(
             name="total_squared_covariance",
-            data=self.model.data["total_squared_covariance"],
+            data=model.data["total_squared_covariance"],
         )
 
         self.data.add(name="idx_modes_sorted", data=idx_modes_sorted)
@@ -337,14 +342,14 @@ class CPCCARotator(CPCCA):
         )
         RinvT = RinvT.rename({"mode_n": "mode"})
 
-        scaling = self.model.data["singular_values"].sel(mode=slice(1, n_modes))
+        scaling = self.model_data["singular_values"].sel(mode=slice(1, n_modes))
         scaling = np.sqrt(scaling)
 
         results = []
 
         if X is not None:
             # Select the (non-rotated) singular vectors of the first dataset
-            comps1 = self.model.data["components1"].sel(mode=slice(1, n_modes))
+            comps1 = self.model_data["components1"].sel(mode=slice(1, n_modes))
 
             # Preprocess the data
             comps1 = self.whitener1.inverse_transform_components(comps1)
@@ -374,7 +379,7 @@ class CPCCARotator(CPCCA):
 
         if Y is not None:
             # Select the (non-rotated) singular vectors of the second dataset
-            comps2 = self.model.data["components2"].sel(mode=slice(1, n_modes))
+            comps2 = self.model_data["components2"].sel(mode=slice(1, n_modes))
 
             # Preprocess the data
             comps2 = self.whitener2.inverse_transform_components(comps2)
@@ -451,9 +456,6 @@ class CPCCARotator(CPCCA):
             rotation_matrix = rotation_matrix.conj().transpose(*input_dims)
         return rotation_matrix
 
-    def _get_feature_name(self):
-        return self.model.feature_name
-
 
 class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     """Rotate a solution obtained from ``xe.cross.ComplexCPCCA``.
@@ -517,7 +519,6 @@ class ComplexCPCCARotator(CPCCARotator, ComplexCPCCA):
     def __init__(self, **kwargs):
         CPCCARotator.__init__(self, **kwargs)
         self.attrs.update({"model": "Rotated Complex CPCCA"})
-        self.model = ComplexCPCCA()
 
 
 class HilbertCPCCARotator(ComplexCPCCARotator, HilbertCPCCA):
@@ -582,7 +583,6 @@ class HilbertCPCCARotator(ComplexCPCCARotator, HilbertCPCCA):
     def __init__(self, **kwargs):
         ComplexCPCCARotator.__init__(self, **kwargs)
         self.attrs.update({"model": "Rotated Hilbert CPCCA"})
-        self.model = HilbertCPCCA()
 
     def transform(
         self, X: DataObject | None = None, Y: DataObject | None = None, normalized=False

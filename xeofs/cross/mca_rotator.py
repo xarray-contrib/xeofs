@@ -72,7 +72,6 @@ class MCARotator(CPCCARotator, MCA):
 
         # Define analysis-relevant meta data
         self.attrs.update({"model": "Rotated MCA"})
-        self.model = MCA()
 
 
 class ComplexMCARotator(ComplexCPCCARotator, ComplexMCA):
@@ -149,7 +148,6 @@ class ComplexMCARotator(ComplexCPCCARotator, ComplexMCA):
             compute=compute,
         )
         self.attrs.update({"model": "Rotated Complex MCA"})
-        self.model = ComplexMCA()
 
 
 class HilbertMCARotator(HilbertCPCCARotator, HilbertMCA):
@@ -226,4 +224,3 @@ class HilbertMCARotator(HilbertCPCCARotator, HilbertMCA):
             compute=compute,
         )
         self.attrs.update({"model": "Rotated Hilbert MCA"})
-        self.model = HilbertMCA()
