@@ -40,7 +40,7 @@ def test_fit(mca_model):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
 
-    assert hasattr(mca_rotator, "model")
+    assert hasattr(mca_rotator, "model_data")
     assert hasattr(mca_rotator, "data")
 
 
