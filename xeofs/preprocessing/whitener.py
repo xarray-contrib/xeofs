@@ -126,7 +126,10 @@ class Whitener(Transformer):
         power = (self.alpha - 1) / 2
         svd_kwargs = {"random_state": self.random_state, "solver": "full"}
         T = _fractional_matrix_power(C, power, **svd_kwargs)
-        Tinv = np.linalg.inv(T)
+        try:
+            Tinv = np.linalg.inv(T)
+        except np.linalg.LinAlgError:
+            Tinv = np.linalg.pinv(T)
         return T, Tinv
 
     def transform(self, X: DataArray) -> DataArray:
