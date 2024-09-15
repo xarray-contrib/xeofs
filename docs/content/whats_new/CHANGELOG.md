@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
-## [unreleased]
+## [3.0.2](https://github.com/nicrie/xeofs/compare/v3.0.1..v3.0.2) - 2024-09-15
 
 ### 🚀 Performance
 
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### 🔖 Documentation
 
+- **(changelog)** update commit parsers in cliff.toml (#233) - ([70025c9](https://github.com/nicrie/xeofs/commit/70025c9791d9fb9d647889955ab03e93e166fe94)) - Niclas Rieger
 - fix changelog path (#232) - ([dff493b](https://github.com/nicrie/xeofs/commit/dff493bc50f701af80b3ce0ce34f220ab7ae7469)) - Niclas Rieger
 
 ---
