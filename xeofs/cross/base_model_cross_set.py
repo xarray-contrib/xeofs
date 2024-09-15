@@ -6,8 +6,7 @@ from typing_extensions import Self
 
 from ..base_model import BaseModel
 from ..data_container import DataContainer
-from ..preprocessing.preprocessor import Preprocessor
-from ..preprocessing.whitener import Whitener
+from ..preprocessing import PCA, Preprocessor, Whitener
 from ..utils.data_types import DataArray, DataObject, GenericType
 from ..utils.sanity_checks import validate_input_type
 from ..utils.xarray_utils import convert_to_dim_type
@@ -163,19 +162,29 @@ class BaseModelCrossSet(BaseModel):
             compute=compute,
         )
 
-        self.whitener1 = Whitener(
-            alpha=alpha[0],
-            use_pca=use_pca[0],
+        self.pca1 = PCA(
             n_modes=n_pca_modes[0],
             init_rank_reduction=pca_init_rank_reduction[0],
+            use_pca=use_pca[0],
+            sample_name=sample_name,
+            feature_name=feature_name[0],
+        )
+
+        self.pca2 = PCA(
+            n_modes=n_pca_modes[1],
+            init_rank_reduction=pca_init_rank_reduction[1],
+            use_pca=use_pca[1],
+            sample_name=sample_name,
+            feature_name=feature_name[1],
+        )
+
+        self.whitener1 = Whitener(
+            alpha=alpha[0],
             sample_name=sample_name,
             feature_name=feature_name[0],
         )
         self.whitener2 = Whitener(
             alpha=alpha[1],
-            use_pca=use_pca[1],
-            n_modes=n_pca_modes[1],
-            init_rank_reduction=pca_init_rank_reduction[1],
             sample_name=sample_name,
             feature_name=feature_name[1],
         )
@@ -294,11 +303,14 @@ class BaseModelCrossSet(BaseModel):
         # Preprocess data
         X = self.preprocessor1.fit_transform(X, self.sample_dims, weights_X)
         Y = self.preprocessor2.fit_transform(Y, self.sample_dims, weights_Y)
+        # Perform PCA
+        X = self.pca1.fit_transform(X)
+        Y = self.pca2.fit_transform(Y)
+        # Augment data
+        X, Y = self._augment_data(X, Y)
         # Whiten data
         X = self.whitener1.fit_transform(X)
         Y = self.whitener2.fit_transform(Y)
-        # Augment data
-        X, Y = self._augment_data(X, Y)
         # Fit the model
         self._fit_algorithm(X, Y)
 
@@ -334,21 +346,25 @@ class BaseModelCrossSet(BaseModel):
             validate_input_type(X)
             # Preprocess X
             X = self.preprocessor1.transform(X)
+            X = self.pca1.transform(X)
             X = self.whitener1.transform(X)
         if Y is not None:
             validate_input_type(Y)
             # Preprocess Y
             Y = self.preprocessor2.transform(Y)
+            Y = self.pca2.transform(Y)
             Y = self.whitener2.transform(Y)
 
         data = self._transform_algorithm(X, Y, normalized=normalized)
         data_list = []
         if X is not None:
             X = self.whitener1.inverse_transform_scores_unseen(data["X"])
+            X = self.pca1.inverse_transform_scores_unseen(X)
             X = self.preprocessor1.inverse_transform_scores_unseen(X)
             data_list.append(X)
         if Y is not None:
             Y = self.whitener2.inverse_transform_scores_unseen(data["Y"])
+            Y = self.pca2.inverse_transform_scores_unseen(Y)
             Y = self.preprocessor2.inverse_transform_scores_unseen(Y)
             data_list.append(Y)
 
@@ -397,11 +413,13 @@ class BaseModelCrossSet(BaseModel):
         if x_is_given:
             X = inv_transformed["X"]
             X = self.whitener1.inverse_transform_data(X)
+            X = self.pca1.inverse_transform_data(X)
             Xrec = self.preprocessor1.inverse_transform_data(X)
             results.append(Xrec)
         if y_is_given:
             Y = inv_transformed["Y"]
             Y = self.whitener2.inverse_transform_data(Y)
+            Y = self.pca2.inverse_transform_data(Y)
             Yrec = self.preprocessor2.inverse_transform_data(Y)
             results.append(Yrec)
 
@@ -429,6 +447,7 @@ class BaseModelCrossSet(BaseModel):
 
         # Preprocess X
         X = self.preprocessor1.transform(X)
+        X = self.pca1.transform(X)
 
         # Whiten X
         X = self.whitener1.transform(X)
@@ -438,6 +457,7 @@ class BaseModelCrossSet(BaseModel):
 
         # Inverse transform Y
         Y = self.whitener2.inverse_transform_scores_unseen(Y)
+        Y = self.pca2.inverse_transform_scores_unseen(Y)
         Y = self.preprocessor2.inverse_transform_scores_unseen(Y)
 
         return Y
@@ -464,6 +484,9 @@ class BaseModelCrossSet(BaseModel):
 
         Px = self.whitener1.inverse_transform_components(Px)
         Py = self.whitener2.inverse_transform_components(Py)
+
+        Px = self.pca1.inverse_transform_components(Px)
+        Py = self.pca2.inverse_transform_components(Py)
 
         Px: DataObject = self.preprocessor1.inverse_transform_components(Px)
         Py: DataObject = self.preprocessor2.inverse_transform_components(Py)
@@ -492,6 +515,9 @@ class BaseModelCrossSet(BaseModel):
         Rx = self.whitener1.inverse_transform_scores(Rx)
         Ry = self.whitener2.inverse_transform_scores(Ry)
 
+        Rx = self.pca1.inverse_transform_scores(Rx)
+        Ry = self.pca2.inverse_transform_scores(Ry)
+
         Rx: DataArray = self.preprocessor1.inverse_transform_scores(Rx)
         Ry: DataArray = self.preprocessor2.inverse_transform_scores(Ry)
         return Rx, Ry
@@ -509,6 +535,8 @@ class BaseModelCrossSet(BaseModel):
             data=self.data,
             preprocessor1=self.preprocessor1,
             preprocessor2=self.preprocessor2,
+            pca1=self.pca1,
+            pca2=self.pca2,
             whitener1=self.whitener1,
             whitener2=self.whitener2,
             sample_name=self.sample_name,

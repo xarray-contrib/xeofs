@@ -7,7 +7,7 @@ from typing_extensions import Self
 from ..base_model import BaseModel
 from ..data_container import DataContainer
 from ..linalg.rotation import promax
-from ..preprocessing import Preprocessor, Whitener
+from ..preprocessing import PCA, Preprocessor, Whitener
 from ..utils.data_types import DataArray, DataObject
 from ..utils.xarray_utils import argsort_dask, get_deterministic_sign_multiplier
 from .cpcca import CPCCA, ComplexCPCCA, HilbertCPCCA
@@ -95,6 +95,8 @@ class CPCCARotator(CPCCA):
         # Attach empty objects
         self.preprocessor1 = Preprocessor()
         self.preprocessor2 = Preprocessor()
+        self.pca1 = PCA()
+        self.pca2 = PCA()
         self.whitener1 = Whitener()
         self.whitener2 = Whitener()
         self.data = DataContainer()
@@ -108,6 +110,8 @@ class CPCCARotator(CPCCA):
             model_data=self.model_data,
             preprocessor1=self.preprocessor1,
             preprocessor2=self.preprocessor2,
+            pca1=self.pca1,
+            pca2=self.pca2,
             whitener1=self.whitener1,
             whitener2=self.whitener2,
             sorted=self.sorted,
@@ -118,6 +122,8 @@ class CPCCARotator(CPCCA):
     def _fit_algorithm(self, model) -> Self:
         self.preprocessor1 = model.preprocessor1
         self.preprocessor2 = model.preprocessor2
+        self.pca1 = model.pca1
+        self.pca2 = model.pca2
         self.whitener1 = model.whitener1
         self.whitener2 = model.whitener2
         self.sample_name = model.sample_name
@@ -154,6 +160,8 @@ class CPCCARotator(CPCCA):
         # Unwhiten and back-transform into physical space
         Qx = self.whitener1.inverse_transform_components(Qx)
         Qy = self.whitener2.inverse_transform_components(Qy)
+        Qx = self.pca1.inverse_transform_components(Qx)
+        Qy = self.pca2.inverse_transform_components(Qy)
 
         # Rename the feature dimension to a common name so that the combined vectors can be concatenated
         Qx = Qx.rename({feature_name[0]: common_feature_dim})
@@ -194,6 +202,8 @@ class CPCCARotator(CPCCA):
 
         # For consistency with the unrotated model classes, we transform the pattern vectors
         # into the whitened PC space
+        Qx_rot = self.pca1.transform_components(Qx_rot)
+        Qy_rot = self.pca2.transform_components(Qy_rot)
         Qx_rot = self.whitener1.transform_components(Qx_rot)
         Qy_rot = self.whitener2.transform_components(Qy_rot)
 
@@ -353,6 +363,7 @@ class CPCCARotator(CPCCA):
 
             # Preprocess the data
             comps1 = self.whitener1.inverse_transform_components(comps1)
+            comps1 = self.pca1.inverse_transform_components(comps1)
             X = self.preprocessor1.transform(X)
 
             # Compute non-rotated scores by projecting the data onto non-rotated components
@@ -383,6 +394,7 @@ class CPCCARotator(CPCCA):
 
             # Preprocess the data
             comps2 = self.whitener2.inverse_transform_components(comps2)
+            comps2 = self.pca2.inverse_transform_components(comps2)
             Y = self.preprocessor2.transform(Y)
 
             # Compute non-rotated scores by project the data onto non-rotated components

@@ -52,6 +52,18 @@ def generate_well_conditioned_data(lazy=False):
         return X, Y
 
 
+@pytest.mark.parametrize("use_pca", [True, False])
+def test_singular_values(use_pca):
+    """Test that the singular values of the Hilbert CCA are less than 1."""
+    X, Y = generate_well_conditioned_data()
+    cpcca = HilbertCPCCA(n_modes=2, alpha=0.0, use_pca=use_pca, n_pca_modes=2)
+    cpcca.fit(X, Y, "sample")
+    s_values = cpcca.data["singular_values"]
+
+    # Singular values are the canonical correlations, so they should be less than 1
+    assert np.all(s_values <= 1)
+
+
 # Currently, netCDF4 does not support complex numbers, so skip this test
 @pytest.mark.parametrize("engine", ["zarr"])
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
