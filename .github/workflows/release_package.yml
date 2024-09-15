@@ -52,7 +52,7 @@ jobs:
           config: cliff.toml
           args: --verbose
         env:
-          OUTPUT: docs/whats_new/CHANGELOG.md
+          OUTPUT: docs/content/whats_new/CHANGELOG.md
           GITHUB_REPO: ${{ github.repository }}
 
       - name: Commit Changelog
@@ -60,6 +60,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           set +e
-          git add docs/whats_new/CHANGELOG.md
+          git add docs/content/whats_new/CHANGELOG.md
           git commit -m "docs(changelog): update changelog"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git main
