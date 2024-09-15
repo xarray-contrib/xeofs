@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [unreleased]
+
+### 🚀 Performance
+
+- avoid redundant data when saving Rotator models (#229) - ([e2525bb](https://github.com/nicrie/xeofs/commit/e2525bb0f602337589d357860e0f8aeb01a8f58b)) - Niclas Rieger
+- speed up rotation by about 20% (#228) - ([bcbaa9e](https://github.com/nicrie/xeofs/commit/bcbaa9effd0515f8d8ee1367e0f94a8cd5c771f4)) - Niclas Rieger
+
+### 🐛 Bug Fixes
+
+- **(cross)** correct saving and loading of CPCCA and Rotator models (#225) - ([7cba749](https://github.com/nicrie/xeofs/commit/7cba749418d0313c7404f2a9991675c058f159dc)) - Niclas Rieger
+- xarray 2024.09.0 compatility (#227) - ([5ed9753](https://github.com/nicrie/xeofs/commit/5ed9753bc7d8ce349ac75f9043e61c2f6a20677e)) - Sam Levang
+- correct whitening in HilbertCPCCA models (#230) - ([3ba531c](https://github.com/nicrie/xeofs/commit/3ba531c62a753feecec15d24ceabba317c7256e2)) - Niclas Rieger
+
+### 🔖 Documentation
+
+- fix changelog path (#232) - ([dff493b](https://github.com/nicrie/xeofs/commit/dff493bc50f701af80b3ce0ce34f220ab7ae7469)) - Niclas Rieger
+
+---
+## [3.0.1](https://github.com/nicrie/xeofs/compare/v3.0.0..v3.0.1) - 2024-09-10
+
+### 🐛 Bug Fixes
+
+- **(cross)** fix data augmentation in Hilbert cross-set models (#222) - ([960f744](https://github.com/nicrie/xeofs/commit/960f74429a01d614bd9289d762550128206330a0)) - Niclas Rieger
+- **(cross)** compute total squared covariance in PC space (#221) - ([2dd3e86](https://github.com/nicrie/xeofs/commit/2dd3e86d1b41416346a31c6dffd261834990426b)) - Niclas Rieger
+
+### 🔖 Documentation
+
+- add migration guide (#217) - ([dfaab53](https://github.com/nicrie/xeofs/commit/dfaab53734f33042d6762aba4799afa5479585c4)) - Niclas Rieger
+
+---
 ## [3.0.0](https://github.com/nicrie/xeofs/compare/v2.4.1..v3.0.0) - 2024-09-04
 
 ### ⭐ Features
@@ -22,18 +52,12 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### 🔖 Documentation
 
-- **(changelog)** update changelog - ([be6664d](https://github.com/nicrie/xeofs/commit/be6664d08c49e5f588bc44bcd8f1852d4bea2c43)) - github-actions[bot]
-- **(changelog)** update changelog - ([a4e1be2](https://github.com/nicrie/xeofs/commit/a4e1be220ed572e6bd8490a0e1a7f4e1ad6ac34d)) - github-actions[bot]
 - **(readme)** fix broken badges (#204) - ([72e8c60](https://github.com/nicrie/xeofs/commit/72e8c60941bd00a091e5d6d27635622a26aa9bcf)) - Niclas Rieger
 
 ### 🛠️ Refactoring
 
 - **(typing)** use built-in types for annotations (#208) - ([7505350](https://github.com/nicrie/xeofs/commit/75053507a2a4128d25e2c46fe24ef0f85a07364a)) - Niclas Rieger
 -  [**BREAKING**] reorganize methods into new namespaces (#210) - ([675983f](https://github.com/nicrie/xeofs/commit/675983fbb030380e6bde5ce7ede02346d8c9debe)) - Niclas Rieger
-
-### ⚙️ Miscellaneous
-
-- merge branch 'main' into develop - ([8acc4ae](https://github.com/nicrie/xeofs/commit/8acc4ae213ce2d91a3ce78fb07dabfff180e0f9f)) - Niclas Rieger
 
 ---
 ## [2.4.1](https://github.com/nicrie/xeofs/compare/v2.4.0..v2.4.1) - 2024-08-31
@@ -45,8 +69,6 @@ All notable changes to this project will be documented in this file. See [conven
 ### 🔖 Documentation
 
 - **(changelog)** move log to documentation (#199) - ([c9de931](https://github.com/nicrie/xeofs/commit/c9de931327faae972747e3b0d3fbfded4c3b9a91)) - Niclas Rieger
-- **(changelog)** update changelog - ([280bd43](https://github.com/nicrie/xeofs/commit/280bd430383ae5fecc47275f1964945b1bd5479b)) - github-actions[bot]
-- **(changelog)** update changelog - ([8eed958](https://github.com/nicrie/xeofs/commit/8eed958bbc23dc2d3a5ae8195f02e1b8efb813e5)) - github-actions[bot]
 - **(decomposer)** improve error messages (#194) - ([9d34060](https://github.com/nicrie/xeofs/commit/9d34060617a45c60b02bf504e38d7b202285ccfc)) - Niclas Rieger
 - reorganize documentation (#171) - ([aa28770](https://github.com/nicrie/xeofs/commit/aa287706f590c7afe7eeb6d51c30d64b4d285cc0)) - Niclas Rieger
 - update color design (#181) - ([25598a1](https://github.com/nicrie/xeofs/commit/25598a1fc23e41560e9d85327f7c52c0420825f4)) - Niclas Rieger
@@ -74,7 +96,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 - **(changelog)** remove old Github Action - ([45b513e](https://github.com/nicrie/xeofs/commit/45b513e57e3f32aa8498b94f5b5e4c84ac61ecfe)) - Niclas Rieger
 - update Github Issue templates (#172) - ([998774f](https://github.com/nicrie/xeofs/commit/998774fe50259ec2341aa1b21da51a9f077df22c)) - Niclas Rieger
-- merge main into develop - ([4e683e6](https://github.com/nicrie/xeofs/commit/4e683e644be0975e3f2e388703a5dd88484da674)) - Niclas Rieger
 - updating internal code structure (#195) - ([00d5fb7](https://github.com/nicrie/xeofs/commit/00d5fb7dcd176aa6eaf274805ebfc29eb937c8b6)) - Niclas Rieger
 - update git-cliff Github Action - ([f8b3305](https://github.com/nicrie/xeofs/commit/f8b33053bd2c2bd09808887b890a1d2fab611eb3)) - Niclas Rieger
 - add deprecation warning for verbose parameter - ([87b23f9](https://github.com/nicrie/xeofs/commit/87b23f9d8dfc219730dda22800c5ec98206dc9d3)) - Niclas Rieger
@@ -227,7 +248,6 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### ⚙️ Miscellaneous
 
-- merge branch 'main' into develop - ([95a34f6](https://github.com/nicrie/xeofs/commit/95a34f60f9ea3ea6706423b2343de2990d80dbf6)) - Niclas Rieger
 - add workflow dispatch to Github Action - ([26f8345](https://github.com/nicrie/xeofs/commit/26f834516d1aacecdffc91e425a801c2086bdcd8)) - Niclas Rieger
 - specify Python Semantic Release version v8.0.0 - ([c7c79e4](https://github.com/nicrie/xeofs/commit/c7c79e448462d96d49cec2ab903363085e5ed9d4)) - Niclas Rieger
 
@@ -269,7 +289,6 @@ All notable changes to this project will be documented in this file. See [conven
 - merge branches - ([4447b07](https://github.com/nicrie/xeofs/commit/4447b07a948bc4cdd083ef781c605a630e29c6dc)) - Niclas Rieger
 - bring all-contributors bot back to life - ([8929ed5](https://github.com/nicrie/xeofs/commit/8929ed5a1f6757eb9f55e191eb4d7d417ad37b1b)) - Niclas Rieger
 - fix config of all-contributor bot - ([1eedf4f](https://github.com/nicrie/xeofs/commit/1eedf4f5c2b69f30ee45be0c110d9cca7e25ce9d)) - Niclas Rieger
-- merge branch 'main' into develop - ([f9ef729](https://github.com/nicrie/xeofs/commit/f9ef72920becf750f63bc8ed4f8b80f6c25593e4)) - Niclas Rieger
 
 ---
 ## [2.1.0](https://github.com/nicrie/xeofs/compare/v2.0.3..v2.1.0) - 2023-11-14
@@ -631,9 +650,7 @@ All notable changes to this project will be documented in this file. See [conven
 
 - Merge branch 'main' into develop - ([bc4e87d](https://github.com/nicrie/xeofs/commit/bc4e87d469807c4b2bb4679556813e2693affe5f)) - Niclas Rieger
 - merge branch 'main' of nicrie/xeofs - ([efb5ab9](https://github.com/nicrie/xeofs/commit/efb5ab9c306e9d71a4aab20b6f16ccbfa6a65c56)) - Niclas Rieger
-- merge main into develop - ([9f50392](https://github.com/nicrie/xeofs/commit/9f50392d7f99ca6bb7cd13608b630094e0845cb3)) - Niclas Rieger
 - revert errorenous upgrade to v2 - ([ca22aa4](https://github.com/nicrie/xeofs/commit/ca22aa420c4809deaa114de18164ce8d0f5fb02b)) - Niclas Rieger
-- merge branch 'main' into develop - ([e0e8d93](https://github.com/nicrie/xeofs/commit/e0e8d93f2ca33ebb091f76a3e04ba5c18b5276ed)) - Niclas Rieger
 
 ---
 ## [1.0.1](https://github.com/nicrie/xeofs/compare/v1.0.0..v1.0.1) - 2023-07-07

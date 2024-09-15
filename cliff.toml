@@ -62,6 +62,12 @@ commit_preprocessors = [
 ]
 # regex for parsing and grouping commits
 commit_parsers = [
+    { message = "^chore: release", skip = true },
+    { message = "^chore\\(release\\):", skip = true },
+    { message = "^chore: merge (branch )?'[^']+' into '[^']+'", skip = true },
+    { message = "^chore: merge (branch )?[^ ]+ into [^ ]+", skip = true },
+    { message = "^docs(changelog): update changelog", skip = true },
+    { message = "^docs\\(changelog\\): update changelog", skip = true },
     { message = "^feat", group = "<!-- 00 -->⭐ Features" },
     { message = "^perf", group = "<!-- 01 -->🚀 Performance" },
     { message = "^fix", group = "<!-- 02 -->🐛 Bug Fixes" },
@@ -70,10 +76,8 @@ commit_parsers = [
     { message = "^style", group = "<!-- 06 -->🎨 Style" },
     { message = "^revert", group = "<!-- 07 -->♻️ Revert" },
     { message = "^test", group = "<!-- 08 -->✅ Tests" },
-    { message = "^chore: release", skip = true },
-    { message = "^chore\\(release\\):", skip = true },
-    { message = "^chore|ci|build", group = "<!-- 09 -->⚙️ Miscellaneous" },
     { body = ".*security", group = "<!-- 10 -->🔒 Security" },
+    { message = "^chore|ci|build", group = "<!-- 09 -->⚙️ Miscellaneous" },
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
 protect_breaking_commits = false
