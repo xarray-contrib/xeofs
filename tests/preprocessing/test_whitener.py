@@ -60,28 +60,39 @@ def generate_well_conditioned_data(lazy=False):
 def test_fit(lazy):
     data = generate_well_conditioned_data(lazy)
 
-    whitener = Whitener(n_modes=2)
+    whitener = Whitener()
     whitener.fit(data)
 
 
-@pytest.mark.parametrize(
-    "lazy",
-    [False, True],
-)
-def test_transform(lazy):
+@pytest.mark.parametrize("lazy", [False, True])
+@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0, 1.5])
+def test_transform(lazy, alpha):
     data = generate_well_conditioned_data(lazy)
 
-    whitener = Whitener(n_modes=2)
+    whitener = Whitener()
     whitener.fit(data)
 
     # Transform data
     transformed_data = whitener.transform(data)
     transformed_data2 = whitener.transform(data)
-    assert transformed_data.identical(transformed_data2)
 
     assert isinstance(transformed_data, xr.DataArray)
     assert transformed_data.ndim == 2
     assert transformed_data.dims == ("sample", "feature")
+
+    # Transformed data is identical
+    assert transformed_data.identical(transformed_data2)
+
+    # Check that for full whitening, transformed data is uncorrelated
+    # and has variance one
+    if math.isclose(alpha, 0.0, abs_tol=1e-6):
+        # Transformed data has variance = 1
+        assert np.allclose(transformed_data.var("sample").values, 1.0)
+
+        # Transformed data is uncorrelated
+        C = np.corrcoef(transformed_data.values, rowvar=False)
+        target = np.identity(data.shape[1])
+        np.testing.assert_allclose(C, target, atol=1e-6)
 
     # Consistent dask behaviour
     is_dask_before = data_is_dask(data)
@@ -89,14 +100,11 @@ def test_transform(lazy):
     assert is_dask_before == is_dask_after
 
 
-@pytest.mark.parametrize(
-    "lazy",
-    [False, True],
-)
+@pytest.mark.parametrize("lazy", [False, True])
 def test_fit_transform(lazy):
     data = generate_well_conditioned_data(lazy)
 
-    whitener = Whitener(n_modes=2)
+    whitener = Whitener()
 
     # Transform data
     transformed_data = whitener.fit_transform(data)
@@ -113,14 +121,12 @@ def test_fit_transform(lazy):
     assert is_dask_before == is_dask_after
 
 
-@pytest.mark.parametrize(
-    "lazy",
-    [False, True],
-)
-def test_invserse_transform_data(lazy):
+@pytest.mark.parametrize("lazy", [False, True])
+@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0, 1.5])
+def test_inverse_transform_data(lazy, alpha):
     data = generate_well_conditioned_data(lazy)
 
-    whitener = Whitener(n_modes=2)
+    whitener = Whitener(alpha)
     whitener.fit(data)
 
     whitened_data = whitener.transform(data)
@@ -136,55 +142,8 @@ def test_invserse_transform_data(lazy):
     # inverse transform should not change dask-ness
     assert is_dask_before == is_dask_after
 
-
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (0.0, False),
-        (0.5, False),
-        (1.0, False),
-        (1.5, False),
-        (0.0, True),
-        (0.5, True),
-        (1.0, True),
-        (1.5, True),
-    ],
-)
-def test_transform_alpha(alpha, use_pca):
-    data = data = generate_well_conditioned_data()
-
-    whitener = Whitener(alpha=alpha, use_pca=use_pca)
-    data_whitened = whitener.fit_transform(data)
-
-    nc = data.shape[0] - 1
-    norm = (data_whitened**2).sum("sample") / nc
-    ones = norm / norm
-    # Check that for alpha=0 full whitening is performed
-    if math.isclose(alpha, 0.0, abs_tol=1e-6):
-        xr.testing.assert_allclose(norm, ones, atol=1e-6)
-
-
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (0.0, False),
-        (0.5, False),
-        (1.0, False),
-        (1.5, False),
-        (0.0, True),
-        (0.5, True),
-        (1.0, True),
-        (1.5, True),
-    ],
-)
-def test_inverse_transform_alpha(alpha, use_pca):
-    # Use data with more samples than features and high signal-to-noise ratio
-    data = generate_well_conditioned_data()
-    whitener = Whitener(alpha=alpha, use_pca=use_pca)
-    data_whitened = whitener.fit_transform(data)
-    data_unwhitened = whitener.inverse_transform_data(data_whitened)
-
-    xr.testing.assert_allclose(data, data_unwhitened, atol=1e-6)
+    # Unwhitened data is identical to original data
+    xr.testing.assert_allclose(data, unwhitened_data, atol=1e-6)
 
 
 def test_invalid_alpha():
@@ -193,7 +152,7 @@ def test_invalid_alpha():
 
     err_msg = "`alpha` must be greater than or equal to 0"
     with pytest.raises(ValueError, match=err_msg):
-        Whitener(n_modes=2, alpha=-1.0)
+        Whitener(alpha=-1.0)
 
 
 def test_raise_warning_ill_conditioned():
@@ -207,24 +166,10 @@ def test_raise_warning_ill_conditioned():
         _ = whitener.fit_transform(data)
 
 
-@pytest.mark.parametrize(
-    "n_modes",
-    [1, 2, 3],
-)
-def test_transform_pca_n_modes(n_modes):
-    data = generate_well_conditioned_data()
-
-    whitener = Whitener(use_pca=True, n_modes=n_modes)
-    transformed = whitener.fit_transform(data)
-
-    # PCA-Whitener reduces dimensionality
-    assert transformed.shape[1] == n_modes
-
-
 def test_whitener_identity_transformation():
     data = generate_well_conditioned_data()
 
-    whitener = Whitener(alpha=1.0, use_pca=False)
+    whitener = Whitener(alpha=1.0)
     transformed = whitener.fit_transform(data)
     reconstructed = whitener.inverse_transform_data(transformed)
 
@@ -233,20 +178,8 @@ def test_whitener_identity_transformation():
     xr.testing.assert_identical(data, reconstructed)
 
 
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (0.0, True),
-        (0.5, True),
-        (1.0, True),
-        (1.5, True),
-        (0.0, False),
-        (0.5, False),
-        (1.0, False),
-        (1.5, False),
-    ],
-)
-def test_unwhiten_cross_covariance_matrix(alpha, use_pca):
+@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0, 1.5])
+def test_unwhiten_cross_covariance_matrix(alpha):
     def unwhiten_cov_mat(Cw, S1_inv, S2_inv):
         n_dims_s1 = len(S1_inv.shape)
         n_dims_s2 = len(S2_inv.shape)
@@ -254,8 +187,6 @@ def test_unwhiten_cross_covariance_matrix(alpha, use_pca):
         match n_dims_s1:
             case 0:
                 C_unwhitened = Cw
-            case 1:
-                C_unwhitened = S1_inv[:, None] * Cw
             case 2:
                 C_unwhitened = S1_inv @ Cw
             case _:
@@ -264,8 +195,6 @@ def test_unwhiten_cross_covariance_matrix(alpha, use_pca):
         match n_dims_s2:
             case 0:
                 pass
-            case 1:
-                C_unwhitened = C_unwhitened * S2_inv[None, :]
             case 2:
                 C_unwhitened = C_unwhitened @ S2_inv
             case _:
@@ -273,18 +202,18 @@ def test_unwhiten_cross_covariance_matrix(alpha, use_pca):
 
         return C_unwhitened
 
-    """Test that we can uncover the original total amount of covariance between two datasets after whitening."""
+    """Test that we can uncover the original total amount of squared covariance between two datasets after whitening."""
     data1 = generate_well_conditioned_data()
     data2 = generate_well_conditioned_data() ** 2
 
-    whitener1 = Whitener(alpha=0.5, use_pca=True, n_modes="all")
-    whitener2 = Whitener(alpha=alpha, use_pca=use_pca, n_modes="all")
+    whitener1 = Whitener(alpha=0.5)
+    whitener2 = Whitener(alpha=alpha)
 
     transformed1 = whitener1.fit_transform(data1)
     transformed2 = whitener2.fit_transform(data2)
 
-    S1_inv = whitener1.get_Tinv(unwhiten_only=True).values
-    S2_inv = whitener2.get_Tinv(unwhiten_only=True).values
+    S1_inv = whitener1.Tinv.values
+    S2_inv = whitener2.Tinv.values
 
     C = data1.values.T @ data2.values
     Cw = transformed1.values.T @ transformed2.values
@@ -296,44 +225,11 @@ def test_unwhiten_cross_covariance_matrix(alpha, use_pca):
     np.testing.assert_almost_equal(total_covariance, total_covariance_rec)
 
 
-@pytest.mark.parametrize(
-    "use_pca",
-    [True, False],
-)
-def test_standardize_and_decorrelate(use_pca):
-    X = generate_well_conditioned_data()
-    n_features = X.shape[1]
-
-    whitener = Whitener(alpha=0.0, use_pca=use_pca, n_modes="all")
-    transformed = whitener.fit_transform(X)
-
-    # Check that transformed data is standardized
-    assert np.allclose(transformed.mean("sample").values, np.zeros(n_features))
-    assert np.allclose(transformed.std("sample").values, np.ones(n_features), rtol=1e-2)
-
-    # Check that transformed data is decorrelated
-    C = np.corrcoef(transformed.values, rowvar=False)
-    target = np.identity(n_features)
-    np.testing.assert_allclose(C, target, atol=1e-6)
-
-
-@pytest.mark.parametrize(
-    "alpha,use_pca",
-    [
-        (0.0, True),
-        (0.5, True),
-        (1.0, True),
-        (1.5, True),
-        (0.0, False),
-        (0.5, False),
-        (1.0, False),
-        (1.5, False),
-    ],
-)
-def test_transform_keep_coordinates(alpha, use_pca):
+@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0, 1.5])
+def test_transform_keep_coordinates(alpha):
     X = generate_well_conditioned_data()
 
-    whitener = Whitener(alpha=alpha, use_pca=use_pca, n_modes="all")
+    whitener = Whitener(alpha=alpha)
     transformed = whitener.fit_transform(X)
 
     assert len(transformed.coords) == len(X.coords)

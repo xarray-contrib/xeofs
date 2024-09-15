@@ -88,7 +88,7 @@ class EOFRotator(EOF):
         # Attach empty objects
         self.preprocessor = Preprocessor()
         self.data = DataContainer()
-        self.model = EOF()
+        self.model_data = DataContainer()
 
         self.sorted = False
 
@@ -96,7 +96,7 @@ class EOFRotator(EOF):
         return dict(
             data=self.data,
             preprocessor=self.preprocessor,
-            model=self.model,
+            model_data=self.model_data,
             sorted=self.sorted,
         )
 
@@ -117,7 +117,6 @@ class EOFRotator(EOF):
         return self
 
     def _fit_algorithm(self, model) -> Self:
-        self.model = model
         self.preprocessor = model.preprocessor
         self.sample_name = model.sample_name
         self.feature_name = model.feature_name
@@ -189,6 +188,10 @@ class EOFRotator(EOF):
         scores = scores * modes_sign
 
         # Store the results
+        self.model_data.add(model.data["norms"], "singular_values")
+        self.model_data.add(model.data["components"], "components")
+
+        # Assigning input data to the Rotator object allows us to inherit some functionalities from the original model
         self.data.add(model.data["input_data"], "input_data", allow_compute=False)
         self.data.add(rot_components, "components")
         self.data.add(scores, "scores")
@@ -224,10 +227,12 @@ class EOFRotator(EOF):
     def _transform_algorithm(self, X: DataArray) -> DataArray:
         n_modes = self._params["n_modes"]
 
-        svals = self.model.singular_values().sel(mode=slice(1, self._params["n_modes"]))
+        svals = self.model_data["singular_values"].sel(
+            mode=slice(1, self._params["n_modes"])
+        )
         pseudo_norms = self.data["norms"]
         # Select the (non-rotated) singular vectors of the first dataset
-        components = self.model.data["components"].sel(mode=slice(1, n_modes))
+        components = self.model_data["components"].sel(mode=slice(1, n_modes))
 
         # Compute non-rotated scores by projecting the data onto non-rotated components
         projections = xr.dot(X, components) / svals
@@ -329,7 +334,6 @@ class ComplexEOFRotator(EOFRotator, ComplexEOF):
             n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
         )
         self.attrs.update({"model": "Rotated Complex EOF analysis"})
-        self.model = ComplexEOF()
 
 
 class HilbertEOFRotator(EOFRotator, HilbertEOF):
@@ -385,7 +389,6 @@ class HilbertEOFRotator(EOFRotator, HilbertEOF):
             n_modes=n_modes, power=power, max_iter=max_iter, rtol=rtol, compute=compute
         )
         self.attrs.update({"model": "Rotated Hilbert EOF analysis"})
-        self.model = HilbertEOF()
 
     def _transform_algorithm(self, data: DataArray) -> DataArray:
         # Here we leverage the Method Resolution Order (MRO) to invoke the

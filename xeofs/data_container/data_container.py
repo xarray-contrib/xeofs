@@ -36,7 +36,7 @@ class DataContainer(dict):
         for key, data in self.items():
             if not data.name:
                 data.name = key
-            dt[key] = DataTree(data)
+            dt[key] = DataTree(data.to_dataset())
             dt[key].attrs = {key: "_is_node", "allow_compute": self._allow_compute[key]}
 
         return dt

@@ -319,6 +319,38 @@ def test_save_load(tmp_path, engine, alpha):
     assert np.allclose(XYr_o[1], XYr_l[1])
 
 
+@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
+def test_save_load_with_data(tmp_path, engine, alpha):
+    """Test save/load methods in CPCCA class, ensuring that we can
+    roundtrip the model and get the same results for SCF."""
+    X = generate_random_data((200, 10), seed=123)
+    Y = generate_random_data((200, 20), seed=321)
+
+    original = CPCCA(alpha=alpha)
+    original.fit(X, Y, "sample")
+
+    # Save the CPCCA model
+    original.save(tmp_path / "cpcca", engine=engine, save_data=True)
+
+    # Check that the CPCCA model has been saved
+    assert (tmp_path / "cpcca").exists()
+
+    # Recreate the model from saved file
+    loaded = CPCCA.load(tmp_path / "cpcca", engine=engine)
+
+    # Check that the params and DataContainer objects match
+    assert original.get_params() == loaded.get_params()
+    assert all([key in loaded.data for key in original.data])
+    for key in original.data:
+        assert loaded.data[key].equals(original.data[key])
+
+    # Test that the recreated model can compute the SCF
+    assert np.allclose(
+        original.squared_covariance_fraction(), loaded.squared_covariance_fraction()
+    )
+
+
 def test_serialize_deserialize_dataarray(mock_data_array):
     """Test roundtrip serialization when the model is fit on a DataArray."""
     model = CPCCA()
