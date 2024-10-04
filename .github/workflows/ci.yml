@@ -25,8 +25,10 @@ jobs:
         deps:
           - name: minimal
             value: '[dev]'
+            doctest: '' # doctest runs MCA and requires statsmodels
           - name: complete
             value: '[dev,complete]'
+            doctest: '--doctest-glob=README.md'
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +46,7 @@ jobs:
 
       - name: Execute Tests
         run: |
-          coverage run -m pytest -n auto --doctest-glob="README.md"
+          coverage run -m pytest -n auto ${{ matrix.deps.doctest }}
           coverage report -m
           coverage xml
 
