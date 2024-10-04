@@ -11,7 +11,7 @@ on:
 
 jobs:
   test:
-    name: py${{ matrix.versions.python-version }} ${{ matrix.versions.resolution }}
+    name: py${{ matrix.versions.python-version }} ${{ matrix.versions.resolution }} ${{ matrix.deps.name}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,6 +22,12 @@ jobs:
             resolution: highest
           - python-version: '3.12'
             resolution: highest
+        deps:
+          - name: minimal
+            value: '[dev]'
+          - name: complete
+            value: '[dev,complete]'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +39,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install .[complete,dev] -r pyproject.toml --system --resolution ${{ matrix.versions.resolution }}
+          uv pip install .${{ matrix.deps.value }} -r pyproject.toml \
+             --system --resolution ${{ matrix.versions.resolution }}
 
       - name: Execute Tests
         run: |

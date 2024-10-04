@@ -5,6 +5,8 @@ import xarray as xr
 
 from xeofs.cross import CPCCA
 
+from ...utilities import engine_to_module
+
 
 def generate_random_data(shape, lazy=False, seed=142):
     rng = np.random.default_rng(seed)
@@ -280,6 +282,8 @@ def test_save_load(tmp_path, engine, alpha):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    pytest.importorskip(engine_to_module(engine))
+
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
@@ -324,6 +328,8 @@ def test_save_load(tmp_path, engine, alpha):
 def test_save_load_with_data(tmp_path, engine, alpha):
     """Test save/load methods in CPCCA class, ensuring that we can
     roundtrip the model and get the same results for SCF."""
+    pytest.importorskip(engine_to_module(engine))
+
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 

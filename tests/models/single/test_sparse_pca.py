@@ -4,6 +4,8 @@ import xarray as xr
 
 from xeofs.single import SparsePCA
 
+from ...utilities import engine_to_module
+
 
 def test_init():
     """Tests the initialization of the SparsePCA class"""
@@ -488,6 +490,8 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in SparsePCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    pytest.importorskip(engine_to_module(engine))
+
     original = SparsePCA()
     original.fit(mock_data_array, dim)
 

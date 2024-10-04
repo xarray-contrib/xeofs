@@ -4,6 +4,8 @@ import xarray as xr
 
 from xeofs.single import POP
 
+from ...utilities import engine_to_module
+
 
 def test_init():
     """Tests the initialization of the POP class"""
@@ -159,6 +161,8 @@ def test_save_load(mock_data_array, tmp_path, engine):
     roundtrip the model and get the same results when transforming
     data."""
     # NOTE: netcdf4 does not support complex data types, so we use only zarr here
+    pytest.importorskip(engine_to_module(engine))
+
     dim = "time"
     original = POP()
     original.fit(mock_data_array, dim)

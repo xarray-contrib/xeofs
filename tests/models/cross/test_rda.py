@@ -5,6 +5,8 @@ import xarray as xr
 
 from xeofs.cross import RDA
 
+from ...utilities import engine_to_module
+
 
 def generate_random_data(shape, lazy=False, seed=142):
     rng = np.random.default_rng(seed)
@@ -231,6 +233,8 @@ def test_save_load(tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    pytest.importorskip(engine_to_module(engine))
+
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 

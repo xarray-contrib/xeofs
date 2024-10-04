@@ -148,3 +148,11 @@ def assert_expected_coords(data1, data2, policy="all") -> None:
                 type(data1), type(data2)
             )
         )
+
+
+def engine_to_module(engine: str) -> str:
+    """
+    Required for import skipping because xarray uses `engine="netcdf4"`
+    but the package itself is called `netCDF4`."""
+    mapping = {"netcdf4": "netCDF4"}
+    return mapping.get(engine, engine)

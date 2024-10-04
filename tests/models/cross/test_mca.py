@@ -4,7 +4,7 @@ import xarray as xr
 
 from xeofs.cross import MCA
 
-from ...utilities import data_is_dask
+from ...utilities import data_is_dask, engine_to_module
 
 
 @pytest.fixture
@@ -381,6 +381,8 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    pytest.importorskip(engine_to_module(engine))
+
     original = MCA()
     original.fit(mock_data_array, mock_data_array, dim)
 
