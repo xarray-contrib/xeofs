@@ -1,8 +1,6 @@
 import numpy as np
 import numba
 
-VALID_KERNELS = ["bisquare", "gaussian", "exponential"]
-
 
 @numba.njit(fastmath=True)
 def kernel_weights_nb(distance, bandwidth, kernel):

@@ -8,4 +8,4 @@ dependencies:
   - pandoc
   - pip
   - pip:
-    - -e ../.[docs,io]
+    - -e ../.[complete,docs]

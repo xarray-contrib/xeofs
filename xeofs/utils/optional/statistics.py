@@ -2,7 +2,7 @@ import scipy as sc
 import xarray as xr
 from statsmodels.stats.multitest import multipletests as statsmodels_multipletests
 
-from .constants import MULTIPLE_TESTS
+from ..constants import MULTIPLE_TESTS
 
 
 def pearson_correlation(

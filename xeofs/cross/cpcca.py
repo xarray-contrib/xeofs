@@ -9,7 +9,6 @@ from ..linalg._numpy import _fractional_matrix_power
 from ..linalg.decomposer import Decomposer
 from ..utils.data_types import DataArray, DataObject
 from ..utils.hilbert_transform import hilbert_transform
-from ..utils.statistics import pearson_correlation
 from ..utils.xarray_utils import argsort_dask
 from .base_model_cross_set import BaseModelCrossSet
 
@@ -120,6 +119,8 @@ class CPCCA(BaseModelCrossSet):
 
 
     """
+
+    extra_modules = ["statsmodels"]
 
     def __init__(
         self,
@@ -764,6 +765,8 @@ class CPCCA(BaseModelCrossSet):
             p-values of the homogenous correlation patterns of `X` and `Y`.
 
         """
+        from ..utils.optional.statistics import pearson_correlation
+
         input_data1 = self.data["input_data1"]
         input_data2 = self.data["input_data2"]
 
@@ -848,6 +851,8 @@ class CPCCA(BaseModelCrossSet):
             p-values of the heterogenous correlation patterns of `X` and `Y`.
 
         """
+        from ..utils.optional.statistics import pearson_correlation
+
         input_data1 = self.data["input_data1"]
         input_data2 = self.data["input_data2"]
 
