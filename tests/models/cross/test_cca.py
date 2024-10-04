@@ -226,7 +226,7 @@ def test_predict():
     _ = cca.inverse_transform(Y=Ry_pred)
 
 
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 def test_save_load(tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming

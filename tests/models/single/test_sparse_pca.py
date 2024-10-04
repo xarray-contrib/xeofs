@@ -483,7 +483,7 @@ def test_inverse_transform(dim, mock_data_array, normalized):
         (("lon", "lat")),
     ],
 )
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in SparsePCA class, ensuring that we can
     roundtrip the model and get the same results when transforming

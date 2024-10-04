@@ -274,7 +274,7 @@ def test_predict():
     _ = cpcca.inverse_transform(Y=Ry_pred)
 
 
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
 def test_save_load(tmp_path, engine, alpha):
     """Test save/load methods in MCA class, ensuring that we can
@@ -319,7 +319,7 @@ def test_save_load(tmp_path, engine, alpha):
     assert np.allclose(XYr_o[1], XYr_l[1])
 
 
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
 def test_save_load_with_data(tmp_path, engine, alpha):
     """Test save/load methods in CPCCA class, ensuring that we can
