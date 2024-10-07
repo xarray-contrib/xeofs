@@ -1126,6 +1126,8 @@ class ComplexCPCCA(CPCCA):
 
     """
 
+    uses_complex = True
+
     def __init__(
         self,
         n_modes: int = 2,

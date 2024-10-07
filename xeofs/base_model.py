@@ -33,6 +33,7 @@ class BaseModel(ABC):
     """
 
     extra_modules = []
+    uses_complex = False
 
     def __init__(self):
         # Define model parameters
@@ -141,6 +142,9 @@ class BaseModel(ABC):
         # Remove any raw data arrays at this stage
         if not save_data:
             dt = insert_placeholders(dt)
+
+        if self.uses_complex and engine == "h5netcdf":
+            kwargs = {"invalid_netcdf": True} | kwargs
 
         write_model_tree(dt, path, overwrite=overwrite, engine=engine, **kwargs)
 

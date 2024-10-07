@@ -99,6 +99,8 @@ class POP(BaseModelSingleSet):
 
     """
 
+    uses_complex = True
+
     def __init__(
         self,
         n_modes: int = 2,
