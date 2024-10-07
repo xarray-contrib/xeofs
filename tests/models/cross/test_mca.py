@@ -4,7 +4,7 @@ import xarray as xr
 
 from xeofs.cross import MCA
 
-from ...utilities import data_is_dask
+from ...utilities import data_is_dask, skip_if_missing_engine
 
 
 @pytest.fixture
@@ -376,11 +376,13 @@ def test_compute(mock_dask_data_array, dim, compute):
         (("lon", "lat")),
     ],
 )
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    skip_if_missing_engine(engine)
+
     original = MCA()
     original.fit(mock_data_array, mock_data_array, dim)
 

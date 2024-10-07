@@ -5,6 +5,8 @@ import xarray as xr
 
 from xeofs.cross import CCA
 
+from ...utilities import skip_if_missing_engine
+
 
 def generate_random_data(shape, lazy=False, seed=142):
     rng = np.random.default_rng(seed)
@@ -226,11 +228,13 @@ def test_predict():
     _ = cca.inverse_transform(Y=Ry_pred)
 
 
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 def test_save_load(tmp_path, engine):
     """Test save/load methods in MCA class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    skip_if_missing_engine(engine)
+
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 

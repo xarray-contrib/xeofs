@@ -3,9 +3,7 @@ import numba
 from numba import prange
 from scipy.spatial.distance import cdist
 
-from .constants import AVG_EARTH_RADIUS
-
-VALID_METRICS = ["euclidean", "haversine"]
+from ..constants import AVG_EARTH_RADIUS
 
 
 def distance_matrix_bc(A, B, metric="haversine"):

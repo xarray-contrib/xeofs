@@ -29,6 +29,7 @@ def test_create_rotator_HilbertEOF():
 
 
 def test_create_rotator_MCA():
+    pytest.importorskip("statsmodels")
     factory = RotatorFactory(n_modes=3, power=2, max_iter=1000, rtol=1e-8)
     MCA_instance = MCA()
     rotator = factory.create_rotator(MCA_instance)
@@ -36,6 +37,7 @@ def test_create_rotator_MCA():
 
 
 def test_create_rotator_HilbertMCA():
+    pytest.importorskip("statsmodels")
     factory = RotatorFactory(n_modes=3, power=2, max_iter=1000, rtol=1e-8)
     HilbertMCA_instance = HilbertMCA()
     rotator = factory.create_rotator(HilbertMCA_instance)

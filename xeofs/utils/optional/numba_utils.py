@@ -2,8 +2,8 @@ import numpy as np
 
 import numba
 from numba import prange
-from ..utils.distance_metrics import distance_nb
-from ..utils.kernels import kernel_weights_nb
+from ..optional.distance_metrics import distance_nb
+from ..optional.kernels import kernel_weights_nb
 
 
 # Additional utility functions for local PCA

@@ -9,9 +9,9 @@ from ..utils.constants import (
     VALID_CARTESIAN_Y_NAMES,
     VALID_LATITUDE_NAMES,
     VALID_LONGITUDE_NAMES,
+    VALID_KERNELS,
+    VALID_METRICS,
 )
-from ..utils.distance_metrics import VALID_METRICS
-from ..utils.kernels import VALID_KERNELS
 from ..utils.sanity_checks import assert_not_complex
 from .base_model_single_set import BaseModelSingleSet
 
@@ -84,6 +84,8 @@ class GWPCA(BaseModelSingleSet):
 
     """
 
+    extra_modules = ["numba"]
+
     def __init__(
         self,
         n_modes: int,
@@ -128,7 +130,7 @@ class GWPCA(BaseModelSingleSet):
 
     def _fit_algorithm(self, X: DataArray) -> Self:
         # Hide numba imports here to greatly speed up module import time
-        from ..utils.numba_utils import _local_pcas
+        from ..utils.optional.numba_utils import _local_pcas
 
         # Check input type
         assert_not_complex(X)

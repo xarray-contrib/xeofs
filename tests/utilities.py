@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import pandas as pd
 from xeofs.utils.data_types import (
@@ -148,3 +149,15 @@ def assert_expected_coords(data1, data2, policy="all") -> None:
                 type(data1), type(data2)
             )
         )
+
+
+def skip_if_missing_engine(engine: str):
+    """
+    Skip save/load tests if missing the i/o backend.
+    """
+    # xarray uses engine="netcdf4" but the package itself is "netCDF4".
+    mapping = {"h5netcdf": "h5netcdf", "netcdf4": "netCDF4", "zarr": "zarr"}
+    module = mapping.get(engine)
+    if module is None:
+        raise ValueError(f"Unrecognized engine: {engine}")
+    pytest.importorskip(module)

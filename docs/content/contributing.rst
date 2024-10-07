@@ -48,19 +48,9 @@ Using the commands below, prepare your environment:
 
     conda create -n xeofs python=3.11 rpy2 pandoc
     conda activate xeofs
-    pip install -e .[docs,dev]
+    pip install -e .[complete,docs,dev]
 
-This will install all necessary dependencies, including those for development and documentation. If you're only updating the code (without modifying online documentation), you can skip the docs dependency:
-
-.. code-block:: bash
-
-    pip install -e .[dev]
-
-On the other hand, if you're just updating documentation:
-
-.. code-block:: bash
-
-    pip install -e .[docs]
+This will install both core and optional dependencies, including those for specialized models, documentation, and development. Alternatively, you can skip some of the optional dependency sets (``[complete,docs,dev]``) depending on which components of the package you're working on.
 
 Additionally, install the pre-commit hooks:
 
@@ -81,7 +71,7 @@ Before diving into your contribution, ensure your local main branch is updated:
     git fetch upstream
     git merge upstream/main
 
-This syncs your local main branch with the latest from the primary `xeofs` repository.
+This syncs your local main branch with the latest from the primary ``xeofs`` repository.
 
 4. Create a new branch
 ----------------------

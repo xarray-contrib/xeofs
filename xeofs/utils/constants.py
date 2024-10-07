@@ -14,6 +14,10 @@ VALID_LONGITUDE_NAMES = ["lon", "lons", "longitude", "longitudes"]
 VALID_CARTESIAN_X_NAMES = ["x", "x_coord"]
 VALID_CARTESIAN_Y_NAMES = ["y", "y_coord"]
 
+VALID_KERNELS = ["bisquare", "gaussian", "exponential"]
+VALID_METRICS = ["euclidean", "haversine"]
+
+
 MULTIPLE_TESTS = [
     "bonferroni",
     "sidak",

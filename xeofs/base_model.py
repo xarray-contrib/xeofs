@@ -1,3 +1,4 @@
+import importlib
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -31,6 +32,9 @@ class BaseModel(ABC):
 
     """
 
+    extra_modules = []
+    uses_complex = False
+
     def __init__(self):
         # Define model parameters
         self._params = {}
@@ -45,6 +49,10 @@ class BaseModel(ABC):
             }
         )
         self.attrs.update(self._params)
+
+        # Ensure necessary non-core dependencies are available
+        for module in self.extra_modules:
+            self.check_needed_module(module)
 
     @abstractmethod
     def get_serialization_attrs(self) -> dict:
@@ -135,6 +143,9 @@ class BaseModel(ABC):
         if not save_data:
             dt = insert_placeholders(dt)
 
+        if self.uses_complex and engine == "h5netcdf":
+            kwargs = {"invalid_netcdf": True} | kwargs
+
         write_model_tree(dt, path, overwrite=overwrite, engine=engine, **kwargs)
 
     @classmethod
@@ -187,3 +198,12 @@ class BaseModel(ABC):
     def _validate_loaded_data(self, X: DataArray):
         """Optionally check the loaded data for placeholders."""
         pass
+
+    def check_needed_module(self, module: str):
+        """Check if a necessary non-core dependency is available."""
+        try:
+            importlib.import_module(module)
+        except ImportError:
+            raise ImportError(
+                f"Additional module {module} is required for {self.__class__.__name__}."
+            )

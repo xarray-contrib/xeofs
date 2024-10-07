@@ -4,6 +4,8 @@ import xarray as xr
 
 from xeofs.single import EOF
 
+from ...utilities import skip_if_missing_engine
+
 
 def test_init():
     """Tests the initialization of the EOF class"""
@@ -494,11 +496,13 @@ def test_inverse_transform(dim, mock_data_array, normalized):
         (("lon", "lat")),
     ],
 )
-@pytest.mark.parametrize("engine", ["netcdf4", "zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "netcdf4", "zarr"])
 def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in EOF class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
+    skip_if_missing_engine(engine)
+
     original = EOF()
     original.fit(mock_data_array, dim)
 

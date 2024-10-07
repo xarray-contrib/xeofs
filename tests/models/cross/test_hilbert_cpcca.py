@@ -5,6 +5,8 @@ import xarray as xr
 
 from xeofs.cross import HilbertCPCCA
 
+from ...utilities import skip_if_missing_engine
+
 
 def generate_random_data(shape, lazy=False, seed=142):
     rng = np.random.default_rng(seed)
@@ -65,11 +67,13 @@ def test_singular_values(use_pca):
 
 
 # Currently, netCDF4 does not support complex numbers, so skip this test
-@pytest.mark.parametrize("engine", ["zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "zarr"])
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
 def test_save_load_with_data(tmp_path, engine, alpha):
     """Test save/load methods in CPCCA class, ensuring that we can
     roundtrip the model and get the same results."""
+    skip_if_missing_engine(engine)
+
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)
 
