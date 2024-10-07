@@ -244,7 +244,7 @@ def test_scores_phase(mca_model, mock_data_array, dim):
     ],
 )
 # Currently, netCDF4 does not support complex numbers, so skip this test
-@pytest.mark.parametrize("engine", ["zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "zarr"])
 def test_save_load_with_data(tmp_path, engine, mca_model):
     """Test save/load methods in HilbertMCARotator class, ensuring that we can
     roundtrip the model and get the same results."""
