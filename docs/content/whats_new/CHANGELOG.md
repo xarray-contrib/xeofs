@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [3.0.3](https://github.com/nicrie/xeofs/compare/v3.0.2..v3.0.3) - 2024-10-07
+
+### 🐛 Bug Fixes
+
+- isolate required and optional dependencies (#237) - ([a6c05e6](https://github.com/nicrie/xeofs/commit/a6c05e6117e989da23c18b66d0a908f88860e117)) - Sam Levang
+
+---
 ## [3.0.2](https://github.com/nicrie/xeofs/compare/v3.0.1..v3.0.2) - 2024-09-15
 
 ### 🚀 Performance
