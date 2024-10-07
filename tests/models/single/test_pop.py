@@ -155,7 +155,7 @@ def test_inverse_transform(mock_data_array):
     assert set(X_rec.dims) == set(mock_data_array.dims)
 
 
-@pytest.mark.parametrize("engine", ["zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "zarr"])
 def test_save_load(mock_data_array, tmp_path, engine):
     """Test save/load methods in POP class, ensuring that we can
     roundtrip the model and get the same results when transforming

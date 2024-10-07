@@ -67,7 +67,7 @@ def test_singular_values(use_pca):
 
 
 # Currently, netCDF4 does not support complex numbers, so skip this test
-@pytest.mark.parametrize("engine", ["zarr"])
+@pytest.mark.parametrize("engine", ["h5netcdf", "zarr"])
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
 def test_save_load_with_data(tmp_path, engine, alpha):
     """Test save/load methods in CPCCA class, ensuring that we can
