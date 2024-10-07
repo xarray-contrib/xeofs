@@ -5,7 +5,7 @@ import xarray as xr
 
 from xeofs.cross import HilbertCPCCA
 
-from ...utilities import engine_to_module
+from ...utilities import skip_if_missing_engine
 
 
 def generate_random_data(shape, lazy=False, seed=142):
@@ -72,7 +72,7 @@ def test_singular_values(use_pca):
 def test_save_load_with_data(tmp_path, engine, alpha):
     """Test save/load methods in CPCCA class, ensuring that we can
     roundtrip the model and get the same results."""
-    pytest.importorskip(engine_to_module(engine))
+    skip_if_missing_engine(engine)
 
     X = generate_random_data((200, 10), seed=123)
     Y = generate_random_data((200, 20), seed=321)

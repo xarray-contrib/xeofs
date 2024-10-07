@@ -4,7 +4,7 @@ import xarray as xr
 
 from xeofs.single import EOF
 
-from ...utilities import engine_to_module
+from ...utilities import skip_if_missing_engine
 
 
 def test_init():
@@ -501,7 +501,7 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
     """Test save/load methods in EOF class, ensuring that we can
     roundtrip the model and get the same results when transforming
     data."""
-    pytest.importorskip(engine_to_module(engine))
+    skip_if_missing_engine(engine)
 
     original = EOF()
     original.fit(mock_data_array, dim)

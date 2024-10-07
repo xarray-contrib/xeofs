@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import pandas as pd
 from xeofs.utils.data_types import (
@@ -150,9 +151,11 @@ def assert_expected_coords(data1, data2, policy="all") -> None:
         )
 
 
-def engine_to_module(engine: str) -> str:
+def skip_if_missing_engine(engine: str):
     """
-    Required for import skipping because xarray uses `engine="netcdf4"`
-    but the package itself is called `netCDF4`."""
+    Skip save/load tests if missing the i/o backend.
+    """
+    # xarray uses engine="netcdf4" but the package itself is called "netCDF4".
     mapping = {"netcdf4": "netCDF4"}
-    return mapping.get(engine, engine)
+    module = mapping.get(engine, engine)
+    pytest.importorskip(module)

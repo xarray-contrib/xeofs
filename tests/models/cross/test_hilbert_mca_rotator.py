@@ -5,7 +5,7 @@ import xarray as xr
 # Import the classes from your modules
 from xeofs.cross import HilbertMCA, HilbertMCARotator
 
-from ...utilities import engine_to_module
+from ...utilities import skip_if_missing_engine
 
 
 @pytest.fixture
@@ -248,7 +248,7 @@ def test_scores_phase(mca_model, mock_data_array, dim):
 def test_save_load_with_data(tmp_path, engine, mca_model):
     """Test save/load methods in HilbertMCARotator class, ensuring that we can
     roundtrip the model and get the same results."""
-    pytest.importorskip(engine_to_module(engine))
+    skip_if_missing_engine(engine)
 
     original = HilbertMCARotator(n_modes=2)
     original.fit(mca_model)
