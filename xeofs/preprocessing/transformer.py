@@ -5,11 +5,6 @@ import xarray as xr
 from sklearn.base import BaseEstimator, TransformerMixin
 from typing_extensions import Self
 
-try:
-    from xarray.core.datatree import DataTree
-except ImportError:
-    from datatree import DataTree
-
 from ..utils.data_types import Data, DataArray, DataSet, Dims
 
 
@@ -120,15 +115,15 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return ds
 
-    def serialize(self) -> DataTree:
+    def serialize(self) -> xr.DataTree:
         """Serialize a transformer to a DataTree."""
         return self._serialize()
 
-    def _serialize(self) -> DataTree:
+    def _serialize(self) -> xr.DataTree:
         """Serialize a transformer to a DataTree. Use an internal
         method so we can override the public one in subclasesses but
         still use this."""
-        dt = DataTree()
+        dt = xr.DataTree()
         params = self.get_params()
         attrs = self.get_serialization_attrs()
 
@@ -140,16 +135,16 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
             if isinstance(attr, (xr.DataArray, xr.Dataset)):
                 # attach data to data_vars or coords
                 ds = self._serialize_data(key, attr)
-                dt[key] = DataTree(ds, name=key)
+                dt[key] = xr.DataTree(ds, name=key)
                 dt.attrs[key] = "_is_node"
             elif isinstance(attr, dict) and any(
                 [isinstance(val, xr.DataArray) for val in attr.values()]
             ):
                 # attach dict of data as branching tree
-                dt_attr = DataTree()
+                dt_attr = xr.DataTree()
                 for k, v in attr.items():
                     ds = self._serialize_data(k, v)
-                    dt_attr[k] = DataTree(ds, name=k)
+                    dt_attr[k] = xr.DataTree(ds, name=k)
                 dt[key] = dt_attr
                 dt.attrs[key] = "_is_tree"
             else:
@@ -158,24 +153,24 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
 
         return dt
 
-    def _deserialize_data_node(self, key: str, dt: DataTree) -> DataArray:
+    def _deserialize_data_node(self, key: str, dt: xr.DataTree) -> DataArray:
         # Rebuild multiindexes
-        dt = dt.set_index(dt.attrs.get("multiindexes", {}))
+        dt.dataset = dt.dataset.set_index(dt.attrs.get("multiindexes", {}))
         # Extract the DataArray or coord from the Dataset
         data_key = dt.attrs["name_map"][key]
         if data_key is not None:
             return dt[data_key]
         else:
-            return dt.ds
+            return dt.dataset
 
     @classmethod
-    def deserialize(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: xr.DataTree) -> Self:
         """Deserialize a saved transformer from a DataTree."""
         return cls._deserialize(dt)
 
     @classmethod
-    def _deserialize(cls, dt: DataTree) -> Self:
-        """Deserialize a saved transformer from a DataTree. Use an internal
+    def _deserialize(cls, dt: xr.DataTree) -> Self:
+        """Deserialize a saved transformer from a xr.DataTree. Use an internal
         method so we can override the public one in subclasesses but
         still use this."""
         # Create the object from params

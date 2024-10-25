@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 from typing_extensions import Self
 
 from ..utils.data_types import (
@@ -22,11 +23,6 @@ from .sanitizer import Sanitizer
 from .scaler import Scaler
 from .stacker import Stacker
 from .transformer import Transformer
-
-try:
-    from xarray.core.datatree import DataTree
-except ImportError:
-    from datatree import DataTree
 
 
 def extract_new_dim_names(X: list[DimensionRenamer]) -> tuple[Dims, DimsList]:
@@ -369,7 +365,7 @@ class Preprocessor(Transformer):
         else:
             self.return_list = False
 
-    def serialize(self) -> DataTree:
+    def serialize(self) -> xr.DataTree:
         """Serialize the necessary attributes of the fitted pre-processor
         and all transformers to a Dataset."""
         # Serialize the preprocessor as the root node
@@ -381,9 +377,9 @@ class Preprocessor(Transformer):
         transformers = self.get_transformers()
 
         for name, transformer_obj in zip(names, transformers):
-            dt_transformer = DataTree()
+            dt_transformer = xr.DataTree()
             if isinstance(transformer_obj, GenericListTransformer):
-                dt_transformer["transformers"] = DataTree()
+                dt_transformer["transformers"] = xr.DataTree()
                 # Loop through list transformer objects and assign a dummy key
                 for i, transformer in enumerate(transformer_obj.transformers):
                     dt_transformer.transformers[str(i)] = transformer.serialize()
@@ -395,7 +391,7 @@ class Preprocessor(Transformer):
         return dt
 
     @classmethod
-    def deserialize(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: xr.DataTree) -> Self:
         """Deserialize from a DataTree representation of the preprocessor
         and all attached Transformers."""
         # Create the parent preprocessor
