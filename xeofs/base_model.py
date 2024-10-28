@@ -13,11 +13,6 @@ from .utils.data_types import DataArray
 from .utils.io import insert_placeholders, open_model_tree, write_model_tree
 from .utils.xarray_utils import data_is_dask
 
-try:
-    from xarray.core.datatree import DataTree  # type: ignore
-except ImportError:
-    from datatree import DataTree
-
 # Ignore warnings from numpy casting with additional coordinates
 warnings.filterwarnings("ignore", message=r"^invalid value encountered in cast*")
 
@@ -80,7 +75,7 @@ class BaseModel(ABC):
         (data_objs,) = dask.base.compute(data_objs, **kwargs)
 
         for k, v in data_objs.items():
-            dt[k] = DataTree(v)
+            dt[k] = xr.DataTree(v)
 
         # then rebuild the trained model from the computed results
         self._deserialize_attrs(dt)
@@ -94,11 +89,11 @@ class BaseModel(ABC):
         """Get the model parameters."""
         return self._params
 
-    def serialize(self) -> DataTree:
+    def serialize(self) -> xr.DataTree:
         """Serialize a complete model with its preprocessor."""
         # Create a root node for this object with its params as attrs
         ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
-        dt = DataTree(ds_root, name=type(self).__name__)
+        dt = xr.DataTree(ds_root, name=type(self).__name__)
 
         # Retrieve the tree representation of each attached object, or set basic attrs
         for key, attr in self.get_serialization_attrs().items():
@@ -149,14 +144,14 @@ class BaseModel(ABC):
         write_model_tree(dt, path, overwrite=overwrite, engine=engine, **kwargs)
 
     @classmethod
-    def deserialize(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: xr.DataTree) -> Self:
         """Deserialize the model and its preprocessors from a DataTree."""
         # Recreate the model with parameters set by root level attrs
         model = cls(**dt.attrs["params"])
         model._deserialize_attrs(dt)
         return model
 
-    def _deserialize_attrs(self, dt: DataTree):
+    def _deserialize_attrs(self, dt: xr.DataTree):
         """Set the necessary attributes of the model from a DataTree."""
         for key, attr in dt.attrs.items():
             if key == "params":

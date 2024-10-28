@@ -13,12 +13,11 @@ requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.24",
   "pandas>=2",
-  "xarray>=2023.04.0",
+  "xarray>=2024.10.0",
   "scikit-learn>=1.0.2",
   "tqdm>=4.64.0",
   "dask>=2023.0.1",
   "typing-extensions>=4.8.0",
-  "xarray-datatree>=0.0.12",
 ]
 
 [project.optional-dependencies]

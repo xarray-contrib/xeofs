@@ -1,10 +1,6 @@
 import dask
+import xarray as xr
 from typing_extensions import Self
-
-try:
-    from xarray.core.datatree import DataTree
-except ImportError:
-    from datatree import DataTree
 
 from ..utils.data_types import DataArray
 
@@ -31,18 +27,18 @@ class DataContainer(dict):
                 f"Cannot find data '{__key}'. Please fit the model first by calling .fit()."
             )
 
-    def serialize(self) -> DataTree:
-        dt = DataTree(name="data")
+    def serialize(self) -> xr.DataTree:
+        dt = xr.DataTree(name="data")
         for key, data in self.items():
             if not data.name:
                 data.name = key
-            dt[key] = DataTree(data.to_dataset())
+            dt[key] = xr.DataTree(data.to_dataset())
             dt[key].attrs = {key: "_is_node", "allow_compute": self._allow_compute[key]}
 
         return dt
 
     @classmethod
-    def deserialize(cls, dt: DataTree) -> Self:
+    def deserialize(cls, dt: xr.DataTree) -> Self:
         container = cls()
         for key, node in dt.items():
             container[key] = node[key]

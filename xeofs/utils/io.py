@@ -4,15 +4,9 @@ from typing import Any
 import numpy as np
 import xarray as xr
 
-try:
-    from xarray.core.datatree import DataTree
-    from xarray.backends.api import open_datatree
-except ImportError:
-    from datatree import DataTree, open_datatree
-
 
 def write_model_tree(
-    dt: DataTree, path: str, overwrite: bool = False, engine: str = "zarr", **kwargs
+    dt: xr.DataTree, path: str, overwrite: bool = False, engine: str = "zarr", **kwargs
 ):
     """Write a DataTree to a file."""
     write_mode = "w" if overwrite else "w-"
@@ -25,21 +19,21 @@ def write_model_tree(
         raise ValueError(f"Unknown engine {engine}")
 
 
-def open_model_tree(path: str, engine: str = "zarr", **kwargs) -> DataTree:
+def open_model_tree(path: str, engine: str = "zarr", **kwargs) -> xr.DataTree:
     """Open a DataTree from a file."""
     if engine == "zarr" and "chunks" not in kwargs:
         kwargs["chunks"] = {}
-    dt = open_datatree(path, engine=engine, **kwargs)
+    dt = xr.open_datatree(path, engine=engine, **kwargs)
     if engine in ["netcdf4", "h5netcdf"]:
         dt = _desanitize_attrs_nc(dt)
     return dt
 
 
-def insert_placeholders(dt: DataTree) -> DataTree:
+def insert_placeholders(dt: xr.DataTree) -> xr.DataTree:
     """Insert placeholders for data that we don't want to compute."""
     for node in dt.subtree:
         if not node.attrs.get("allow_compute", True):
-            dt[node.path] = DataTree(
+            dt[node.path] = xr.DataTree(
                 xr.Dataset(
                     data_vars={
                         node.name: xr.DataArray(np.nan, attrs={"placeholder": True})
@@ -50,7 +44,7 @@ def insert_placeholders(dt: DataTree) -> DataTree:
     return dt
 
 
-def _sanitize_attrs_nc(dt: DataTree) -> DataTree:
+def _sanitize_attrs_nc(dt: xr.DataTree) -> xr.DataTree:
     """Sanitize both node-level and variable-level attrs to strings for netcdf."""
     sanitized_types = (dict, list, bool, type(None))
     for node in dt.subtree:
@@ -76,7 +70,7 @@ def _should_desanitize(attr: Any) -> bool:
     return False
 
 
-def _desanitize_attrs_nc(dt: DataTree) -> DataTree:
+def _desanitize_attrs_nc(dt: xr.DataTree) -> xr.DataTree:
     """Desanitize both node-level and variable-level attrs from strings for netcdf."""
     for node in dt.subtree:
         for key, attr in node.attrs.items():
