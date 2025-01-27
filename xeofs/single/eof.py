@@ -177,7 +177,7 @@ class EOF(BaseModelSingleSet):
 
         Parameters
         ----------
-        normalized : bool, default=True
+        normalized : bool, default=False
             Whether to normalize the scores by the L2 norm (singular values).
 
         Returns
