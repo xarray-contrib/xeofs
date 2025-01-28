@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [unreleased]
+
+### 🔖 Documentation
+
+- single EOF scores default parameter normalized: False - ([1d29f64](https://github.com/nicrie/xeofs/commit/1d29f649d6928311b5862be46e530591b386ade9)) - arfriedman
+- single EOF scores default parameter normalized: False (#243) - ([a72e1b3](https://github.com/nicrie/xeofs/commit/a72e1b3e2492874561bd042a8dd08a3a454a68b0)) - Niclas Rieger
+
+---
 ## [3.0.4](https://github.com/nicrie/xeofs/compare/v3.0.3..v3.0.4) - 2024-10-28
 
 ### 🐛 Bug Fixes
