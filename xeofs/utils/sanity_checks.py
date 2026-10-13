@@ -95,6 +95,13 @@ def validate_input_type(X) -> None:
         raise TypeError(err_msg)
 
 
+def assert_not_complex(da: xr.DataArray) -> None:
+    if da.dtype == "complex":
+        raise TypeError(
+            "Invalid input type. This method does not support complex data types."
+        )
+
+
 def sanity_check_n_modes(n_modes: int | float | str) -> None:
     """Check if the number of modes is valid."""
 
