@@ -102,6 +102,7 @@ def test_scores_phase(mock_data_array, dim):
     ).all()  # type: ignore
 
 
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
 @pytest.mark.parametrize(
     "dim",
     [
@@ -113,5 +114,11 @@ def test_scores_phase(mock_data_array, dim):
 def test_compute(mock_dask_data_array, dim):
     """Test computation of all attributes in HilbertEOF model"""
     ceof = HilbertEOF(n_modes=2)
-    with pytest.raises(NotImplementedError):
-        ceof.fit(mock_dask_data_array, dim)
+    ceof.fit(mock_dask_data_array, dim)
+
+    # Complex dask data is now supported (see Decomposer dispatch)
+    assert np.iscomplexobj(ceof.components().data)
+    assert np.iscomplexobj(ceof.scores().data)
+
+    # with pytest.raises(NotImplementedError):
+    #   ceof.fit(mock_dask_data_array, dim)

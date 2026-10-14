@@ -37,11 +37,11 @@ def mock_dask_data_array(mock_data_array):
 
 @pytest.fixture
 def mock_complex_data_array(mock_data_array):
-    return mock_data_array * (1 + 1j)
+    return mock_data_array.astype("complex128") * (1 + 1j)
 
 
 @pytest.fixture
-def test_complex_dask_data_array(mock_complex_data_array):
+def mock_dask_complex_data_array(mock_complex_data_array):
     return mock_complex_data_array.chunk({"sample": 2})
 
 
@@ -111,6 +111,31 @@ def test_fit_dask_full(mock_dask_data_array):
     assert decomposer.V_.shape[1] == 2
 
 
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
+def test_fit_dask_full_complex(mock_dask_complex_data_array):
+    # Duplicate of test_fit_dask_full for complex-valued data
+    decomposer = Decomposer(n_modes=2, solver="full")
+    decomposer.fit(mock_dask_complex_data_array)
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check if the Dask SVD solver has been used
+    assert isinstance(decomposer.U_.data, DaskArray)
+    assert isinstance(decomposer.s_.data, DaskArray)
+    assert isinstance(decomposer.V_.data, DaskArray)
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+    # Check that U and V are complex (mirror of test_fit_complex)
+    assert np.iscomplexobj(decomposer.U_.data)
+    assert np.iscomplexobj(decomposer.V_.data)
+
+
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
 @pytest.mark.parametrize("compute", [True, False])
 def test_fit_dask_randomized(mock_dask_data_array, compute):
     # The Dask SVD solver has no parameter 'random_state' but 'seed' instead,
@@ -144,6 +169,44 @@ def test_fit_dask_randomized(mock_dask_data_array, compute):
         assert V_is_dask_after
 
 
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
+@pytest.mark.parametrize("compute", [True, False])
+def test_fit_dask_randomized_complex(mock_dask_complex_data_array, compute):
+    # Complex-valued dask data should route to the dask SVD solver,
+    # preserving dask semantics (lazy results when compute=False)
+    decomposer = Decomposer(
+        n_modes=2, solver="randomized", compute=compute, random_state=42
+    )
+    decomposer.fit(mock_dask_complex_data_array)
+    assert "U_" in decomposer.__dict__
+    assert "s_" in decomposer.__dict__
+    assert "V_" in decomposer.__dict__
+
+    # Check that indeed 2 modes are returned
+    assert decomposer.U_.shape[1] == 2
+    assert decomposer.s_.shape[0] == 2
+    assert decomposer.V_.shape[1] == 2
+
+    # Check that U and V are complex
+    assert np.iscomplexobj(decomposer.U_.data)
+    assert np.iscomplexobj(decomposer.V_.data)
+
+    is_dask_before = data_is_dask(mock_dask_complex_data_array)
+    U_is_dask_after = data_is_dask(decomposer.U_)
+    s_is_dask_after = data_is_dask(decomposer.s_)
+    V_is_dask_after = data_is_dask(decomposer.V_)
+    # Check that the Dask SVD solver has been used
+    assert is_dask_before
+    if compute:
+        assert not U_is_dask_after
+        assert not s_is_dask_after
+        assert not V_is_dask_after
+    else:
+        assert U_is_dask_after
+        assert s_is_dask_after
+        assert V_is_dask_after
+
+
 def test_fit_complex(mock_complex_data_array):
     decomposer = Decomposer(n_modes=2, solver="randomized", random_state=42)
     decomposer.fit(mock_complex_data_array)
@@ -161,12 +224,17 @@ def test_fit_complex(mock_complex_data_array):
     assert np.iscomplexobj(decomposer.V_.data)
 
 
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
 @pytest.mark.parametrize(
     "data",
-    ["real", "complex", "dask_real"],
+    ["real", "complex", "dask_real", "dask_complex"],
 )
 def test_random_state(
-    data, mock_data_array, mock_complex_data_array, mock_dask_data_array
+    data,
+    mock_data_array,
+    mock_complex_data_array,
+    mock_dask_data_array,
+    mock_dask_complex_data_array,
 ):
     match data:
         case "real":
@@ -175,6 +243,8 @@ def test_random_state(
             X = mock_complex_data_array
         case "dask_real":
             X = mock_dask_data_array
+        case "dask_complex":
+            X = mock_dask_complex_data_array
         case _:
             raise ValueError(f"Unrecognized data type '{data}'.")
 
@@ -266,3 +336,23 @@ def test_dask_array_based_on_target_variance(mock_dask_data_array, solver):
     with pytest.raises(ValueError, match=err_msg):
         assert data_is_dask(mock_dask_data_array)
         decomposer.fit(mock_dask_data_array)
+
+
+@pytest.mark.filterwarnings("ignore::numpy.exceptions.ComplexWarning")
+@pytest.mark.parametrize(
+    "solver",
+    ["full", "randomized"],
+)
+def test_dask_array_based_on_target_variance_complex(
+    mock_dask_complex_data_array, solver
+):
+    # Duplicate of test_dask_array_based_on_target_variance for complex data
+    target_variance = 0.5
+    decomposer = Decomposer(
+        n_modes=target_variance, init_rank_reduction=0.9, solver=solver, compute=False
+    )
+
+    err_msg = "Estimating the number of modes to keep based on variance is not supported with dask arrays.*"
+    with pytest.raises(ValueError, match=err_msg):
+        assert data_is_dask(mock_dask_complex_data_array)
+        decomposer.fit(mock_dask_complex_data_array)
