@@ -185,8 +185,8 @@ class _SVD:
             s = s[idx_sort]
             VT = VT[idx_sort, :]
 
-        # Use dask SVD for large, real-valued, delayed data sets
-        elif (not use_complex) and use_dask:
+        # Use dask SVD for large, real- and complex-valued, delayed data sets
+        elif use_dask:
             solver_kwargs = self.solver_kwargs | {
                 "k": self.n_modes_precompute,
                 "seed": self.random_state,
@@ -194,12 +194,6 @@ class _SVD:
             solver_kwargs.setdefault("compute", False)
             solver_kwargs.setdefault("n_power_iter", 4)
             U, s, VT = self._svd(X, dask_svd, solver_kwargs)
-        else:
-            err_msg = (
-                "Complex data together with dask is currently not implemented. See dask issue 7639 "
-                "https://github.com/dask/dask/issues/7639"
-            )
-            raise NotImplementedError(err_msg)
 
         U, s, VT = wait_on(U, s, VT)
 
