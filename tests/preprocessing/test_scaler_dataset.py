@@ -1,6 +1,6 @@
+import numpy as np
 import pytest
 import xarray as xr
-import numpy as np
 
 from xeofs.preprocessing.scaler import Scaler
 
@@ -79,26 +79,26 @@ def test_transform_params(with_std, with_coslat, with_weights, mock_dataset):
     assert transformed is not None, "Transformed data is None."
 
     transformed_mean = transformed.mean(sample_dims, skipna=False)
-    assert np.allclose(
-        transformed_mean.to_array(), 0
-    ), "Mean of the transformed data is not zero."
+    assert np.allclose(transformed_mean.to_array(), 0), (
+        "Mean of the transformed data is not zero."
+    )
 
     if with_std:
         transformed_std = transformed.std(sample_dims, skipna=False)
         if with_coslat or with_weights:
-            assert (
-                transformed_std <= 1
-            ).all(), "Standard deviation of the transformed data is larger one."
+            assert (transformed_std <= 1).all(), (
+                "Standard deviation of the transformed data is larger one."
+            )
         else:
-            assert np.allclose(
-                transformed_std.to_array(), 1
-            ), "Standard deviation of the transformed data is not one."
+            assert np.allclose(transformed_std.to_array(), 1), (
+                "Standard deviation of the transformed data is not one."
+            )
 
     if with_coslat:
         assert s.coslat_weights_ is not None, "Scaler coslat_weights is None."
-        assert not np.array_equal(
-            transformed, mock_dataset
-        ), "Data has not been transformed."
+        assert not np.array_equal(transformed, mock_dataset), (
+            "Data has not been transformed."
+        )
 
     transformed2 = s.fit_transform(mock_dataset, sample_dims, feature_dims, weights)
     xr.testing.assert_allclose(transformed, transformed2)
@@ -144,12 +144,12 @@ def test_fit_dims(dim_sample, dim_feature, mock_dataset):
     assert hasattr(s, "std_"), "Scaler has no std attribute."
     assert s.std_ is not None, "Scaler std is None."
     # check that all dimensions are present except the sample dimensions
-    assert set(s.mean_.dims) == set(mock_dataset.dims) - set(
-        dim_sample
-    ), "Mean has wrong dimensions."
-    assert set(s.std_.dims) == set(mock_dataset.dims) - set(
-        dim_sample
-    ), "Standard deviation has wrong dimensions."
+    assert set(s.mean_.dims) == set(mock_dataset.dims) - set(dim_sample), (
+        "Mean has wrong dimensions."
+    )
+    assert set(s.std_.dims) == set(mock_dataset.dims) - set(dim_sample), (
+        "Standard deviation has wrong dimensions."
+    )
 
 
 @pytest.mark.parametrize(
@@ -165,9 +165,9 @@ def test_fit_transform_dims(dim_sample, dim_feature, mock_dataset):
     s = Scaler()
     transformed = s.fit_transform(mock_dataset, dim_sample, dim_feature)
     # check that all dimensions are present
-    assert set(transformed.dims) == set(
-        mock_dataset.dims
-    ), "Transformed data has wrong dimensions."
+    assert set(transformed.dims) == set(mock_dataset.dims), (
+        "Transformed data has wrong dimensions."
+    )
     # check that the coordinates are the same
     for dim in mock_dataset.dims:
         xr.testing.assert_allclose(transformed[dim], mock_dataset[dim])

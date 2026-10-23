@@ -23,9 +23,9 @@ class DimensionRenamer(Transformer):
         self.dim_mapping = {}
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            dim_mapping=self.dim_mapping,
-        )
+        return {
+            "dim_mapping": self.dim_mapping,
+        }
 
     def fit(self, X: Data, sample_dims: Dims, feature_dims: Dims, **kwargs) -> Self:
         self.sample_dims_before = sample_dims

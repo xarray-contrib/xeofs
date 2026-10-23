@@ -1,13 +1,14 @@
-import pytest
 import numpy as np
+import pytest
 
 from xeofs.preprocessing.sanitizer import Sanitizer
 from xeofs.utils.data_types import DataArray
+
 from ..conftest import generate_synthetic_dataarray
 from ..utilities import (
-    data_is_dask,
-    assert_expected_dims,
     assert_expected_coords,
+    assert_expected_dims,
+    data_is_dask,
 )
 
 # =============================================================================
@@ -67,7 +68,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
     reconstructed_data = sanitizer.inverse_transform_data(data_clean)
 
     assert data_clean.ndim == 2
-    assert set(data_clean.dims) == set((sample_name, feature_name))
+    assert set(data_clean.dims) == {sample_name, feature_name}
     assert set(reconstructed_data.dims) == set(data.dims)
 
 

@@ -1,9 +1,9 @@
 # %%
-import xarray as xr
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 import matplotx
+import numpy as np
+import seaborn as sns
+import xarray as xr
 from matplotlib.colors import LogNorm
 
 # Load timings
@@ -25,7 +25,7 @@ class MidPointLogNorm(LogNorm):
         self.midpoint = midpoint
 
     def __call__(self, value, clip=None):
-        result, is_scalar = self.process_value(value)
+        result, _is_scalar = self.process_value(value)
         x, y = (
             [np.log(self.vmin), np.log(self.midpoint), np.log(self.vmax)],
             [
@@ -38,7 +38,7 @@ class MidPointLogNorm(LogNorm):
 
 
 def to_scientific_notation(arr):
-    return np.array([f"$10^{len(str(x))-1}$" if x != 0 else "0" for x in arr])
+    return np.array([f"$10^{len(str(x)) - 1}$" if x != 0 else "0" for x in arr])
 
 
 # %%
@@ -56,7 +56,7 @@ def create_figure(path=None):
         ax=axes[0],
         cmap="viridis",
         norm=LogNorm(vmin=0.1, vmax=60),
-        cbar_kws=dict(ticks=ticks),
+        cbar_kws={"ticks": ticks},
     )
     axes[0].collections[0].colorbar.ax.yaxis.set_ticks([], minor=True)
     axes[0].collections[0].colorbar.set_ticklabels([t for t in ticklabels])
@@ -90,7 +90,7 @@ def create_figure(path=None):
         ax=axes[1],
         cmap="coolwarm",
         norm=MidPointLogNorm(vmin=0.001, vmax=1000, midpoint=1),
-        cbar_kws=dict(ticks=ticks),
+        cbar_kws={"ticks": ticks},
     )
     axes[1].collections[0].colorbar.ax.yaxis.set_ticks([], minor=True)
     axes[1].collections[0].colorbar.set_ticklabels([t for t in ticklabels])

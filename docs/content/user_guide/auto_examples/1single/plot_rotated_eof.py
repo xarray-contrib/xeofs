@@ -88,7 +88,7 @@ for i, (a0, a1, a2) in enumerate(zip(ax_std, ax_var, ax_pro)):
     components[1].sel(mode=mode).plot(ax=a1, **kwargs)
     components[2].sel(mode=mode).plot(ax=a2, **kwargs)
 
-title_kwargs = dict(rotation=90, va="center", weight="bold")
+title_kwargs = {"rotation": 90, "va": "center", "weight": "bold"}
 ax_std[0].text(-0.1, 0.5, "Standard", transform=ax_std[0].transAxes, **title_kwargs)
 ax_var[0].text(-0.1, 0.5, "Varimax", transform=ax_var[0].transAxes, **title_kwargs)
 ax_pro[0].text(-0.1, 0.5, "Promax", transform=ax_pro[0].transAxes, **title_kwargs)

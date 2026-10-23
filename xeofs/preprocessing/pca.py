@@ -42,15 +42,17 @@ class PCA(Transformer):
 
     def __init__(
         self,
-        n_modes: int | float | str = "all",
+        n_modes: float | str = "all",
         use_pca: bool = True,
         init_rank_reduction: float = 0.3,
         compute_eagerly: bool = False,
         sample_name: str = "sample",
         feature_name: str = "feature",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(sample_name, feature_name)
 
         self.use_pca = use_pca
@@ -71,9 +73,7 @@ class PCA(Transformer):
 
         if X.dims != (self.sample_name, self.feature_name):
             raise ValueError(
-                "Input DataArray must have dimensions ({:}, {:})".format(
-                    self.sample_name, self.feature_name
-                )
+                f"Input DataArray must have dimensions ({self.sample_name}, {self.feature_name})"
             )
 
     def _get_n_modes(self, X: DataArray) -> int | float:
@@ -86,10 +86,10 @@ class PCA(Transformer):
             return self.n_modes
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            V=self.V,
-            use_pca=self.use_pca,
-        )
+        return {
+            "V": self.V,
+            "use_pca": self.use_pca,
+        }
 
     def fit(
         self,

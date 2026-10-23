@@ -1,5 +1,5 @@
 import warnings
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -92,15 +92,17 @@ class MCA(CPCCA):
         use_coslat: Sequence[bool] | bool = False,
         check_nans: Sequence[bool] | bool = True,
         use_pca: Sequence[bool] | bool = True,
-        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        n_pca_modes: Sequence[float | int | str] | float | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         CPCCA.__init__(
             self,
             n_modes=n_modes,
@@ -306,15 +308,17 @@ class ComplexMCA(ComplexCPCCA, MCA):
         use_coslat: Sequence[bool] | bool = False,
         check_nans: Sequence[bool] | bool = True,
         use_pca: Sequence[bool] | bool = True,
-        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        n_pca_modes: Sequence[float | int | str] | float | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         ComplexCPCCA.__init__(
             self,
             n_modes=n_modes,
@@ -431,15 +435,17 @@ class HilbertMCA(HilbertCPCCA, ComplexMCA):
         use_coslat: Sequence[bool] | bool = False,
         check_nans: Sequence[bool] | bool = True,
         use_pca: Sequence[bool] | bool = True,
-        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        n_pca_modes: Sequence[float | int | str] | float | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         compute: bool = True,
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         HilbertCPCCA.__init__(
             self,
             n_modes=n_modes,

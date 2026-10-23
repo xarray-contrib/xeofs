@@ -236,7 +236,7 @@ def mock_data_array():
             "lon": [-10.0, 0.0, 10.0, 20.0],
         },
         name="t2m",
-        attrs=dict(description="mock_data"),
+        attrs={"description": "mock_data"},
     )
 
 
@@ -258,23 +258,23 @@ def mock_data_array_list(mock_data_array):
 @pytest.fixture
 def mock_data_array_isolated_nans(mock_data_array):
     invalid_data = mock_data_array.copy()
-    invalid_data.loc[dict(time="2001", lat=30.0, lon=-10.0)] = np.nan
+    invalid_data.loc[{"time": "2001", "lat": 30.0, "lon": -10.0}] = np.nan
     return invalid_data
 
 
 @pytest.fixture
 def mock_data_array_full_dimensional_nans(mock_data_array):
     valid_data = mock_data_array.copy()
-    valid_data.loc[dict(lat=30.0)] = np.nan
-    valid_data.loc[dict(time="2002")] = np.nan
+    valid_data.loc[{"lat": 30.0}] = np.nan
+    valid_data.loc[{"time": "2002"}] = np.nan
     return valid_data
 
 
 @pytest.fixture
 def mock_data_array_boundary_nans(mock_data_array):
     valid_data = mock_data_array.copy(deep=True)
-    valid_data.loc[dict(lat=30.0)] = np.nan
-    valid_data.loc[dict(time="2001")] = np.nan
+    valid_data.loc[{"lat": 30.0}] = np.nan
+    valid_data.loc[{"time": "2001"}] = np.nan
     return valid_data
 
 

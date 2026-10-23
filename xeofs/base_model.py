@@ -2,7 +2,7 @@ import importlib
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 import dask.base
 import xarray as xr
@@ -27,7 +27,7 @@ class BaseModel(ABC):
 
     """
 
-    extra_modules = []
+    extra_modules: ClassVar[list[str]] = []
     uses_complex = False
 
     def __init__(self):
@@ -92,7 +92,7 @@ class BaseModel(ABC):
     def serialize(self) -> xr.DataTree:
         """Serialize a complete model with its preprocessor."""
         # Create a root node for this object with its params as attrs
-        ds_root = xr.Dataset(attrs=dict(params=self.get_params()))
+        ds_root = xr.Dataset(attrs={"params": self.get_params()})
         dt = xr.DataTree(ds_root, name=type(self).__name__)
 
         # Retrieve the tree representation of each attached object, or set basic attrs
@@ -192,7 +192,6 @@ class BaseModel(ABC):
 
     def _validate_loaded_data(self, X: DataArray):
         """Optionally check the loaded data for placeholders."""
-        pass
 
     def check_needed_module(self, module: str):
         """Check if a necessary non-core dependency is available."""

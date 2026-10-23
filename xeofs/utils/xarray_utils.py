@@ -1,4 +1,5 @@
-from typing import Any, Hashable, Sequence, TypeVar
+from collections.abc import Hashable, Sequence
+from typing import Any, TypeVar
 
 import numpy as np
 import xarray as xr
@@ -63,7 +64,7 @@ def convert_to_list(data: T | list[T] | tuple[T]) -> list[T]:
     elif isinstance(data, tuple):
         return list(data)
     else:
-        return list([data])
+        return [data]
 
 
 def _check_parameter_number(parameter_name: str, parameter, n_data: int):
@@ -94,9 +95,7 @@ def feature_ones_like(data: DataVar, feature_dims: Dims) -> DataVar:
         )
     else:
         raise TypeError(
-            "Invalid input type: {:}. Expected one of the following: DataArray or Dataset".format(
-                type(data).__name__
-            )
+            f"Invalid input type: {type(data).__name__}. Expected one of the following: DataArray or Dataset"
         )
 
 
@@ -135,9 +134,7 @@ def compute_sqrt_cos_lat_weights(data: DataVar, feature_dims: Dims) -> DataVar:
         )
     else:
         raise TypeError(
-            "Invalid input type: {:}. Expected one of the following: DataArray".format(
-                type(data).__name__
-            )
+            f"Invalid input type: {type(data).__name__}. Expected one of the following: DataArray"
         )
 
 
@@ -147,9 +144,7 @@ def extract_latitude_dimension(feature_dims: Dims) -> Hashable:
 
     if len(lat_dim) == 0:
         raise ValueError(
-            "No latitude coordinate was found to compute coslat weights. Must be one of the following: {:}".format(
-                VALID_LATITUDE_NAMES
-            )
+            f"No latitude coordinate was found to compute coslat weights. Must be one of the following: {VALID_LATITUDE_NAMES}"
         )
     elif len(lat_dim) == 1:
         return lat_dim.pop()
@@ -295,9 +290,9 @@ def get_deterministic_sign_multiplier(data: DataArray, dim: str) -> DataArray:
     min_max = min_max.assign_coords(sign=[1, -1])
     sign_multiplier = np.abs(min_max).idxmax("sign")
     # Drop all dimensions except 'mode' so that the index is clean
-    for dim, coords in sign_multiplier.coords.items():
-        if dim != "mode":
-            sign_multiplier = sign_multiplier.drop(dim)
+    for coord in sign_multiplier.coords:
+        if coord != "mode":
+            sign_multiplier = sign_multiplier.drop(coord)
     return sign_multiplier
 
 

@@ -83,9 +83,7 @@ def convert_to_dim_type(arg: Any) -> Dims:
 
 
 def validate_input_type(X) -> None:
-    err_msg = "Invalid input type: {:}. Expected one of the following: DataArray, Dataset or list of these.".format(
-        type(X).__name__
-    )
+    err_msg = f"Invalid input type: {type(X).__name__}. Expected one of the following: DataArray, Dataset or list of these."
     if isinstance(X, (xr.DataArray, xr.Dataset)):
         pass
     elif isinstance(X, (list, tuple)):
@@ -102,7 +100,7 @@ def assert_not_complex(da: xr.DataArray) -> None:
         )
 
 
-def sanity_check_n_modes(n_modes: int | float | str) -> None:
+def sanity_check_n_modes(n_modes: float | str) -> None:
     """Check if the number of modes is valid."""
 
     match n_modes:

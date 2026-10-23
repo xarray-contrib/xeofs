@@ -181,12 +181,12 @@ def test_components(mca_model, mock_data_array, dim):
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
     assert isinstance(components1, xr.DataArray)
     assert isinstance(components2, xr.DataArray)
-    assert set(components1.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components1 does not have the right feature dimensions"
-    assert set(components2.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components2 does not have the right feature dimensions"
+    assert set(components1.dims) == set(("mode",) + feature_dims), (
+        "Components1 does not have the right feature dimensions"
+    )
+    assert set(components2.dims) == set(("mode",) + feature_dims), (
+        "Components2 does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -203,18 +203,18 @@ def test_components_dataset(mca_model, mock_dataset, dim):
     feature_dims = tuple(set(mock_dataset.dims) - set(dim))
     assert isinstance(components1, xr.Dataset)
     assert isinstance(components2, xr.Dataset)
-    assert set(components1.data_vars) == set(
-        mock_dataset.data_vars
-    ), "Components does not have the same data variables as the input Dataset"
-    assert set(components2.data_vars) == set(
-        mock_dataset.data_vars
-    ), "Components does not have the same data variables as the input Dataset"
-    assert set(components1.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
-    assert set(components2.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
+    assert set(components1.data_vars) == set(mock_dataset.data_vars), (
+        "Components does not have the same data variables as the input Dataset"
+    )
+    assert set(components2.data_vars) == set(mock_dataset.data_vars), (
+        "Components does not have the same data variables as the input Dataset"
+    )
+    assert set(components1.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
+    assert set(components2.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -236,13 +236,13 @@ def test_components_dataarray_list(mca_model, mock_data_array_list, dim):
     assert isinstance(components1[0], xr.DataArray)
     assert isinstance(components2[0], xr.DataArray)
     for comp, feat_dims in zip(components1, feature_dims):
-        assert set(comp.dims) == set(
-            ("mode",) + feat_dims
-        ), "Components1 does not have the right feature dimensions"
+        assert set(comp.dims) == set(("mode",) + feat_dims), (
+            "Components1 does not have the right feature dimensions"
+        )
     for comp, feat_dims in zip(components2, feature_dims):
-        assert set(comp.dims) == set(
-            ("mode",) + feat_dims
-        ), "Components2 does not have the right feature dimensions"
+        assert set(comp.dims) == set(("mode",) + feat_dims), (
+            "Components2 does not have the right feature dimensions"
+        )
 
 
 @pytest.mark.parametrize(
@@ -258,12 +258,12 @@ def test_scores(mca_model, mock_data_array, dim):
     scores1, scores2 = mca_model.scores()
     assert isinstance(scores1, xr.DataArray)
     assert isinstance(scores2, xr.DataArray)
-    assert set(scores1.dims) == set(
-        (dim + ("mode",))
-    ), "Scores1 does not have the right dimensions"
-    assert set(scores2.dims) == set(
-        (dim + ("mode",))
-    ), "Scores2 does not have the right dimensions"
+    assert set(scores1.dims) == set(dim + ("mode",)), (
+        "Scores1 does not have the right dimensions"
+    )
+    assert set(scores2.dims) == set(dim + ("mode",)), (
+        "Scores2 does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -279,12 +279,12 @@ def test_scores_dataset(mca_model, mock_dataset, dim):
     scores1, scores2 = mca_model.scores()
     assert isinstance(scores1, xr.DataArray)
     assert isinstance(scores2, xr.DataArray)
-    assert set(scores1.dims) == set(
-        (dim + ("mode",))
-    ), "Scores1 does not have the right dimensions"
-    assert set(scores2.dims) == set(
-        (dim + ("mode",))
-    ), "Scores2 does not have the right dimensions"
+    assert set(scores1.dims) == set(dim + ("mode",)), (
+        "Scores1 does not have the right dimensions"
+    )
+    assert set(scores2.dims) == set(dim + ("mode",)), (
+        "Scores2 does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -300,12 +300,12 @@ def test_scores_dataarray_list(mca_model, mock_data_array_list, dim):
     scores1, scores2 = mca_model.scores()
     assert isinstance(scores1, xr.DataArray)
     assert isinstance(scores2, xr.DataArray)
-    assert set(scores1.dims) == set(
-        (dim + ("mode",))
-    ), "Scores1 does not have the right dimensions"
-    assert set(scores2.dims) == set(
-        (dim + ("mode",))
-    ), "Scores2 does not have the right dimensions"
+    assert set(scores1.dims) == set(dim + ("mode",)), (
+        "Scores1 does not have the right dimensions"
+    )
+    assert set(scores2.dims) == set(dim + ("mode",)), (
+        "Scores2 does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -413,7 +413,7 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         if original.data._allow_compute[key]:
             assert loaded.data[key].equals(original.data[key])

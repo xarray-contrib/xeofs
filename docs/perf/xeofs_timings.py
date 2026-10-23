@@ -1,5 +1,7 @@
 # %%
+import logging
 import timeit
+from functools import partial
 
 import dask
 import eofs
@@ -8,6 +10,8 @@ import xarray as xr
 from tqdm import tqdm
 
 import xeofs as xe
+
+logger = logging.getLogger(__name__)
 
 
 # %%
@@ -77,7 +81,7 @@ for i, ns in enumerate(n_samples):
         # Set number of loops
         if 10 < nbytes:
             n_loops = 1
-        elif 1 < nbytes and nbytes <= 10:
+        elif 1 < nbytes <= 10:
             n_loops = 10
         elif nbytes <= 1:
             n_loops = 100
@@ -88,50 +92,46 @@ for i, ns in enumerate(n_samples):
         try:
             if nbytes < 10_000:  # There seems to be a limit with eofs / Dask
                 print("eofs / Dask ...")
-                t_eofs = timeit.Timer(lambda: fit_eofs(X))
+                t_eofs = timeit.Timer(partial(fit_eofs, X))
                 timings["eofs_dask"][i][j] = (
                     np.array(t_eofs.repeat(n_repeats, n_loops)) / n_loops
                 )
-        except Exception as e:
-            print(f"Warning: eofs Dask failed for {ns} samples / {nf} features")
-            print("Error message: ", e)
+        except Exception:
+            logger.exception("eofs Dask failed for %s samples / %s features", ns, nf)
 
         # xeofs / Dask
         try:
             print("xeofs / Dask ...")
-            t_xeofs = timeit.Timer(lambda: fit_xeofs(X))
+            t_xeofs = timeit.Timer(partial(fit_xeofs, X))
             timings["xeofs_dask"][i][j] = (
                 np.array(t_xeofs.repeat(n_repeats, n_loops)) / n_loops
             )
-        except Exception as e:
-            print(f"Warning: xeofs Dask failed for {ns} samples / {nf} features")
-            print("Error message: ", e)
+        except Exception:
+            logger.exception("xeofs Dask failed for %s samples / %s features", ns, nf)
 
         # eofs / no Dask
         if nbytes < MAX_MEMORY["eofs"]:
             try:
                 print("eofs ...")
                 X = X.load()
-                t_eofs = timeit.Timer(lambda: fit_eofs(X))
+                t_eofs = timeit.Timer(partial(fit_eofs, X))
                 timings["eofs"][i][j] = (
                     np.array(t_eofs.repeat(n_repeats, n_loops)) / n_loops
                 )
-            except Exception as e:
-                print(f"Warning: eofs failed for {ns} samples / {nf} features")
-                print("Error message: ", e)
+            except Exception:
+                logger.exception("eofs failed for %s samples / %s features", ns, nf)
 
         # xeofs / no Dask
         if nbytes < MAX_MEMORY["xeofs"]:
             try:
                 print("xeofs ...")
                 X = X.load()
-                t_xeofs = timeit.Timer(lambda: fit_xeofs(X))
+                t_xeofs = timeit.Timer(partial(fit_xeofs, X))
                 timings["xeofs"][i][j] = (
                     np.array(t_xeofs.repeat(n_repeats, n_loops)) / n_loops
                 )
-            except Exception as e:
-                print(f"Warning: xeofs failed for {ns} samples / {nf} features")
-                print("Error message: ", e)
+            except Exception:
+                logger.exception("xeofs failed for %s samples / %s features", ns, nf)
 
 # %%
 # Save timings

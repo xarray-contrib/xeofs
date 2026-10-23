@@ -47,12 +47,12 @@ class Scaler(Transformer):
         self.weights_ = xr.DataArray(name="weights_")
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            mean_=self.mean_,
-            std_=self.std_,
-            coslat_weights_=self.coslat_weights_,
-            weights_=self.weights_,
-        )
+        return {
+            "mean_": self.mean_,
+            "std_": self.std_,
+            "coslat_weights_": self.coslat_weights_,
+            "weights_": self.weights_,
+        }
 
     def _verify_input(self, X, name: str):
         if not isinstance(X, (xr.DataArray, xr.Dataset)):

@@ -8,23 +8,23 @@ from ..utils.data_types import DataArray
 class DataContainer(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._allow_compute = dict({k: True for k in self.keys()})
+        self._allow_compute = {k: True for k in self.keys()}
 
     def add(self, data: DataArray, name: str, allow_compute: bool = True) -> None:
         data.name = name
         super().__setitem__(name, data)
-        self._allow_compute[name] = True if allow_compute else False
+        self._allow_compute[name] = bool(allow_compute)
 
-    def __setitem__(self, __key: str, __value: DataArray) -> None:
-        super().__setitem__(__key, __value)
-        self._allow_compute[__key] = self._allow_compute.get(__key, True)
+    def __setitem__(self, key: str, value: DataArray, /) -> None:
+        super().__setitem__(key, value)
+        self._allow_compute[key] = self._allow_compute.get(key, True)
 
-    def __getitem__(self, __key: str) -> DataArray:
+    def __getitem__(self, key: str, /) -> DataArray:
         try:
-            return super().__getitem__(__key)
+            return super().__getitem__(key)
         except KeyError:
             raise KeyError(
-                f"Cannot find data '{__key}'. Please fit the model first by calling .fit()."
+                f"Cannot find data '{key}'. Please fit the model first by calling .fit()."
             )
 
     def serialize(self) -> xr.DataTree:

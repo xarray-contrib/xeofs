@@ -59,15 +59,12 @@ def _sanitize_attrs_nc(dt: xr.DataTree) -> xr.DataTree:
 
 
 def _should_desanitize(attr: Any) -> bool:
-    if isinstance(attr, str):
-        if (
-            (attr[0] == "{" and attr[-1] == "}")
-            or (attr[0] == "[" and attr[-1] == "]")
-            or (attr in ["True", "False"])
-            or (attr == "None")
-        ):
-            return True
-    return False
+    return isinstance(attr, str) and (
+        (attr[0] == "{" and attr[-1] == "}")
+        or (attr[0] == "[" and attr[-1] == "]")
+        or attr in ["True", "False"]
+        or attr == "None"
+    )
 
 
 def _desanitize_attrs_nc(dt: xr.DataTree) -> xr.DataTree:

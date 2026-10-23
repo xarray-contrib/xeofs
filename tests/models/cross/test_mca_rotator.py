@@ -254,7 +254,7 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         if original.data._allow_compute[key]:
             assert loaded.data[key].equals(original.data[key])

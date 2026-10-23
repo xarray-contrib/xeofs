@@ -23,18 +23,16 @@ class Sanitizer(Transformer):
         self.is_valid_feature = xr.DataArray()
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            feature_coords=self.feature_coords,
-            sample_coords=self.sample_coords,
-            is_valid_feature=self.is_valid_feature,
-        )
+        return {
+            "feature_coords": self.feature_coords,
+            "sample_coords": self.sample_coords,
+            "is_valid_feature": self.is_valid_feature,
+        }
 
     def _check_input_dims(self, X) -> None:
-        if set(X.dims) != set([self.sample_name, self.feature_name]):
+        if set(X.dims) != {self.sample_name, self.feature_name}:
             raise ValueError(
-                "Input must have dimensions ({:}, {:})".format(
-                    self.sample_name, self.feature_name
-                )
+                f"Input must have dimensions ({self.sample_name}, {self.feature_name})"
             )
 
     def _check_input_coords(self, X) -> None:

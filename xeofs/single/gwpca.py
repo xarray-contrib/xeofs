@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import numpy as np
 import xarray as xr
 from typing_extensions import Self
@@ -7,9 +9,9 @@ from xeofs.utils.data_types import DataArray
 from ..utils.constants import (
     VALID_CARTESIAN_X_NAMES,
     VALID_CARTESIAN_Y_NAMES,
+    VALID_KERNELS,
     VALID_LATITUDE_NAMES,
     VALID_LONGITUDE_NAMES,
-    VALID_KERNELS,
     VALID_METRICS,
 )
 from ..utils.sanity_checks import assert_not_complex
@@ -84,7 +86,7 @@ class GWPCA(BaseModelSingleSet):
 
     """
 
-    extra_modules = ["numba"]
+    extra_modules: ClassVar[list[str]] = ["numba"]
 
     def __init__(
         self,
@@ -150,9 +152,9 @@ class GWPCA(BaseModelSingleSet):
             sample_dims = self.preprocessor.renamer.transformers[0].sample_dims_after
             xy = None
             for dim in sample_dims:
-                keys = [k for k in indexes[dim].coords.keys()]
-                x_found = any([k.lower() in valid_x_names for k in keys])
-                y_found = any([k.lower() in valid_y_names for k in keys])
+                keys = [k for k in indexes[dim].coords]
+                x_found = any(k.lower() in valid_x_names for k in keys)
+                y_found = any(k.lower() in valid_y_names for k in keys)
                 if x_found and y_found:
                     xy = np.asarray([*indexes[dim].values])
                     break

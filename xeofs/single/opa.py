@@ -79,8 +79,10 @@ class OPA(BaseModelSingleSet):
         feature_name: str = "feature",
         solver: str = "auto",
         random_state: int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         if n_modes > n_pca_modes:
             raise ValueError(
                 f"n_modes must be smaller or equal to n_pca_modes (n_modes={n_modes}, n_pca_modes={n_pca_modes})"

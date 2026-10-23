@@ -17,6 +17,6 @@ def test_total_variance(mock_data_array):
     assert tot_var.dims == ()
     assert tot_var.shape == ()
     assert tot_var.dtype == np.float64
-    assert np.allclose(
-        tot_var, tot_var_ref
-    ), "Total variance computed by hand does not match."
+    assert np.allclose(tot_var, tot_var_ref), (
+        "Total variance computed by hand does not match."
+    )

@@ -91,7 +91,7 @@ def test_save_load_with_data(tmp_path, engine, alpha):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         assert loaded.data[key].equals(original.data[key])
 

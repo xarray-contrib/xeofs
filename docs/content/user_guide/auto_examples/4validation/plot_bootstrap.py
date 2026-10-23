@@ -49,7 +49,7 @@ is_significant = q025 - q975.shift({"mode": -1}) > 0
 n_significant_modes = (
     is_significant.where(is_significant is True).cumsum(skipna=False).max().fillna(0)
 )
-print("{:} modes are significant at alpha=0.05".format(n_significant_modes.values))
+print(f"{n_significant_modes.values} modes are significant at alpha=0.05")
 
 # %%
 # The bootstrapping procedure identifies 3 significant modes. We can also

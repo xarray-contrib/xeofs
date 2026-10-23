@@ -40,7 +40,7 @@ t2m = xr.tutorial.load_dataset("air_temperature").air
 # and subsequently decomposing it can be computationally expensive. For example,
 # given our dataset's dimensions,
 
-t2m.shape
+t2m.shape  # noqa: B018 - Display the data shape in the gallery.
 
 # %%
 # the extended dataset would have 40 x 25 x 53 = 53000 features
@@ -58,7 +58,7 @@ model = xe.single.ExtendedEOF(
 model.fit(t2m, dim="time")
 scores = model.scores()
 components = model.components()
-components
+components  # noqa: B018 - Display the components in the gallery.
 
 # %%
 # A notable distinction from standard EOF analysis is the incorporation of an

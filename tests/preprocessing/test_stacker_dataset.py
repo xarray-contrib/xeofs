@@ -2,12 +2,13 @@ import pytest
 
 from xeofs.preprocessing import Stacker
 from xeofs.utils.data_types import DataArray
+
 from ..conftest import generate_synthetic_dataset
 from ..utilities import (
-    get_dims_from_data,
-    data_is_dask,
-    assert_expected_dims,
     assert_expected_coords,
+    assert_expected_dims,
+    data_is_dask,
+    get_dims_from_data,
 )
 
 # =============================================================================
@@ -52,7 +53,7 @@ VALID_TEST_DATA = [
 )
 def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataset(*data_params)
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker(sample_name=sample_name, feature_name=feature_name)
     stacker.fit(data, sample_dims, feature_dims)
@@ -60,7 +61,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
     reconstructed_data = stacker.inverse_transform_data(stacked_data)
 
     assert stacked_data.ndim == 2
-    assert set(stacked_data.dims) == set((sample_name, feature_name))
+    assert set(stacked_data.dims) == {sample_name, feature_name}
     assert set(reconstructed_data.dims) == set(data.dims)
 
 
@@ -77,7 +78,7 @@ def test_fit_valid_dimension_names(sample_name, feature_name, data_params):
 )
 def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
     data = generate_synthetic_dataset(*data_params)
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker(sample_name=sample_name, feature_name=feature_name)
 
@@ -92,7 +93,7 @@ def test_fit_invalid_dimension_names(sample_name, feature_name, data_params):
 )
 def test_fit(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
@@ -105,7 +106,7 @@ def test_fit(synthetic_dataset):
 )
 def test_transform(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
@@ -129,7 +130,7 @@ def test_transform(synthetic_dataset):
 )
 def test_transform_invalid(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
@@ -144,7 +145,7 @@ def test_transform_invalid(synthetic_dataset):
 )
 def test_fit_transform(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     transformed_data = stacker.fit_transform(data, sample_dims, feature_dims)
@@ -165,7 +166,7 @@ def test_fit_transform(synthetic_dataset):
 )
 def test_invserse_transform_data(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
@@ -190,7 +191,7 @@ def test_invserse_transform_data(synthetic_dataset):
 )
 def test_invserse_transform_components(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)
@@ -218,7 +219,7 @@ def test_invserse_transform_components(synthetic_dataset):
 )
 def test_invserse_transform_scores(synthetic_dataset):
     data = synthetic_dataset
-    all_dims, sample_dims, feature_dims = get_dims_from_data(data)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(data)
 
     stacker = Stacker()
     stacker.fit(data, sample_dims, feature_dims)

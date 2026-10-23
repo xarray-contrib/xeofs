@@ -55,23 +55,24 @@ class Decomposer:
 
     def __init__(
         self,
-        n_modes: int | float,
+        n_modes: float,
         init_rank_reduction: float = 0.3,
         flip_signs: bool = True,
         compute: bool = True,
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
         component_dim_name: str = "mode",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         sanity_check_n_modes(n_modes)
-        self.is_based_on_variance = False if isinstance(n_modes, int) else True
+        self.is_based_on_variance = not isinstance(n_modes, int)
 
-        if self.is_based_on_variance:
-            if not (0 < init_rank_reduction <= 1.0):
-                raise ValueError(
-                    "init_rank_reduction must be in the half open interval (0, 1]."
-                )
+        if self.is_based_on_variance and not (0 < init_rank_reduction <= 1.0):
+            raise ValueError(
+                "init_rank_reduction must be in the half open interval (0, 1]."
+            )
 
         self.n_modes = n_modes
         self.n_modes_precompute = n_modes
@@ -116,8 +117,8 @@ class Decomposer:
         # Conditions for using exact SVD follow scitkit-learn's PCA implementation
         # Source: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
-        use_dask = True if isinstance(X.data, DaskArray) else False
-        use_complex = True if np.iscomplexobj(X.data) else False
+        use_dask = isinstance(X.data, DaskArray)
+        use_complex = bool(np.iscomplexobj(X.data))
 
         is_small_data = max(X.shape) < 500
 
@@ -125,10 +126,8 @@ class Decomposer:
             # TODO(nicrie): implement more performant case for tall and skinny problems which are best handled by precomputing the covariance matrix.
             # if X.shape[1] <= 1_000 and X.shape[0] >= 10 * X.shape[1]: -> covariance_eigh" (see sklearn PCA implementation: https://github.com/scikit-learn/scikit-learn/blob/e87b32a81c70abed8f2e97483758eb64df8255e9/sklearn/decomposition/_pca.py#L526)
             case "auto":
-                use_exact = (
-                    True
-                    if is_small_data and self.n_modes_precompute > int(0.8 * rank)
-                    else False
+                use_exact = bool(
+                    is_small_data and self.n_modes_precompute > int(0.8 * rank)
                 )
             case "full":
                 use_exact = True

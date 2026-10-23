@@ -1,4 +1,4 @@
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 from typing_extensions import Self
 
@@ -32,7 +32,7 @@ class GenericListTransformer(Generic[T]):
         Keyword arguments for the transformer.
     """
 
-    def __init__(self, transformer: Type[T], **kwargs):
+    def __init__(self, transformer: type[T], **kwargs):
         self.transformer_class = transformer
         self.transformers: list[T] = []
         self.init_kwargs = kwargs
@@ -42,7 +42,7 @@ class GenericListTransformer(Generic[T]):
         X: list[DataVar],
         sample_dims: Dims,
         feature_dims: DimsList,
-        iter_kwargs: dict[str, list[Any]] = {},
+        iter_kwargs: dict[str, list[Any]] | None = None,
     ) -> Self:
         """Fit transformer to each data element in the list.
 
@@ -58,6 +58,8 @@ class GenericListTransformer(Generic[T]):
             Keyword arguments for the transformer that should be iterated over.
 
         """
+        if iter_kwargs is None:
+            iter_kwargs = {}
         self._sample_dims = sample_dims
         self._feature_dims = feature_dims
         self._iter_kwargs = iter_kwargs
@@ -82,8 +84,10 @@ class GenericListTransformer(Generic[T]):
         X: list[Data],
         sample_dims: Dims,
         feature_dims: DimsList,
-        iter_kwargs: dict[str, list[Any]] = {},
+        iter_kwargs: dict[str, list[Any]] | None = None,
     ) -> list[Data]:
+        if iter_kwargs is None:
+            iter_kwargs = {}
         return self.fit(X, sample_dims, feature_dims, iter_kwargs).transform(X)  # type: ignore
 
     def inverse_transform_data(self, X: list[Data]) -> list[Data]:

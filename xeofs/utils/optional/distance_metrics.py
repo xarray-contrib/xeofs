@@ -1,5 +1,5 @@
-import numpy as np
 import numba
+import numpy as np
 from numba import prange
 from scipy.spatial.distance import cdist
 

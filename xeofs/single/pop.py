@@ -108,7 +108,7 @@ class POP(BaseModelSingleSet):
         standardize: bool = False,
         use_coslat: bool = False,
         use_pca: bool = True,
-        n_pca_modes: float | int = 0.999,
+        n_pca_modes: float = 0.999,
         pca_init_rank_reduction: float = 0.3,
         check_nans=True,
         sample_name: str = "sample",
@@ -116,9 +116,11 @@ class POP(BaseModelSingleSet):
         compute: bool = True,
         random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,
@@ -149,12 +151,12 @@ class POP(BaseModelSingleSet):
         self.sorted = False
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            data=self.data,
-            preprocessor=self.preprocessor,
-            pca=self.pca,
-            sorted=self.sorted,
-        )
+        return {
+            "data": self.data,
+            "preprocessor": self.preprocessor,
+            "pca": self.pca,
+            "sorted": self.sorted,
+        }
 
     def _np_solve_pop_system(self, X):
         # Feedack matrix
@@ -259,7 +261,7 @@ class POP(BaseModelSingleSet):
     def _sort_by_variance(self):
         """Re-sort the mode dimension of all data variables by variance explained."""
         if not self.sorted:
-            for key in self.data.keys():
+            for key in self.data:
                 if "mode" in self.data[key].dims and key != "idx_modes_sorted":
                     self.data[key] = (
                         self.data[key]

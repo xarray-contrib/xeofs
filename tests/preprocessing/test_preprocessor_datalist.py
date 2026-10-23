@@ -1,15 +1,16 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 from xeofs.preprocessing.preprocessor import Preprocessor
+
 from ..conftest import generate_list_of_synthetic_dataarrays
 from ..utilities import (
-    get_dims_from_data_list,
-    data_is_dask,
-    data_has_multiindex,
-    assert_expected_dims,
     assert_expected_coords,
+    assert_expected_dims,
+    data_has_multiindex,
+    data_is_dask,
+    get_dims_from_data_list,
 )
 
 # =============================================================================
@@ -102,7 +103,7 @@ def test_fit_transform_same_dim_names(index_policy, nan_policy, dask_policy):
     data = generate_list_of_synthetic_dataarrays(
         1, 1, 1, index_policy, nan_policy, dask_policy
     )
-    all_dims, sample_dims, feature_dims = get_dims_from_data_list(data)
+    _all_dims, sample_dims, _feature_dims = get_dims_from_data_list(data)
 
     prep = Preprocessor(sample_name="sample0", feature_name="feature")
     transformed = prep.fit_transform(data, sample_dims[0])
@@ -112,8 +113,8 @@ def test_fit_transform_same_dim_names(index_policy, nan_policy, dask_policy):
     data_is_dask_interm = data_is_dask(transformed)
     data_is_dask_after = data_is_dask(reconstructed)
 
-    assert set(transformed.dims) == set(("sample0", "feature"))
-    assert all(set(rec.dims) == set(("sample0", "feature0")) for rec in reconstructed)
+    assert set(transformed.dims) == {"sample0", "feature"}
+    assert all(set(rec.dims) == {"sample0", "feature0"} for rec in reconstructed)
     assert not data_has_multiindex(transformed)
     assert transformed.notnull().all()
     assert data_is_dask_before == data_is_dask_interm
@@ -126,7 +127,7 @@ def test_fit_transform_same_dim_names(index_policy, nan_policy, dask_policy):
 )
 def test_fit_transform(sample_name, feature_name, data_params):
     data = generate_list_of_synthetic_dataarrays(*data_params)
-    all_dims, sample_dims, feature_dims = get_dims_from_data_list(data)
+    _all_dims, sample_dims, _feature_dims = get_dims_from_data_list(data)
 
     prep = Preprocessor(sample_name=sample_name, feature_name=feature_name)
     transformed = prep.fit_transform(data, sample_dims[0])
@@ -146,7 +147,7 @@ def test_fit_transform(sample_name, feature_name, data_params):
 )
 def test_inverse_transform(sample_name, feature_name, data_params):
     data = generate_list_of_synthetic_dataarrays(*data_params)
-    all_dims, sample_dims, feature_dims = get_dims_from_data_list(data)
+    _all_dims, sample_dims, _feature_dims = get_dims_from_data_list(data)
 
     prep = Preprocessor(sample_name=sample_name, feature_name=feature_name)
     transformed = prep.fit_transform(data, sample_dims[0])

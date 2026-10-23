@@ -56,9 +56,9 @@ def test_components(mock_data_array):
     components = pop.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(sample_dim))
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
-    assert set(components.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
+    assert set(components.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
 
 
 def test_scores(mock_data_array):
@@ -70,9 +70,9 @@ def test_scores(mock_data_array):
     # Test scores method
     scores = pop.scores()
     assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
-    assert set(scores.dims) == set(
-        (sample_dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(sample_dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 def test_transform(mock_data_array):
@@ -96,8 +96,8 @@ def test_transform(mock_data_array):
     assert isinstance(projections, xr.DataArray), "Projection is not a DataArray"
 
     # Check that the projection has the right name
-    assert projections.name == "scores", "Projection has wrong name: {}".format(
-        projections.name
+    assert projections.name == "scores", (
+        f"Projection has wrong name: {projections.name}"
     )
 
     # Check that the projection's data is the same as the scores
@@ -115,8 +115,8 @@ def test_transform(mock_data_array):
     assert isinstance(new_projections, xr.DataArray), "Projection is not a DataArray"
 
     # Check that the projection has the right name
-    assert new_projections.name == "scores", "Projection has wrong name: {}".format(
-        new_projections.name
+    assert new_projections.name == "scores", (
+        f"Projection has wrong name: {new_projections.name}"
     )
 
     # Ensure that the new projections are not NaNs
@@ -178,7 +178,7 @@ def test_save_load(mock_data_array, tmp_path, engine):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         if original.data._allow_compute[key]:
             assert loaded.data[key].equals(original.data[key])

@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Sequence
+from collections.abc import Hashable, Sequence
+from typing import Any
 
 from numpy.random import Generator
 from typing_extensions import Self
@@ -73,7 +74,7 @@ class BaseModelCrossSet(BaseModel):
         use_coslat: Sequence[bool] | bool = False,
         check_nans: Sequence[bool] | bool = True,
         use_pca: Sequence[bool] | bool = True,
-        n_pca_modes: Sequence[float | int | str] | float | int | str = 0.999,
+        n_pca_modes: Sequence[float | int | str] | float | str = 0.999,
         pca_init_rank_reduction: Sequence[float] | float = 0.3,
         alpha: Sequence[float] | float = 1.0,
         solver: Sequence[str] | str = "auto",
@@ -81,8 +82,10 @@ class BaseModelCrossSet(BaseModel):
         sample_name: str = "sample",
         feature_name: Sequence[str] | str = "feature",
         random_state: Generator | int | None = None,
-        solver_kwargs: dict[str, Any] = {},
+        solver_kwargs: dict[str, Any] | None = None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__()
 
         # Process parameters
@@ -395,15 +398,12 @@ class BaseModelCrossSet(BaseModel):
         if (not x_is_given) and (not y_is_given):
             raise ValueError("Either X or Y must be provided.")
 
-        if x_is_given:
-            # Handle scalar mode in xr.dot
-            if "mode" not in X.dims:
-                X = X.expand_dims("mode")
+        # Handle scalar mode in xr.dot
+        if x_is_given and "mode" not in X.dims:
+            X = X.expand_dims("mode")
 
-        if y_is_given:
-            # Handle scalar mode in xr.dot
-            if "mode" not in Y.dims:
-                Y = Y.expand_dims("mode")
+        if y_is_given and "mode" not in Y.dims:
+            Y = Y.expand_dims("mode")
 
         inv_transformed = self._inverse_transform_algorithm(X, Y)
 
@@ -531,17 +531,17 @@ class BaseModelCrossSet(BaseModel):
             Attributes needed to serialize the model.
 
         """
-        return dict(
-            data=self.data,
-            preprocessor1=self.preprocessor1,
-            preprocessor2=self.preprocessor2,
-            pca1=self.pca1,
-            pca2=self.pca2,
-            whitener1=self.whitener1,
-            whitener2=self.whitener2,
-            sample_name=self.sample_name,
-            feature_name=self.feature_name,
-        )
+        return {
+            "data": self.data,
+            "preprocessor1": self.preprocessor1,
+            "preprocessor2": self.preprocessor2,
+            "pca1": self.pca1,
+            "pca2": self.pca2,
+            "whitener1": self.whitener1,
+            "whitener2": self.whitener2,
+            "sample_name": self.sample_name,
+            "feature_name": self.feature_name,
+        }
 
     def _augment_data(self, X: DataArray, Y: DataArray) -> tuple[DataArray, DataArray]:
         """Optional method to augment the data before fitting."""

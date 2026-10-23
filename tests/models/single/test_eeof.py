@@ -89,13 +89,13 @@ def test_explained_variance_ratio(dim, mock_data_array):
     explained_variance_ratio = eof.explained_variance_ratio()
     assert isinstance(explained_variance_ratio, xr.DataArray)
     # Explained variance ratio must be positive
-    assert (
-        explained_variance_ratio > 0
-    ).all(), "The explained variance ratio must be positive"
+    assert (explained_variance_ratio > 0).all(), (
+        "The explained variance ratio must be positive"
+    )
     # The sum of the explained variance ratio must be <= 1
-    assert (
-        explained_variance_ratio.sum() <= 1 + 1e-5
-    ), "The sum of the explained variance ratio must be <= 1"
+    assert explained_variance_ratio.sum() <= 1 + 1e-5, (
+        "The sum of the explained variance ratio must be <= 1"
+    )
 
 
 @pytest.mark.parametrize(
@@ -132,9 +132,9 @@ def test_components(dim, mock_data_array):
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
     given_dims = set(components.dims)
     expected_dims = set(feature_dims + ("mode", "embedding"))
-    assert (
-        given_dims == expected_dims
-    ), "Components does not have the right feature dimensions"
+    assert given_dims == expected_dims, (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -156,9 +156,9 @@ def test_components_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
     given_dims = set(components.dims)
     expected_dims = set(feature_dims + ("mode", "embedding"))
-    assert (
-        given_dims == expected_dims
-    ), "Components does not have the right feature dimensions"
+    assert given_dims == expected_dims, (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -180,9 +180,9 @@ def test_components_boundary_nans(dim, mock_data_array_boundary_nans):
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
     given_dims = set(components.dims)
     expected_dims = set(feature_dims + ("mode", "embedding"))
-    assert (
-        given_dims == expected_dims
-    ), "Components does not have the right feature dimensions"
+    assert given_dims == expected_dims, (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -202,14 +202,14 @@ def test_components_dataset(dim, mock_dataset):
     components = eof.components()
     feature_dims = tuple(set(mock_dataset.dims) - set(dim))
     assert isinstance(components, xr.Dataset), "Components is not a Dataset"
-    assert set(components.data_vars) == set(
-        mock_dataset.data_vars
-    ), "Components does not have the same data variables as the input Dataset"
+    assert set(components.data_vars) == set(mock_dataset.data_vars), (
+        "Components does not have the same data variables as the input Dataset"
+    )
     given_dims = set(components.dims)
     expected_dims = set(feature_dims + ("mode", "embedding"))
-    assert (
-        given_dims == expected_dims
-    ), "Components does not have the right feature dimensions"
+    assert given_dims == expected_dims, (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -229,18 +229,18 @@ def test_components_dataarray_list(dim, mock_data_array_list):
     components = eof.components()
     feature_dims = [tuple(set(data.dims) - set(dim)) for data in mock_data_array_list]
     assert isinstance(components, list), "Components is not a list"
-    assert len(components) == len(
-        mock_data_array_list
-    ), "Components does not have the same length as the input list"
-    assert isinstance(
-        components[0], xr.DataArray
-    ), "Components is not a list of DataArrays"
+    assert len(components) == len(mock_data_array_list), (
+        "Components does not have the same length as the input list"
+    )
+    assert isinstance(components[0], xr.DataArray), (
+        "Components is not a list of DataArrays"
+    )
     for comp, feat_dims in zip(components, feature_dims):
         given_dims = set(comp.dims)
         expected_dims = set(feat_dims + ("mode", "embedding"))
-        assert (
-            given_dims == expected_dims
-        ), "Components does not have the right feature dimensions"
+        assert given_dims == expected_dims, (
+            "Components does not have the right feature dimensions"
+        )
 
 
 @pytest.mark.parametrize(
@@ -259,9 +259,9 @@ def test_scores(dim, mock_data_array):
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -280,9 +280,9 @@ def test_scores_fulldim_nans(dim, mock_data_array_full_dimensional_nans):
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -301,9 +301,9 @@ def test_scores_boundary_nans(dim, mock_data_array_boundary_nans):
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -322,9 +322,9 @@ def test_scores_dataset(dim, mock_dataset):
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray)
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -343,9 +343,9 @@ def test_scores_dataarray_list(dim, mock_data_array_list):
     # Test scores method
     scores = eof.scores()
     assert isinstance(scores, xr.DataArray)
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 def test_get_params():

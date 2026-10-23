@@ -10,16 +10,16 @@ from .sparse_pca import SparsePCA
 
 __all__ = [
     "EOF",
-    "ExtendedEOF",
-    "SparsePCA",
-    "POP",
-    "OPA",
     "GWPCA",
+    "OPA",
+    "POP",
     "ComplexEOF",
-    "HilbertEOF",
-    "EOFRotator",
     "ComplexEOFRotator",
+    "EOFRotator",
+    "ExtendedEOF",
+    "HilbertEOF",
     "HilbertEOFRotator",
+    "SparsePCA",
 ]
 
 

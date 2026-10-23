@@ -1,9 +1,8 @@
-import xarray as xr
+import pandas as pd
 import pytest
+import xarray as xr
 
 from xeofs.utils.dimension_renamer import DimensionRenamer
-
-import pandas as pd
 
 
 @pytest.fixture
@@ -37,14 +36,14 @@ def test_multiindex_dim_rename(da_multi):
     renamer = DimensionRenamer("dim1", "_suffix")
     da_new = renamer.fit_transform(da_multi)
     assert "dim1_suffix" in da_new.dims
-    assert "dim1a_suffix" in da_new.coords["dim1_suffix"].coords.keys()
-    assert "dim1b_suffix" in da_new.coords["dim1_suffix"].coords.keys()
+    assert "dim1a_suffix" in da_new.coords["dim1_suffix"].coords
+    assert "dim1b_suffix" in da_new.coords["dim1_suffix"].coords
 
     # Inverse transform
     da_orig = renamer.inverse_transform(da_new)
     assert "dim1" in da_orig.dims
-    assert "dim1a" in da_orig.coords["dim1"].coords.keys()
-    assert "dim1b" in da_orig.coords["dim1"].coords.keys()
+    assert "dim1a" in da_orig.coords["dim1"].coords
+    assert "dim1b" in da_orig.coords["dim1"].coords
 
 
 def test_fit_without_transform(da_simple):

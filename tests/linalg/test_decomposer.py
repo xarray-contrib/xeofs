@@ -5,7 +5,10 @@ import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
 from dask.callbacks import Callback
 
+from xeofs.linalg._numpy import _SVD
 from xeofs.linalg.decomposer import Decomposer
+from xeofs.linalg.svd import SVD
+from xeofs.preprocessing import PCA
 
 from ..utilities import data_is_dask
 
@@ -51,6 +54,17 @@ def test_complex_dask_data_array(mock_complex_data_array):
 def test_init(decomposer):
     assert decomposer.n_modes == 2
     assert decomposer.random_state == 42
+
+
+@pytest.mark.parametrize("decomposer_type", [Decomposer, SVD, _SVD, PCA])
+@pytest.mark.parametrize("kwargs", [{}, {"solver_kwargs": None}])
+def test_default_solver_kwargs_are_not_shared(decomposer_type, kwargs):
+    first = decomposer_type(n_modes=2, **kwargs)
+    second = decomposer_type(n_modes=2, **kwargs)
+
+    first.solver_kwargs["full_matrices"] = False
+
+    assert second.solver_kwargs == {}
 
 
 def test_fit_full(mock_data_array):
@@ -197,11 +211,13 @@ def test_fit_dask_full_rejects_large_fully_chunked_input(shape, compute, monkeyp
     monkeypatch.setattr(DaskArray, "rechunk", record_rechunk)
     decomposer = Decomposer(n_modes=2, solver="full", compute=compute)
     tasks = []
-    with Callback(pretask=lambda key, *args: tasks.append(key)):
-        with pytest.raises(
+    with (
+        Callback(pretask=lambda key, *args: tasks.append(key)),
+        pytest.raises(
             ValueError, match="large Dask matrices.*requires explicit rechunking"
-        ):
-            decomposer.fit(data)
+        ),
+    ):
+        decomposer.fit(data)
 
     assert not rechunks
     assert not tasks
@@ -342,9 +358,9 @@ def test_decompose_via_variance_threshold(mock_data_array, target_variance, solv
 
     # Compute total variance and test whether variance threshold is reached
     max_explained_variance_ratio = compute_max_exp_var(s, mock_data_array)
-    assert (
-        max_explained_variance_ratio >= target_variance
-    ), f"Expected >= {target_variance:.2f}, got {max_explained_variance_ratio:2f}"
+    assert max_explained_variance_ratio >= target_variance, (
+        f"Expected >= {target_variance:.2f}, got {max_explained_variance_ratio:2f}"
+    )
 
     # We still get a truncated version of the SVD
     assert s.mode.size < min(mock_data_array.shape)
@@ -362,7 +378,7 @@ def test_raise_warning_for_low_init_rank_reduction(mock_data_array):
 
 
 def test_compute_at_least_one_component(mock_data_array):
-    """"""
+    """A small rank reduction still computes at least one component."""
     target_variance = 0.5
     init_rank_reduction = 0.01
     decomposer = Decomposer(

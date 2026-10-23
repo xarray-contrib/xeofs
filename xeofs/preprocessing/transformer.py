@@ -33,7 +33,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
         DataArrays) will likely fail.
 
         """
-        return dict()
+        return {}
 
     @abstractmethod
     def fit(
@@ -54,7 +54,6 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
         feature_dims: Sequence[Hashable], optional
             Feature dimensions.
         """
-        pass
 
     @abstractmethod
     def transform(self, X: Data) -> Data:
@@ -138,7 +137,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
                 dt[key] = xr.DataTree(ds, name=key)
                 dt.attrs[key] = "_is_node"
             elif isinstance(attr, dict) and any(
-                [isinstance(val, xr.DataArray) for val in attr.values()]
+                isinstance(val, xr.DataArray) for val in attr.values()
             ):
                 # attach dict of data as branching tree
                 dt_attr = xr.DataTree()
@@ -185,7 +184,7 @@ class Transformer(BaseEstimator, TransformerMixin, ABC):
                 setattr(transformer, key, data)
             elif attr == "_is_tree":
                 data = {}
-                for k, v in dt[key].items():
+                for k in dt[key]:
                     data[k] = transformer._deserialize_data_node(k, dt[key][k])
                 setattr(transformer, key, data)
             else:

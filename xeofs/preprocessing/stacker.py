@@ -41,23 +41,23 @@ class Stacker(Transformer):
     ):
         super().__init__(sample_name, feature_name)
 
-        self.dims_in = tuple()
-        self.dims_out = tuple((sample_name, feature_name))
+        self.dims_in = ()
+        self.dims_out = (sample_name, feature_name)
         self.dims_mapping = {}
-        self.dims_mapping.update({d: tuple() for d in self.dims_out})
+        self.dims_mapping.update({d: () for d in self.dims_out})
         self.coords_in = {}
         self.coords_out = {}
         self.data_type = None
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            dims_in=self.dims_in,
-            dims_out=self.dims_out,
-            dims_mapping=self.dims_mapping,
-            coords_in=self.coords_in,
-            coords_out=self.coords_out,
-            data_type=self.data_type,
-        )
+        return {
+            "dims_in": self.dims_in,
+            "dims_out": self.dims_out,
+            "dims_mapping": self.dims_mapping,
+            "coords_in": self.coords_in,
+            "coords_out": self.coords_out,
+            "data_type": self.data_type,
+        }
 
     def _validate_data_type(self, X: Data):
         """Check that the data type is either DataArray or Dataset."""
@@ -69,17 +69,15 @@ class Stacker(Transformer):
         sample_name_in_data = self.sample_name in X.dims
         feature_name_in_data = self.feature_name in X.dims
 
-        has_invalid_sample_name = (
-            True if (len(sample_dims) > 1) and sample_name_in_data else False
-        )
+        has_invalid_sample_name = bool(len(sample_dims) > 1 and sample_name_in_data)
 
         match X:
             case xr.DataArray():
-                has_invalid_feature_name = (
-                    True if (len(feature_dims) > 1) and feature_name_in_data else False
+                has_invalid_feature_name = bool(
+                    len(feature_dims) > 1 and feature_name_in_data
                 )
             case xr.Dataset():
-                has_invalid_feature_name = True if feature_name_in_data else False
+                has_invalid_feature_name = bool(feature_name_in_data)
             case _:
                 raise TypeError(f"Invalid data type {type(X)}.")
 
@@ -92,8 +90,8 @@ class Stacker(Transformer):
             raise ValueError(err_msg)
 
     def _validate_dims(self, X: Data, sample_dims, feature_dims):
-        invalid_sample_dims = True if len(sample_dims) < 1 else False
-        invalid_feature_dims = True if len(feature_dims) < 1 else False
+        invalid_sample_dims = len(sample_dims) < 1
+        invalid_feature_dims = len(feature_dims) < 1
 
         if invalid_sample_dims:
             raise ValueError("Sample dimension must not be empty.")
@@ -109,7 +107,7 @@ class Stacker(Transformer):
 
     def _validate_indices(self, X: Data):
         """Check that the indices of the data are no MultiIndex"""
-        if any([isinstance(index, pd.MultiIndex) for index in X.indexes.values()]):
+        if any(isinstance(index, pd.MultiIndex) for index in X.indexes.values()):
             raise ValueError("Cannot stack data containing a MultiIndex.")
 
     def _sanity_check(self, X: Data, sample_dims, feature_dims):

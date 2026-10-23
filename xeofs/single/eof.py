@@ -63,9 +63,11 @@ class EOF(BaseModelSingleSet):
         compute: bool = True,
         random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,
@@ -314,9 +316,11 @@ class ComplexEOF(EOF):
         compute: bool = True,
         random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,
@@ -523,9 +527,11 @@ class HilbertEOF(ComplexEOF):
         compute: bool = True,
         random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,

@@ -81,7 +81,7 @@ data = data.rename({"XCOO": "x", "YCOO": "y"})
 data = data.set_index(station=("x", "y"))
 data = data.drop_vars("CNo")
 da = data.to_array(dim="element")
-da
+da  # noqa: B018 - Display the data in the gallery.
 
 # %%
 # Let's dive into the GWPCA. First, initialize a ``GWPCA`` instance and fit it to the data.
@@ -115,7 +115,7 @@ gwpca.components()
 # dominate the local PCAs.
 
 llwc = gwpca.largest_locally_weighted_components()
-llwc
+llwc  # noqa: B018 - Display the components in the gallery.
 
 # %%
 # Let's visualize the spatial patterns of the chemical elements.

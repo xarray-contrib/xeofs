@@ -83,7 +83,13 @@ fig = plt.figure(figsize=(12, 2.5))
 gs = GridSpec(1, 4, figure=fig, width_ratios=[2, 4, 1, 0.2])
 axes = [fig.add_subplot(gs[0, i], projection=projections[i]) for i in range(3)]
 cax = fig.add_subplot(1, 4, 4)
-kwargs = dict(transform=ccrs.PlateCarree(), vmin=-1, vmax=1, cmap="RdBu_r", cbar_ax=cax)
+kwargs = {
+    "transform": ccrs.PlateCarree(),
+    "vmin": -1,
+    "vmax": 1,
+    "cmap": "RdBu_r",
+    "cbar_ax": cax,
+}
 components[0].sel(mode=mode).plot(ax=axes[0], **kwargs)
 components[1].sel(mode=mode).plot(ax=axes[1], **kwargs)
 im = components[2].sel(mode=mode).plot(ax=axes[2], **kwargs)

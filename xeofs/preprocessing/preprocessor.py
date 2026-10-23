@@ -142,22 +142,22 @@ class Preprocessor(Transformer):
         self.concatenator = Concatenator(**dim_names_as_kwargs)
 
     def get_serialization_attrs(self) -> dict:
-        return dict(n_data=self.n_data)
+        return {"n_data": self.n_data}
 
     def transformer_types(self):
         """Ordered list of transformer operations."""
-        return dict(
-            scaler=Scaler,
-            renamer=DimensionRenamer,
-            preconverter=MultiIndexConverter,
-            stacker=Stacker,
-            postconverter=MultiIndexConverter,
-            sanitizer=Sanitizer,
-            concatenator=Concatenator,
-        )
+        return {
+            "scaler": Scaler,
+            "renamer": DimensionRenamer,
+            "preconverter": MultiIndexConverter,
+            "stacker": Stacker,
+            "postconverter": MultiIndexConverter,
+            "sanitizer": Sanitizer,
+            "concatenator": Concatenator,
+        }
 
     def get_transformers(self, inverse: bool = False):
-        transformers = [getattr(self, t) for t in self.transformer_types().keys()]
+        transformers = [getattr(self, t) for t in self.transformer_types()]
         if inverse:
             transformers = transformers[::-1]
         return transformers
@@ -185,7 +185,7 @@ class Preprocessor(Transformer):
             The fitted preprocessor.
 
         """
-        self, X = self._fit_algorithm(X, sample_dims, weights)
+        self._fit_algorithm(X, sample_dims, weights)
         return self
 
     def _fit_algorithm(
@@ -266,7 +266,7 @@ class Preprocessor(Transformer):
     ) -> DataArray:
         # Take advantage of the fact that `.fit()` already transforms the data
         # to avoid duplicate computation
-        self, X = self._fit_algorithm(X, sample_dims, weights)
+        _, X = self._fit_algorithm(X, sample_dims, weights)
         return X
 
     def inverse_transform_data(self, X: DataArray) -> list[Data] | Data:
