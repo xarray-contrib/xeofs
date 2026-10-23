@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
+from typing import Self
 
 import pandas as pd
 import xarray as xr
 from sklearn.base import BaseEstimator, TransformerMixin
-from typing_extensions import Self
 
 from ..utils.data_types import Data, DataArray, DataSet, Dims
 

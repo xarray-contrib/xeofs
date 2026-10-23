@@ -2,11 +2,10 @@ import importlib
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, ClassVar, Literal
+from typing import Any, ClassVar, Literal, Self
 
 import dask.base
 import xarray as xr
-from typing_extensions import Self
 
 from ._version import __version__
 from .utils.data_types import DataArray

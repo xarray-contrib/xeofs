@@ -1,6 +1,7 @@
+from typing import Self
+
 import xarray as xr
 from dask.base import compute
-from typing_extensions import Self
 
 from ..utils.data_types import Data, DataArray, Dims
 from ..utils.sanity_checks import assert_single_dataarray

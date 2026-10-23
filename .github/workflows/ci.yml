@@ -27,6 +27,9 @@ jobs:
           - environment: minimal-py312
           - environment: complete-py312
             doctest: '--doctest-glob=README.md'
+          - environment: minimal-py313
+          - environment: complete-py313
+            doctest: '--doctest-glob=README.md'
 
     steps:
       - uses: actions/checkout@v4

@@ -1,8 +1,7 @@
-from typing import ClassVar
+from typing import ClassVar, Self
 
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from xeofs.utils.data_types import DataArray
 

@@ -1,6 +1,7 @@
+from typing import Self
+
 import dask
 import xarray as xr
-from typing_extensions import Self
 
 from ..utils.data_types import DataArray
 

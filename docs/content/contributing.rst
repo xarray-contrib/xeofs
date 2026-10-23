@@ -67,6 +67,8 @@ Other environments are available for specific tasks:
     pixi run -e minimal-py311 test
     pixi run -e minimal-py312 test
     pixi run -e complete-py312 test
+    pixi run -e minimal-py313 test
+    pixi run -e complete-py313 test
     pixi run -e lint lint
     pixi run -e lint format-check
     pixi run -e docs docs
@@ -75,7 +77,7 @@ Other environments are available for specific tasks:
 The documentation environment includes R, rpy2, and Pandoc and is available
 on Linux and macOS. The other locked environments also support Windows.
 
-CI additionally tests Python 3.10 with the lowest supported PyPI dependencies.
+CI additionally tests Python 3.11 with the lowest supported PyPI dependencies.
 Because Pixi does not expose PyPI's ``lowest-direct`` resolution strategy,
 this check uses ``uv`` inside a separate Pixi-managed environment:
 

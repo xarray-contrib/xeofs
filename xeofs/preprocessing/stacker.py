@@ -1,6 +1,7 @@
+from typing import Self
+
 import pandas as pd
 import xarray as xr
-from typing_extensions import Self
 
 from ..utils.data_types import Data, DataArray, DataSet, DataVar, DataVarBound, Dims
 from .transformer import Transformer

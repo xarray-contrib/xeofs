@@ -1,6 +1,7 @@
+from typing import Self
+
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from ..data_container import DataContainer
 from ..utils.data_types import DataArray

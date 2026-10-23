@@ -1,6 +1,4 @@
-from typing import Any, Generic, TypeVar
-
-from typing_extensions import Self
+from typing import Any, Generic, Self, TypeVar
 
 from ..utils.data_types import (
     Data,

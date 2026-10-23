@@ -1,5 +1,6 @@
+from typing import Self
+
 import pandas as pd
-from typing_extensions import Self
 
 from ..utils.data_types import Data, DataArray, DataVar, DataVarBound, Dims
 from .transformer import Transformer
