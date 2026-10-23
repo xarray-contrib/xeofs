@@ -122,9 +122,10 @@ llwc  # noqa: B018 - Display the components in the gallery.
 # As the stations are positioned on a irregular grid, we'll transform the
 # ``llwc`` ``DataArray`` into a ``pandas.DataFrame``. After that, we can easily visualize
 # it using the ``scatter`` method.
+# Reset the station index before converting so ``x`` and ``y`` become columns.
 # For demonstation, we'll concentrate on the first mode:
 
-llwc1_df = llwc.sel(mode=1).to_dataframe()
+llwc1_df = llwc.sel(mode=1).reset_index("station").to_dataframe()
 
 elements = da.element.values
 n_elements = len(elements)
@@ -163,7 +164,7 @@ plt.show()
 
 
 exp_var_ratio = gwpca.explained_variance_ratio()
-evr1_df = exp_var_ratio.sel(mode=1).to_dataframe()
+evr1_df = exp_var_ratio.sel(mode=1).reset_index("station").to_dataframe()
 
 fig = plt.figure(figsize=(10, 10))
 ax = fig.add_subplot(111)
