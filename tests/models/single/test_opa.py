@@ -74,9 +74,9 @@ def test_components(dim, mock_data_array, opa_model):
     components = opa_model.components()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
-    assert set(components.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
+    assert set(components.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -95,9 +95,9 @@ def test_filter_patterns(dim, mock_data_array, opa_model):
     components = opa_model.filter_patterns()
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
     assert isinstance(components, xr.DataArray), "Components is not a DataArray"
-    assert set(components.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
+    assert set(components.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -116,12 +116,12 @@ def test_components_dataset(dim, mock_dataset, opa_model):
     components = opa_model.components()
     feature_dims = tuple(set(mock_dataset.dims) - set(dim))
     assert isinstance(components, xr.Dataset), "Components is not a Dataset"
-    assert set(components.data_vars) == set(
-        mock_dataset.data_vars
-    ), "Components does not have the same data variables as the input Dataset"
-    assert set(components.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components does not have the right feature dimensions"
+    assert set(components.data_vars) == set(mock_dataset.data_vars), (
+        "Components does not have the same data variables as the input Dataset"
+    )
+    assert set(components.dims) == set(("mode",) + feature_dims), (
+        "Components does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -140,16 +140,16 @@ def test_components_dataarray_list(dim, mock_data_array_list, opa_model):
     components = opa_model.components()
     feature_dims = [tuple(set(data.dims) - set(dim)) for data in mock_data_array_list]
     assert isinstance(components, list), "Components is not a list"
-    assert len(components) == len(
-        mock_data_array_list
-    ), "Components does not have the same length as the input list"
-    assert isinstance(
-        components[0], xr.DataArray
-    ), "Components is not a list of DataArrays"
+    assert len(components) == len(mock_data_array_list), (
+        "Components does not have the same length as the input list"
+    )
+    assert isinstance(components[0], xr.DataArray), (
+        "Components is not a list of DataArrays"
+    )
     for comp, feat_dims in zip(components, feature_dims):
-        assert set(comp.dims) == set(
-            ("mode",) + feat_dims
-        ), "Components does not have the right feature dimensions"
+        assert set(comp.dims) == set(("mode",) + feat_dims), (
+            "Components does not have the right feature dimensions"
+        )
 
 
 @pytest.mark.parametrize(
@@ -167,9 +167,9 @@ def test_scores(dim, mock_data_array, opa_model):
     # Test scores method
     scores = opa_model.scores()
     assert isinstance(scores, xr.DataArray), "Scores is not a DataArray"
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -187,9 +187,9 @@ def test_scores_dataset(dim, mock_dataset, opa_model):
     # Test scores method
     scores = opa_model.scores()
     assert isinstance(scores, xr.DataArray)
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -207,9 +207,9 @@ def test_scores_dataarray_list(dim, mock_data_array_list, opa_model):
     # Test scores method
     scores = opa_model.scores()
     assert isinstance(scores, xr.DataArray)
-    assert set(scores.dims) == set(
-        (dim + ("mode",))
-    ), "Scores does not have the right dimensions"
+    assert set(scores.dims) == set(dim + ("mode",)), (
+        "Scores does not have the right dimensions"
+    )
 
 
 def test_get_params(opa_model):
@@ -317,9 +317,9 @@ def test_U_orthogonal(dim, use_coslat, mock_data_array):
     )
     model.fit(mock_data_array, dim=dim)
     U = model._U.values
-    assert np.allclose(
-        U.T @ U, np.eye(U.shape[1]), atol=1e-5
-    ), "U patterns are not orthogonal"
+    assert np.allclose(U.T @ U, np.eye(U.shape[1]), atol=1e-5), (
+        "U patterns are not orthogonal"
+    )
 
 
 # IGNORE THIS TEST: Current implementation yields C0 in PCA space and FP in original space
@@ -373,6 +373,6 @@ def test_scores_uncorrelated(dim, use_coslat, mock_data_array):
     model.fit(mock_data_array, dim=dim)
     scores = model.data["scores"].values
     check = scores.T @ scores / (scores.shape[0] - 1)
-    assert np.allclose(
-        check, np.eye(check.shape[1]), atol=1e-5
-    ), "Scores are not uncorrelated"
+    assert np.allclose(check, np.eye(check.shape[1]), atol=1e-5), (
+        "Scores are not uncorrelated"
+    )

@@ -72,9 +72,11 @@ class ExtendedEOF(EOF):
         compute: bool = True,
         solver: str = "auto",
         random_state: int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,

@@ -110,9 +110,11 @@ class SparsePCA(BaseModelSingleSet):
         compute: bool = True,
         random_state: int | None = None,
         solver: str = "auto",
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         **kwargs,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__(
             n_modes=n_modes,
             center=center,
@@ -164,9 +166,7 @@ class SparsePCA(BaseModelSingleSet):
 
         match solver:
             case "auto":
-                use_exact = (
-                    True if is_small_data and self.n_modes > int(0.8 * rank) else False
-                )
+                use_exact = bool(is_small_data and self.n_modes > int(0.8 * rank))
             case "full":
                 use_exact = True
             case "randomized":
@@ -177,27 +177,27 @@ class SparsePCA(BaseModelSingleSet):
                     "Valid options are 'auto', 'full', and 'randomized'."
                 )
 
-        decomposing_kwargs = dict(
-            n_components=self.n_modes,
-            alpha=self._params["alpha"],
-            beta=self._params["beta"],
-            robust=self._params["robust"],
-            regularizer=self._params["regularizer"],
-            max_iter=self._params["max_iter"],
-            tol=self._params["tol"],
-            compute=self._params["compute"],
-        )
+        decomposing_kwargs = {
+            "n_components": self.n_modes,
+            "alpha": self._params["alpha"],
+            "beta": self._params["beta"],
+            "robust": self._params["robust"],
+            "regularizer": self._params["regularizer"],
+            "max_iter": self._params["max_iter"],
+            "tol": self._params["tol"],
+            "compute": self._params["compute"],
+        }
         if use_exact:
             decomposing_algorithm = compute_spca
         else:
             decomposing_algorithm = compute_rspca
             decomposing_kwargs.update(
-                dict(
-                    oversample=self._params["oversample"],
-                    n_subspace=self._params["n_subspace"],
-                    n_blocks=self._params["n_blocks"],
-                    random_state=self._params["random_state"],
-                )
+                {
+                    "oversample": self._params["oversample"],
+                    "n_subspace": self._params["n_subspace"],
+                    "n_blocks": self._params["n_blocks"],
+                    "random_state": self._params["random_state"],
+                }
             )
 
         # Fit the data
@@ -244,7 +244,7 @@ class SparsePCA(BaseModelSingleSet):
             scores,
             input_core_dims=[[sample_name]],
             output_core_dims=[[]],
-            exclude_dims=set((sample_name,)),
+            exclude_dims={sample_name},
             kwargs={"axis": -1},
             dask="allowed",
             vectorize=False,

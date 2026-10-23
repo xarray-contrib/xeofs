@@ -190,7 +190,7 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
 def test_components_amplitude(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    amps1, amps2 = mca_rotator.components_amplitude()
+    _amps1, _amps2 = mca_rotator.components_amplitude()
 
 
 @pytest.mark.parametrize(
@@ -204,7 +204,7 @@ def test_components_amplitude(mca_model, mock_data_array, dim):
 def test_components_phase(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    amps1, amps2 = mca_rotator.components_phase()
+    _amps1, _amps2 = mca_rotator.components_phase()
 
 
 @pytest.mark.parametrize(
@@ -218,7 +218,7 @@ def test_components_phase(mca_model, mock_data_array, dim):
 def test_scores_amplitude(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    amps1, amps2 = mca_rotator.scores_amplitude()
+    _amps1, _amps2 = mca_rotator.scores_amplitude()
 
 
 @pytest.mark.parametrize(
@@ -232,7 +232,7 @@ def test_scores_amplitude(mca_model, mock_data_array, dim):
 def test_scores_phase(mca_model, mock_data_array, dim):
     mca_rotator = HilbertMCARotator(n_modes=2)
     mca_rotator.fit(mca_model)
-    amps1, amps2 = mca_rotator.scores_phase()
+    _amps1, _amps2 = mca_rotator.scores_phase()
 
 
 @pytest.mark.parametrize(
@@ -264,7 +264,7 @@ def test_save_load_with_data(tmp_path, engine, mca_model):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         assert loaded.data[key].equals(original.data[key])
 

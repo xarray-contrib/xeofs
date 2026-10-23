@@ -1,8 +1,5 @@
 from abc import abstractmethod
-from typing import (
-    Hashable,
-    Sequence,
-)
+from collections.abc import Hashable, Sequence
 
 import xarray as xr
 from typing_extensions import Self
@@ -67,8 +64,10 @@ class BaseModelSingleSet(BaseModel):
         compute=True,
         random_state=None,
         solver="auto",
-        solver_kwargs={},
+        solver_kwargs=None,
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         super().__init__()
 
         self.n_modes = n_modes
@@ -115,10 +114,10 @@ class BaseModelSingleSet(BaseModel):
         self.data = DataContainer()
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            data=self.data,
-            preprocessor=self.preprocessor,
-        )
+        return {
+            "data": self.data,
+            "preprocessor": self.preprocessor,
+        }
 
     def fit(
         self,

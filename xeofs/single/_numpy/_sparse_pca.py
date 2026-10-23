@@ -79,7 +79,7 @@ def johnson_lindenstrauss(A, k, random_state=None):
     random_state = check_random_state(random_state)
 
     if A.ndim != 2:
-        raise ValueError("A must be a 2D array, not %dD" % A.ndim)
+        raise ValueError(f"A must be a 2D array, not {A.ndim}D")
 
     # construct gaussian random matrix
     Omega = random_gaussian_map(A, k, random_state)
@@ -470,19 +470,17 @@ def compute_spca(
     elif regularizer == "l0":
         if robust:
             raise NotImplementedError(
-                "l0 regularization is not supported for " "robust sparse pca"
+                "l0 regularization is not supported for robust sparse pca"
             )
         regularizer_func = soft_l0
     else:
-        raise ValueError(
-            'regularizer must be one of ("l1", "l0"), not ' "%s." % regularizer
-        )
+        raise ValueError(f'regularizer must be one of ("l1", "l0"), not {regularizer}.')
 
     m, n = X.shape
     if n_components is not None:
         if n_components > n:
             raise ValueError(
-                "n_components must be less than the number " "of columns of X (%d)" % n
+                f"n_components must be less than the number of columns of X ({n})"
             )
     else:
         n_components = n

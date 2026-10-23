@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from scipy.signal import hilbert  # type: ignore
+
 from .data_types import DataArray
 
 

@@ -1,4 +1,5 @@
-from typing import Hashable, Sequence, TypeAlias, TypeVar
+from collections.abc import Hashable, Sequence
+from typing import TypeAlias, TypeVar
 
 import dask.array as da
 from xarray.core import dataarray as xr_dataarray

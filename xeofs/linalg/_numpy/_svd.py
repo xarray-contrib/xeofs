@@ -60,22 +60,23 @@ class _SVD:
 
     def __init__(
         self,
-        n_modes: int | float | str,
+        n_modes: float | str,
         init_rank_reduction: float = 0.3,
         flip_signs: bool = True,
         solver: str = "auto",
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         is_complex: bool | str = "auto",
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         sanity_check_n_modes(n_modes)
-        self.is_based_on_variance = True if isinstance(n_modes, float) else False
+        self.is_based_on_variance = isinstance(n_modes, float)
 
-        if self.is_based_on_variance:
-            if not (0 < init_rank_reduction <= 1.0):
-                raise ValueError(
-                    "init_rank_reduction must be in the half open interval (0, 1]."
-                )
+        if self.is_based_on_variance and not (0 < init_rank_reduction <= 1.0):
+            raise ValueError(
+                "init_rank_reduction must be in the half open interval (0, 1]."
+            )
 
         self.n_modes = n_modes
         self.n_modes_precompute = n_modes
@@ -123,13 +124,13 @@ class _SVD:
         # Conditions for using exact SVD follow scitkit-learn's PCA implementation
         # Source: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 
-        use_dask = True if isinstance(X, DaskArray) else False
+        use_dask = isinstance(X, DaskArray)
 
         match self.is_complex:
             case bool():
                 use_complex = self.is_complex
             case "auto":
-                use_complex = True if np.iscomplexobj(X) else False
+                use_complex = bool(np.iscomplexobj(X))
             case _:
                 raise ValueError(
                     f"Unrecognized value for is_complex '{self.is_complex}'. "
@@ -143,9 +144,7 @@ class _SVD:
             # if X.shape[1] <= 1_000 and X.shape[0] >= 10 * X.shape[1]: -> covariance_eigh" (see sklearn PCA implementation: https://github.com/scikit-learn/scikit-learn/blob/e87b32a81c70abed8f2e97483758eb64df8255e9/sklearn/decomposition/_pca.py#L526)
             case "auto":
                 has_many_modes = self.n_modes_precompute > int(0.8 * rank)
-                use_exact = (
-                    True if is_small_data and has_many_modes and not use_dask else False
-                )
+                use_exact = bool(is_small_data and has_many_modes and not use_dask)
             case "full":
                 use_exact = True
             case "randomized":

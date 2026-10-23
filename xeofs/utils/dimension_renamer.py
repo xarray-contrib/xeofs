@@ -16,7 +16,7 @@ class DimensionRenamer:
 
     def fit(self, da):
         self.dims_mapping = {
-            dim: dim + self.suffix for dim in da.coords[self.dim].coords.keys()
+            dim: dim + self.suffix for dim in da.coords[self.dim].coords
         }
 
     def transform(self, da):

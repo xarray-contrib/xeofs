@@ -9,17 +9,19 @@ from ._numpy import _SVD
 class SVD:
     def __init__(
         self,
-        n_modes: int | float | str,
+        n_modes: float | str,
         is_complex: bool | str = "auto",
         init_rank_reduction: float = 0.3,
         flip_signs: bool = True,
         solver: str = "auto",
         compute: bool = True,
         random_state: np.random.Generator | int | None = None,
-        solver_kwargs: dict = {},
+        solver_kwargs: dict | None = None,
         sample_name: str = "sample",
         feature_name: str = "feature",
     ):
+        if solver_kwargs is None:
+            solver_kwargs = {}
         self.n_modes = n_modes
         self.is_complex = is_complex
         self.init_rank_reduction = init_rank_reduction

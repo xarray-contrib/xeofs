@@ -3,7 +3,8 @@ import pytest
 from xeofs.preprocessing.multi_index_converter import (
     MultiIndexConverter,
 )
-from ..utilities import data_is_dask, data_has_multiindex
+
+from ..utilities import data_has_multiindex, data_is_dask
 
 # =============================================================================
 # GENERALLY VALID TEST CASES

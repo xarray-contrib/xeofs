@@ -55,10 +55,7 @@ class Whitener(Transformer):
     def _check_identity_transform(self) -> bool:
         eps = np.finfo(self.alpha).eps
         alpha_is_one = (1.0 - self.alpha) < eps
-        if alpha_is_one:
-            return True
-        else:
-            return False
+        return bool(alpha_is_one)
 
     def _sanity_check_input(self, X) -> None:
         assert_single_dataarray(X)
@@ -68,20 +65,18 @@ class Whitener(Transformer):
 
         if X.dims != (self.sample_name, self.feature_name):
             raise ValueError(
-                "Input DataArray must have dimensions ({:}, {:})".format(
-                    self.sample_name, self.feature_name
-                )
+                f"Input DataArray must have dimensions ({self.sample_name}, {self.feature_name})"
             )
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            alpha=self.alpha,
-            is_identity=self.is_identity,
-            T=self.T,
-            Tinv=self.Tinv,
-            feature_name=self.feature_name,
-            n_samples=self.n_samples,
-        )
+        return {
+            "alpha": self.alpha,
+            "is_identity": self.is_identity,
+            "T": self.T,
+            "Tinv": self.Tinv,
+            "feature_name": self.feature_name,
+            "n_samples": self.n_samples,
+        }
 
     def fit(
         self,

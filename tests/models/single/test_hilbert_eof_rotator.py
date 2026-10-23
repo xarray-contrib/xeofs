@@ -41,12 +41,12 @@ def test_fit(ceof_model):
     ceof_rotator = HilbertEOFRotator(n_modes=3)
     ceof_rotator.fit(ceof_model)
 
-    assert hasattr(
-        ceof_rotator, "model_data"
-    ), 'The attribute "model_data" should be populated after fitting.'
-    assert hasattr(
-        ceof_rotator, "data"
-    ), 'The attribute "data" should be populated after fitting.'
+    assert hasattr(ceof_rotator, "model_data"), (
+        'The attribute "model_data" should be populated after fitting.'
+    )
+    assert hasattr(ceof_rotator, "data"), (
+        'The attribute "data" should be populated after fitting.'
+    )
     assert isinstance(ceof_rotator.model_data, DataContainer)
     assert isinstance(ceof_rotator.data, DataContainer)
 

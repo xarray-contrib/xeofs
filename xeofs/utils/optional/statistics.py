@@ -80,7 +80,7 @@ def pearson_correlation(
 
     if correction is not None:
         # Adjust p-values for multiple testing
-        rejected, pvals = _multipletests(
+        _rejected, pvals = _multipletests(
             pvals, dim=feature_name, alpha=alpha, method=correction
         )
         return corr, pvals

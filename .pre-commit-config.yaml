@@ -9,9 +9,9 @@ repos:
         args: [] # optional: list of Conventional Commits types to allow
   # Lint and format with ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.17.2
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [ --fix ]
       - id: ruff-format
   # Strip output from Jupyter Notebooks

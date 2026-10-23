@@ -1,10 +1,9 @@
-import numpy as np
-
 import numba
+import numpy as np
 from numba import prange
+
 from ..optional.distance_metrics import distance_nb
 from ..optional.kernels import kernel_weights_nb
-
 
 # Additional utility functions for local PCA
 # =============================================================================
@@ -60,7 +59,7 @@ def _local_pcas(X, xy, n_modes, metric, kernel, bandwidth):
         sqrt_weights = np.sqrt(weights)
         x = _weigh_columns(x, sqrt_weights)
 
-        Ui, si, ViT = np.linalg.svd(x, full_matrices=False)
+        _Ui, si, ViT = np.linalg.svd(x, full_matrices=False)
         # Renormalize singular values
         si = si**2 / weights.sum()
         ti = si.sum()
@@ -178,7 +177,7 @@ def local_pca_vectorized(
     sqrt_weights = np.sqrt(weights)
     X = _weigh_columns(X, sqrt_weights)
 
-    U, s, Vt = np.linalg.svd(X, full_matrices=False)
+    _U, s, Vt = np.linalg.svd(X, full_matrices=False)
     Vt = Vt[: n_out.shape[0], :]
     lbda = s**2 / weights.sum()
     for i in range(n_out.shape[0]):

@@ -8,8 +8,8 @@ Copyright (c) 2020 onward James Chapman
 """
 
 from abc import abstractmethod
+from collections.abc import Hashable, Sequence
 from datetime import datetime
-from typing import Hashable, Sequence
 
 import dask.array as da
 import numpy as np
@@ -52,7 +52,7 @@ class CCABaseModel(BaseEstimator):
         check_nans: bool = True,
         pca: bool = False,
         variance_fraction: float = 0.99,
-        init_pca_modes: int | float = 0.75,
+        init_pca_modes: float = 0.75,
         compute: bool = True,
         sample_name: str = "sample",
         feature_name: str = "feature",
@@ -99,11 +99,9 @@ class CCABaseModel(BaseEstimator):
         if not all(data.ndim == 2 for data in views):
             raise ValueError("All views must have 2 dimensions")
         if not all(data.dtype in self.dtypes for data in views):
-            raise ValueError("All views must have dtype of {}.".format(self.dtypes))
+            raise ValueError(f"All views must have dtype of {self.dtypes}.")
         if not all(data[self.feature_name].size >= self.n_modes for data in views):
-            raise ValueError(
-                "All views must have at least {} features.".format(self.n_modes)
-            )
+            raise ValueError(f"All views must have at least {self.n_modes} features.")
 
     def _process_init_pca_modes(self, n_modes):
         err_msg = "init_pca_modes must be either a float <= 1.0 or an integer > 1"
@@ -122,7 +120,7 @@ class CCABaseModel(BaseEstimator):
                     raise ValueError(err_msg)
                 n_modes_list.append(n)
             else:
-                raise ValueError(err_msg)
+                raise ValueError(err_msg)  # noqa: TRY004 - Preserve the existing validation API.
         return n_modes_list
 
     def fit(
@@ -191,12 +189,8 @@ class CCABaseModel(BaseEstimator):
                 and max_exp_var_ratio <= 0.9999
             ):
                 print(
-                    "Warning: variance fraction {:.4f} is not reached. ".format(
-                        self.variance_fraction
-                    )
-                    + "Only {:.4f} of variance is explained.".format(
-                        cum_exp_var_ratio.isel(mode=-1).item()
-                    )
+                    f"Warning: variance fraction {self.variance_fraction:.4f} is not reached. "
+                    + f"Only {cum_exp_var_ratio.isel(mode=-1).item():.4f} of variance is explained."
                 )
             n_modes_keep = (
                 cum_exp_var_ratio.where(
@@ -383,9 +377,11 @@ class CCA(CCABaseModel):
 
         return self
 
-    def _compute_singular_values(
-        self, x, dims_in=["feature1", "feature2"], dims_out=["mode"]
-    ):
+    def _compute_singular_values(self, x, dims_in=None, dims_out=None):
+        if dims_out is None:
+            dims_out = ["mode"]
+        if dims_in is None:
+            dims_in = ["feature1", "feature2"]
         svals = xr.apply_ufunc(
             np.linalg.svd,
             x,
@@ -493,9 +489,11 @@ class CCA(CCABaseModel):
         ]
         return C - self._block_diag_dask(Ci, dims_in=dims_out)
 
-    def _apply_cov(
-        self, x, dims_in=["sample", "feature"], dims_out=["feature1", "feature2"]
-    ):
+    def _apply_cov(self, x, dims_in=None, dims_out=None):
+        if dims_out is None:
+            dims_out = ["feature1", "feature2"]
+        if dims_in is None:
+            dims_in = ["sample", "feature"]
         if x[dims_in[1]].size == 1:
             return xr.apply_ufunc(
                 np.cov,
@@ -522,7 +520,9 @@ class CCA(CCABaseModel):
             )
             return C
 
-    def _block_diag_dask(self, views, dims_in=["feature1", "featur2"], dims_out=None):
+    def _block_diag_dask(self, views, dims_in=None, dims_out=None):
+        if dims_in is None:
+            dims_in = ["feature1", "featur2"]
         if dims_out is None:
             dims_out = dims_in
         if all(view.size == 1 for view in views):

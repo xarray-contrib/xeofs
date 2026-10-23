@@ -9,6 +9,7 @@ from .stacker import Stacker
 from .whitener import Whitener
 
 __all__ = [
+    "PCA",
     "Concatenator",
     "DimensionRenamer",
     "MultiIndexConverter",
@@ -17,5 +18,4 @@ __all__ = [
     "Scaler",
     "Stacker",
     "Whitener",
-    "PCA",
 ]

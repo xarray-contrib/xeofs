@@ -20,7 +20,7 @@ xr.set_options(display_expand_attrs=False)
 # For this example, we'll use the ERA-Interim tutorial dataset ``eraint_uvz``:
 
 uvz = xr.tutorial.open_dataset("eraint_uvz")
-uvz
+uvz  # noqa: B018 - Display the dataset in the gallery.
 
 # %%
 # This dataset contains the zonal, meridional, and vertical wind components at

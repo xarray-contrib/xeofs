@@ -42,9 +42,9 @@ def test_squared_covariance_fraction(mca_model, mock_data_array, dim):
     squared_covariance_fraction = mca_model.squared_covariance_fraction()
     assert isinstance(squared_covariance_fraction, xr.DataArray)
     assert (squared_covariance_fraction > 0).all()
-    assert all(
-        squared_covariance_fraction <= 1
-    ), "Squared covariance fraction is greater than 1"
+    assert all(squared_covariance_fraction <= 1), (
+        "Squared covariance fraction is greater than 1"
+    )
 
 
 @pytest.mark.parametrize(

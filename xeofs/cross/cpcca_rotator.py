@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import xarray as xr
@@ -105,19 +105,19 @@ class CPCCARotator(CPCCA):
         self.sorted = False
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            data=self.data,
-            model_data=self.model_data,
-            preprocessor1=self.preprocessor1,
-            preprocessor2=self.preprocessor2,
-            pca1=self.pca1,
-            pca2=self.pca2,
-            whitener1=self.whitener1,
-            whitener2=self.whitener2,
-            sorted=self.sorted,
-            sample_name=self.sample_name,
-            feature_name=self.feature_name,
-        )
+        return {
+            "data": self.data,
+            "model_data": self.model_data,
+            "preprocessor1": self.preprocessor1,
+            "preprocessor2": self.preprocessor2,
+            "pca1": self.pca1,
+            "pca2": self.pca2,
+            "whitener1": self.whitener1,
+            "whitener2": self.whitener2,
+            "sorted": self.sorted,
+            "sample_name": self.sample_name,
+            "feature_name": self.feature_name,
+        }
 
     def _fit_algorithm(self, model) -> Self:
         self.preprocessor1 = model.preprocessor1
@@ -433,7 +433,7 @@ class CPCCARotator(CPCCA):
     def _sort_by_variance(self):
         """Re-sort the mode dimension of all data variables by variance explained."""
         if not self.sorted:
-            for key in self.data.keys():
+            for key in self.data:
                 if "mode" in self.data[key].dims and key != "idx_modes_sorted":
                     self.data[key] = (
                         self.data[key]

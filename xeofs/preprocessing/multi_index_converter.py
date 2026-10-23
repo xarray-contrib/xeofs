@@ -15,11 +15,11 @@ class MultiIndexConverter(Transformer):
         self.coords_from_transform = {}
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            modified_dimensions=self.modified_dimensions,
-            coords_from_fit=self.coords_from_fit,
-            coords_from_transform=self.coords_from_transform,
-        )
+        return {
+            "modified_dimensions": self.modified_dimensions,
+            "coords_from_fit": self.coords_from_fit,
+            "coords_from_transform": self.coords_from_transform,
+        }
 
     def fit(
         self,
@@ -65,7 +65,7 @@ class MultiIndexConverter(Transformer):
             if dim in X_inverse_transformed.dims:
                 X_inverse_transformed.coords[dim] = original_index
                 # Set indexes to original MultiIndexes
-                indexes = [idx for idx in original_index.indexes.keys() if idx != dim]
+                indexes = [idx for idx in original_index.indexes if idx != dim]
                 X_inverse_transformed = X_inverse_transformed.set_index({dim: indexes})
 
         return X_inverse_transformed

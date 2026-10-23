@@ -44,12 +44,12 @@ def test_fit(eof_model):
     eof_rotator = EOFRotator(n_modes=3)
     eof_rotator.fit(eof_model)
 
-    assert hasattr(
-        eof_rotator, "model_data"
-    ), 'The attribute "model_data" should be populated after fitting.'
-    assert hasattr(
-        eof_rotator, "data"
-    ), 'The attribute "data" should be populated after fitting.'
+    assert hasattr(eof_rotator, "model_data"), (
+        'The attribute "model_data" should be populated after fitting.'
+    )
+    assert hasattr(eof_rotator, "data"), (
+        'The attribute "data" should be populated after fitting.'
+    )
     assert isinstance(eof_rotator.model_data, DataContainer)
     assert isinstance(eof_rotator.data, DataContainer)
 
@@ -227,7 +227,7 @@ def test_save_load(dim, mock_data_array, tmp_path, engine):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         if original.data._allow_compute[key]:
             assert loaded.data[key].equals(original.data[key])

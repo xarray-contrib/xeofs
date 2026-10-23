@@ -21,11 +21,11 @@ class Concatenator(Transformer):
         self.coords_in = {}
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            n_data=self.n_data,
-            n_features=self.n_features,
-            coords_in=self.coords_in,
-        )
+        return {
+            "n_data": self.n_data,
+            "n_features": self.n_features,
+            "coords_in": self.coords_in,
+        }
 
     def fit(
         self,
@@ -34,15 +34,15 @@ class Concatenator(Transformer):
         feature_dims: DimsList | None = None,
     ) -> Self:
         # Check that all inputs are DataArrays
-        if not all([isinstance(data, DataArray) for data in X]):
+        if not all(isinstance(data, DataArray) for data in X):
             raise ValueError("Input must be a list of DataArrays")
 
         # Check that all inputs have shape 2
-        if not all([len(data.dims) == 2 for data in X]):
+        if not all(len(data.dims) == 2 for data in X):
             raise ValueError("Input DataArrays must have shape 2")
 
         # Check that all inputs have the same sample_name and feature_name
-        if not all([data.dims == (self.sample_name, self.feature_name) for data in X]):
+        if not all(data.dims == (self.sample_name, self.feature_name) for data in X):
             raise ValueError("Input DataArrays must have the same dimensions")
 
         self.n_data = len(X)

@@ -55,15 +55,15 @@ def test_fit(eof_model):
     bootstrapper.fit(eof_model)
 
     # DataArrays are created
-    assert isinstance(
-        bootstrapper.data["explained_variance"], xr.DataArray
-    ), "explained variance is not a DataArray"
-    assert isinstance(
-        bootstrapper.data["components"], xr.DataArray
-    ), "components is not a DataArray"
-    assert isinstance(
-        bootstrapper.data["scores"], xr.DataArray
-    ), "scores is not a DataArray"
+    assert isinstance(bootstrapper.data["explained_variance"], xr.DataArray), (
+        "explained variance is not a DataArray"
+    )
+    assert isinstance(bootstrapper.data["components"], xr.DataArray), (
+        "components is not a DataArray"
+    )
+    assert isinstance(bootstrapper.data["scores"], xr.DataArray), (
+        "scores is not a DataArray"
+    )
 
     # DataArrays have expected dims
     expected_dims = set(eof_model.data["explained_variance"].dims)
@@ -90,9 +90,9 @@ def test_fit(eof_model):
     ref_da = eof_model.data["explained_variance"]
     test_da = bootstrapper.data["explained_variance"]
     for dim, coords in ref_da.coords.items():
-        assert test_da[dim].equals(
-            coords
-        ), f"explained variance coords for {dim} are not equal"
+        assert test_da[dim].equals(coords), (
+            f"explained variance coords for {dim} are not equal"
+        )
 
     ref_da = eof_model.data["components"]
     test_da = bootstrapper.data["components"]
@@ -130,9 +130,9 @@ def test_seed(eof_model):
     bootstrapper2.fit(eof_model)
     expvar2 = bootstrapper2.explained_variance()
 
-    assert np.allclose(
-        expvar1.values, expvar2.values
-    ), "bootstrapping with the same seed does not produce the same results"
+    assert np.allclose(expvar1.values, expvar2.values), (
+        "bootstrapping with the same seed does not produce the same results"
+    )
 
 
 @pytest.mark.parametrize(
@@ -170,9 +170,9 @@ def test_explained_variance(eof_model):
 
     # DataArrays have expected coords
     for dim, coords in ref.coords.items():
-        assert expvar[dim].equals(
-            coords
-        ), f"explained variance coords for {dim} are not equal"
+        assert expvar[dim].equals(coords), (
+            f"explained variance coords for {dim} are not equal"
+        )
 
 
 @pytest.mark.parametrize(
@@ -196,9 +196,9 @@ def test_explained_variance_ratio(eof_model):
     bootstrapper.fit(eof_model)
 
     expvar = bootstrapper.explained_variance_ratio()
-    assert isinstance(
-        expvar, xr.DataArray
-    ), "explained variance ratio is not a DataArray"
+    assert isinstance(expvar, xr.DataArray), (
+        "explained variance ratio is not a DataArray"
+    )
 
     # DataArrays have expected dims
     ref = eof_model.explained_variance_ratio()
@@ -210,9 +210,9 @@ def test_explained_variance_ratio(eof_model):
 
     # DataArrays have expected coords
     for dim, coords in ref.coords.items():
-        assert expvar[dim].equals(
-            coords
-        ), f"explained variance ratio coords for {dim} are not equal"
+        assert expvar[dim].equals(coords), (
+            f"explained variance ratio coords for {dim} are not equal"
+        )
 
 
 @pytest.mark.parametrize(
@@ -245,9 +245,9 @@ def test_components(eof_model, expected_type):
 
     # check for expected coords
     for dim, coords in ref.coords.items():
-        assert components[dim].equals(
-            coords
-        ), f"components coords for {dim} are not equal"
+        assert components[dim].equals(coords), (
+            f"components coords for {dim} are not equal"
+        )
 
 
 @pytest.mark.parametrize(
@@ -281,9 +281,9 @@ def test_components_list(eof_model, expected_type):
     # check for expected coords
     for ref, comps in zip(ref_list, comps_list):
         for dim, coords in ref.coords.items():
-            assert comps[dim].equals(
-                coords
-            ), f"components coords for {dim} are not equal"
+            assert comps[dim].equals(coords), (
+                f"components coords for {dim} are not equal"
+            )
 
 
 @pytest.mark.parametrize(

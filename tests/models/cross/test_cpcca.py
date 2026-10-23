@@ -59,6 +59,17 @@ def cpcca():
     return CPCCA(n_modes=1)
 
 
+@pytest.mark.parametrize("kwargs", [{}, {"solver_kwargs": None}])
+def test_default_solver_kwargs_are_not_shared(kwargs):
+    pytest.importorskip("statsmodels")
+    first = CPCCA(n_modes=2, **kwargs)
+    second = CPCCA(n_modes=2, **kwargs)
+
+    first._decomposer_kwargs["solver_kwargs"]["full_matrices"] = False
+
+    assert second._decomposer_kwargs["solver_kwargs"] == {}
+
+
 def test_initialization():
     model = CPCCA()
     assert model is not None
@@ -198,12 +209,12 @@ def test_components(mock_data_array, dim):
     feature_dims = tuple(set(mock_data_array.dims) - set(dim))
     assert isinstance(components1, xr.DataArray)
     assert isinstance(components2, xr.DataArray)
-    assert set(components1.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components1 does not have the right feature dimensions"
-    assert set(components2.dims) == set(
-        ("mode",) + feature_dims
-    ), "Components2 does not have the right feature dimensions"
+    assert set(components1.dims) == set(("mode",) + feature_dims), (
+        "Components1 does not have the right feature dimensions"
+    )
+    assert set(components2.dims) == set(("mode",) + feature_dims), (
+        "Components2 does not have the right feature dimensions"
+    )
 
 
 @pytest.mark.parametrize(
@@ -301,7 +312,7 @@ def test_save_load(tmp_path, engine, alpha):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         if original.data._allow_compute[key]:
             assert loaded.data[key].equals(original.data[key])
@@ -347,7 +358,7 @@ def test_save_load_with_data(tmp_path, engine, alpha):
 
     # Check that the params and DataContainer objects match
     assert original.get_params() == loaded.get_params()
-    assert all([key in loaded.data for key in original.data])
+    assert all(key in loaded.data for key in original.data)
     for key in original.data:
         assert loaded.data[key].equals(original.data[key])
 

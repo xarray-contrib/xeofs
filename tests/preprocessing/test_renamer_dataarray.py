@@ -1,6 +1,7 @@
 import pytest
 
 from xeofs.preprocessing.dimension_renamer import DimensionRenamer
+
 from ..utilities import (
     data_is_dask,
     get_dims_from_data,
@@ -38,7 +39,7 @@ def test_transform(synthetic_dataarray):
 
     base = "new"
     start = 10
-    expected_dims = set(base + str(i) for i in range(start, start + n_dims))
+    expected_dims = {base + str(i) for i in range(start, start + n_dims)}
 
     renamer = DimensionRenamer(base=base, start=start)
     renamer.fit(synthetic_dataarray, sample_dims, feature_dims)
@@ -66,7 +67,7 @@ def test_transform(synthetic_dataarray):
     indirect=["synthetic_dataarray"],
 )
 def test_inverse_transform_data(synthetic_dataarray):
-    all_dims, sample_dims, feature_dims = get_dims_from_data(synthetic_dataarray)
+    _all_dims, sample_dims, feature_dims = get_dims_from_data(synthetic_dataarray)
 
     base = "new"
     start = 10

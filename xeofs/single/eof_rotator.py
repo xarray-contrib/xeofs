@@ -93,12 +93,12 @@ class EOFRotator(EOF):
         self.sorted = False
 
     def get_serialization_attrs(self) -> dict:
-        return dict(
-            data=self.data,
-            preprocessor=self.preprocessor,
-            model_data=self.model_data,
-            sorted=self.sorted,
-        )
+        return {
+            "data": self.data,
+            "preprocessor": self.preprocessor,
+            "model_data": self.model_data,
+            "sorted": self.sorted,
+        }
 
     def fit(self, model) -> Self:
         """Rotate the solution obtained from ``xe.single.EOF``.
@@ -215,7 +215,7 @@ class EOFRotator(EOF):
     def _sort_by_variance(self):
         """Re-sort the mode dimension of all data variables by variance explained."""
         if not self.sorted:
-            for key in self.data.keys():
+            for key in self.data:
                 if "mode" in self.data[key].dims and key != "idx_modes_sorted":
                     self.data[key] = (
                         self.data[key]

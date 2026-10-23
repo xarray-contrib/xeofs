@@ -35,7 +35,7 @@ import xeofs as xe
 xr.set_options(display_expand_attrs=False)
 
 sst = xr.tutorial.open_dataset("ersstv5").sst
-sst
+sst  # noqa: B018 - Display the data in the gallery.
 
 # %%
 # We fit the ``HilbertEOF`` model directly to the raw data, retaining the seasonal
@@ -44,7 +44,7 @@ sst
 # convergence at the poles. While the ``HilbertEOF`` class offers padding
 # options to mitigate potential edge effects, we'll begin with no padding.
 
-kwargs = dict(n_modes=4, use_coslat=True, random_state=7)
+kwargs = {"n_modes": 4, "use_coslat": True, "random_state": 7}
 model = xe.single.HilbertEOF(padding="none", **kwargs)
 
 # %%
