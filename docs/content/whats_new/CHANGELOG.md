@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [unreleased]
+
+### ⚙️ Miscellaneous
+
+- migrate project management to pixi (#256) - ([7977b94](https://github.com/nicrie/xeofs/commit/7977b94df670f89d23dd227f52c82432b6c68c79)) - Niclas Rieger
+
+---
 ## [3.0.5](https://github.com/nicrie/xeofs/compare/v3.0.4..v3.0.5) - 2026-10-23
 
 ### 🐛 Bug Fixes
