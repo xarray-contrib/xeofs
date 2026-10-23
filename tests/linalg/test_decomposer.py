@@ -163,6 +163,81 @@ def test_fit_dask_exact_matches_numpy(shape, chunks, solver, compute, monkeypatc
     )
 
 
+@pytest.mark.parametrize("shape", [(499, 4), (4, 499)])
+def test_fit_dask_full_rechunks_just_below_size_limit(shape):
+    """The automatic-rechunking cutoff is strictly below 500 on both axes."""
+    data = xr.DataArray(
+        np.random.default_rng(42).normal(size=shape), dims=("sample", "feature")
+    ).chunk({"sample": shape[0] // 2, "feature": shape[1] // 2})
+    decomposer = Decomposer(n_modes=2, solver="full", compute=False)
+
+    tasks = []
+    with Callback(pretask=lambda key, *args: tasks.append(key)):
+        decomposer.fit(data)
+
+    assert not tasks
+    assert isinstance(decomposer.s_.data, DaskArray)
+
+
+@pytest.mark.parametrize("shape", [(500, 4), (4, 500)])
+@pytest.mark.parametrize("compute", [False, True])
+def test_fit_dask_full_rejects_large_fully_chunked_input(shape, compute, monkeypatch):
+    """Reject redistribution before rechunking or executing any Dask tasks."""
+    data = xr.DataArray(
+        np.random.default_rng(42).normal(size=shape), dims=("sample", "feature")
+    ).chunk({"sample": shape[0] // 2, "feature": shape[1] // 2})
+    original_chunks = data.chunks
+    original_rechunk = DaskArray.rechunk
+    rechunks = []
+
+    def record_rechunk(array, *args, **kwargs):
+        rechunks.append(array.shape)
+        return original_rechunk(array, *args, **kwargs)
+
+    monkeypatch.setattr(DaskArray, "rechunk", record_rechunk)
+    decomposer = Decomposer(n_modes=2, solver="full", compute=compute)
+    tasks = []
+    with Callback(pretask=lambda key, *args: tasks.append(key)):
+        with pytest.raises(
+            ValueError, match="large Dask matrices.*requires explicit rechunking"
+        ):
+            decomposer.fit(data)
+
+    assert not rechunks
+    assert not tasks
+    assert data.chunks == original_chunks
+
+
+@pytest.mark.parametrize("shape", [(500, 4), (4, 500)])
+@pytest.mark.parametrize("layout", ["numpy", "sample", "feature", "single-block"])
+def test_fit_large_full_preserves_supported_layouts(shape, layout):
+    """The cutoff must not restrict NumPy or already-supported Dask layouts."""
+    data = xr.DataArray(
+        np.random.default_rng(42).normal(size=shape), dims=("sample", "feature")
+    )
+    if layout == "numpy":
+        X = data
+    elif layout == "single-block":
+        X = data.chunk({"sample": -1, "feature": -1})
+    else:
+        X = data.chunk({layout: data.sizes[layout] // 2})
+    original_chunks = X.chunks
+
+    decomposer = Decomposer(n_modes=2, solver="full", compute=False)
+    decomposer.fit(X)
+    reference = Decomposer(n_modes=2, solver="full")
+    reference.fit(data)
+
+    assert X.chunks == original_chunks
+    for name in ("U_", "s_", "V_"):
+        xr.testing.assert_allclose(
+            getattr(decomposer, name).compute(),
+            getattr(reference, name),
+            rtol=1e-12,
+            atol=1e-12,
+        )
+
+
 @pytest.mark.parametrize("compute", [True, False])
 def test_fit_dask_randomized(mock_dask_data_array, compute):
     # The Dask SVD solver has no parameter 'random_state' but 'seed' instead,
