@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [unreleased]
+
+### 🔖 Documentation
+
+- preserve GWPCA plotting coordinate columns (#259) - ([5958363](https://github.com/nicrie/xeofs/commit/5958363a542081368d7a790c6b6cb7253c86fc8b)) - Niclas Rieger
+
+---
 ## [3.0.6](https://github.com/nicrie/xeofs/compare/v3.0.5..v3.0.6) - 2026-10-23
 
 ### 🐛 Bug Fixes
