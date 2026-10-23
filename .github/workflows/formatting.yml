@@ -12,17 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Python
-        uses: actions/setup-python@v5
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.11.2
         with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          # Keep in sync with pyproject.toml and .pre-commit-config.yaml.
-          pip install ruff==0.3.4
+          pixi-version: v0.82.1
+          environments: lint
+          locked: true
       # Update output format to enable automatic inline annotations.
       - name: Run Ruff
         run: |
-          ruff check
-          ruff format --check
+          pixi run --locked -e lint lint
+          pixi run --locked -e lint format-check

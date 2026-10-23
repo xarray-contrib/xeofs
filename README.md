@@ -124,7 +124,20 @@ For a more comprehensive overview and usage examples, visit the [documentation](
 
 ## Contributing
 
-Contributions are highly welcomed and appreciated. If you're interested in improving `xeofs` or fixing issues, please read our [Contributing Guide](https://xeofs.readthedocs.io/en/latest/overview_3_contributing.html).
+Contributions are highly welcomed and appreciated. If you're interested in improving `xeofs` or fixing issues, please read our [Contributing Guide](https://xeofs.readthedocs.io/en/latest/content/contributing.html).
+
+For local development, [install Pixi](https://pixi.sh/latest/installation/) and
+run these commands from your clone:
+
+```sh
+pixi install --locked
+pixi run test
+pixi run -e lint lint
+pixi run -e docs docs
+```
+
+Pixi installs an editable copy of `xeofs` and uses the committed `pixi.lock`.
+Installing released packages with pip or Conda is unchanged.
 
 ## License
 
