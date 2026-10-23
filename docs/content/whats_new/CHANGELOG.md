@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file. See [conven
 
 - preserve GWPCA plotting coordinate columns (#259) - ([5958363](https://github.com/nicrie/xeofs/commit/5958363a542081368d7a790c6b6cb7253c86fc8b)) - Niclas Rieger
 
+### ⚙️ Miscellaneous
+
+- drop Python 3.10 and add Python 3.13 support (#260) - ([cd1ff47](https://github.com/nicrie/xeofs/commit/cd1ff475e75f26f6b6cc57533d595ab1185bf6d0)) - Niclas Rieger
+
 ---
 ## [3.0.6](https://github.com/nicrie/xeofs/compare/v3.0.5..v3.0.6) - 2026-10-23
 
