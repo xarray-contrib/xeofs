@@ -132,6 +132,11 @@ class Decomposer:
 
         # Use exact SVD for small data sets
         if use_exact:
+            if use_dask and all(n > 1 for n in X.data.numblocks):
+                # Dask's exact SVD requires one unchunked dimension.
+                # Merge the shorter axis, leaving the other axis partitioned.
+                dim = min(dims, key=lambda dim: X.sizes[dim])
+                X = X.chunk({dim: -1})
             U, s, VT = self._svd(X, dims, np.linalg.svd, self.solver_kwargs)
             U = U[:, : self.n_modes_precompute]
             s = s[: self.n_modes_precompute]

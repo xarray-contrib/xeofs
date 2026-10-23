@@ -1,6 +1,9 @@
+import dask
 import numpy as np
 import pytest
+import xarray as xr
 from dask.array import Array as DaskArray  # type: ignore
+from dask.callbacks import Callback
 
 from xeofs.linalg.decomposer import Decomposer
 
@@ -109,6 +112,55 @@ def test_fit_dask_full(mock_dask_data_array):
     assert decomposer.U_.shape[1] == 2
     assert decomposer.s_.shape[0] == 2
     assert decomposer.V_.shape[1] == 2
+
+
+@pytest.mark.parametrize("shape", [(12, 8), (8, 12), (8, 8)])
+@pytest.mark.parametrize(
+    "chunks",
+    [(3, 3), (3, -1), (-1, 3), (-1, -1)],
+    ids=["both-axes", "rows", "columns", "single-block"],
+)
+@pytest.mark.parametrize("solver", ["auto", "full"])
+@pytest.mark.parametrize("compute", [False, True])
+def test_fit_dask_exact_matches_numpy(shape, chunks, solver, compute, monkeypatch):
+    """Exact SVD must preserve results and laziness across chunk layouts."""
+    dims = ("left_feature", "right_feature")
+    data = xr.DataArray(np.random.default_rng(42).normal(size=shape), dims=dims)
+    chunked = data.chunk(dict(zip(dims, chunks)))
+    original_chunks = chunked.chunks
+    expected_numblocks = list(chunked.data.numblocks)
+    if all(n > 1 for n in expected_numblocks):
+        expected_numblocks[np.argmin(shape)] = 1
+
+    decomposer = Decomposer(n_modes=min(shape), solver=solver, compute=compute)
+    original_svd = decomposer._svd
+    calls = []
+
+    def record_svd(X, dims, func, kwargs):
+        calls.append((X.data.numblocks, func))
+        return original_svd(X, dims, func, kwargs)
+
+    monkeypatch.setattr(decomposer, "_svd", record_svd)
+    tasks = []
+    with Callback(pretask=lambda key, *args: tasks.append(key)):
+        decomposer.fit(chunked, dims=dims)
+
+    assert not tasks, "Fitting the exact Dask SVD must not execute the graph"
+    assert chunked.chunks == original_chunks
+    assert calls == [(tuple(expected_numblocks), np.linalg.svd)]
+    assert all(
+        isinstance(result.data, DaskArray)
+        for result in (decomposer.U_, decomposer.s_, decomposer.V_)
+    )
+
+    reference = Decomposer(n_modes=min(shape), solver=solver, compute=compute)
+    reference.fit(data, dims=dims)
+    U, s, V = dask.compute(decomposer.U_, decomposer.s_, decomposer.V_)
+    for actual, expected in zip((U, s, V), (reference.U_, reference.s_, reference.V_)):
+        xr.testing.assert_allclose(actual, expected, rtol=1e-12, atol=1e-12)
+    np.testing.assert_allclose(
+        (U.values * s.values) @ V.values.T, data.values, rtol=1e-12, atol=1e-12
+    )
 
 
 @pytest.mark.parametrize("compute", [True, False])
