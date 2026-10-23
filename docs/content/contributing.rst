@@ -42,21 +42,61 @@ This command sequence creates a local directory named *xeofs* and links your ver
 2. Set up your development environment
 --------------------------------------
 
-Using the commands below, prepare your environment:
+Install `Pixi <https://pixi.sh/latest/installation/>`__, then prepare your
+environment from the repository root:
 
 .. code-block:: bash
 
-    conda create -n xeofs python=3.11 rpy2 pandoc
-    conda activate xeofs
-    pip install -e .[complete,docs,dev]
+    pixi install --locked
 
-This will install both core and optional dependencies, including those for specialized models, documentation, and development. Alternatively, you can skip some of the optional dependency sets (``[complete,docs,dev]``) depending on which components of the package you're working on.
+The default environment installs Python 3.11, an editable copy of ``xeofs``,
+development tools, and the ``complete`` optional dependencies. Pixi manages
+the environment in ``.pixi/``; no separate Conda environment or activation is
+needed. Use ``pixi run`` to execute commands, or ``pixi shell`` for an
+interactive shell.
+
+The dependency declarations remain in ``pyproject.toml`` and the resolved
+versions for Linux, macOS, and Windows are recorded in ``pixi.lock``. After
+changing dependencies, run ``pixi lock`` and commit both files. To update
+resolved packages without changing the requirements, run ``pixi update``.
+
+Other environments are available for specific tasks:
+
+.. code-block:: bash
+
+    pixi run -e minimal-py311 test
+    pixi run -e minimal-py312 test
+    pixi run -e complete-py312 test
+    pixi run -e lint lint
+    pixi run -e lint format-check
+    pixi run -e docs docs
+    pixi run build
+
+The documentation environment includes R, rpy2, and Pandoc and is available
+on Linux and macOS. The other locked environments also support Windows.
+
+CI additionally tests Python 3.10 with the lowest supported PyPI dependencies.
+Because Pixi does not expose PyPI's ``lowest-direct`` resolution strategy,
+this check uses ``uv`` inside a separate Pixi-managed environment:
+
+.. code-block:: bash
+
+    pixi run -e lowest install-lowest '.[dev]'
+    pixi run -e lowest coverage
+    pixi run -e lowest install-lowest '.[dev,complete]'
+    pixi run -e lowest coverage --doctest-glob=README.md
+
+These compatibility-check dependencies are intentionally resolved afresh,
+not locked. To switch back from complete to minimal dependencies, remove
+only ``.pixi/envs/lowest`` first so optional packages do not leak into the
+minimal check.
 
 Additionally, install the pre-commit hooks:
 
 .. code-block:: bash
 
-    pre-commit install
+    pixi run pre-commit install
+    pixi run pre-commit install --hook-type commit-msg
 
 If you've completed Steps 1 and 2, you can move directly to Step 4.
 
@@ -90,7 +130,7 @@ After making your updates, remember to commit them:
 .. code-block:: bash
 
     git add .
-    git commit -m "concise commit message"
+    git commit -m "fix: concise description of the bug fix"
 
 
 .. note::
@@ -99,6 +139,15 @@ After making your updates, remember to commit them:
 
     - Use **fix:** prefix for **bug fixes**. This will trigger a patch release.
     - Use **feat:** prefix for **new features**. This will initiate a minor release.
+    - Add **!** for **breaking changes**, for example ``feat!: change the public API``.
+      This will trigger a major release.
+    - Use **chore:** for maintenance that should not trigger a release.
+
+    Releases run automatically after merging onto ``main``. Use the same
+    conventional commit format for the pull request title when squash-merging.
+    Python Semantic Release continues to update ``project.version`` in
+    ``pyproject.toml`` and build the wheel and source distribution with
+    setuptools. Publishing does not depend on Pixi or its development lockfile.
 
 
 
@@ -109,7 +158,8 @@ It's essential to test any modifications to ensure compatibility with the existi
 
 .. code-block:: bash
 
-    pytest
+    pixi run test
+    pixi run test-readme
 
 If you introduce a new feature or function, please also add corresponding tests in the `tests` directory.
 
@@ -126,6 +176,5 @@ Once satisfied with your changes, push them to your GitHub fork:
 Then, on your GitHub fork page, select "Compare & pull request" to initiate the pull request.
 
 
-.. _convential commit: https://www.conventionalcommits.org/en/v1.0.0/
+.. _conventional commit: https://www.conventionalcommits.org/en/v1.0.0/
 .. _xarray Contributing Guide: https://docs.xarray.dev/en/stable/contributing.html#version-control-git-and-github
-

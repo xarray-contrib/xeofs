@@ -1,4 +1,4 @@
-# Basic workflow for building and testing the pip installation
+# Test locked Pixi environments and the lowest supported PyPI dependencies.
 
 name: Continuous Integration
 
@@ -11,46 +11,49 @@ on:
 
 jobs:
   test:
-    name: py${{ matrix.versions.python-version }} ${{ matrix.versions.resolution }} ${{ matrix.deps.name}}
+    name: ${{ matrix.environment }} ${{ matrix.extras }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        versions:
-          - python-version: '3.10'
-            resolution: lowest-direct
-          - python-version: '3.11'
-            resolution: highest
-          - python-version: '3.12'
-            resolution: highest
-        deps:
-          - name: minimal
-            value: '[dev]'
-            doctest: '' # doctest runs MCA and requires statsmodels
-          - name: complete
-            value: '[dev,complete]'
+        include:
+          - environment: lowest
+            extras: '[dev]'
+          - environment: lowest
+            extras: '[dev,complete]'
+            doctest: '--doctest-glob=README.md'
+          - environment: minimal-py311
+          - environment: default # Python 3.11 with complete dependencies
+            doctest: '--doctest-glob=README.md'
+          - environment: minimal-py312
+          - environment: complete-py312
             doctest: '--doctest-glob=README.md'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.versions.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.11.2
         with:
-          python-version: ${{ matrix.versions.python-version }}
+          pixi-version: v0.82.1
+          environments: ${{ matrix.environment }}
+          locked: true
+          # Do not cache packages installed outside the lockfile by uv.
+          cache: ${{ matrix.environment != 'lowest' }}
 
-      - name: Install dependencies
-        run: |
-          pip install uv
-          uv pip install .${{ matrix.deps.value }} -r pyproject.toml \
-             --system --resolution ${{ matrix.versions.resolution }}
+      - name: Install lowest supported dependencies
+        if: matrix.environment == 'lowest'
+        run: pixi run --locked -e lowest install-lowest ".${{ matrix.extras }}"
+
+      - name: Build wheel and source distribution
+        if: matrix.environment == 'default'
+        run: pixi run --locked build
 
       - name: Execute Tests
         run: |
-          coverage run -m pytest -n auto ${{ matrix.deps.doctest }}
-          coverage report -m
-          coverage xml
+          pixi run --locked -e ${{ matrix.environment }} coverage ${{ matrix.doctest }}
+          pixi run --locked -e ${{ matrix.environment }} coverage-report
 
       - name: Upload Coverage Report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
