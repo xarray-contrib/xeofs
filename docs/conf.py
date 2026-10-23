@@ -257,9 +257,8 @@ def shorten_titles(app):
                     with open(file_path, "w") as file:
                         file.writelines(lines)
 
-    path = os.path.join(
-        os.path.abspath(".."), "docs/content/api_reference/_autosummary"
-    )
+    # Read the Docs runs Sphinx from the repository root, not the docs directory.
+    path = os.path.join(app.srcdir, "content/api_reference/_autosummary")
     crawl_source_shorten_titles(path)
 
 
