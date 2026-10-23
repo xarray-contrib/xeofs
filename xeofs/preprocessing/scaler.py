@@ -1,7 +1,8 @@
+from typing import Self
+
 import dask
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from ..utils.data_types import DataArray, DataVar, DataVarBound, Dims
 from ..utils.xarray_utils import compute_sqrt_cos_lat_weights, feature_ones_like

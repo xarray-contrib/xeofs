@@ -1,8 +1,8 @@
 from collections.abc import Sequence
+from typing import Self
 
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from ..base_model import BaseModel
 from ..data_container import DataContainer

@@ -10,6 +10,7 @@ Copyright (c) 2020 onward James Chapman
 from abc import abstractmethod
 from collections.abc import Hashable, Sequence
 from datetime import datetime
+from typing import Self
 
 import dask.array as da
 import numpy as np
@@ -17,7 +18,6 @@ import xarray as xr
 from scipy.linalg import eigh
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import FLOAT_DTYPES
-from typing_extensions import Self
 
 from .._version import __version__
 from ..preprocessing.preprocessor import Preprocessor

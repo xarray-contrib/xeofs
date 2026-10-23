@@ -1,9 +1,8 @@
 from abc import abstractmethod
 from collections.abc import Hashable, Sequence
-from typing import Any
+from typing import Any, Self
 
 from numpy.random import Generator
-from typing_extensions import Self
 
 from ..base_model import BaseModel
 from ..data_container import DataContainer

@@ -8,13 +8,12 @@ The following packages are dependencies of ``xeofs``:
 
 **Core Dependencies (Required)**
 
-* Python (3.10 or higher)
+* Python (3.11 or higher)
 * `numpy <https://www.numpy.org/>`__
 * `pandas <https://pandas.pydata.org/>`__
 * `xarray <http://xarray.pydata.org/>`__
 * `dask <https://dask.org/>`__
 * `scikit-learn <https://scikit-learn.org/stable/>`__
-* `typing-extensions <https://pypi.org/project/typing-extensions/>`__
 * `tqdm <https://tqdm.github.io/>`__
 
 **For Specialized Models (Optional)**

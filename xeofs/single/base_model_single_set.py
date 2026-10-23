@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from collections.abc import Hashable, Sequence
+from typing import Self
 
 import xarray as xr
-from typing_extensions import Self
 
 from ..base_model import BaseModel
 from ..data_container import DataContainer

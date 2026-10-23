@@ -1,8 +1,8 @@
 from datetime import datetime
+from typing import Self
 
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from .._version import __version__
 from ..data_container import DataContainer

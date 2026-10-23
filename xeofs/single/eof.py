@@ -1,8 +1,8 @@
 import warnings
+from typing import Self
 
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from ..linalg.decomposer import Decomposer
 from ..utils.data_types import DataArray, DataObject

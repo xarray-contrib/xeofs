@@ -1,10 +1,9 @@
 import warnings
 from collections.abc import Sequence
-from typing import ClassVar
+from typing import ClassVar, Self
 
 import numpy as np
 import xarray as xr
-from typing_extensions import Self
 
 from ..linalg._numpy import _fractional_matrix_power
 from ..linalg.decomposer import Decomposer
