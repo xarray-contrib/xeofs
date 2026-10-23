@@ -353,8 +353,8 @@ def test_heterogeneous_patterns(mca_model, mock_data_array, dim):
         (("lon", "lat"), False),
     ],
 )
-def test_compute(mock_dask_data_array, dim, compute):
-    mca_model = MCA(n_modes=10, compute=compute, n_pca_modes=10)
+def test_compute(mock_data_array, mock_dask_data_array, dim, compute):
+    mca_model = MCA(n_modes=10, compute=compute, n_pca_modes=10, random_state=0)
     mca_model.fit(mock_dask_data_array, mock_dask_data_array, (dim))
 
     if compute:
@@ -366,6 +366,22 @@ def test_compute(mock_dask_data_array, dim, compute):
         assert data_is_dask(mca_model.data["singular_values"])
         assert data_is_dask(mca_model.data["components1"])
         assert data_is_dask(mca_model.data["components2"])
+
+    reference = MCA(n_modes=10, n_pca_modes=10, random_state=0)
+    reference.fit(mock_data_array, mock_data_array, dim)
+    for name in (
+        "singular_values",
+        "components1",
+        "components2",
+        "scores1",
+        "scores2",
+    ):
+        xr.testing.assert_allclose(
+            mca_model.data[name].compute(),
+            reference.data[name],
+            rtol=1e-10,
+            atol=1e-10,
+        )
 
 
 @pytest.mark.parametrize(

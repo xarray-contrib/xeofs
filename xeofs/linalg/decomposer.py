@@ -30,17 +30,27 @@ class Decomposer:
     compute : bool, default=True
         Whether to compute the decomposition immediately.
     solver : {'auto', 'full', 'randomized'}, default='auto'
-        The solver is selected by a default policy based on size of `X` and `n_modes`:
-        if the input data is larger than 500x500 and the number of modes to extract is lower
-        than 80% of the smallest dimension of the data, then the more efficient
-        `randomized` method is enabled. Otherwise the exact full SVD is computed
-        and optionally truncated afterwards.
+        With 'auto', exact SVD is selected when both dimensions of `X` are
+        smaller than 500 and the number of modes to compute exceeds 80% of
+        the smaller dimension. Otherwise a truncated solver is selected.
+        'full' requests exact SVD regardless of matrix size; it does not
+        authorize automatic rechunking of large Dask arrays.
     random_state : np.random.Generator | int | None, default=None
         Seed for the random number generator.
     component_dim_name : str, default='mode'
         Name of the component dimension in the output DataArrays.
     solver_kwargs : dict, default={}
         Additional keyword arguments passed to the SVD solver.
+
+    Notes
+    -----
+    Dask's exact SVD requires at least one axis to have a single chunk.
+    If both axes are partitioned, the shorter axis is lazily consolidated
+    only when both matrix dimensions are smaller than 500. This reuses the
+    automatic solver's size cutoff to bound implicit data redistribution,
+    not to estimate available worker memory. Larger, fully chunked matrices
+    require explicit rechunking or dimensionality reduction. NumPy inputs
+    and already-supported Dask chunk layouts are unaffected by this limit.
     """
 
     def __init__(
@@ -130,8 +140,23 @@ class Decomposer:
                     "Valid options are 'auto', 'full', and 'randomized'."
                 )
 
-        # Use exact SVD for small data sets
+        # An explicit 'full' request can also select exact SVD for large data.
         if use_exact:
+            if use_dask and all(n > 1 for n in X.data.numblocks):
+                # Dask's exact SVD requires one unchunked dimension.
+                # Reuse the 'auto' size cutoff: large-array redistribution
+                # must remain an explicit user decision, even with 'full'.
+                if not is_small_data:
+                    raise ValueError(
+                        "Exact SVD of large Dask matrices chunked along both axes "
+                        "requires explicit rechunking. Rechunk one axis into a "
+                        "single chunk, or reduce dimensionality with PCA. "
+                        "Automatic rechunking is only supported when both "
+                        "dimensions are smaller than 500."
+                    )
+                # Merge the shorter axis, leaving the other axis partitioned.
+                dim = min(dims, key=lambda dim: X.sizes[dim])
+                X = X.chunk({dim: -1})
             U, s, VT = self._svd(X, dims, np.linalg.svd, self.solver_kwargs)
             U = U[:, : self.n_modes_precompute]
             s = s[: self.n_modes_precompute]
