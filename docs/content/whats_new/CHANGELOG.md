@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. See [conven
 ### ⚙️ Miscellaneous
 
 - migrate project management to pixi (#256) - ([7977b94](https://github.com/nicrie/xeofs/commit/7977b94df670f89d23dd227f52c82432b6c68c79)) - Niclas Rieger
+- update Ruff to 0.17.2 (#257) - ([438db41](https://github.com/nicrie/xeofs/commit/438db4148f61f996f355c2fc3a94249745b781d5)) - Niclas Rieger
 
 ---
 ## [3.0.5](https://github.com/nicrie/xeofs/compare/v3.0.4..v3.0.5) - 2026-10-23
