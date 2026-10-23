@@ -3,7 +3,11 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
-## [unreleased]
+## [3.0.6](https://github.com/nicrie/xeofs/compare/v3.0.5..v3.0.6) - 2026-10-23
+
+### 🐛 Bug Fixes
+
+- **(docs)** resolve autosummary paths from Sphinx source directory (#258) - ([f368d9c](https://github.com/nicrie/xeofs/commit/f368d9c3b19d3dfe40b6aa2fae820509e4e19412)) - Niclas Rieger
 
 ### ⚙️ Miscellaneous
 
